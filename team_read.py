@@ -12,7 +12,8 @@ def readTeam(teamRaw):
             'Tera Type': '',
             'EVs': {},
             'Nature': '',
-            'Moves': []
+            'Moves': [],
+            'Roles':[]
         }
 
         for line in lines:
