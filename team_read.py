@@ -1,0 +1,105 @@
+def readTeam(teamRaw):
+    team = {}
+    teamRaw = teamRaw.strip().split('\n\n')
+
+    for i, block in enumerate(teamRaw):
+        lines = block.strip().split('\n')
+        poke_data = {
+            'Pokemon': '',
+            'Item': '',
+            'Ability': '',
+            'Shiny': False,
+            'Tera Type': '',
+            'EVs': {},
+            'Nature': '',
+            'Moves': []
+        }
+
+        for line in lines:
+            line = line.strip()
+            if '@' in line:
+                poke_data['Pokemon'] = line.split('@')[0].strip()
+                poke_data['Item'] = line.split('@')[1].strip()
+            elif line.startswith('Ability:'):
+                poke_data['Ability'] = line.split('Ability:')[1].strip()
+            elif line.startswith('Shiny:'):
+                poke_data['Shiny'] = line.split('Shiny:')[1].strip().lower() == 'yes'
+            elif line.startswith('Tera Type:'):
+                poke_data['Tera Type'] = line.split('Tera Type:')[1].strip()
+            elif line.startswith('EVs:'):
+                evs = line.split('EVs:')[1].strip().split('/')
+                for ev in evs:
+                    val, stat = ev.strip().split(' ')
+                    poke_data['EVs'][stat] = int(val)
+            elif line.endswith('Nature'):
+                poke_data['Nature'] = line.replace('Nature', '').strip()
+            elif line.startswith('-'):
+                poke_data['Moves'].append(line.strip('-').strip())
+
+        team[i] = poke_data
+
+    return team
+
+
+
+teamRaw = """Araquanid @ Mental Herb  
+Ability: Water Bubble  
+Shiny: Yes  
+Tera Type: Ghost  
+EVs: 252 HP / 252 Def / 4 SpD  
+Impish Nature  
+- Lunge  
+- Liquidation  
+- Sticky Web  
+- Endeavor
+
+Cinderace @ Shuca Berry  
+Ability: Blaze  
+Tera Type: Fairy
+EVs: 252 Atk / 4 Def / 252 Spe  
+Jolly Nature  
+- Swords Dance  
+- Pyro Ball  
+- Gunk Shot  
+- Sucker Punch  
+
+Kingambit @ Black Glasses  
+Ability: Supreme Overlord  
+Tera Type: Dark  
+EVs: 252 Atk / 4 SpD / 252 Spe  
+Adamant Nature  
+- Swords Dance  
+- Kowtow Cleave  
+- Iron Head  
+- Sucker Punch  
+
+Dragonite @ Lum Berry  
+Ability: Multiscale  
+Tera Type: Ground  
+EVs: 252 Atk / 4 SpD / 252 Spe  
+Adamant Nature      
+- Earthquake  
+- Dragon Tail  
+
+Iron Treads @ Booster Energy  
+Ability: Quark Drive  
+Tera Type: Ghost  
+EVs: 252 Atk / 4 SpD / 252 Spe  
+Adamant Nature  
+- Rapid Spin  
+- Iron Head  
+- Supercell Slam  
+
+Pecharunt @ Air Balloon  
+Ability: Poison Puppeteer  
+Tera Type: Fighting  
+EVs: 252 SpA / 4 SpD / 252 Spe  
+Timid Nature  
+- Nasty Plot  
+- Shadow Ball  
+- Malignant Chain  
+- Tera Blast
+""" 
+team = readTeam(teamRaw)
+for i in team:
+    print(team[i])
