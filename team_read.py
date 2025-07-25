@@ -23,7 +23,8 @@ def detectRole(team):
         if any(move in moves for move in pivot_moves):
             team[poke]["Roles"].append("Pivot")
         if any(move in moves for move in recovery_moves): #REWORK This shit lil bro, ts dont make sense
-            team[poke]["Roles"].append("Recovery")
+            if 'HP' in team[poke]["EVs"] and team[poke]["EVs"].get('Def',0)>100 or team[poke]["EVs"].get('SpD',0)>100:
+                team[poke]["Roles"].append("Recovery")
         
         #stat based shi
         if team[poke]["EVs"].get("Atk", 0) >= 200:
