@@ -35,7 +35,8 @@ def detectRole(team):
         item = team[poke]["Item"].lower()
         if item in choice_items:
             team[poke]["Roles"].append(choice_items[item])
-
+        if item=='Life Orb':
+            team[poke]["Roles"].append("Wallbreaker")
         
         
     print(team)
