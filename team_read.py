@@ -1,3 +1,35 @@
+def detectRole(team):
+    
+    hazard_moves = {"Stealth Rock", "Spikes", "Toxic Spikes", "Sticky Web"}
+    removal_moves = {"Defog", "Rapid Spin", "Court Change"}
+    setup_moves = {"Swords Dance", "Dragon Dance", "Calm Mind", "Nasty Plot", "Agility", "Bulk Up", "Quiver Dance"}
+    support_moves = {"Wish", "Protect", "Heal Bell", "Aromatherapy", "Thunder Wave", "Taunt", "Toxic", "Leech Seed", "Encore", "Light Screen", "Reflect"}
+    pivot_moves = {"U-turn", "Volt Switch", "Teleport"}
+    recovery_moves = {"Recover", "Roost", "Slack Off", "Moonlight", "Soft-Boiled"}
+
+    for poke in team:
+        moves = team[poke]["Moves"]
+        
+        if any(move in moves for move in hazard_moves):
+            team[poke]["Roles"].append("Hazard Setter")
+        
+        if any(move in moves for move in removal_moves):
+            team[poke]["Roles"].append("Hazard Remover")
+        
+        if any(move in moves for move in setup_moves):
+            team[poke]["Roles"].append("Setup Sweeper")
+        
+        if any(move in moves for move in support_moves):
+            team[poke]["Roles"].append("Support")
+        
+        if any(move in moves for move in pivot_moves):
+            team[poke]["Roles"].append("Pivot")
+        
+        if any(move in moves for move in recovery_moves): #REWORK This shit lil bro, ts dont make sense
+            team[poke]["Roles"].append("Recovery")
+        
+    return team
+
 def readTeam(teamRaw):
     team = {}
     teamRaw = teamRaw.strip().split('\n\n')
@@ -13,7 +45,8 @@ def readTeam(teamRaw):
             'EVs': {},
             'Nature': '',
             'Moves': [],
-            'Roles':[]
+            'Roles':[],
+            'Comments':[]
         }
 
         for line in lines:
@@ -102,5 +135,4 @@ Timid Nature
 - Tera Blast
 """ 
 team = readTeam(teamRaw)
-for i in team:
-    print(team[i])
+detectRole(team)
