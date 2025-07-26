@@ -1,3 +1,16 @@
+import requests
+
+def getType(name):
+    url = f"https://pokeapi.co/api/v2/pokemon/{name.lower()}"
+    res = requests.get(url)
+
+    if res.status_code != 200:
+        return []
+
+    data = res.json()
+    types = [t["type"]["name"].capitalize() for t in data["types"]]
+    return types
+
 def readTeam(teamRaw):
     team = {}
     teamRaw = teamRaw.strip().split('\n\n')
@@ -6,6 +19,7 @@ def readTeam(teamRaw):
         lines = block.strip().split('\n')
         poke_data = {
             'Pokemon': '',
+            'Type':[],
             'Item': '',
             'Ability': '',
             'Shiny': False,
@@ -21,6 +35,7 @@ def readTeam(teamRaw):
             line = line.strip()
             if '@' in line:
                 poke_data['Pokemon'] = line.split('@')[0].strip()
+                poke_data['Type'] = getType(poke_data['Pokemon'])
                 poke_data['Item'] = line.split('@')[1].strip()
             elif line.startswith('Ability:'):
                 poke_data['Ability'] = line.split('Ability:')[1].strip()
@@ -88,19 +103,20 @@ def detectRole(team):
 
 def addComments(team):
     
-    tera_types = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice","Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug","Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
+    tera_types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
     
     for poke in team:
         
-        #total moves
         if len(team[poke]["Moves"]) != 4:
             team[poke]["Comments"].append("Missing moves")
         if sum(team[poke]["EVs"].values()) != 508:
             team[poke]["Comments"].append("Missing EV values")
         if team[poke]["Item"] == "":
             team[poke]["Comments"].append("Has no item")
-        if team[poke]["Tera Type"] not in tera_types:
+        if team[poke]["Tera Type"].lower() not in tera_types:
             team[poke]["Comments"].append("Has improper tera type")
+            
+
 
 teamRaw = """Araquanid @ Mental Herb  
 Ability: Water Bubble  
@@ -160,6 +176,7 @@ Timid Nature
 - Malignant Chain  
 - Tera Blast
 """ 
+
 team = readTeam(teamRaw)
 detectRole(team)
 addComments(team)
