@@ -86,7 +86,21 @@ def detectRole(team):
         
     return team
 
-
+def addComments(team):
+    
+    tera_types = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice","Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug","Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
+    
+    for poke in team:
+        
+        #total moves
+        if len(team[poke]["Moves"]) != 4:
+            team[poke]["Comments"].append("Missing moves")
+        if sum(team[poke]["EVs"].values()) != 508:
+            team[poke]["Comments"].append("Missing EV values")
+        if team[poke]["Item"] == "":
+            team[poke]["Comments"].append("Has no item")
+        if team[poke]["Tera Type"] not in tera_types:
+            team[poke]["Comments"].append("Has improper tera type")
 
 teamRaw = """Araquanid @ Mental Herb  
 Ability: Water Bubble  
@@ -148,6 +162,7 @@ Timid Nature
 """ 
 team = readTeam(teamRaw)
 detectRole(team)
+addComments(team)
 
 for i in team:
     print(team[i])
