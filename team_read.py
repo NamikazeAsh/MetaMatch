@@ -1,4 +1,8 @@
 import requests
+from pprint import pprint
+
+def slugify(name):
+    return name.lower().replace(' ', '-').replace('.', '').replace("'", '')
 
 def getType(name):
     url = f"https://pokeapi.co/api/v2/pokemon/{name.lower()}"
@@ -28,14 +32,16 @@ def readTeam(teamRaw):
             'Nature': '',
             'Moves': [],
             'Roles':[],
-            'Comments':[]
+            'Comments':[],
+            'Damage To':{},
+            'Damage From':{}
         }
 
         for line in lines:
             line = line.strip()
             if '@' in line:
                 poke_data['Pokemon'] = line.split('@')[0].strip()
-                poke_data['Type'] = getType(poke_data['Pokemon'])
+                poke_data['Type'] = getType(slugify(poke_data['Pokemon']))
                 poke_data['Item'] = line.split('@')[1].strip()
             elif line.startswith('Ability:'):
                 poke_data['Ability'] = line.split('Ability:')[1].strip()
@@ -52,6 +58,10 @@ def readTeam(teamRaw):
                 poke_data['Nature'] = line.replace('Nature', '').strip()
             elif line.startswith('-'):
                 poke_data['Moves'].append(line.strip('-').strip())
+
+        dmg_from,dmg_to = damageRelations(poke_data['Type'])
+        poke_data['Damage From'] = dmg_from
+        poke_data['Damage To'] = dmg_to
 
         team[i] = poke_data
 
@@ -98,7 +108,6 @@ def detectRole(team):
         if item=='Life Orb':
             team[poke]["Roles"].append("Wallbreaker")
         
-        
     return team
 
 def addComments(team):
@@ -116,7 +125,58 @@ def addComments(team):
         if team[poke]["Tera Type"].lower() not in tera_types:
             team[poke]["Comments"].append("Has improper tera type")
             
+def damageRelations(ptypes):
+    
+    # print(ptypes)
+    damage_d = {}
+    attack_d = {}
+    for ptype in ptypes:
+        url = f"https://pokeapi.co/api/v2/type/{ptype.lower()}"
+        res = requests.get(url)
 
+        if res.status_code != 200:
+            return []
+
+        data = res.json()
+        # print(data['damage_relations'].keys())
+        
+        dvals = data['damage_relations']['double_damage_from'] #weakness
+        hdvals = data['damage_relations']['half_damage_from'] #resists
+        ndvals = data['damage_relations']['no_damage_from'] #immunity
+        
+        rvals = data['damage_relations']['double_damage_to']
+        hrdata = data['damage_relations']['half_damage_to']
+        ndrvals = data['damage_relations']['no_damage_to']
+        
+        for d in dvals:
+            if d['name'] not in damage_d:
+                damage_d[d['name']] = 2
+            else:
+                damage_d[d['name']] *= 2
+        for d in hdvals:
+            if d['name'] not in damage_d:
+                damage_d[d['name']] = 0.5
+            else:
+                damage_d[d['name']] *= 0.5
+        for d in ndvals:
+            damage_d[d['name']] = 0.0
+            
+        
+        for d in rvals: #supereff dmg to
+            if d['name'] not in attack_d:
+                attack_d[d['name']] = 2
+            else:
+                attack_d[d['name']] *= 2
+        for d in hrdata: #half dmg to
+            if d['name'] not in attack_d:
+                attack_d[d['name']] = 0.5
+            else:
+                attack_d[d['name']] *= 0.5
+        for d in ndrvals: #no dmg to
+            attack_d[d['name']] = 0.0
+    
+    return damage_d,attack_d
+        
 
 teamRaw = """Araquanid @ Mental Herb  
 Ability: Water Bubble  
@@ -181,5 +241,4 @@ team = readTeam(teamRaw)
 detectRole(team)
 addComments(team)
 
-for i in team:
-    print(team[i])
+pprint(team,sort_dicts=False)
