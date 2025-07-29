@@ -1,5 +1,6 @@
 import requests
 from pprint import pprint
+import json
 
 def slugify(name):
     return name.lower().replace(' ', '-').replace('.', '').replace("'", '')
@@ -267,7 +268,7 @@ EVs: 252 SpA / 4 SpD / 252 Spe
 Timid Nature  
 - Nasty Plot  
 - Shadow Ball  
-- Malignant Chain  
+- Malignant Chain 
 - Tera Blast
 """ 
 #s
@@ -276,4 +277,14 @@ detectRole(team)
 addComments(team)
 coverage = coverageCheck(team)
 pprint(coverage)
+
+
+data = {
+    "team": team,
+    "coverage": coverageCheck(team)
+}
+
+with open("team_data.json", "w") as f:
+    json.dump(data, f, indent=2)
+    
 # pprint(team,sort_dicts=False)
