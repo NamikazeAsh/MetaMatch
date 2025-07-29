@@ -270,7 +270,7 @@ Timid Nature
 - Malignant Chain  
 - Tera Blast
 """ 
-
+#s
 team = readTeam(teamRaw)
 detectRole(team)
 addComments(team)
