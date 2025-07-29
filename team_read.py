@@ -275,8 +275,6 @@ Timid Nature
 team = readTeam(teamRaw)
 detectRole(team)
 addComments(team)
-coverage = coverageCheck(team)
-pprint(coverage)
 
 
 data = {
