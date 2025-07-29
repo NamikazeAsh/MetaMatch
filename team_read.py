@@ -15,6 +15,20 @@ def getType(name):
     types = [t["type"]["name"].capitalize() for t in data["types"]]
     return types
 
+def get_move_metadata(move_name):
+    url = f"https://pokeapi.co/api/v2/move/{slugify(move_name)}"
+    res = requests.get(url)
+    if res.status_code != 200:
+        return {'type': None, 'power': None, 'accuracy': None, 'category': None}
+    
+    data = res.json()
+    return {
+        'type': data['type']['name'].capitalize(),
+        'power': data['power'],
+        'accuracy': data['accuracy'],
+        'category': data['damage_class']['name'].capitalize()
+    }
+
 def readTeam(teamRaw):
     team = {}
     teamRaw = teamRaw.strip().split('\n\n')
@@ -23,7 +37,7 @@ def readTeam(teamRaw):
         lines = block.strip().split('\n')
         poke_data = {
             'Pokemon': '',
-            'Type':[],
+            'Type': [],
             'Item': '',
             'Ability': '',
             'Shiny': False,
@@ -31,10 +45,10 @@ def readTeam(teamRaw):
             'EVs': {},
             'Nature': '',
             'Moves': [],
-            'Roles':[],
-            'Comments':[],
-            'Damage To':{},
-            'Damage From':{}
+            'Roles': [],
+            'Comments': [],
+            'Damage To': {},
+            'Damage From': {}
         }
 
         for line in lines:
@@ -57,9 +71,14 @@ def readTeam(teamRaw):
             elif line.endswith('Nature'):
                 poke_data['Nature'] = line.replace('Nature', '').strip()
             elif line.startswith('-'):
-                poke_data['Moves'].append(line.strip('-').strip())
+                move_name = line.strip('-').strip()
+                move_data = get_move_metadata(move_name)
+                poke_data['Moves'].append({
+                    'name': move_name,
+                    **move_data
+                })
 
-        dmg_from,dmg_to = damageRelations(poke_data['Type'])
+        dmg_from, dmg_to = damageRelations(poke_data['Type'])
         poke_data['Damage From'] = dmg_from
         poke_data['Damage To'] = dmg_to
 
@@ -176,7 +195,22 @@ def damageRelations(ptypes):
             attack_d[d['name']] = 0.0
     
     return damage_d,attack_d
+
+def coverageCheck(team):
+    
+    coverage = {'Normal': False,'Fire': False,'Water': False,'Electric': False,'Grass': False,'Ice': False,'Fighting': False,
+    'Poison': False,'Ground': False,'Flying': False,'Psychic': False,'Bug': False,'Rock': False,
+    'Ghost': False,'Dragon': False,'Dark': False,'Steel': False,'Fairy': False}
+    
+    for poke in team:
+        moves = team[poke]['Moves']
+        for move in moves:
+            if (move['category'] != 'Status') &  (coverage[move['type']] == False):
+                coverage[move['type']] = True
         
+    return coverage
+        
+
 
 teamRaw = """Araquanid @ Mental Herb  
 Ability: Water Bubble  
@@ -240,5 +274,6 @@ Timid Nature
 team = readTeam(teamRaw)
 detectRole(team)
 addComments(team)
-
-pprint(team,sort_dicts=False)
+coverage = coverageCheck(team)
+pprint(coverage)
+# pprint(team,sort_dicts=False)
