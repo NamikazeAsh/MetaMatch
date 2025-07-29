@@ -277,12 +277,10 @@ detectRole(team)
 addComments(team)
 
 
-data = {
-    "team": team,
-    "coverage": coverageCheck(team)
-}
 
-with open("team_data.json", "w") as f:
-    json.dump(data, f, indent=2)
-    
+with open("team.json", "w") as f:
+    json.dump(team, f, indent=2)
+
+with open("coverage.json", "w") as f:
+    json.dump(coverageCheck(team), f, indent=2)
 # pprint(team,sort_dicts=False)

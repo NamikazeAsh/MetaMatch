@@ -1,0 +1,20 @@
+{
+  "Normal": true,
+  "Fire": true,
+  "Water": true,
+  "Electric": true,
+  "Grass": false,
+  "Ice": false,
+  "Fighting": false,
+  "Poison": true,
+  "Ground": true,
+  "Flying": false,
+  "Psychic": false,
+  "Bug": true,
+  "Rock": false,
+  "Ghost": true,
+  "Dragon": true,
+  "Dark": true,
+  "Steel": true,
+  "Fairy": false
+}
