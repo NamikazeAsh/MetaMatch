@@ -2,8 +2,25 @@ import re
 import requests
 import json
 
-def slugify(name):
-    return name.lower().replace(' ', '-').replace('.', '').replace("'", '')
+def pokeSlugify(name):
+    name = name.lower().replace(' ', '-').replace('.', '').replace("'", '')
+    name_x = {
+        "ogerpon-wellspring": "ogerpon-wellspring-mask",
+        "ogerpon-hearthflame": "ogerpon-hearthflame-mask",
+        "ogerpon-cornerstone": "ogerpon-cornerstone-mask",
+        "keldeo": "keldeo-ordinary",
+        "enamorus": "enamorus-incarnate",
+        "indeedee": "indeedee-male",
+        "mimikyu": "mimikyu-disguised",
+        "maushold": "maushold-family-of-four",
+        "basculegion": "basculegion-male",
+        "basculegion-f": "basculegion-female",
+        "thundurus": "thundurus-incarnate",
+        "dundunsparce": "dudunsparce",
+        "tatsugiri": "tatsugiri-stretchy",
+        "aegislash": "aegislash-shield"
+    }   
+    return name_x.get(name, name)
 
 def smogonUsage(path, usage_min=0.0, top_n=None):
     pat = re.compile(r'^\s*\|\s*\d+\s*\|\s*([^|]+?)\s*\|\s*([\d.]+)%')
