@@ -276,8 +276,8 @@ team = readTeam(teamRaw)
 detectRole(team)
 addComments(team)
 
-with open("team.json", "w") as f:
+with open("jsons/team.json", "w") as f:
     json.dump(team, f, indent=2)
-with open("coverage.json", "w") as f:
+with open("jsons/coverage.json", "w") as f:
     json.dump(coverageCheck(team), f, indent=2)
 # pprint(team,sort_dicts=False)
