@@ -1,0 +1,92 @@
+{
+  "normal": {
+    "weak": 0,
+    "resist": 2,
+    "immune": 1
+  },
+  "fire": {
+    "weak": 2,
+    "resist": 2,
+    "immune": 0
+  },
+  "water": {
+    "weak": 2,
+    "resist": 2,
+    "immune": 0
+  },
+  "electric": {
+    "weak": 1,
+    "resist": 0,
+    "immune": 1
+  },
+  "grass": {
+    "weak": 0,
+    "resist": 4,
+    "immune": 0
+  },
+  "ice": {
+    "weak": 1,
+    "resist": 3,
+    "immune": 0
+  },
+  "fighting": {
+    "weak": 2,
+    "resist": 2,
+    "immune": 1
+  },
+  "poison": {
+    "weak": 0,
+    "resist": 1,
+    "immune": 2
+  },
+  "ground": {
+    "weak": 4,
+    "resist": 1,
+    "immune": 1
+  },
+  "flying": {
+    "weak": 1,
+    "resist": 2,
+    "immune": 0
+  },
+  "psychic": {
+    "weak": 1,
+    "resist": 1,
+    "immune": 1
+  },
+  "bug": {
+    "weak": 0,
+    "resist": 4,
+    "immune": 0
+  },
+  "rock": {
+    "weak": 3,
+    "resist": 2,
+    "immune": 0
+  },
+  "ghost": {
+    "weak": 1,
+    "resist": 1,
+    "immune": 0
+  },
+  "dragon": {
+    "weak": 1,
+    "resist": 2,
+    "immune": 0
+  },
+  "dark": {
+    "weak": 1,
+    "resist": 1,
+    "immune": 0
+  },
+  "steel": {
+    "weak": 0,
+    "resist": 4,
+    "immune": 0
+  },
+  "fairy": {
+    "weak": 1,
+    "resist": 3,
+    "immune": 0
+  }
+}

@@ -1,0 +1,1198 @@
+[
+  {
+    "name": "Great Tusk",
+    "types": [
+      "Ground",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Zamazenta",
+    "types": [
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Dragonite",
+    "types": [
+      "Dragon",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Iron Valiant",
+    "types": [
+      "Fairy",
+      "Fighting"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Fairy",
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Kyurem",
+    "types": [
+      "Dragon",
+      "Ice"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Ice"
+    ]
+  },
+  {
+    "name": "Landorus-Therian",
+    "types": [
+      "Ground",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Slowking-Galar",
+    "types": [
+      "Poison",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Hatterene",
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Psychic",
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Gliscor",
+    "types": [
+      "Ground",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Corviknight",
+    "types": [
+      "Flying",
+      "Steel"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Garganacl",
+    "types": [
+      "Rock"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Rock"
+    ]
+  },
+  {
+    "name": "Moltres",
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Zapdos",
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Glimmora",
+    "types": [
+      "Rock",
+      "Poison"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Rock"
+    ]
+  },
+  {
+    "name": "Clefable",
+    "types": [
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Iron Crown",
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Deoxys-Speed",
+    "types": [
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Primarina",
+    "types": [
+      "Water",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Weezing-Galar",
+    "types": [
+      "Poison",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Latios",
+    "types": [
+      "Dragon",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Weavile",
+    "types": [
+      "Dark",
+      "Ice"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Ice"
+    ]
+  },
+  {
+    "name": "Rillaboom",
+    "types": [
+      "Grass"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Ninetales-Alola",
+    "types": [
+      "Ice",
+      "Fairy"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Ice",
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Tornadus-Therian",
+    "types": [
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Meowscarada",
+    "types": [
+      "Grass",
+      "Dark"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Hoopa-Unbound",
+    "types": [
+      "Psychic",
+      "Dark"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Hydrapple",
+    "types": [
+      "Grass",
+      "Dragon"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Tinkaton",
+    "types": [
+      "Fairy",
+      "Steel"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Tyranitar",
+    "types": [
+      "Rock",
+      "Dark"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Rock"
+    ]
+  },
+  {
+    "name": "Pelipper",
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Skarmory",
+    "types": [
+      "Steel",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Serperior",
+    "types": [
+      "Grass"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Ribombee",
+    "types": [
+      "Bug",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Iron Hands",
+    "types": [
+      "Fighting",
+      "Electric"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Sinistcha",
+    "types": [
+      "Grass",
+      "Ghost"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Iron Boulder",
+    "types": [
+      "Rock",
+      "Psychic"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Rock",
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Slither Wing",
+    "types": [
+      "Bug",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Venusaur",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Ogerpon",
+    "types": [
+      "Grass"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Amoonguss",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Blaziken",
+    "types": [
+      "Fire",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Hawlucha",
+    "types": [
+      "Fighting",
+      "Flying"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Fighting",
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Okidogi",
+    "types": [
+      "Poison",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Latias",
+    "types": [
+      "Dragon",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Cresselia",
+    "types": [
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Thundurus-Therian",
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Quaquaval",
+    "types": [
+      "Water",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Mandibuzz",
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Kommo-o",
+    "types": [
+      "Dragon",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Klefki",
+    "types": [
+      "Steel",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Moltres-Galar",
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Armarouge",
+    "types": [
+      "Fire",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Grimmsnarl",
+    "types": [
+      "Dark",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Arcanine-Hisui",
+    "types": [
+      "Fire",
+      "Rock"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Rock"
+    ]
+  },
+  {
+    "name": "Fezandipiti",
+    "types": [
+      "Poison",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Frosmoth",
+    "types": [
+      "Ice",
+      "Bug"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Ice"
+    ]
+  },
+  {
+    "name": "Cobalion",
+    "types": [
+      "Steel",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Iron Jugulis",
+    "types": [
+      "Dark",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Slowking",
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Conkeldurr",
+    "types": [
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Zarude",
+    "types": [
+      "Dark",
+      "Grass"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Azumarill",
+    "types": [
+      "Water",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Chesnaught",
+    "types": [
+      "Grass",
+      "Fighting"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Grass",
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Necrozma",
+    "types": [
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Comfey",
+    "types": [
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Metagross",
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Gardevoir",
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Psychic",
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Pawmot",
+    "types": [
+      "Electric",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Kleavor",
+    "types": [
+      "Bug",
+      "Rock"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Rock"
+    ]
+  },
+  {
+    "name": "Oricorio-Pom-Pom",
+    "types": [
+      "Electric",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Enamorus-Therian",
+    "types": [
+      "Fairy",
+      "Flying"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Fairy",
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Talonflame",
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Salamence",
+    "types": [
+      "Dragon",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Slowbro",
+    "types": [
+      "Water",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Reuniclus",
+    "types": [
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Mamoswine",
+    "types": [
+      "Ice",
+      "Ground"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Ice"
+    ]
+  },
+  {
+    "name": "Jirachi",
+    "types": [
+      "Steel",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Mew",
+    "types": [
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Thwackey",
+    "types": [
+      "Grass"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Gyarados",
+    "types": [
+      "Water",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Golem-Alola",
+    "types": [
+      "Rock",
+      "Electric"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Rock"
+    ]
+  },
+  {
+    "name": "Mienshao",
+    "types": [
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Sandslash-Alola",
+    "types": [
+      "Ice",
+      "Steel"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Ice"
+    ]
+  },
+  {
+    "name": "Zapdos-Galar",
+    "types": [
+      "Fighting",
+      "Flying"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Fighting",
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Espeon",
+    "types": [
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Lilligant-Hisui",
+    "types": [
+      "Grass",
+      "Fighting"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Grass",
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Sylveon",
+    "types": [
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Gallade",
+    "types": [
+      "Psychic",
+      "Fighting"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Psychic",
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Tapu Lele",
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Psychic",
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Diancie-Mega",
+    "types": [
+      "Rock",
+      "Fairy"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Rock",
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Ferrothorn",
+    "types": [
+      "Grass",
+      "Steel"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Charizard-Mega-Y",
+    "types": [
+      "Fire",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Tapu Koko",
+    "types": [
+      "Electric",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Urshifu-Rapid-Strike",
+    "types": [
+      "Fighting",
+      "Water"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Latios-Mega",
+    "types": [
+      "Dragon",
+      "Psychic"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Tapu Fini",
+    "types": [
+      "Water",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Tyranitar-Mega",
+    "types": [
+      "Rock",
+      "Dark"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Rock"
+    ]
+  },
+  {
+    "name": "Lopunny-Mega",
+    "types": [
+      "Normal",
+      "Fighting"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fighting"
+    ]
+  },
+  {
+    "name": "Venusaur-Mega",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Kartana",
+    "types": [
+      "Grass",
+      "Steel"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Mawile-Mega",
+    "types": [
+      "Steel",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Medicham-Mega",
+    "types": [
+      "Fighting",
+      "Psychic"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Fighting",
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Pinsir-Mega",
+    "types": [
+      "Bug",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Victini",
+    "types": [
+      "Psychic",
+      "Fire"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Psychic"
+    ]
+  },
+  {
+    "name": "Tangrowth",
+    "types": [
+      "Grass"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Grass"
+    ]
+  },
+  {
+    "name": "Gardevoir-Mega",
+    "types": [
+      "Psychic",
+      "Fairy"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Psychic",
+      "No coverage for Fairy"
+    ]
+  },
+  {
+    "name": "Aerodactyl-Mega",
+    "types": [
+      "Rock",
+      "Flying"
+    ],
+    "threat_score": 2,
+    "reasons": [
+      "No coverage for Rock",
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Celesteela",
+    "types": [
+      "Steel",
+      "Flying"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Flying"
+    ]
+  },
+  {
+    "name": "Altaria-Mega",
+    "types": [
+      "Dragon",
+      "Fairy"
+    ],
+    "threat_score": 1,
+    "reasons": [
+      "No coverage for Fairy"
+    ]
+  }
+]

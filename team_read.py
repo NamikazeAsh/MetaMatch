@@ -33,6 +33,9 @@ def get_move_metadata(move_name):
 def readTeam(teamRaw):
     team = {}
     teamRaw = teamRaw.strip().split('\n\n')
+    
+    types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
+    team_weakness = {t: {"weak": 0, "resist": 0, "immune": 0} for t in types}
 
     for i, block in enumerate(teamRaw):
         lines = block.strip().split('\n')
@@ -83,50 +86,121 @@ def readTeam(teamRaw):
         poke_data['Damage From'] = dmg_from
         poke_data['Damage To'] = dmg_to
 
+        for dmg in dmg_from:
+            if dmg_from[dmg] > 1:
+                team_weakness[dmg]['weak'] += 1
+            elif dmg_from[dmg] == 0:
+                team_weakness[dmg]['immune'] += 1
+            elif dmg_from[dmg] < 1:
+                team_weakness[dmg]['resist'] += 1
+
         team[i] = poke_data
 
-    return team
+
+    return team,team_weakness
+
 
 def detectRole(team):
     
     hazard_moves = {"Stealth Rock", "Spikes", "Toxic Spikes", "Sticky Web"}
-    removal_moves = {"Defog", "Rapid Spin", "Court Change"}
-    setup_moves = {"Swords Dance", "Dragon Dance", "Calm Mind", "Nasty Plot", "Agility", "Bulk Up", "Quiver Dance"}
-    support_moves = {"Wish", "Protect", "Heal Bell", "Aromatherapy", "Thunder Wave", "Taunt", "Toxic", "Leech Seed", "Encore", "Light Screen", "Reflect"}
-    pivot_moves = {"U-turn", "Volt Switch", "Teleport"}
-    recovery_moves = {"Recover", "Roost", "Slack Off", "Moonlight", "Soft-Boiled"}
+    removal_moves = {"Defog", "Rapid Spin", "Court Change", "Tidy Up"}
+    setup_moves = {"Swords Dance", "Dragon Dance", "Calm Mind", "Nasty Plot", "Agility", "Bulk Up", "Quiver Dance", "Shell Smash", "Shift Gear", "Coil"}
+    support_moves = {"Wish", "Protect", "Heal Bell", "Aromatherapy", "Thunder Wave", "Taunt", "Toxic", "Leech Seed", "Encore", "Light Screen", "Reflect", "Aurora Veil", "Memento", "Parting Shot", "Healing Wish", "Lunar Dance"}
+    pivot_moves = {"U-turn", "Volt Switch", "Teleport", "Baton Pass", "Parting Shot", "Chilly Reception"}
+    recovery_moves = {"Recover", "Roost", "Slack Off", "Moonlight", "Soft-Boiled", "Rest", "Shore Up", "Synthesis", "Morning Sun"}
+    status_moves = {"Will-O-Wisp", "Toxic", "Thunder Wave", "Sleep Powder", "Spore", "Glare", "Nuzzle"}
+    priority_moves = {"Aqua Jet", "Bullet Punch", "Ice Shard", "Mach Punch", "Shadow Sneak", "Sucker Punch", "Extreme Speed", "First Impression"}
+    revenge_moves = {"Sucker Punch", "Ice Shard", "Bullet Punch", "Mach Punch", "Aqua Jet"}
+    contact_punish = {"Rough Skin", "Iron Barbs", "Rocky Helmet", "Flame Body", "Static", "Poison Point"}
+    
     choice_items = {"choice scarf": "Speed Control","choice band": "Physical Breaker","choice specs": "Special Breaker"}
+    defensive_items = {"leftovers", "rocky helmet", "assault vest", "eviolite", "heavy-duty boots"}
+    offensive_items = {"life orb", "expert belt", "muscle band", "wise glasses"}
 
     for poke in team:
         moves = team[poke]["Moves"]
+    item = team[poke]["Item"].lower()
+    ability = team[poke].get("Ability", "").lower()
+    nature = team[poke].get("Nature", "")
+    evs = team[poke]["EVs"]
+    
+    # Core roles
+    if any(move in moves for move in hazard_moves):
+        team[poke]["Roles"].append("Hazard Setter")
+    if any(move in moves for move in removal_moves):
+        team[poke]["Roles"].append("Hazard Remover")
+    if any(move in moves for move in setup_moves):
+        team[poke]["Roles"].append("Setup Sweeper")
+    if any(move in moves for move in support_moves):
+        team[poke]["Roles"].append("Support")
+    if any(move in moves for move in pivot_moves):
+        team[poke]["Roles"].append("Pivot")
+    
+    # Defensive roles
+    if any(move in moves for move in recovery_moves):
+        if evs.get('HP', 0) > 100 or evs.get('Def', 0) > 200 or evs.get('SpD', 0) > 200:
+            team[poke]["Roles"].append("Wall")
+    
+    if (evs.get('HP', 0) + evs.get('Def', 0) + evs.get('SpD', 0)) >= 400:
+        team[poke]["Roles"].append("Tank")
         
-        #move based shi
-        if any(move in moves for move in hazard_moves):
-            team[poke]["Roles"].append("Hazard Setter")
-        if any(move in moves for move in removal_moves):
-            team[poke]["Roles"].append("Hazard Remover")
-        if any(move in moves for move in setup_moves):
-            team[poke]["Roles"].append("Setup Sweeper")
-        if any(move in moves for move in support_moves):
-            team[poke]["Roles"].append("Support")
-        if any(move in moves for move in pivot_moves):
-            team[poke]["Roles"].append("Pivot")
-        if any(move in moves for move in recovery_moves):
-            if 'HP' in team[poke]["EVs"] and team[poke]["EVs"].get('Def',0)>100 or team[poke]["EVs"].get('SpD',0)>100:
-                team[poke]["Roles"].append("Recovery")
+    if item == "assault vest":
+        team[poke]["Roles"].append("Special Tank")
         
-        #stat based shi
-        if team[poke]["EVs"].get("Atk", 0) >= 200:
-            team[poke]["Roles"].append("Physical Sweeper")
-        if team[poke]["EVs"].get("SpA", 0) >= 200:
-            team[poke]["Roles"].append("Special Sweeper")
-
-        #item based shi
-        item = team[poke]["Item"].lower()
-        if item in choice_items:
-            team[poke]["Roles"].append(choice_items[item])
-        if item=='Life Orb':
-            team[poke]["Roles"].append("Wallbreaker")
+    if any(move in moves for move in status_moves) and (evs.get('HP', 0) > 150 or evs.get('Def', 0) > 150):
+        team[poke]["Roles"].append("Status Spreader")
+    
+    # Offensive roles
+    if evs.get("Atk", 0) >= 252:
+        team[poke]["Roles"].append("Physical Sweeper")
+    if evs.get("SpA", 0) >= 252:
+        team[poke]["Roles"].append("Special Sweeper")
+        
+    if evs.get("Spe", 0) >= 252 and (evs.get("Atk", 0) >= 200 or evs.get("SpA", 0) >= 200):
+        team[poke]["Roles"].append("Fast Sweeper")
+        
+    if any(move in moves for move in priority_moves):
+        team[poke]["Roles"].append("Priority User")
+        
+    if any(move in moves for move in revenge_moves):
+        team[poke]["Roles"].append("Revenge Killer")
+    
+    # Specialized roles
+    if item in choice_items:
+        team[poke]["Roles"].append(choice_items[item])
+        
+    if item == "life orb" or item in offensive_items:
+        team[poke]["Roles"].append("Wallbreaker")
+        
+    if "Prankster" in ability and any(move in moves for move in support_moves):
+        team[poke]["Roles"].append("Prankster Support")
+        
+    if item == "focus sash" and evs.get("Spe", 0) >= 200:
+        team[poke]["Roles"].append("Lead")
+        
+    if "Intimidate" in ability:
+        team[poke]["Roles"].append("Intimidate Support")
+        
+    if item == "rocky helmet" or ability in ["rough skin", "iron barbs"]:
+        team[poke]["Roles"].append("Contact Punisher")
+        
+    if "Magic Bounce" in ability or "Mirror Armor" in ability:
+        team[poke]["Roles"].append("Status Absorber")
+        
+    if evs.get("HP", 0) >= 252 and (evs.get("Atk", 0) >= 100 or evs.get("SpA", 0) >= 100):
+        team[poke]["Roles"].append("Bulky Attacker")
+        
+    # Weather/Terrain setters
+    weather_moves = {"Sunny Day", "Rain Dance", "Sandstorm", "Hail", "Snow"}
+    terrain_moves = {"Electric Terrain", "Grassy Terrain", "Misty Terrain", "Psychic Terrain"}
+    
+    if any(move in moves for move in weather_moves):
+        team[poke]["Roles"].append("Weather Setter")
+    if any(move in moves for move in terrain_moves):
+        team[poke]["Roles"].append("Terrain Setter")
+        
+    # Remove duplicates
+    team[poke]["Roles"] = list(set(team[poke]["Roles"]))
         
     return team
 
@@ -272,12 +346,17 @@ Timid Nature
 - Tera Blast
 """ 
 
-team = readTeam(teamRaw)
+team,team_weakness = readTeam(teamRaw)
 detectRole(team)
 addComments(team)
 
 with open("jsons/team.json", "w") as f:
     json.dump(team, f, indent=2)
+coverage = coverageCheck(team)
 with open("jsons/coverage.json", "w") as f:
-    json.dump(coverageCheck(team), f, indent=2)
-# pprint(team,sort_dicts=False)
+    json.dump(coverage, f, indent=2)
+with open("jsons/team_weak.json","w") as f:
+    json.dump(team_weakness,f,indent=2)
+
+with open("jsons/topPoke.json", "r") as f:
+    topPoke = json.load(f)
