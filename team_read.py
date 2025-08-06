@@ -5,6 +5,7 @@ import json
 def slugify(name):
     return name.lower().replace(' ', '-').replace('.', '').replace("'", '')
 
+
 def getType(name):
     url = f"https://pokeapi.co/api/v2/pokemon/{name.lower()}"
     res = requests.get(url)
@@ -15,6 +16,7 @@ def getType(name):
     data = res.json()
     types = [t["type"]["name"].capitalize() for t in data["types"]]
     return types
+
 
 def get_move_metadata(move_name):
     url = f"https://pokeapi.co/api/v2/move/{slugify(move_name)}"
@@ -29,6 +31,7 @@ def get_move_metadata(move_name):
         'accuracy': data['accuracy'],
         'category': data['damage_class']['name'].capitalize()
     }
+
 
 def readTeam(teamRaw):
     team = {}
@@ -273,6 +276,7 @@ def detectRole(team):
         
     return team
 
+
 def addComments(team):
     
     tera_types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
@@ -287,7 +291,8 @@ def addComments(team):
             team[poke]["Comments"].append("Has no item")
         if team[poke]["Tera Type"].lower() not in tera_types:
             team[poke]["Comments"].append("Has improper tera type")
-            
+
+
 def damageRelations(ptypes):
     
     # print(ptypes)
@@ -340,6 +345,7 @@ def damageRelations(ptypes):
     
     return damage_d,attack_d
 
+
 def coverageCheck(team):
     
     coverage = {'Normal': False,'Fire': False,'Water': False,'Electric': False,'Grass': False,'Ice': False,'Fighting': False,
@@ -353,7 +359,7 @@ def coverageCheck(team):
                 coverage[move['type']] = True
         
     return coverage
-        
+
 
 
 teamRaw = """Araquanid @ Mental Herb  
