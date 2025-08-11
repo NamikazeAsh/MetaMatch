@@ -122,10 +122,7 @@ def detectRole(team):
     screen_moves = {"Light Screen", "Reflect", "Aurora Veil"}
     trickroom_moves = {"Trick Room"}
     spinblock_types = {"Ghost"}
-    weather_abilities = {
-        "Swift Swim": "rain", "Chlorophyll": "sun", "Sand Rush": "sand", "Sand Force": "sand", 
-        "Sand Veil": "sand", "Slush Rush": "hail", "Snow Cloak": "hail", "Solar Power": "sun"
-    }
+    weather_abilities = {"Swift Swim": "rain", "Chlorophyll": "sun", "Sand Rush": "sand", "Sand Force": "sand", "Sand Veil": "sand", "Slush Rush": "hail", "Snow Cloak": "hail", "Solar Power": "sun"}
     choice_items = {"choice scarf": "Speed Control","choice band": "Physical Breaker","choice specs": "Special Breaker"}
     defensive_items = {"leftovers", "rocky helmet", "assault vest", "eviolite", "heavy-duty boots"}
     offensive_items = {"life orb", "expert belt", "muscle band", "wise glasses"}
@@ -154,13 +151,10 @@ def detectRole(team):
         if any(move in moves for move in recovery_moves):
             if evs.get('HP', 0) > 100 or evs.get('Def', 0) > 200 or evs.get('SpD', 0) > 200:
                 team[poke]["Roles"].append("Wall")
-        
         if (evs.get('HP', 0) + evs.get('Def', 0) + evs.get('SpD', 0)) >= 400:
             team[poke]["Roles"].append("Tank")
-            
         if item == "assault vest":
             team[poke]["Roles"].append("Special Tank")
-            
         if any(move in moves for move in status_moves) and (evs.get('HP', 0) > 150 or evs.get('Def', 0) > 150):
             team[poke]["Roles"].append("Status Spreader")
         
@@ -169,38 +163,28 @@ def detectRole(team):
             team[poke]["Roles"].append("Physical Sweeper")
         if evs.get("SpA", 0) >= 252:
             team[poke]["Roles"].append("Special Sweeper")
-            
         if evs.get("Spe", 0) >= 252 and (evs.get("Atk", 0) >= 200 or evs.get("SpA", 0) >= 200):
             team[poke]["Roles"].append("Fast Sweeper")
-            
         if any(move in moves for move in priority_moves):
             team[poke]["Roles"].append("Priority User")
-            
         if any(move in moves for move in revenge_moves):
             team[poke]["Roles"].append("Revenge Killer")
         
         # Specialized roles
         if item in choice_items:
             team[poke]["Roles"].append(choice_items[item])
-            
         if item == "life orb" or item in offensive_items:
             team[poke]["Roles"].append("Wallbreaker")
-            
         if "Prankster" in ability and any(move in moves for move in support_moves):
             team[poke]["Roles"].append("Prankster Support")
-            
         if item == "focus sash" and evs.get("Spe", 0) >= 200:
             team[poke]["Roles"].append("Lead")
-            
         if "Intimidate" in ability:
             team[poke]["Roles"].append("Intimidate Support")
-            
         if item == "rocky helmet" or ability in ["rough skin", "iron barbs"]:
             team[poke]["Roles"].append("Contact Punisher")
-            
         if "Magic Bounce" in ability or "Mirror Armor" in ability:
             team[poke]["Roles"].append("Status Absorber")
-            
         if evs.get("HP", 0) >= 252 and (evs.get("Atk", 0) >= 100 or evs.get("SpA", 0) >= 100):
             team[poke]["Roles"].append("Bulky Attacker")
             
@@ -216,16 +200,12 @@ def detectRole(team):
         # Advanced utility roles
         if any(move in moves for move in trapping_moves) or "Shadow Tag" in ability or "Arena Trap" in ability or "Magnet Pull" in ability:
             team[poke]["Roles"].append("Trapper")
-            
         if any(move in moves for move in ko_moves):
             team[poke]["Roles"].append("Sacrificial")
-            
         if any(move in moves for move in cleric_moves) or "Natural Cure" in ability:
             team[poke]["Roles"].append("Cleric")
-            
         if any(move in moves for move in screen_moves):
             team[poke]["Roles"].append("Screen Setter")
-            
         if any(move in moves for move in trickroom_moves):
             team[poke]["Roles"].append("Trick Room Setter")
             
@@ -236,19 +216,14 @@ def detectRole(team):
         # Weather abusers
         if ability in weather_abilities:
             team[poke]["Roles"].append("Weather Abuser")
-            
         if "Ghost" in team[poke].get("Types", []):
             team[poke]["Roles"].append("Spin Blocker")
-            
         if item == "heavy-duty boots" or "Magic Guard" in ability:
             team[poke]["Roles"].append("Hazard Immune")
-            
         if "Regenerator" in ability:
             team[poke]["Roles"].append("Pivot")  # Natural pivoting ability
-            
         if "Guts" in ability or "Quick Feet" in ability:
             team[poke]["Roles"].append("Status Absorber")
-            
         if evs.get("HP", 0) <= 4 and evs.get("Def", 0) <= 4 and evs.get("SpD", 0) <= 4:
             team[poke]["Roles"].append("Glass Cannon")
             
@@ -271,6 +246,7 @@ def detectRole(team):
         # Baton Pass chains
         if "Baton Pass" in moves and any(move in setup_moves for move in moves):
             team[poke]["Roles"].append("Baton Passer")
+            
             
         team[poke]["Roles"] = list(set(team[poke]["Roles"]))
         
