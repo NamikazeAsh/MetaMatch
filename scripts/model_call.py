@@ -19,19 +19,18 @@ completion = client.chat.completions.create(
     messages=
     [{"role": "user", 
     "content":f"""
-    Summarize this Pokémon team, give improvement suggestions, mention which meta-mons are a threat to my team.
-    Sentence ends with newline inside list.
+    Summarize this Pokémon team, give improvement suggestions, mention which meta-mons are a threat to my team. 
+    Respond in points, each point starts in a new line.
     
     Output ONLY JSON: keys = (synergy, suggestions)
-    synergy: which pokemon synergize well with team. FORMAT: List-String 
-    suggestions: improvements to be made in team. FORMAT: List-String
+    synergy: list of short strings (each string <= 50 words)
+    suggestions: list of short strings (each string <= 50 words)
     Poke team: {team}
     """}],
     temperature=0.2,
     max_completion_tokens=4000,
     reasoning_effort="low",
     stream=False,
-    seed=305
 )
 
 result_text = completion.choices[0].message.content
