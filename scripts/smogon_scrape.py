@@ -4,6 +4,7 @@ import json
 
 def pokeSlugify(name):
     name = name.lower().replace(' ', '-').replace('.', '').replace("'", '')
+    
     name_x = {
         "ogerpon-wellspring": "ogerpon-wellspring-mask",
         "ogerpon-hearthflame": "ogerpon-hearthflame-mask",
@@ -19,7 +20,8 @@ def pokeSlugify(name):
         "dundunsparce": "dudunsparce",
         "tatsugiri": "tatsugiri-stretchy",
         "aegislash": "aegislash-shield"
-    }   
+    }
+    
     return name_x.get(name, name)
 
 def smogonUsage(path, usage_min=0.0, top_n=None):
@@ -46,6 +48,7 @@ def getType(name):
 
     data = res.json()
     types = [t["type"]["name"].capitalize() for t in data["types"]]
+    
     return types
 
 topOU = smogonUsage("stats/gen9ou.txt", top_n=100)
