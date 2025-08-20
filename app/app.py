@@ -156,7 +156,7 @@ def get_pokemon_description(name):
 if not st.session_state.submitted:
     with st.form("pokemon_form"):
         pokemon_data = st.text_area(
-            "Paste Pokemon Data:",
+            "Paste Pokemon Data",
             placeholder="Paste your raw pokemon data here...",
             height=300
         )
