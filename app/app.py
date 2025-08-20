@@ -4,19 +4,28 @@ import requests
 from PIL import Image
 from io import BytesIO
 
-st.set_page_config(page_title="MetaMatch", page_icon="⚪")
+st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
+
+st.markdown("""
+<style>
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 0rem;
+    }
+    .stApp > header {
+        background-color: transparent;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("MetaMatch")
 
-# Input field for raw pokemon data
-pokemon_data = st.text_area(
-    "Paste Pokemon Data:",
-    placeholder="Paste your raw pokemon data here...",
-    height=300
-)
+if 'submitted' not in st.session_state:
+    st.session_state.submitted = False
+if 'pokemon_names' not in st.session_state:
+    st.session_state.pokemon_names = []
 
 def extract_pokemon_names(raw_data):
-    """Extract pokemon names from raw data"""
-    # Pattern for Pokemon @ Item format (handles multi-word names)
     pattern = r'^([A-Za-z][A-Za-z\s]+?)\s*@'
     
     names = []
@@ -108,7 +117,6 @@ def pokeSlugify(name):
         "ting-lu": "ting-lu",
         "chi-yu": "chi-yu",
         
-        # Common typos/alternatives
         "dundunsparce": "dudunsparce",
         "tatsugiri": "tatsugiri-stretchy",
     }
@@ -116,7 +124,6 @@ def pokeSlugify(name):
     return name_x.get(name, name)
 
 def get_pokemon_sprite(name):
-    """Get pokemon sprite from PokeAPI"""
     try:
         slugified_name = pokeSlugify(name)
         url = f"https://pokeapi.co/api/v2/pokemon/{slugified_name}"
@@ -131,48 +138,38 @@ def get_pokemon_sprite(name):
     return None
 
 def format_pokemon_name(name):
-    """Format pokemon name for display"""
     return name.capitalize()
 
-if pokemon_data:
-    pokemon_names = extract_pokemon_names(pokemon_data)
-    
-    if pokemon_names:
-        st.subheader("Your team:")
-        
-        # Display in columns for better layout (3 per row)
-        cols = st.columns(3)
-        
-        for idx, name in enumerate(pokemon_names):
-            col_idx = idx % 3
-            col = cols[col_idx]
-            
-            with col:
-                sprite_url = get_pokemon_sprite(name)
-                
-                if sprite_url:
-                    try:
-                        response = requests.get(sprite_url)
-                        img = Image.open(BytesIO(response.content))
-                        st.image(img, width=100)
-                    except:
-                        st.text("🔲")  # Fallback if image fails
-                else:
-                    st.text("🔲")  # Fallback if no sprite
-                
-                st.text(format_pokemon_name(name))
-            
-            # Add expand icon aligned to the right of the row
-            if col_idx == 2 or idx == len(pokemon_names) - 1:
-                st.markdown("---")
-    else:
-        st.warning("No Pokemon detected. Try pasting showdown format or similar.")
-else:
-    st.info("Paste your Pokemon data in Showdown's format for analysis & suggestions")
+def get_pokemon_description(name):
+    descriptions = {
+        "pikachu": "ash's pikachu - the electric mouse that never gives up",
+        "charizard": "ashwins charizard - fire-flying powerhouse",
+        "araquanid": "water spider pokemon - traps foes in water bubbles",
+        "cinderace": "fire rabbit striker - kicks pyro balls with precision", 
+        "kingambit": "supreme overlord - grows stronger as allies fall",
+        "dragonite": "friendly dragon - gentle giant with incredible power",
+        "iron treads": "paradox ground type - futuristic donphan variant",
+        "pecharunt": "poison puppeteer - mythical toxic peach pokemon"
+    }
+    return descriptions.get(name.lower(), f"A powerful {name} ready for battle!")
 
-# Example format hint
-with st.expander("Supported Data Formats"):
-    st.code("""
+if not st.session_state.submitted:
+    with st.form("pokemon_form"):
+        pokemon_data = st.text_area(
+            "Paste Pokemon Data:",
+            placeholder="Paste your raw pokemon data here...",
+            height=300
+        )
+        
+        submit_button = st.form_submit_button("Analyze Team")
+        
+        if submit_button and pokemon_data:
+            st.session_state.pokemon_names = extract_pokemon_names(pokemon_data)
+            st.session_state.submitted = True
+            st.rerun()
+
+    with st.expander("Supported Data Formats"):
+        st.code("""
 Example formats:
     
 Pikachu @ Light Ball
@@ -181,3 +178,46 @@ EVs: 252 Atk / 252 Spe / 4 HP
 
 Charizard @ Charcoal  
 Ability: Blaze""")
+
+else:
+    if st.button("← Analyze New Team"):
+        st.session_state.submitted = False
+        st.session_state.pokemon_names = []
+        st.rerun()
+    
+    if st.session_state.pokemon_names:
+        st.header("Your Team Analysis")
+        
+        for row in range(3):
+            cols = st.columns(2)
+            
+            for col_idx in range(2):
+                pokemon_idx = row * 2 + col_idx
+                
+                if pokemon_idx < len(st.session_state.pokemon_names):
+                    name = st.session_state.pokemon_names[pokemon_idx]
+                    
+                    with cols[col_idx]:
+                        with st.container():
+                            sprite_url = get_pokemon_sprite(name)
+                            
+                            col1, col2 = st.columns([1, 2])
+                            
+                            with col1:
+                                if sprite_url:
+                                    try:
+                                        response = requests.get(sprite_url)
+                                        img = Image.open(BytesIO(response.content))
+                                        st.image(img, width=150)
+                                    except:
+                                        st.text("🔲")
+                                else:
+                                    st.text("🔲")
+                            
+                            with col2:
+                                st.subheader(format_pokemon_name(name))
+                                st.write(get_pokemon_description(name))
+                            
+                            st.markdown("---")
+    else:
+        st.warning("No Pokemon detected. Try going back and pasting showdown format.")
