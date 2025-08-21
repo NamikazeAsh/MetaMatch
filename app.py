@@ -5,6 +5,7 @@ from PIL import Image
 from io import BytesIO
 from helper import *
 
+
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
 # Custom CSS to reduce top padding
