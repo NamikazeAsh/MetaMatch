@@ -30,7 +30,7 @@ st.markdown("""
 # Add logo instead of title
 col1, col2, col3 = st.columns([2, 1, 2])
 with col2:
-    st.image("logo/dark_logo.png", width=300)
+    st.image("logo/dark_logo_transp.png", width=350)
 
 # Initialize session state
 if 'submitted' not in st.session_state:
