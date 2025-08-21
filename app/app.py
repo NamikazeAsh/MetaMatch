@@ -3,9 +3,11 @@ import re
 import requests
 from PIL import Image
 from io import BytesIO
+from helper import *
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
+# Custom CSS to reduce top padding
 st.markdown("""
 <style>
     .main .block-container {
@@ -15,17 +17,29 @@ st.markdown("""
     .stApp > header {
         background-color: transparent;
     }
+    .stApp {
+        background-color: #1a1f2e;
+    }
+    .main {
+        background-color: #1a1f2e;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("MetaMatch")
+# Add logo instead of title
+col1, col2, col3 = st.columns([2, 1, 2])
+with col2:
+    st.image("logo/dark_logo.png", width=300)
 
+# Initialize session state
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'pokemon_names' not in st.session_state:
     st.session_state.pokemon_names = []
 
 def extract_pokemon_names(raw_data):
+    """Extract pokemon names from raw data"""
+    # Pattern for Pokemon @ Item format (handles multi-word names)
     pattern = r'^([A-Za-z][A-Za-z\s]+?)\s*@'
     
     names = []
@@ -44,86 +58,8 @@ def extract_pokemon_names(raw_data):
     
     return names
 
-def pokeSlugify(name):
-    name = name.lower().replace(' ', '-').replace('.', '').replace("'", '').replace(':', '')
-    
-    name_x = {
-        # Forms and variants
-        "ogerpon-wellspring": "ogerpon-wellspring-mask",
-        "ogerpon-hearthflame": "ogerpon-hearthflame-mask", 
-        "ogerpon-cornerstone": "ogerpon-cornerstone-mask",
-        "keldeo": "keldeo-ordinary",
-        "enamorus": "enamorus-incarnate",
-        "indeedee": "indeedee-male",
-        "mimikyu": "mimikyu-disguised",
-        "maushold": "maushold-family-of-four",
-        "basculegion": "basculegion-male",
-        "basculegion-f": "basculegion-female",
-        "thundurus": "thundurus-incarnate",
-        "tornadus": "tornadus-incarnate",
-        "landorus": "landorus-incarnate",
-        "aegislash": "aegislash-shield",
-        "pumpkaboo": "pumpkaboo-average",
-        "gourgeist": "gourgeist-average",
-        "zygarde": "zygarde-50",
-        "oricorio": "oricorio-baile",
-        "lycanroc": "lycanroc-midday",
-        "wishiwashi": "wishiwashi-solo",
-        "toxapex": "toxapex",
-        "minior": "minior-red-meteor",
-        "necrozma": "necrozma",
-        "urshifu": "urshifu-single-strike",
-        "calyrex": "calyrex",
-        
-        # Paradox Pokemon
-        "iron-treads": "iron-treads",
-        "iron-bundle": "iron-bundle",
-        "iron-hands": "iron-hands", 
-        "iron-jugulis": "iron-jugulis",
-        "iron-moth": "iron-moth",
-        "iron-thorns": "iron-thorns",
-        "iron-valiant": "iron-valiant",
-        "iron-leaves": "iron-leaves",
-        "iron-boulder": "iron-boulder",
-        "iron-crown": "iron-crown",
-        "roaring-moon": "roaring-moon",
-        "sandy-shocks": "sandy-shocks", 
-        "scream-tail": "scream-tail",
-        "brute-bonnet": "brute-bonnet",
-        "flutter-mane": "flutter-mane",
-        "slither-wing": "slither-wing",
-        "great-tusk": "great-tusk",
-        "walking-wake": "walking-wake",
-        "gouging-fire": "gouging-fire",
-        "raging-bolt": "raging-bolt",
-        
-        # Special cases
-        "nidoran-f": "nidoran-f",
-        "nidoran-m": "nidoran-m",
-        "mr-mime": "mr-mime",
-        "farfetchd": "farfetchd",
-        "ho-oh": "ho-oh",
-        "porygon-z": "porygon-z",
-        "jangmo-o": "jangmo-o",
-        "hakamo-o": "hakamo-o", 
-        "kommo-o": "kommo-o",
-        "tapu-koko": "tapu-koko",
-        "tapu-lele": "tapu-lele",
-        "tapu-bulu": "tapu-bulu",
-        "tapu-fini": "tapu-fini",
-        "type-null": "type-null",
-        "wo-chien": "wo-chien",
-        "chien-pao": "chien-pao",
-        "ting-lu": "ting-lu",
-        "chi-yu": "chi-yu",
-        
-        "dundunsparce": "dudunsparce",
-        "tatsugiri": "tatsugiri-stretchy",
-    }
-    
-    return name_x.get(name, name)
-
 def get_pokemon_sprite(name):
+    """Get pokemon sprite from PokeAPI"""
     try:
         slugified_name = pokeSlugify(name)
         url = f"https://pokeapi.co/api/v2/pokemon/{slugified_name}"
@@ -138,9 +74,11 @@ def get_pokemon_sprite(name):
     return None
 
 def format_pokemon_name(name):
+    """Format pokemon name for display"""
     return name.capitalize()
 
 def get_pokemon_description(name):
+    """Get custom description for each Pokemon"""
     descriptions = {
         "pikachu": "ash's pikachu - the electric mouse that never gives up",
         "charizard": "ashwins charizard - fire-flying powerhouse",
@@ -153,10 +91,11 @@ def get_pokemon_description(name):
     }
     return descriptions.get(name.lower(), f"A powerful {name} ready for battle!")
 
+# Show input form if not submitted
 if not st.session_state.submitted:
     with st.form("pokemon_form"):
         pokemon_data = st.text_area(
-            "Paste Pokemon Data",
+            "Paste Pokemon Data:",
             placeholder="Paste your raw pokemon data here...",
             height=300
         )
@@ -168,6 +107,7 @@ if not st.session_state.submitted:
             st.session_state.submitted = True
             st.rerun()
 
+    # Example format hint
     with st.expander("Supported Data Formats"):
         st.code("""
 Example formats:
@@ -179,7 +119,9 @@ EVs: 252 Atk / 252 Spe / 4 HP
 Charizard @ Charcoal  
 Ability: Blaze""")
 
+# Show team analysis if submitted
 else:
+    # Add button to go back to input
     if st.button("← Analyze New Team"):
         st.session_state.submitted = False
         st.session_state.pokemon_names = []
@@ -188,6 +130,7 @@ else:
     if st.session_state.pokemon_names:
         st.header("Your Team Analysis")
         
+        # Display in 2 columns, 3 rows (6 Pokemon max)
         for row in range(3):
             cols = st.columns(2)
             
@@ -198,6 +141,7 @@ else:
                     name = st.session_state.pokemon_names[pokemon_idx]
                     
                     with cols[col_idx]:
+                        # Create a container for each Pokemon
                         with st.container():
                             sprite_url = get_pokemon_sprite(name)
                             
