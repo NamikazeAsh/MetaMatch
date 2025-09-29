@@ -2,6 +2,7 @@ import re
 from helper import *
 import requests
 import json
+from helper import pokeSlugify
 
 def smogonUsage(path, usage_min=0.0, top_n=None):
     pat = re.compile(r'^\s*\|\s*\d+\s*\|\s*([^|]+?)\s*\|\s*([\d.]+)%')
@@ -42,8 +43,8 @@ topL.extend(topND)
 names = [n for n, _ in topL]
 unique_names = list(dict.fromkeys(names))
 
-topPoke = {name: getType(slugify(name)) for name in unique_names}
-print(topPoke)
+topPoke = {name: getType(pokeSlugify(name)) for name in unique_names}
+# print(topPoke)
 
 with open("jsons/topPoke.json", "w") as f:
     json.dump(topPoke, f, indent=2)

@@ -14,7 +14,10 @@
   "Zamazenta": [
     "Fighting"
   ],
-  "Ogerpon-Wellspring": [],
+  "Ogerpon-Wellspring": [
+    "Grass",
+    "Water"
+  ],
   "Dragonite": [
     "Dragon",
     "Flying"
@@ -110,7 +113,10 @@
     "Steel",
     "Psychic"
   ],
-  "Enamorus": [],
+  "Enamorus": [
+    "Fairy",
+    "Flying"
+  ],
   "Deoxys-Speed": [
     "Psychic"
   ],
@@ -206,7 +212,10 @@
     "Water",
     "Flying"
   ],
-  "Ogerpon-Cornerstone": [],
+  "Ogerpon-Cornerstone": [
+    "Grass",
+    "Rock"
+  ],
   "Skarmory": [
     "Steel",
     "Flying"
@@ -251,8 +260,14 @@
     "Bug",
     "Fighting"
   ],
-  "Keldeo": [],
-  "Indeedee": [],
+  "Keldeo": [
+    "Water",
+    "Fighting"
+  ],
+  "Indeedee": [
+    "Psychic",
+    "Normal"
+  ],
   "Venusaur": [
     "Grass",
     "Poison"
@@ -291,7 +306,10 @@
     "Poison",
     "Fighting"
   ],
-  "Mimikyu": [],
+  "Mimikyu": [
+    "Ghost",
+    "Fairy"
+  ],
   "Latias": [
     "Dragon",
     "Psychic"
@@ -307,7 +325,9 @@
     "Dark",
     "Dragon"
   ],
-  "Maushold": [],
+  "Maushold": [
+    "Normal"
+  ],
   "Quaquaval": [
     "Water",
     "Fighting"
@@ -436,7 +456,10 @@
     "Bug",
     "Rock"
   ],
-  "Basculegion": [],
+  "Basculegion": [
+    "Water",
+    "Ghost"
+  ],
   "Forretress": [
     "Bug",
     "Steel"
@@ -496,7 +519,10 @@
   "Thwackey": [
     "Grass"
   ],
-  "Thundurus": [],
+  "Thundurus": [
+    "Electric",
+    "Flying"
+  ],
   "Gengar": [
     "Ghost",
     "Poison"
@@ -509,7 +535,10 @@
     "Rock",
     "Electric"
   ],
-  "Basculegion-F": [],
+  "Basculegion-F": [
+    "Water",
+    "Ghost"
+  ],
   "Blastoise": [
     "Water"
   ],
@@ -529,7 +558,10 @@
     "Fighting",
     "Flying"
   ],
-  "Tatsugiri": [],
+  "Tatsugiri": [
+    "Dragon",
+    "Water"
+  ],
   "Espeon": [
     "Psychic"
   ],
@@ -655,7 +687,10 @@
     "Bug",
     "Flying"
   ],
-  "Aegislash": [],
+  "Aegislash": [
+    "Steel",
+    "Ghost"
+  ],
   "Shedinja": [
     "Bug",
     "Ghost"

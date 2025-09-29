@@ -4,11 +4,12 @@ import requests
 from PIL import Image
 from io import BytesIO
 from helper import *
-
+from team_read import *
+from suggestion_call import *
+from smogon_scrape import *
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
-# Custom CSS to reduce top padding
 st.markdown("""
 <style>
     .main .block-container {
@@ -27,20 +28,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Add logo instead of title
 col1, col2, col3 = st.columns([2, 1, 2])
 with col2:
     st.image("logo/dark_logo_transp.png", width=350)
 
-# Initialize session state
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
 if 'pokemon_names' not in st.session_state:
     st.session_state.pokemon_names = []
 
 def extract_pokemon_names(raw_data):
-    """Extract pokemon names from raw data"""
-    # Pattern for Pokemon @ Item format (handles multi-word names)
     pattern = r'^([A-Za-z][A-Za-z\s]+?)\s*@'
     
     names = []
@@ -60,7 +57,6 @@ def extract_pokemon_names(raw_data):
     return names
 
 def get_pokemon_sprite(name):
-    """Get pokemon sprite from PokeAPI"""
     try:
         slugified_name = pokeSlugify(name)
         url = f"https://pokeapi.co/api/v2/pokemon/{slugified_name}"
@@ -75,11 +71,9 @@ def get_pokemon_sprite(name):
     return None
 
 def format_pokemon_name(name):
-    """Format pokemon name for display"""
     return name.capitalize()
 
 def get_pokemon_description(name):
-    """Get custom description for each Pokemon"""
     descriptions = {
         "pikachu": "ash's pikachu - the electric mouse that never gives up",
         "charizard": "ashwins charizard - fire-flying powerhouse",
@@ -92,7 +86,7 @@ def get_pokemon_description(name):
     }
     return descriptions.get(name.lower(), f"A powerful {name} ready for battle!")
 
-# Show input form if not submitted
+
 if not st.session_state.submitted:
     with st.form("pokemon_form"):
         pokemon_data = st.text_area(
@@ -104,25 +98,39 @@ if not st.session_state.submitted:
         submit_button = st.form_submit_button("Analyze Team")
         
         if submit_button and pokemon_data:
+            st.session_state.pokemon_data = pokemon_data
             st.session_state.pokemon_names = extract_pokemon_names(pokemon_data)
+            
+            team, team_weakness = readTeam(pokemon_data)
+            detectRole(team)
+            addComments(team)
+            coverage = coverageCheck(team)
+            
+            suggestions = get_suggestions(team)
+            
+            st.session_state.analysis = {
+                'team': team,
+                'weakness': team_weakness,
+                'coverage': coverage,
+                'suggestions': suggestions
+            }
+            
             st.session_state.submitted = True
             st.rerun()
 
-    # Example format hint
+
     with st.expander("Supported Data Formats"):
         st.code("""
-Example formats:
-    
-Pikachu @ Light Ball
-Ability: Static
-EVs: 252 Atk / 252 Spe / 4 HP
+        Example formats:
+            
+        Pikachu @ Light Ball
+        Ability: Static
+        EVs: 252 Atk / 252 Spe / 4 HP
 
-Charizard @ Charcoal  
-Ability: Blaze""")
+        Charizard @ Charcoal  
+        Ability: Blaze""")
 
-# Show team analysis if submitted
 else:
-    # Add button to go back to input
     if st.button("← Analyze New Team"):
         st.session_state.submitted = False
         st.session_state.pokemon_names = []
@@ -130,8 +138,7 @@ else:
     
     if st.session_state.pokemon_names:
         st.header("Your Team Analysis")
-        
-        # Display in 2 columns, 3 rows (6 Pokemon max)
+
         for row in range(3):
             cols = st.columns(2)
             
@@ -142,7 +149,6 @@ else:
                     name = st.session_state.pokemon_names[pokemon_idx]
                     
                     with cols[col_idx]:
-                        # Create a container for each Pokemon
                         with st.container():
                             sprite_url = get_pokemon_sprite(name)
                             
@@ -160,9 +166,65 @@ else:
                                     st.text("🔲")
                             
                             with col2:
-                                st.subheader(format_pokemon_name(name))
-                                st.write(get_pokemon_description(name))
+                                poke_data = st.session_state.analysis['team'][pokemon_idx]
+                                st.subheader(f"{poke_data['Pokemon']}")
+
+                                type_colors = {
+                                    'Fire': '#F08030', 'Water': '#6890F0', 'Grass': '#78C850',
+                                    'Electric': '#F8D030', 'Psychic': '#F85888', 'Ice': '#98D8D8',
+                                    'Fighting': '#C03028', 'Poison': '#A040A0', 'Ground': '#E0C068',
+                                    'Flying': '#A890F0', 'Bug': '#A8B820', 'Rock': '#B8A038',
+                                    'Ghost': '#705898', 'Dragon': '#7038F8', 'Dark': '#705848',
+                                    'Steel': '#B8B8D0', 'Fairy': '#EE99AC', 'Normal': '#A8A878'
+                                }
+                                
+                                type_html = "".join([
+                                    f'<span style="background-color:{type_colors.get(t,"#68A090")};'
+                                    f'color:white;padding:2px 8px;border-radius:4px;margin:2px">{t}</span>'
+                                    for t in poke_data['Type']
+                                ])
+                                st.markdown(type_html, unsafe_allow_html=True)
+                                
+                                if poke_data['Roles']:
+                                    st.caption(f"**Roles:** {', '.join(poke_data['Roles'])}")
+                                
+                                st.caption(f"**Item:** {poke_data['Item']} | **Ability:** {poke_data['Ability']}")
                             
                             st.markdown("---")
+        
+        
+        st.header("Team Analysis")
+
+        tab1, tab2, tab3, tab4 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats"])
+
+        with tab1:
+            coverage = st.session_state.analysis['coverage']
+            covered = sum(1 for v in coverage.values() if v)
+            total = len(coverage)
+            st.metric("Type Coverage", f"{covered}/{total} types")
+            
+            missing = [t for t, v in coverage.items() if not v]
+            if missing:
+                st.warning(f"No coverage for: {', '.join(missing)}")
+
+        with tab2:
+            team_weakness = st.session_state.analysis['weakness']
+            st.write("**Team Weaknesses:**")
+            for type_name, counts in team_weakness.items():
+                if counts['weak'] >= 3:
+                    st.error(f"{type_name}: {counts['weak']} weaknesses")
+                elif counts['weak'] >= 2:
+                    st.warning(f"{type_name}: {counts['weak']} weaknesses")
+
+        with tab3:
+            if st.session_state.analysis['suggestions']:
+                sugg = st.session_state.analysis['suggestions']
+                if 'suggestions' in sugg:
+                    for s in sugg['suggestions']:
+                        st.write(f"• {s}")
+
+        with tab4:
+            st.info("Meta threats analysis coming soon...")
+
     else:
         st.warning("No Pokemon detected. Try going back and pasting showdown format.")
