@@ -40,9 +40,9 @@
     "immune": 2
   },
   "ground": {
-    "weak": 4,
+    "weak": 3,
     "resist": 1,
-    "immune": 1
+    "immune": 2
   },
   "flying": {
     "weak": 1,

@@ -1,52 +1,122 @@
 import re
-from helper import *
 import requests
 import json
+from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 from helper import pokeSlugify
 
-def smogonUsage(path, usage_min=0.0, top_n=None):
-    pat = re.compile(r'^\s*\|\s*\d+\s*\|\s*([^|]+?)\s*\|\s*([\d.]+)%')
-    rows = []
-    with open(path, 'r', encoding='utf-8') as f:
-        for line in f:
-            m = pat.match(line)
-            if not m: 
-                continue
-            name = m.group(1).strip()
-            usage = float(m.group(2))
-            if usage >= usage_min:
-                rows.append((name, usage))
-    rows.sort(key=lambda x: x[1], reverse=True)
-    return rows[:top_n] if top_n else rows
+def get_latest_stats_url():
+    """
+    Calculates the URL for the previous month's Smogon stats directory.
+    """
+    today = datetime.today()
+    first_day_of_current_month = today.replace(day=1)
+    last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
+    year = last_day_of_previous_month.year
+    month = last_day_of_previous_month.month
+    return f"https://www.smogon.com/stats/{year:04d}-{month:02d}/"
 
-def getType(name):
-    url = f"https://pokeapi.co/api/v2/pokemon/{name.lower()}"
-    res = requests.get(url)
+def download_stat_file(stats_url, target_filename):
+    """
+    Downloads a specific stat file from the Smogon stats index page.
+    Saves it to the 'stats/' directory and returns the local path.
+    """
+    try:
+        response = requests.get(stats_url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        link = soup.find('a', href=target_filename)
+        if not link:
+            print(f"Warning: Could not find '{target_filename}' at {stats_url}")
+            return None
+            
+        file_url = stats_url + target_filename
+        file_response = requests.get(file_url)
+        file_response.raise_for_status()
+        
+        local_path = f"stats/{target_filename}"
+        with open(local_path, 'w', encoding='utf-8') as f:
+            f.write(file_response.text)
+            
+        print(f"Successfully downloaded and saved '{target_filename}' to '{local_path}'")
+        return local_path
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading stats: {e}")
+        return None
 
-    if res.status_code != 200:
+def parse_smogon_usage(path, top_n=100):
+    """
+    Parses a smogon usage stats file and returns a list of top Pokémon names.
+    """
+    if not path:
+        return []
+    pat = re.compile(r'^\s*\|\s*\d+\s*\|\s*([^|]+?)\s*\|')
+    names = []
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            for line in f:
+                m = pat.match(line)
+                if not m:
+                    continue
+                names.append(m.group(1).strip())
+        return names[:top_n] if top_n else names
+    except FileNotFoundError:
+        print(f"Error: Could not find file {path} to parse.")
         return []
 
-    data = res.json()
-    types = [t["type"]["name"].capitalize() for t in data["types"]]
+def get_pokemon_type(name):
+    """
+    Fetches Pokémon types from the PokeAPI.
+    """
+    url = f"https://pokeapi.co/api/v2/pokemon/{name.lower()}"
+    try:
+        res = requests.get(url)
+        res.raise_for_status()
+        data = res.json()
+        return [t["type"]["name"].capitalize() for t in data["types"]]
+    except requests.exceptions.RequestException:
+        return [] # Return empty list if API call fails
+
+def main():
+    """
+    Main function to automate downloading and processing of Smogon stats.
+    """
+    print("Starting Smogon stats update...")
+    stats_base_url = get_latest_stats_url()
     
-    return types
+    # --- Define target files ---
+    # Using 1695 as it's a common cutoff, fallback to 1630 if needed. Let's try 1695 first.
+    target_files = ["gen9ou-1825.txt", "gen9ou-1695.txt"] 
+    
+    # --- Download files ---
+    downloaded_paths = []
+    for filename in target_files:
+        path = download_stat_file(stats_base_url, filename)
+        if path:
+            downloaded_paths.append(path)
+            
+    if not downloaded_paths:
+        print("No stats files were downloaded. Aborting update.")
+        return
 
-topOU = smogonUsage("stats/gen9ou.txt", top_n=100)
-topUU = smogonUsage("stats/gen9uu.txt",top_n=100)
-topND = smogonUsage("stats/gen9nationaldex.txt",top_n=100)
+    # --- Parse files and combine lists ---
+    print("\nParsing downloaded files...")
+    combined_names = set()
+    for path in downloaded_paths:
+        names = parse_smogon_usage(path, top_n=100)
+        combined_names.update(names)
 
-topL = []
-topL.extend(topOU)
-topL.extend(topUU)
-topL.extend(topND)
+    # --- Fetch types and save final JSON ---
+    print(f"Found {len(combined_names)} unique Pokémon. Fetching types...")
+    top_poke_data = {name: get_pokemon_type(pokeSlugify(name)) for name in combined_names}
+    
+    output_path = "jsons/topPoke.json"
+    with open(output_path, "w") as f:
+        json.dump(top_poke_data, f, indent=2)
+        
+    print(f"\nSuccessfully updated '{output_path}' with the latest meta data.")
 
-names = [n for n, _ in topL]
-unique_names = list(dict.fromkeys(names))
-
-topPoke = {name: getType(pokeSlugify(name)) for name in unique_names}
-# print(topPoke)
-
-with open("jsons/topPoke.json", "w") as f:
-    json.dump(topPoke, f, indent=2)
-
-# print(f'{topOU} \n\n {topUU} \n\n {topND}')
+if __name__ == "__main__":
+    main()

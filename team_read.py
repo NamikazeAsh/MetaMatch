@@ -86,6 +86,32 @@ def readTeam(teamRaw):
                 })
 
         dmg_from, dmg_to = damageRelations(poke_data['Type'])
+        
+        # --- Apply Ability/Item Immunities ---
+        ability = poke_data['Ability'].lower()
+        item = poke_data['Item'].lower()
+
+        # Ground Immunities
+        if 'levitate' in ability or 'earth eater' in ability or item == 'air balloon':
+            dmg_from['ground'] = 0.0
+            
+        # Electric Immunities
+        if ability in ['volt absorb', 'lightning rod', 'motor drive']:
+            dmg_from['electric'] = 0.0
+            
+        # Water Immunities
+        if ability in ['water absorb', 'storm drain', 'dry skin']:
+            dmg_from['water'] = 0.0
+            
+        # Fire Immunities
+        if ability in ['flash fire', 'well-baked body']:
+            dmg_from['fire'] = 0.0
+            
+        # Grass Immunities
+        if ability == 'sap sipper':
+            dmg_from['grass'] = 0.0
+        # -------------------------------------
+
         poke_data['Damage From'] = dmg_from
         poke_data['Damage To'] = dmg_to
 

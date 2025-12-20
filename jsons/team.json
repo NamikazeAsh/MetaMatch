@@ -125,9 +125,9 @@
       }
     ],
     "Roles": [
-      "Glass Cannon",
       "Fast Sweeper",
-      "Physical Sweeper"
+      "Physical Sweeper",
+      "Glass Cannon"
     ],
     "Comments": [],
     "Damage To": {
@@ -199,9 +199,9 @@
       }
     ],
     "Roles": [
-      "Glass Cannon",
       "Fast Sweeper",
-      "Physical Sweeper"
+      "Physical Sweeper",
+      "Glass Cannon"
     ],
     "Comments": [],
     "Damage To": {
@@ -269,10 +269,10 @@
       }
     ],
     "Roles": [
-      "Glass Cannon",
       "Utility",
       "Fast Sweeper",
-      "Physical Sweeper"
+      "Physical Sweeper",
+      "Glass Cannon"
     ],
     "Comments": [
       "Missing moves"
@@ -341,9 +341,9 @@
       }
     ],
     "Roles": [
-      "Glass Cannon",
       "Fast Sweeper",
-      "Physical Sweeper"
+      "Physical Sweeper",
+      "Glass Cannon"
     ],
     "Comments": [
       "Missing moves"
@@ -427,9 +427,9 @@
       }
     ],
     "Roles": [
-      "Glass Cannon",
+      "Fast Sweeper",
       "Special Sweeper",
-      "Fast Sweeper"
+      "Glass Cannon"
     ],
     "Comments": [],
     "Damage To": {
@@ -445,7 +445,7 @@
       "normal": 0.0
     },
     "Damage From": {
-      "ground": 2,
+      "ground": 0.0,
       "psychic": 2,
       "fighting": 0.0,
       "poison": 0.25,

@@ -1,8 +1,10 @@
-from groq import Groq
+from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import json
 from pprint import pprint
+import re
+import openai
 
 with open("jsons/team.json", "r") as f:
     team = json.load(f)
@@ -16,37 +18,54 @@ def get_suggestions(team):
     attempt = 0
     
     while attempt < max_retries:
-        client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
+        # Use the OpenAI client to connect to a local Ollama instance
+        client = OpenAI(base_url='http://localhost:11434/v1', api_key='ollama')
         attempt += 1
         
-        completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[{
-                "role": "user",
-                "content": f"""
-                Summarize this Pokémon team, give improvement suggestions, mention which meta-mons are a threat to my team. 
-                Respond in points, each point starts in a new line.
-                
-                Output ONLY JSON: keys = (synergy, suggestions)
-                synergy: list of short strings (each string <= 50 words)
-                suggestions: list of short strings (each string <= 50 words)
-                Poke team: {team}
-                """
-            }],
-            temperature=0.2,
-            max_completion_tokens=4000,
-            reasoning_effort="low",
-            stream=False,
-        )
-        
-        result_text = completion.choices[0].message.content
-        
         try:
+            # Prepare meta list (top 60 for context)
+            meta_list = list(topPoke.keys())[:60]
+            
+            completion = client.chat.completions.create(
+                model="llama3.2:3b-instruct-q4_K_M",
+                messages=[{
+                    "role": "user",
+                    "content": f"""
+                    You are a competitive Pokemon expert. Analyze this team deeply.
+                    
+                    Return a JSON object with this EXACT structure:
+                    {{
+                        "team_analysis": ["Detailed point about team synergy", "Point about major weakness"],
+                        "pokemon_specific": {{
+                            "PokemonName1": "Specific advice (e.g., change item, move, or EVs)",
+                            "PokemonName2": "Specific advice"
+                        }},
+                        "threats": [
+                            {{
+                                "pokemon": "ThreatName", 
+                                "explanation": "Why it beats this team",
+                                "counter_play": "How to handle it"
+                            }}
+                        ]
+                    }}
+
+                    Meta Context: {meta_list}
+                    Team Data: {team}
+                    """
+                }],
+                response_format={"type": "json_object"},
+                temperature=0.2,
+                max_tokens=1500,
+                stream=False,
+            )
+            
+            result_text = completion.choices[0].message.content
             result_json = json.loads(result_text)
-            if 'synergy' in result_json and 'suggestions' in result_json:
-                return result_json
-        except json.JSONDecodeError:
+            
+            return result_json
+
+        except (json.JSONDecodeError, AttributeError, openai.APIError) as e:
+            print(f"An error occurred on attempt {attempt}: {e}")
             continue
     
     return None
-
