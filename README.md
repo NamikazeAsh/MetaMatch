@@ -57,96 +57,14 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 
 ---
 
-## 🔄 How It Works
+## 🔮 Limitations & Future Outlook
 
-```mermaid
-graph TD
-    A[User Input] -->|Showdown Export| B(Streamlit App)
-    B --> C{Analysis Pipeline}
-    
-    subgraph "Static Analysis"
-    C --> D[Team Parser]
-    D -->|PokeAPI| E[Enrich Data]
-    E --> F[Role Detection]
-    E --> G[Type Calculator]
-    end
-    
-    subgraph "Meta Context"
-    H[Smogon Stats] -->|Scraper| I[Meta/Speed Tiers]
-    I --> J[AI Context]
-    end
-    
-    subgraph "AI Reasoning"
-    C --> K[Ollama LLM]
-    J --> K
-    K --> L[Strategic Advice]
-    end
-    
-    F --> M[Dashboard UI]
-    G --> M
-    L --> M
-    I --> M
-```
+It's important to acknowledge that the AI landscape is evolving rapidly. As frontier models (like GPT-4o, Gemini 1.5 Pro, and beyond) continue to scale, their ability to "simulate" game logic internally will undoubtedly improve.
 
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-1.  **Python 3.10+**
-2.  **Ollama** (for AI features):
-    *   Install Ollama from [ollama.com](https://ollama.com/).
-    *   Pull the model: `ollama pull llama3.2:3b-instruct-q4_K_M`
-    *   Start the server: `ollama serve`
-
-### Installation
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/NamikazeAsh/MetaMatch.git
-    cd MetaMatch
-    ```
-
-2.  **Install Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-    
-3.  **Generate Meta Data:** (First time setup)
-    ```bash
-    python src/metamatch/scrapers.py
-    ```
-
-4.  **Run the App:**
-    ```bash
-    streamlit run src/metamatch/app.py
-    ```
-
----
-
-## 🛠️ Architecture
-
-*   **`src/metamatch/app.py`**: The Streamlit frontend. Handles the Sidebar input, Dashboard rendering, and state management.
-*   **`src/metamatch/team.py`**: The "Static Analyzer." Parses Showdown text, calculates real stats (including speed), and detects roles.
-*   **`src/metamatch/suggestions.py`**: The "AI Brain." Queries a local LLM for qualitative advice.
-*   **`src/metamatch/scrapers.py`**: The "Meta Crawler." Downloads Smogon stats and generates meta benchmarks (top threats, speed tiers).
-*   **`src/metamatch/utils.py`**: Centralizes API calls with a persistent `api_cache.json` to reduce redundant requests.
-*   **`src/metamatch/type_chart.py`**: Provides a static, offline type-effectiveness chart for instant matrix calculations.
-*   **`data/`**: Stores cached data (`json/`) and raw stats (`stats/`).
-*   **`assets/`**: Stores static assets like logos.
-
----
-
-## 📝 Usage
-
-1.  **Paste Team:** Copy your team export from [Pokémon Showdown](https://play.pokemonshowdown.com/teambuilder).
-2.  **Input:** Paste it into the Sidebar text area.
-3.  **Analyze:** Click "Analyze Team".
-4.  **Review:**
-    *   Check the **Dashboard** for major red flags.
-    *   View **Suggestions** for specific move/item tweaks.
-    *   View the **Matrices** to find your defensive holes and offensive blind spots.
-    *   Check **Speed Tiers** to see what outspeeds you.
+However, MetaMatch represents a philosophy of **Efficiency & Transparency**:
+1.  **Right Tool for the Job:** We shouldn't need a trillion-parameter model to calculate a Speed stat. Code is perfect for rules; AI is perfect for vibes.
+2.  **Privacy:** By optimizing for smaller models (Llama 3B), MetaMatch allows you to keep your strategies local and offline.
+3.  **The "Hybrid" Bet:** We believe the future of AI isn't just "bigger models," but "models that know how to use tools." MetaMatch is a proof-of-concept for that future.
 
 ---
 
