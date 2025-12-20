@@ -33,8 +33,8 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 | :--- | :--- | :--- |
 | **Accuracy** | **Hallucinations:** Can fail simple type math (e.g., ignoring *Levitate*). | **Hard Logic:** Deterministic type calculator respecting Abilities & Items. |
 | **Data Freshness**| **Cutoff Dates:** Doesn't know this month's usage stats. | **Live Meta:** Scrapes Smogon stats *on demand* for real-time relevance. |
-| **User Experience**| **Wall of Text:** Requires reading long paragraphs to find flaws. | **Visual Dashboard:** Instant heatmaps, charts, and "Trading Card" visuals. |
-| **Privacy** | **Cloud Logged:** Your secret tech is sent to OpenAI/Anthropic. | **100% Local:** Runs on your machine (via Ollama). Your strategy stays yours. |
+| **Hybrid Engine** | **Text Only:** Generates plausible-sounding but often mathematically flawed advice. | **Math + AI:** Uses code for 100% accurate stats/weaknesses, and AI for high-level strategy. |
+| **Workflow** | **Slow Prompting:** "Here is my new team..." (copy-paste-repeat). | **Rapid Iteration:** Tweak one move in the sidebar -> Instant re-analysis. |
 
 ---
 
