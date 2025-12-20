@@ -5,7 +5,7 @@
 [![Ollama](https://img.shields.io/badge/AI-Ollama-000000?logo=ollama&logoColor=white)](https://ollama.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**MetaMatch** is an advanced AI-powered Pokémon team analysis tool. It combines hard-coded competitive logic with Large Language Model (LLM) insights to provide deep feedback on team synergy, weaknesses, and current meta threats.
+**MetaMatch** is an advanced AI-powered Pokémon team analysis tool wrapped in a futuristic, neon-glassmorphism dashboard. It combines hard-coded competitive logic with Large Language Model (LLM) insights to provide deep feedback on team synergy, weaknesses, and current meta threats.
 
 ![MetaMatch Dashboard](assets/images/dark_logo_transp.png)
 
@@ -22,12 +22,12 @@
 *   **Threat Hunter:** Identifies specific meta counters to your team and suggests counter-strategies.
 *   **Detailed Tips:** Gives per-Pokemon advice (e.g., "Swap Leftovers for Heavy-Duty Boots on Volcarona").
 
-### 📊 Modern Dashboard
-*   **Trading Card UI:** Visualizes your team as a grid of detailed cards with Sprites, Types, and Roles.
-*   **At-a-Glance Metrics:** A top-bar dashboard shows Team Archetype, Coverage, and Critical Weaknesses.
-*   **Defensive & Offensive Heatmaps:** Instantly see your team's type vulnerabilities and coverage gaps in color-coded matrices.
-*   **Speed Tier Chart:** A visual plot comparing your team's speed against live meta benchmarks.
-*   **Debug Presets:** Instantly load "Balanced", "Rain", or "Stall" teams to test the analyzer.
+### 📊 Futuristic 2026 Dashboard
+*   **Neon Glassmorphism:** A premium UI featuring semi-transparent surfaces, `backdrop-filter` blurs, and high-fidelity typography.
+*   **Dynamic Neon Glow:** Pokémon cards feature unique outer glows that match their primary type color.
+*   **Micro-Animations:** Fluid entrance animations and glowing, pulsing interactive elements for a "living" HUD experience.
+*   **At-a-Glance Metrics:** Glowing dashboard tiles for Team Archetype, Type Coverage, and Critical Weaknesses.
+*   **Heatmaps & Speed Tiers:** Visualized data via glowing matrices and interactive Altair speed charts.
 
 ---
 
