@@ -25,6 +25,19 @@
 
 ---
 
+## 💡 Why MetaMatch? (vs. Generic LLMs)
+
+Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculates**.
+
+| Feature | 🤖 Generic LLMs (ChatGPT/Claude) | ⚪ MetaMatch |
+| :--- | :--- | :--- |
+| **Accuracy** | **Hallucinations:** Can fail simple type math (e.g., ignoring *Levitate*). | **Hard Logic:** Deterministic type calculator respecting Abilities & Items. |
+| **Data Freshness**| **Cutoff Dates:** Doesn't know this month's usage stats. | **Live Meta:** Scrapes Smogon stats *on demand* for real-time relevance. |
+| **User Experience**| **Wall of Text:** Requires reading long paragraphs to find flaws. | **Visual Dashboard:** Instant heatmaps, charts, and "Trading Card" visuals. |
+| **Privacy** | **Cloud Logged:** Your secret tech is sent to OpenAI/Anthropic. | **100% Local:** Runs on your machine (via Ollama). Your strategy stays yours. |
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
