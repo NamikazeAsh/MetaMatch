@@ -40,7 +40,7 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 | **Accuracy** | **Hallucinations:** Can fail simple type math (e.g., ignoring *Levitate*). | **Hard Logic:** Deterministic type calculator respecting Abilities & Items. |
 | **Data Freshness**| **Cutoff Dates:** Doesn't know this month's usage stats. | **Live Meta:** Scrapes Smogon stats *on demand* for real-time relevance. |
 | **Hybrid Engine** | **Text Only:** Generates plausible-sounding but often mathematically flawed advice. | **Math + AI:** Uses code for 100% accurate stats/weaknesses, and AI for high-level strategy. |
-| **Model Efficiency** | **Massive:** Needs ~1T+ parameters (GPT-4) to minimize hallucinations. | **Lightweight:** Works perfectly with a tiny ~3B model (Llama 3.2) because logic is offloaded to code. |
+| **Model Efficiency** | **Massive:** Needs massive frontier models (**GPT-5.2**) to minimize hallucinations. | **Lightweight:** Works perfectly with a tiny ~3B model (Llama 3.2) because logic is offloaded to code. |
 | **Workflow** | **Slow Prompting:** "Here is my new team..." (copy-paste-repeat). | **Rapid Iteration:** Tweak one move in the sidebar -> Instant re-analysis. |
 
 ### 🧪 Real World Examples
@@ -59,10 +59,10 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 
 ## 🔮 Limitations & Future Outlook
 
-It's important to acknowledge that the AI landscape is evolving rapidly. As frontier models (like GPT-4o, Gemini 1.5 Pro, and beyond) continue to scale, their ability to "simulate" game logic internally will undoubtedly improve.
+It's important to acknowledge that the AI landscape is evolving rapidly. As frontier models (like **GPT-5.2**, **Gemini 3**, and beyond) continue to scale, their ability to "simulate" game logic internally will undoubtedly improve.
 
 However, MetaMatch represents a philosophy of **Efficiency & Transparency**:
-1.  **Right Tool for the Job:** We shouldn't need a trillion-parameter model to calculate a Speed stat. Code is perfect for rules; AI is perfect for vibes.
+1.  **Right Tool for the Job:** We shouldn't need a massive frontier model to calculate a Speed stat. Code is perfect for rules; AI is perfect for strategy.
 2.  **Privacy:** By optimizing for smaller models (Llama 3B), MetaMatch allows you to keep your strategies local and offline.
 3.  **The "Hybrid" Bet:** We believe the future of AI isn't just "bigger models," but "models that know how to use tools." MetaMatch is a proof-of-concept for that future.
 
