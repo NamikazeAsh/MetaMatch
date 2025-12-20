@@ -443,7 +443,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     st.markdown("---")
     
     st.header("Detailed Analysis")
-    tab1, tab2, tab3, tab4 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "Defensive Matrix"])
 
     with tab1:
         coverage = st.session_state.analysis['coverage']
@@ -534,6 +534,63 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                     st.markdown("---")
         else:
             st.info("Run analysis to see meta threats.")
+            
+    with tab5:
+        st.subheader("🛡️ Type Matchup Matrix")
+        
+        # Visual Legend
+        legend_html = """
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <span style="background-color: #7b1e1e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 4x Weak</span>
+            <span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟧 2x Weak</span>
+            <span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span>
+            <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 0.5x Resist</span>
+            <span style="background-color: #1e8449; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🌲 0.25x Resist</span>
+            <span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span>
+        </div>
+        """
+        st.markdown(legend_html, unsafe_allow_html=True)
+        
+        # Construct DataFrame
+        import pandas as pd
+        
+        all_types = [
+            "Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", 
+            "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"
+        ]
+        
+        matrix_rows = []
+        for poke in team_data.values():
+            row = {"Pokemon": poke['Pokemon']}
+            dmg_dict = poke['Damage From']
+            
+            for t in all_types:
+                val = dmg_dict.get(t.lower(), 1.0)
+                row[t] = val
+                
+            matrix_rows.append(row)
+            
+        df = pd.DataFrame(matrix_rows)
+        df.set_index("Pokemon", inplace=True)
+        
+        # Define Color Map Function
+        def color_cells(val):
+            if val == 0:
+                return 'background-color: #2c3e50; color: #ecf0f1' # Dark Blue/Black for Immunity
+            elif val >= 4:
+                return 'background-color: #7b1e1e; color: white' # Deep Red for 4x
+            elif val >= 2:
+                return 'background-color: #c0392b; color: white' # Red for 2x
+            elif val <= 0.25:
+                return 'background-color: #1e8449; color: white' # Deep Green for 0.25x
+            elif val <= 0.5:
+                return 'background-color: #27ae60; color: white' # Green for 0.5x
+            return '' # Default for neutral
+            
+        # Apply Style
+        styled_df = df.style.map(color_cells).format("{:.1f}")
+        
+        st.dataframe(styled_df, use_container_width=True, height=250)
 
 
 
