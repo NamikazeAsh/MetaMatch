@@ -6,38 +6,217 @@ import pandas as pd
 import altair as alt
 from PIL import Image
 from io import BytesIO
-from .utils import pokeSlugify
-from .team import readTeam, detectRole, addComments, coverageCheck
-from .suggestions import get_suggestions
-from .scrapers import generate_speed_tiers
-from .type_chart import get_multiplier
-from . import config
+import sys
+from pathlib import Path
+
+# Fix path to allow importing from the metamatch package
+# Adds the 'src' directory to sys.path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from metamatch.utils import pokeSlugify
+from metamatch.team import readTeam, detectRole, addComments, coverageCheck
+from metamatch.suggestions import get_suggestions
+from metamatch.scrapers import generate_speed_tiers
+from metamatch.type_chart import get_multiplier
+from metamatch import config
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
 # --- Global CSS ---
 st.markdown(r'''
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    /* Global Base */
     .main .block-container {
         padding-top: 2rem;
         padding-bottom: 0rem;
     }
+    .stApp {
+        background: radial-gradient(circle at 50% 50%, #1a1f2e 0%, #0f1219 100%);
+        color: #e0e0e0;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Transparent Header */
     .stApp > header {
         background-color: transparent;
     }
-    .stApp {
-        background-color: #1a1f2e;
+
+    /* Sidebar Glassmorphism */
+    [data-testid="stSidebar"] {
+        background: rgba(255, 255, 255, 0.02) !important;
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .main {
-        background-color: #1a1f2e;
+    [data-testid="stSidebar"] .stMarkdown h1, [data-testid="stSidebar"] .stMarkdown h2 {
+        color: #00d4ff;
+        text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    }
+
+    /* Metrics Glowing Style */
+    div[data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     div[data-testid="stMetricValue"] {
-        font-size: 28px;
-        font-weight: bold;
+        font-family: 'Inter', sans-serif;
+        font-weight: 800 !important;
+        color: #fff !important;
+        text-shadow: 0 0 15px rgba(255,255,255,0.2);
     }
     div[data-testid="stMetricLabel"] {
-        font-weight: bold;
-        color: #888;
+        color: #888 !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.75rem !important;
+    }
+
+    /* Glass Buttons */
+    .stButton > button {
+        background: rgba(0, 212, 255, 0.1) !important;
+        color: #00d4ff !important;
+        border: 1px solid #00d4ff !important;
+        backdrop-filter: blur(5px);
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        width: 100%;
+    }
+    .stButton > button:hover {
+        background: rgba(0, 212, 255, 0.2) !important;
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.4) !important;
+        transform: scale(1.02);
+    }
+
+    /* Futuristic Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+        background-color: transparent;
+    }
+    .stTabs [data-baseweb="tab"] {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 8px 8px 0 0 !important;
+        color: #888 !important;
+        padding: 10px 20px !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background: rgba(0, 212, 255, 0.05) !important;
+        border-color: #00d4ff !important;
+        color: #00d4ff !important;
+        box-shadow: 0 -4px 10px rgba(0, 212, 255, 0.1);
+    }
+
+    /* Text Area / Inputs */
+    .stTextArea textarea {
+        background: rgba(0, 0, 0, 0.2) !important;
+        color: #00ffcc !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 10px !important;
+    }
+    .stTextArea textarea:focus {
+        border-color: #00d4ff !important;
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.2) !important;
+    }
+
+    /* Pokemon Card Glassmorphism */
+    .pokemon-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .pokemon-card:hover {
+        transform: translateY(-5px);
+    }
+    .poke-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #fff;
+    }
+    .role-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        margin-right: 4px;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #ddd;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 212, 255, 0.3);
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+        50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); }
+        100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+    }
+
+    .pokemon-card {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    /* Progress Bar Overhaul */
+    div[data-testid="stProgress"] > div > div > div > div {
+        background-image: linear-gradient(90deg, #00d4ff, #00ffcc) !important;
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    }
+    
+    /* Neon Dividers */
+    hr {
+        border: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent);
+        margin: 2rem 0;
+    }
+
+    /* Background Atmospheric Particles */
+    .stApp::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.05) 0%, transparent 20%),
+            radial-gradient(circle at 80% 70%, rgba(0, 255, 204, 0.05) 0%, transparent 20%);
+        pointer-events: none;
+        z-index: -1;
     }
 </style>
 ''', unsafe_allow_html=True)
@@ -66,17 +245,9 @@ def get_pokemon_sprite(name):
             data = response.json()
             sprite_url = data['sprites']['front_default']
             if sprite_url: return sprite_url
-    except: pass
+    except:
+        pass
     return None
-
-# --- Main UI Layout ---
-col1, col2, col3 = st.columns([2, 1, 2])
-with col2:
-    logo_path = config.IMAGES_DIR / "dark_logo_transp.png"
-    if logo_path.exists():
-        st.image(str(logo_path), width=350)
-    else:
-        st.title("MetaMatch")
 
 # Initialize Session State
 if 'submitted' not in st.session_state:
@@ -91,7 +262,8 @@ with st.sidebar:
     st.header("📋 Team Input")
     
     # Define Debug Teams
-    debug_team_balanced = """Rotom-Wash @ Leftovers
+    debug_team_balanced = """
+Rotom-Wash @ Leftovers
 Ability: Levitate
 EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
@@ -150,7 +322,8 @@ Adamant Nature
 - Knock Off
 - U-turn"""
 
-    debug_team_rain = """Pelipper @ Damp Rock
+    debug_team_rain = """
+Pelipper @ Damp Rock
 Ability: Drizzle
 EVs: 248 HP / 252 Def / 8 SpD
 Bold Nature
@@ -204,7 +377,8 @@ Timid Nature
 - Volt Switch
 - Roost"""
 
-    debug_team_stall = """Alomomola @ Heavy-Duty Boots
+    debug_team_stall = """
+Alomomola @ Heavy-Duty Boots
 Ability: Regenerator
 EVs: 252 HP / 4 Def / 252 SpD
 Calm Nature
@@ -310,7 +484,15 @@ Careful Nature
         Charizard @ Charcoal  
         Ability: Blaze""", language="text")
 
-# --- Main Content Area ---
+# --- Main UI Layout ---
+col1, col2, col3 = st.columns([2, 1, 2])
+with col2:
+    logo_path = config.IMAGES_DIR / "dark_logo_transp.png"
+    if logo_path.exists():
+        st.image(str(logo_path), width=350)
+    else:
+        st.title("MetaMatch")
+
 if not st.session_state.submitted:
     st.info("👈 Use the sidebar to paste your team and start analysis!")
     
@@ -366,35 +548,52 @@ if st.session_state.submitted and st.session_state.pokemon_names:
 
     # --- Squad Section ---
     st.markdown("## 🦸 Your Squad")
+    st.markdown("<br>", unsafe_allow_html=True) # Spacer
     names = st.session_state.pokemon_names
+    
     for i in range(0, len(names), 3):
         cols = st.columns(3)
         batch = names[i:i+3]
         for j, name in enumerate(batch):
             idx = i + j
             poke = team_data[idx]
+            
+            # Get Type Color for Glow
+            primary_type = poke['Type'][0] if poke['Type'] else 'Normal'
+            type_color = type_map.get(primary_type, {'color': '#777'})['color']
+            
+            # Construct Glassmorphism Card HTML
+            card_html = f"""
+            <div class="pokemon-card" style="border: 1px solid {type_color}44; box-shadow: 0 0 15px -5px {type_color}, inset 0 0 20px -15px {type_color};">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="flex-shrink: 0; position: relative;">
+                        <div style="position: absolute; width: 60px; height: 60px; background: {type_color}; filter: blur(30px); opacity: 0.4; z-index: 0; top: 10px; left: 10px;"></div>
+                        <img src="{get_pokemon_sprite(name) or ''}" width="90" style="position: relative; z-index: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <div class="poke-name">{name}</div>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px;">
+                            {''.join([f'<span style="background:{type_map.get(t, {}).get("color", "#555")}; color:white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">{type_map.get(t, {}).get("icon", "")} {t}</span>' for t in poke['Type']])}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
+                    <div class="stat-text" style="margin-bottom: 6px;">
+                        {' '.join([f'<span class="role-badge">🛡️ {r}</span>' for r in poke['Roles'][:3]]) if poke['Roles'] else '<span style="opacity:0.5; font-size:0.8rem">No specific roles</span>'}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #ddd; margin-top: 8px;">
+                        <span>🎒 {poke['Item']}</span>
+                        <span style="opacity: 0.8;">✨ {poke['Ability']}</span>
+                    </div>
+                     <div class="stat-text" style="font-size: 0.75rem; margin-top:8px; color: {type_color}; opacity: 0.9; font-family: monospace;">
+                        {', '.join([f'{v} {k}' for k, v in sorted(poke['EVs'].items(), key=lambda x: x[1], reverse=True)[:2]])}
+                     </div>
+                </div>
+            </div>
+            """
+            
             with cols[j]:
-                with st.container(border=True):
-                    c1, c2 = st.columns([1, 2])
-                    with c1:
-                        sprite = get_pokemon_sprite(name)
-                        if sprite: st.image(sprite, width=80)
-                        else: st.text("👾")
-                    with c2:
-                        st.markdown(f"**{name}**")
-                        badges = ""
-                        for t in poke['Type']:
-                            t_i = type_map.get(t, {'color': '#777', 'icon': '❓'})
-                            badges += f'<span style="background-color:{t_i["color"]};color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:4px">{t_i["icon"]} {t}</span>'
-                        st.markdown(badges, unsafe_allow_html=True)
-                    st.markdown("---")
-                    if poke['Roles']:
-                        st.caption(f"🛡️ {' • '.join(poke['Roles'][:3])}")
-                    st.caption(f"🎒 **{poke['Item']}** | ✨ {poke['Ability']}")
-                    if poke['EVs']:
-                        top_evs = sorted(poke['EVs'].items(), key=lambda x: x[1], reverse=True)[:2]
-                        st.caption(f"💪 {', '.join([f'{k} {v}' for k, v in top_evs])}")
-
+                st.markdown(card_html, unsafe_allow_html=True)
     st.markdown("---")
     
     # --- Detailed Analysis Tabs ---
@@ -455,7 +654,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             
     with tab5:
         st.subheader("🛡️ Type Matchup Matrix", help="Damage taken from each type. Red = Weak.")
-        st.markdown('<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #7b1e1e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 4x Weak</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟧 2x Weak</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 0.5x Resist</span><span style="background-color: #1e8449; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🌲 0.25x Resist</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>', unsafe_allow_html=True)
+        st.markdown(r'''<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #7b1e1e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 4x Weak</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟧 2x Weak</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 0.5x Resist</span><span style="background-color: #1e8449; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🌲 0.25x Resist</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>''', unsafe_allow_html=True)
         all_types = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
         rows = []
         for p in team_data.values():
@@ -474,7 +673,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
 
     with tab6:
         st.subheader("⚔️ Offensive Coverage Matrix", help="Best damage you deal to each type. Green = Super Effective.")
-        st.markdown('<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 2x SE</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 0.5x Resisted</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>', unsafe_allow_html=True)
+        st.markdown(r'''<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 2x SE</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 0.5x Resisted</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>''', unsafe_allow_html=True)
         o_rows = []
         for p in team_data.values():
             r = {"Pokemon": p['Pokemon']}
@@ -499,7 +698,8 @@ if st.session_state.submitted and st.session_state.pokemon_names:
         st.subheader("⚡ Speed Tiers", help="Compare team speed against meta threats.")
         try:
             with open(config.JSON_DIR / "meta_speeds.json", "r") as f: m_s = json.load(f)
-        except: m_s = []
+        except:
+            m_s = []
         u_s = [{'Name': p['Pokemon'], 'Speed': p.get('Speed', 0), 'Type': 'Your Team'} for p in team_data.values()]
         c_d = u_s + [{'Name': m['label'], 'Speed': m['speed'], 'Type': 'Meta'} for m in m_s[:40]]
         df_c = pd.DataFrame(c_d).sort_values(by="Speed", ascending=False)
