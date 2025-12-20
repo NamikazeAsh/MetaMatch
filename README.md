@@ -19,8 +19,9 @@
 
 ### 📊 Modern Dashboard
 *   **Trading Card UI:** Visualizes your team as a grid of detailed cards with Sprites, Types, and Roles.
-*   **Metrics Bar:** At-a-glance view of your **Team Archetype**, **Type Coverage**, and **Critical Weaknesses**.
-*   **Interactive Tabs:** Deep dive into Type Coverage charts, Weakness Alerts, and AI suggestions.
+*   **At-a-Glance Metrics:** A top-bar dashboard shows Team Archetype, Coverage, and Critical Weaknesses.
+*   **Defensive & Offensive Heatmaps:** Instantly see your team's type vulnerabilities and coverage gaps in color-coded matrices.
+*   **Speed Tier Chart:** A visual plot comparing your team's speed against live meta benchmarks.
 *   **Debug Presets:** Instantly load "Balanced", "Rain", or "Stall" teams to test the analyzer.
 
 ---
@@ -59,8 +60,13 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
     ```bash
     pip install -r requirements.txt
     ```
+    
+3.  **Generate Meta Data:** (First time setup)
+    ```bash
+    python smogon_scrape.py
+    ```
 
-3.  **Run the App:**
+4.  **Run the App:**
     ```bash
     streamlit run app.py
     ```
@@ -70,10 +76,12 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 ## 🛠️ Architecture
 
 *   **`app.py`**: The Streamlit frontend. Handles the Sidebar input, Dashboard rendering, and state management.
-*   **`team_read.py`**: The "Static Analyzer." Parses Showdown text, calculates type math, and detects roles heuristically.
-*   **`suggestion_call.py`**: The "AI Brain." Formats data into a JSON-enforced prompt and queries the local LLM for qualitative advice.
-*   **`smogon_scrape.py`**: The "Meta Crawler." Downloads and parses the latest usage stats from Smogon to update `jsons/topPoke.json`.
-*   **`jsons/`**: Stores cached analysis data and the current meta list.
+*   **`team_read.py`**: The "Static Analyzer." Parses Showdown text, calculates real stats (including speed), and detects roles.
+*   **`suggestion_call.py`**: The "AI Brain." Queries a local LLM for qualitative advice.
+*   **`smogon_scrape.py`**: The "Meta Crawler." Downloads Smogon stats and generates meta benchmarks (top threats, speed tiers).
+*   **`helper.py`**: Centralizes API calls with a persistent `api_cache.json` to reduce redundant requests.
+*   **`type_chart.py`**: Provides a static, offline type-effectiveness chart for instant matrix calculations.
+*   **`jsons/`**: Stores cached data (`api_cache`, `meta_speeds`) and meta lists (`topPoke`).
 
 ---
 
@@ -85,7 +93,8 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 4.  **Review:**
     *   Check the **Dashboard** for major red flags.
     *   View **Suggestions** for specific move/item tweaks.
-    *   Check **Meta Threats** to see what Pokemon you lose to.
+    *   View the **Matrices** to find your defensive holes and offensive blind spots.
+    *   Check **Speed Tiers** to see what outspeeds you.
 
 ---
 
