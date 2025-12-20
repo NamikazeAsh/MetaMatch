@@ -42,6 +42,18 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 | **Hybrid Engine** | **Text Only:** Generates plausible-sounding but often mathematically flawed advice. | **Math + AI:** Uses code for 100% accurate stats/weaknesses, and AI for high-level strategy. |
 | **Workflow** | **Slow Prompting:** "Here is my new team..." (copy-paste-repeat). | **Rapid Iteration:** Tweak one move in the sidebar -> Instant re-analysis. |
 
+### 🧪 Real World Examples
+
+#### 1. The "Rotom-Wash" Test
+**Scenario:** You ask for the weaknesses of a standard **Rotom-Wash** (*Electric/Water* type with *Levitate* ability).
+*   **Generic LLM:** "Rotom-Wash is Electric/Water. Electric is weak to Ground. Therefore, **Rotom-Wash is weak to Ground**." ❌ *(Fails to account for Ability)*
+*   **MetaMatch:** `Ground: 0.0` (Immune) ✅
+
+#### 2. The "Air Balloon Heatran" Test
+**Scenario:** You have a **Heatran** (*Fire/Steel*) holding an **Air Balloon**.
+*   **Generic LLM:** Often overlooks the item and flags a **4x Ground weakness**. ❌
+*   **MetaMatch:** Correctly identifies the item grants **Ground Immunity** until popped. ✅
+
 ---
 
 ## 🔄 How It Works
