@@ -28,6 +28,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+from type_chart import get_multiplier
+
 # --- Helper Functions ---
 def extract_pokemon_names(raw_data):
     # Pattern now matches: Start of line, (Letters, spaces, hyphens, dots), followed by @
@@ -443,7 +445,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     st.markdown("---")
     
     st.header("Detailed Analysis")
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "Defensive Matrix"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "Defensive Matrix", "Offensive Matrix"])
 
     with tab1:
         coverage = st.session_state.analysis['coverage']
@@ -536,7 +538,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             st.info("Run analysis to see meta threats.")
             
     with tab5:
-        st.subheader("🛡️ Type Matchup Matrix")
+        st.subheader("🛡️ Type Matchup Matrix", help="Shows how much damage YOUR team takes from each type. Red = You are weak.")
         
         # Visual Legend
         legend_html = """
@@ -591,6 +593,65 @@ if st.session_state.submitted and st.session_state.pokemon_names:
         styled_df = df.style.map(color_cells).format("{:.1f}")
         
         st.dataframe(styled_df, use_container_width=True, height=250)
+
+    with tab6:
+        st.subheader("⚔️ Offensive Coverage Matrix", help="Shows the best damage YOUR team can deal to each type. Green = You have a Super Effective move.")
+        
+        # Offensive Visual Legend
+        off_legend_html = """
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 2x Super Effective</span>
+            <span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span>
+            <span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 0.5x Resisted</span>
+            <span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span>
+        </div>
+        """
+        st.markdown(off_legend_html, unsafe_allow_html=True)
+        
+        # Construct Offensive DataFrame
+        off_matrix_rows = []
+        for poke in team_data.values():
+            row = {"Pokemon": poke['Pokemon']}
+            moves = poke['Moves']
+            
+            for t_def in all_types:
+                # Find best move against this type
+                max_mult = 0.0
+                
+                # Check actual moves
+                for move in moves:
+                    if move['category'] != 'Status':
+                        atk_type = move['type']
+                        mult = get_multiplier(atk_type, t_def)
+                        if mult > max_mult:
+                            max_mult = mult
+                            
+                # Handle case where Pokemon has no attacking moves (default to neutral if logic fails, else 0)
+                if not moves and max_mult == 0.0:
+                     max_mult = 1.0
+                
+                row[t_def] = max_mult
+                
+            off_matrix_rows.append(row)
+            
+        off_df = pd.DataFrame(off_matrix_rows)
+        off_df.set_index("Pokemon", inplace=True)
+        
+        # Define Color Map Function for Offense
+        def color_cells_off(val):
+            if val >= 2:
+                return 'background-color: #27ae60; color: white' # Green for SE
+            elif val == 0:
+                return 'background-color: #2c3e50; color: #ecf0f1' # Dark for Immune
+            elif val <= 0.5:
+                return 'background-color: #c0392b; color: white' # Red for Resisted
+            return '' # Default for neutral
+            
+        # Apply Style
+        styled_off_df = off_df.style.map(color_cells_off).format("{:.1f}")
+        
+        st.dataframe(styled_off_df, use_container_width=True, height=250)
+
 
 
 
