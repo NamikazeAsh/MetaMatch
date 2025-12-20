@@ -1,7 +1,8 @@
 import requests
 from pprint import pprint
 import json
-from helper import fetch_pokemon_data, calculate_speed, pokeSlugify
+from .utils import fetch_pokemon_data, calculate_speed, pokeSlugify
+from . import config
 
 def get_move_metadata(move_name):
     # Keep this local for now or move to helper if needed later
@@ -104,11 +105,6 @@ def readTeam(teamRaw):
             poke_data['Speed'] = 0
 
         # 4. Calculate Weaknesses (Resisting existing logic)
-        dmg_from, dmg_to = damageRelations(poke_data['Type'])
-        
-        # ... (Rest of existing immunity logic) ...
-
-
         dmg_from, dmg_to = damageRelations(poke_data['Type'])
         
         # --- Apply Ability/Item Immunities ---
@@ -387,77 +383,77 @@ def coverageCheck(team):
     return coverage
 
 
+def save_analysis(team, coverage, team_weakness):
+    with open(config.JSON_DIR / "team.json", "w") as f:
+        json.dump(team, f, indent=2)
+    with open(config.JSON_DIR / "coverage.json", "w") as f:
+        json.dump(coverage, f, indent=2)
+    with open(config.JSON_DIR / "team_weak.json","w") as f:
+        json.dump(team_weakness,f,indent=2)
 
-teamRaw = """Araquanid @ Mental Herb  
-Ability: Water Bubble  
-Shiny: Yes  
-Tera Type: Ghost  
-EVs: 252 HP / 252 Def / 4 SpD  
-Impish Nature  
-- Lunge  
-- Liquidation  
-- Sticky Web  
-- Endeavor
 
-Cinderace @ Shuca Berry  
-Ability: Blaze  
-Tera Type: Fairy
-EVs: 252 Atk / 4 Def / 252 Spe  
-Jolly Nature  
-- Swords Dance  
-- Pyro Ball  
-- Gunk Shot  
-- Sucker Punch  
+if __name__ == "__main__":
+    teamRaw = """Araquanid @ Mental Herb  
+    Ability: Water Bubble  
+    Shiny: Yes  
+    Tera Type: Ghost  
+    EVs: 252 HP / 252 Def / 4 SpD  
+    Impish Nature  
+    - Lunge  
+    - Liquidation  
+    - Sticky Web  
+    - Endeavor
 
-Kingambit @ Black Glasses  
-Ability: Supreme Overlord  
-Tera Type: Dark  
-EVs: 252 Atk / 4 SpD / 252 Spe  
-Adamant Nature  
-- Swords Dance  
-- Kowtow Cleave  
-- Iron Head  
-- Sucker Punch  
+    Cinderace @ Shuca Berry  
+    Ability: Blaze  
+    Tera Type: Fairy
+    EVs: 252 Atk / 4 Def / 252 Spe  
+    Jolly Nature  
+    - Swords Dance  
+    - Pyro Ball  
+    - Gunk Shot  
+    - Sucker Punch  
 
-Dragonite @ Lum Berry  
-Ability: Multiscale  
-Tera Type: Ground  
-EVs: 252 Atk / 4 SpD / 252 Spe  
-Adamant Nature      
-- Earthquake  
-- Dragon Tail  
+    Kingambit @ Black Glasses  
+    Ability: Supreme Overlord  
+    Tera Type: Dark  
+    EVs: 252 Atk / 4 SpD / 252 Spe  
+    Adamant Nature  
+    - Swords Dance  
+    - Kowtow Cleave  
+    - Iron Head  
+    - Sucker Punch  
 
-Iron Treads @ Booster  
-Ability: Quark Drive  
-Tera Type: Ghost  
-EVs: 252 Atk / 4 SpD / 252 Spe  
-Adamant Nature  
-- Rapid Spin  
-- Iron Head  
-- Supercell Slam  
+    Dragonite @ Lum Berry  
+    Ability: Multiscale  
+    Tera Type: Ground  
+    EVs: 252 Atk / 4 SpD / 252 Spe  
+    Adamant Nature      
+    - Earthquake  
+    - Dragon Tail  
 
-Pecharunt @ Air Balloon  
-Ability: Poison Puppeteer  
-Tera Type: Fighting  
-EVs: 252 SpA / 4 SpD / 252 Spe  
-Timid Nature  
-- Nasty Plot  
-- Shadow Ball  
-- Malignant Chain 
-- Tera Blast
-""" 
+    Iron Treads @ Booster  
+    Ability: Quark Drive  
+    Tera Type: Ghost  
+    EVs: 252 Atk / 4 SpD / 252 Spe  
+    Adamant Nature  
+    - Rapid Spin  
+    - Iron Head  
+    - Supercell Slam  
 
-team,team_weakness = readTeam(teamRaw)
-detectRole(team)
-addComments(team)
+    Pecharunt @ Air Balloon  
+    Ability: Poison Puppeteer  
+    Tera Type: Fighting  
+    EVs: 252 SpA / 4 SpD / 252 Spe  
+    Timid Nature  
+    - Nasty Plot  
+    - Shadow Ball  
+    - Malignant Chain 
+    - Tera Blast
+    """ 
 
-with open("jsons/team.json", "w") as f:
-    json.dump(team, f, indent=2)
-coverage = coverageCheck(team)
-with open("jsons/coverage.json", "w") as f:
-    json.dump(coverage, f, indent=2)
-with open("jsons/team_weak.json","w") as f:
-    json.dump(team_weakness,f,indent=2)
-
-with open("jsons/topPoke.json", "r") as f:
-    topPoke = json.load(f)
+    team,team_weakness = readTeam(teamRaw)
+    detectRole(team)
+    addComments(team)
+    coverage = coverageCheck(team)
+    save_analysis(team, coverage, team_weakness)

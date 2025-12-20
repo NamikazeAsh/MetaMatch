@@ -5,15 +5,18 @@ import json
 from pprint import pprint
 import re
 import openai
-
-with open("jsons/team.json", "r") as f:
-    team = json.load(f)
-with open("jsons/topPoke.json", "r") as f:
-    topPoke = json.load(f)
+from . import config
 
 def get_suggestions(team):
     load_dotenv()
     
+    # Load topPoke.json locally to avoid global state issues on import
+    try:
+        with open(config.JSON_DIR / "topPoke.json", "r") as f:
+            topPoke = json.load(f)
+    except FileNotFoundError:
+        topPoke = {}
+
     max_retries = 5
     attempt = 0
     

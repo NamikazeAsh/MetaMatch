@@ -2,7 +2,7 @@
 
 **MetaMatch** is an advanced AI-powered Pokémon team analysis tool. It combines hard-coded competitive logic with Large Language Model (LLM) insights to provide deep feedback on team synergy, weaknesses, and current meta threats.
 
-![MetaMatch Dashboard](logo/dark_logo_transp.png)
+![MetaMatch Dashboard](assets/images/dark_logo_transp.png)
 
 ## ✨ Features
 
@@ -63,25 +63,26 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
     
 3.  **Generate Meta Data:** (First time setup)
     ```bash
-    python smogon_scrape.py
+    python src/metamatch/scrapers.py
     ```
 
 4.  **Run the App:**
     ```bash
-    streamlit run app.py
+    streamlit run src/metamatch/app.py
     ```
 
 ---
 
 ## 🛠️ Architecture
 
-*   **`app.py`**: The Streamlit frontend. Handles the Sidebar input, Dashboard rendering, and state management.
-*   **`team_read.py`**: The "Static Analyzer." Parses Showdown text, calculates real stats (including speed), and detects roles.
-*   **`suggestion_call.py`**: The "AI Brain." Queries a local LLM for qualitative advice.
-*   **`smogon_scrape.py`**: The "Meta Crawler." Downloads Smogon stats and generates meta benchmarks (top threats, speed tiers).
-*   **`helper.py`**: Centralizes API calls with a persistent `api_cache.json` to reduce redundant requests.
-*   **`type_chart.py`**: Provides a static, offline type-effectiveness chart for instant matrix calculations.
-*   **`jsons/`**: Stores cached data (`api_cache`, `meta_speeds`) and meta lists (`topPoke`).
+*   **`src/metamatch/app.py`**: The Streamlit frontend. Handles the Sidebar input, Dashboard rendering, and state management.
+*   **`src/metamatch/team.py`**: The "Static Analyzer." Parses Showdown text, calculates real stats (including speed), and detects roles.
+*   **`src/metamatch/suggestions.py`**: The "AI Brain." Queries a local LLM for qualitative advice.
+*   **`src/metamatch/scrapers.py`**: The "Meta Crawler." Downloads Smogon stats and generates meta benchmarks (top threats, speed tiers).
+*   **`src/metamatch/utils.py`**: Centralizes API calls with a persistent `api_cache.json` to reduce redundant requests.
+*   **`src/metamatch/type_chart.py`**: Provides a static, offline type-effectiveness chart for instant matrix calculations.
+*   **`data/`**: Stores cached data (`json/`) and raw stats (`stats/`).
+*   **`assets/`**: Stores static assets like logos.
 
 ---
 
@@ -106,4 +107,4 @@ Contributions are welcome! Whether it's adding new Role definitions, improving t
 2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+5.  Open a Pull-Review (`git push origin feature/AmazingFeature`)

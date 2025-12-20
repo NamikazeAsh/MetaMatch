@@ -2,11 +2,12 @@ import requests
 import re
 import json
 import os
+from . import config
 
-CACHE_FILE = "jsons/api_cache.json"
+CACHE_FILE = config.JSON_DIR / "api_cache.json"
 
 def load_cache():
-    if os.path.exists(CACHE_FILE):
+    if CACHE_FILE.exists():
         try:
             with open(CACHE_FILE, "r") as f:
                 return json.load(f)
@@ -16,7 +17,7 @@ def load_cache():
 
 def save_cache(cache):
     # Ensure directory exists
-    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(CACHE_FILE, "w") as f:
         json.dump(cache, f, indent=2)
 

@@ -3,7 +3,8 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-from helper import pokeSlugify
+from .utils import pokeSlugify, fetch_pokemon_data, calculate_speed
+from . import config
 
 def get_latest_stats_url():
     """
@@ -35,7 +36,7 @@ def download_stat_file(stats_url, target_filename):
         file_response = requests.get(file_url)
         file_response.raise_for_status()
         
-        local_path = f"stats/{target_filename}"
+        local_path = config.STATS_DIR / target_filename
         with open(local_path, 'w', encoding='utf-8') as f:
             f.write(file_response.text)
             
@@ -52,7 +53,7 @@ def parse_smogon_usage(path, top_n=100):
     """
     if not path:
         return []
-    pat = re.compile(r'^\s*\|\s*\d+\s*\|\s*([^|]+?)\s*\|')
+    pat = re.compile(r'^\s*|\s*\d+\s*|\s*([^|]+?)\s*|')
     names = []
     try:
         with open(path, 'r', encoding='utf-8') as f:
@@ -65,8 +66,6 @@ def parse_smogon_usage(path, top_n=100):
     except FileNotFoundError:
         print(f"Error: Could not find file {path} to parse.")
         return []
-
-from helper import pokeSlugify, fetch_pokemon_data, calculate_speed
 
 def generate_speed_tiers(pokemon_names):
     """
@@ -142,13 +141,12 @@ def main():
         if data:
             top_poke_data[name] = data['types']
     
-    output_path = "jsons/topPoke.json"
-    with open(output_path, "w") as f:
+    with open(config.JSON_DIR / "topPoke.json", "w") as f:
         json.dump(top_poke_data, f, indent=2)
         
     # --- Generate Speed Tiers ---
     speed_tiers = generate_speed_tiers(sorted_names)
-    with open("jsons/meta_speeds.json", "w") as f:
+    with open(config.JSON_DIR / "meta_speeds.json", "w") as f:
         json.dump(speed_tiers, f, indent=2)
 
     print(f"\nSuccessfully updated meta data and speed tiers.")

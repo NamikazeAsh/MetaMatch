@@ -6,11 +6,12 @@ import pandas as pd
 import altair as alt
 from PIL import Image
 from io import BytesIO
-from helper import *
-from team_read import *
-from suggestion_call import *
-from smogon_scrape import *
-from type_chart import get_multiplier
+from .utils import pokeSlugify
+from .team import readTeam, detectRole, addComments, coverageCheck
+from .suggestions import get_suggestions
+from .scrapers import generate_speed_tiers
+from .type_chart import get_multiplier
+from . import config
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
@@ -71,7 +72,11 @@ def get_pokemon_sprite(name):
 # --- Main UI Layout ---
 col1, col2, col3 = st.columns([2, 1, 2])
 with col2:
-    st.image("logo/dark_logo_transp.png", width=350)
+    logo_path = config.IMAGES_DIR / "dark_logo_transp.png"
+    if logo_path.exists():
+        st.image(str(logo_path), width=350)
+    else:
+        st.title("MetaMatch")
 
 # Initialize Session State
 if 'submitted' not in st.session_state:
@@ -312,14 +317,14 @@ if not st.session_state.submitted:
 if st.session_state.submitted and st.session_state.pokemon_names:
     
     type_map = {
-        'Fire': {'color': '#FF4422', 'icon': '🔥'}, 'Water': {'color': '#3399FF', 'icon': '💧'}, 
-        'Grass': {'color': '#77CC55', 'icon': '🌿'}, 'Electric': {'color': '#FFCC33', 'icon': '⚡'}, 
+        'Fire': {'color': '#FF4422', 'icon': '🔥'}, 'Water': {'color': '#3399FF', 'icon': '💧'},
+        'Grass': {'color': '#77CC55', 'icon': '🌿'}, 'Electric': {'color': '#FFCC33', 'icon': '⚡'},
         'Psychic': {'color': '#FF5599', 'icon': '🔮'}, 'Ice': {'color': '#66CCFF', 'icon': '❄️'},
-        'Fighting': {'color': '#BB5544', 'icon': '🥊'}, 'Poison': {'color': '#AA5599', 'icon': '☠️'}, 
-        'Ground': {'color': '#DDBB55', 'icon': '🏜️'}, 'Flying': {'color': '#8899FF', 'icon': '🕊️'}, 
+        'Fighting': {'color': '#BB5544', 'icon': '🥊'}, 'Poison': {'color': '#AA5599', 'icon': '☠️'},
+        'Ground': {'color': '#DDBB55', 'icon': '🏜️'}, 'Flying': {'color': '#8899FF', 'icon': '🕊️'},
         'Bug': {'color': '#AABB22', 'icon': '🐞'}, 'Rock': {'color': '#BBAA66', 'icon': '🪨'},
-        'Ghost': {'color': '#6666BB', 'icon': '👻'}, 'Dragon': {'color': '#7766EE', 'icon': '🐲'}, 
-        'Dark': {'color': '#775544', 'icon': '🌑'}, 'Steel': {'color': '#AAAABB', 'icon': '⚙️'}, 
+        'Ghost': {'color': '#6666BB', 'icon': '👻'}, 'Dragon': {'color': '#7766EE', 'icon': '🐲'},
+        'Dark': {'color': '#775544', 'icon': '🌑'}, 'Steel': {'color': '#AAAABB', 'icon': '⚙️'},
         'Fairy': {'color': '#EE99AA', 'icon': '✨'}, 'Normal': {'color': '#AAAA99', 'icon': '⚪'}
     }
 
@@ -493,7 +498,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     with tab7:
         st.subheader("⚡ Speed Tiers", help="Compare team speed against meta threats.")
         try:
-            with open("jsons/meta_speeds.json", "r") as f: m_s = json.load(f)
+            with open(config.JSON_DIR / "meta_speeds.json", "r") as f: m_s = json.load(f)
         except: m_s = []
         u_s = [{'Name': p['Pokemon'], 'Speed': p.get('Speed', 0), 'Type': 'Your Team'} for p in team_data.values()]
         c_d = u_s + [{'Name': m['label'], 'Speed': m['speed'], 'Type': 'Meta'} for m in m_s[:40]]
