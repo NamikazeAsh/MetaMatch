@@ -57,6 +57,97 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 
 ---
 
+## 🔄 How It Works
+
+```mermaid
+graph TD
+    A[User Input] -->|Showdown Export| B(Streamlit App)
+    B --> C{Analysis Pipeline}
+    
+    subgraph "Static Analysis"
+    C --> D[Team Parser]
+    D -->|PokeAPI| E[Enrich Data]
+    E --> F[Role Detection]
+    E --> G[Type Calculator]
+    end
+    
+    subgraph "Meta Context"
+    H[Smogon Stats] -->|Scraper| I[Meta/Speed Tiers]
+    I --> J[AI Context]
+    end
+    
+    subgraph "AI Reasoning"
+    C --> K[Ollama LLM]
+    J --> K
+    K --> L[Strategic Advice]
+    end
+    
+    F --> M[Dashboard UI]
+    G --> M
+    L --> M
+    I --> M
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+1.  **Python 3.10+**
+2.  **Ollama** (for AI features):
+    *   Install Ollama from [ollama.com](https://ollama.com/).
+    *   Pull the model: `ollama pull llama3.2:3b-instruct-q4_K_M`
+    *   Start the server: `ollama serve`
+
+### Installation
+
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/NamikazeAsh/MetaMatch.git
+    cd MetaMatch
+    ```
+
+2.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+    
+3.  **Generate Meta Data:** (First time setup)
+    ```bash
+    python src/metamatch/scrapers.py
+    ```
+
+4.  **Run the App:**
+    ```bash
+    streamlit run src/metamatch/app.py
+    ```
+
+---
+
+## 🧪 Quality Assurance (Testing)
+
+MetaMatch includes a comprehensive test suite to verify the "Hard Logic" engine. It checks 26+ edge cases including complex dual-type multipliers, ability immunities, and item overrides.
+
+**Run the tests:**
+```bash
+python -m unittest src/metamatch/tests/test_mechanics.py
+```
+
+---
+
+## 🛠️ Architecture
+
+*   **`src/metamatch/app.py`**: The Streamlit frontend and dashboard.
+*   **`src/metamatch/team.py`**: Core logic for parsing teams and calculating stats/weaknesses.
+*   **`src/metamatch/suggestions.py`**: LLM integration and strategic advice generator.
+*   **`src/metamatch/scrapers.py`**: Smogon usage stats scraper and speed tier generator.
+*   **`src/metamatch/utils.py`**: Shared utilities and API caching.
+*   **`src/metamatch/config.py`**: Centralized path and environment configuration.
+*   **`data/`**: Persistent storage for JSON caches and raw stats.
+*   **`assets/`**: Static image assets and logos.
+
+---
+
 ## 🔮 Limitations & Future Outlook
 
 It's important to acknowledge that the AI landscape is evolving rapidly. As frontier models (like **GPT-5.2**, **Gemini 3**, and beyond) continue to scale, their ability to "simulate" game logic internally will undoubtedly improve.
