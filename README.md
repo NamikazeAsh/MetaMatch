@@ -1,99 +1,87 @@
-# MetaMatch - Competitive Pokémon Team Analyzer
+# MetaMatch ⚪
 
-<div align="center">
-<img width="700" height="700" alt="MetaMatch Logo" src="https://github.com/user-attachments/assets/fa82cd10-63fd-4cac-a974-0b97333a60cb" />
-</div>
+**MetaMatch** is an advanced AI-powered Pokémon team analysis tool. It combines hard-coded competitive logic with Large Language Model (LLM) insights to provide deep feedback on team synergy, weaknesses, and current meta threats.
 
-A comprehensive Pokemon team analyzer that bridges the gap between casual team building and competitive play. MetaMatch takes your raw team data, analyzes it against the current competitive meta, and provides detailed insights to transform your team into a tournament-ready powerhouse.
+![MetaMatch Dashboard](logo/dark_logo_transp.png)
 
-## Getting Started
+## ✨ Features
 
-This section provides instructions on how to set up and run a local copy of MetaMatch.
+### 🧠 Smart Analysis
+*   **Role Detection:** Automatically identifies 30+ competitive roles (e.g., *Wall, Setup Sweeper, Cleric, Hazard Setter*) based on movesets and stats.
+*   **Deep Logic:** Calculates type weaknesses while respecting **Abilities** and **Items** (e.g., ignores Ground damage for *Levitate* or *Air Balloon* users).
+*   **Meta Integration:** Scrapes live Smogon usage stats to identify top-tier threats relevant to the current season.
 
-### Prerequisites
+### 🤖 AI-Powered Coaching
+*   **Local LLM Integration:** Connects to **Ollama** (Llama 3.2) to act as a competitive coach.
+*   **Team Synergy:** Provides high-level feedback on your team's archetype (e.g., "Hyper Offense", "Stall").
+*   **Threat Hunter:** Identifies specific meta counters to your team and suggests counter-strategies.
+*   **Detailed Tips:** Gives per-Pokemon advice (e.g., "Swap Leftovers for Heavy-Duty Boots on Volcarona").
 
-1.  **Python 3.8+**
-2.  **Ollama:** You must have Ollama installed and running. You can download it from [ollama.com](https://ollama.com/).
-3.  **LLM Model:** Pull the model used by the application by running the following command in your terminal:
-    ```sh
-    ollama pull llama3.2:3b-instruct-q4_K_M
-    ```
-
-### Installation & Setup
-
-1.  **Clone the repository:**
-    ```sh
-    git clone <your-repo-url>
-    cd MetaMatch
-    ```
-
-2.  **Install Python dependencies:**
-    It is recommended to use a virtual environment.
-    ```sh
-    pip install -r requirements.txt
-    ```
-
-3.  **Download Latest Meta Data:**
-    Before the first run, you need to populate the meta-analysis data. Run the automated script:
-    ```sh
-    python smogon_scrape.py
-    ```
-    This will download the latest Smogon usage stats and create the `jsons/topPoke.json` file.
-
-### Running the Application
-
-Once the setup is complete, launch the Streamlit web application:
-
-```sh
-streamlit run app.py
-```
-
-Open your web browser to the local URL provided by Streamlit to start analyzing your teams.
-
-## Technologies Used
-
-- **Backend:** Python
-- **Web Framework:** Streamlit
-- **Local AI Inference:** Ollama
-- **Pokémon Data:** [PokeAPI](https://pokeapi.co/)
-- **Usage Statistics:** [Smogon](https://www.smogon.com/stats/)
+### 📊 Modern Dashboard
+*   **Trading Card UI:** Visualizes your team as a grid of detailed cards with Sprites, Types, and Roles.
+*   **Metrics Bar:** At-a-glance view of your **Team Archetype**, **Type Coverage**, and **Critical Weaknesses**.
+*   **Interactive Tabs:** Deep dive into Type Coverage charts, Weakness Alerts, and AI suggestions.
+*   **Debug Presets:** Instantly load "Balanced", "Rain", or "Stall" teams to test the analyzer.
 
 ---
 
-## What MetaMatch Does
+## 🚀 Getting Started
 
-MetaMatch is designed for Pokemon trainers who want to elevate their competitive game. Whether you're a newcomer trying to understand the meta or a seasoned player looking to optimize your team, MetaMatch provides the analytical depth needed to compete at the highest levels.
+### Prerequisites
+1.  **Python 3.10+**
+2.  **Ollama** (for AI features):
+    *   Install Ollama from [ollama.com](https://ollama.com/).
+    *   Pull the model: `ollama pull llama3.2:3b-instruct-q4_K_M`
+    *   Start the server: `ollama serve`
 
-### Core Functionality Currently Implemented
+### Installation
 
-**Team Composition Analysis**
-MetaMatch dissects your team's fundamental structure, examining role distribution, type coverage, and synergy between team members.
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/NamikazeAsh/MetaMatch.git
+    cd MetaMatch
+    ```
 
-**Meta Comparison Engine**
-The tool automatically downloads and compares your team against current high-level competitive data from Smogon.
+2.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-**AI-Powered Suggestions**
-Leverages a local LLM (via Ollama) to provide qualitative feedback and improvement ideas for your team.
+3.  **Run the App:**
+    ```bash
+    streamlit run app.py
+    ```
 
-**Strategic Weakness Detection**
-MetaMatch performs deep analysis to uncover strategic vulnerabilities, such as shared type weaknesses across your team.
+---
 
-## How the Analysis Works
+## 🛠️ Architecture
 
-**Data Processing Pipeline**
-The system ingests your team data (from Pokémon Showdown format) and cross-references it against extensive databases of competitive Pokemon statistics, including usage rates and type data from PokeAPI.
+*   **`app.py`**: The Streamlit frontend. Handles the Sidebar input, Dashboard rendering, and state management.
+*   **`team_read.py`**: The "Static Analyzer." Parses Showdown text, calculates type math, and detects roles heuristically.
+*   **`suggestion_call.py`**: The "AI Brain." Formats data into a JSON-enforced prompt and queries the local LLM for qualitative advice.
+*   **`smogon_scrape.py`**: The "Meta Crawler." Downloads and parses the latest usage stats from Smogon to update `jsons/topPoke.json`.
+*   **`jsons/`**: Stores cached analysis data and the current meta list.
 
-**Meta Intelligence**
-The `smogon_scrape.py` script maintains up-to-date information on the competitive landscape by downloading the latest usage stats for multiple competitive tiers. This ensures recommendations are relevant to the current meta.
+---
 
-**Improvement Algorithms**
-The recommendation engine (powered by a local LLM) doesn't just identify problems—it suggests specific, actionable solutions.
+## 📝 Usage
 
-## What You Get
+1.  **Paste Team:** Copy your team export from [Pokémon Showdown](https://play.pokemonshowdown.com/teambuilder).
+2.  **Input:** Paste it into the Sidebar text area.
+3.  **Analyze:** Click "Analyze Team".
+4.  **Review:**
+    *   Check the **Dashboard** for major red flags.
+    *   View **Suggestions** for specific move/item tweaks.
+    *   Check **Meta Threats** to see what Pokemon you lose to.
 
-- **Detailed team composition breakdown** showing role distribution and synergy analysis
-- **Meta positioning report** explaining where your team stands in the competitive landscape
-- **Specific improvement recommendations** with alternative Pokemon and moveset suggestions
-- **Weakness identification** highlighting exploitable gaps in your team structure
+---
 
-MetaMatch transforms team building from guesswork into informed decision-making, giving you the analytical edge needed to compete with confidence in the ever-evolving world of competitive Pokemon.
+## 🤝 Contributing
+
+Contributions are welcome! Whether it's adding new Role definitions, improving the LLM prompt, or enhancing the UI.
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
