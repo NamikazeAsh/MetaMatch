@@ -1,5 +1,10 @@
 # MetaMatch ⚪
 
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Ollama](https://img.shields.io/badge/AI-Ollama-000000?logo=ollama&logoColor=white)](https://ollama.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **MetaMatch** is an advanced AI-powered Pokémon team analysis tool. It combines hard-coded competitive logic with Large Language Model (LLM) insights to provide deep feedback on team synergy, weaknesses, and current meta threats.
 
 ![MetaMatch Dashboard](assets/images/dark_logo_transp.png)
@@ -108,3 +113,14 @@ Contributions are welcome! Whether it's adding new Role definitions, improving t
 3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4.  Push to the Branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull-Review (`git push origin feature/AmazingFeature`)
+
+---
+
+## 🙏 Acknowledgements
+
+MetaMatch is built upon the incredible work of the Pokémon community:
+
+*   **[PokeAPI](https://pokeapi.co/)**: For providing the comprehensive database of Pokémon, types, and moves.
+*   **[Smogon University](https://www.smogon.com/)**: For the competitive usage stats that power our meta-analysis.
+*   **[Ollama](https://ollama.com/)**: For enabling local LLM execution, keeping analysis private and fast.
+*   **[Streamlit](https://streamlit.io/)**: For the framework that makes building this dashboard a breeze.
