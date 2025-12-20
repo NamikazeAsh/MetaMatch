@@ -1,0 +1,187 @@
+[
+  {
+    "label": "Scarf Dragapult",
+    "speed": 631,
+    "owner": "Dragapult"
+  },
+  {
+    "label": "Scarf Zamazenta",
+    "speed": 618,
+    "owner": "Zamazenta"
+  },
+  {
+    "label": "Scarf Darkrai",
+    "speed": 574,
+    "owner": "Darkrai"
+  },
+  {
+    "label": "Scarf Tornadus-Therian",
+    "speed": 562,
+    "owner": "Tornadus-Therian"
+  },
+  {
+    "label": "Scarf Iron Valiant",
+    "speed": 546,
+    "owner": "Iron Valiant"
+  },
+  {
+    "label": "Scarf Latios",
+    "speed": 525,
+    "owner": "Latios"
+  },
+  {
+    "label": "Scarf Walking Wake",
+    "speed": 522,
+    "owner": "Walking Wake"
+  },
+  {
+    "label": "Scarf Garchomp",
+    "speed": 499,
+    "owner": "Garchomp"
+  },
+  {
+    "label": "Scarf Ninetales",
+    "speed": 492,
+    "owner": "Ninetales"
+  },
+  {
+    "label": "Scarf Landorus-Therian",
+    "speed": 463,
+    "owner": "Landorus-Therian"
+  },
+  {
+    "label": "Scarf Moltres",
+    "speed": 459,
+    "owner": "Moltres"
+  },
+  {
+    "label": "Scarf Pecharunt",
+    "speed": 453,
+    "owner": "Pecharunt"
+  },
+  {
+    "label": "Scarf Great Tusk",
+    "speed": 450,
+    "owner": "Great Tusk"
+  },
+  {
+    "label": "Choice Scarf Gholdengo",
+    "speed": 447,
+    "owner": "Gholdengo"
+  },
+  {
+    "label": "Scarf Glimmora",
+    "speed": 447,
+    "owner": "Glimmora"
+  },
+  {
+    "label": "Scarf Ceruledge",
+    "speed": 442,
+    "owner": "Ceruledge"
+  },
+  {
+    "label": "Max Speed Dragapult",
+    "speed": 421,
+    "owner": "Dragapult"
+  },
+  {
+    "label": "Max Dragapult",
+    "speed": 421,
+    "owner": "Dragapult"
+  },
+  {
+    "label": "Max Zamazenta",
+    "speed": 412,
+    "owner": "Zamazenta"
+  },
+  {
+    "label": "Max Darkrai",
+    "speed": 383,
+    "owner": "Darkrai"
+  },
+  {
+    "label": "Max Tornadus-Therian",
+    "speed": 375,
+    "owner": "Tornadus-Therian"
+  },
+  {
+    "label": "Max Iron Valiant",
+    "speed": 364,
+    "owner": "Iron Valiant"
+  },
+  {
+    "label": "Max Latios",
+    "speed": 350,
+    "owner": "Latios"
+  },
+  {
+    "label": "Max Walking Wake",
+    "speed": 348,
+    "owner": "Walking Wake"
+  },
+  {
+    "label": "Max Garchomp",
+    "speed": 333,
+    "owner": "Garchomp"
+  },
+  {
+    "label": "Max Ninetales",
+    "speed": 328,
+    "owner": "Ninetales"
+  },
+  {
+    "label": "Max Landorus-Therian",
+    "speed": 309,
+    "owner": "Landorus-Therian"
+  },
+  {
+    "label": "Max Moltres",
+    "speed": 306,
+    "owner": "Moltres"
+  },
+  {
+    "label": "Max Pecharunt",
+    "speed": 302,
+    "owner": "Pecharunt"
+  },
+  {
+    "label": "Max Great Tusk",
+    "speed": 300,
+    "owner": "Great Tusk"
+  },
+  {
+    "label": "Max Glimmora",
+    "speed": 298,
+    "owner": "Glimmora"
+  },
+  {
+    "label": "Max Ceruledge",
+    "speed": 295,
+    "owner": "Ceruledge"
+  },
+  {
+    "label": "Max Alomomola",
+    "speed": 251,
+    "owner": "Alomomola"
+  },
+  {
+    "label": "Max Grimmsnarl",
+    "speed": 240,
+    "owner": "Grimmsnarl"
+  },
+  {
+    "label": "Max Blissey",
+    "speed": 229,
+    "owner": "Blissey"
+  },
+  {
+    "label": "Max Kingambit",
+    "speed": 218,
+    "owner": "Kingambit"
+  },
+  {
+    "label": "Max Ting-Lu",
+    "speed": 207,
+    "owner": "Ting-Lu"
+  }
+]

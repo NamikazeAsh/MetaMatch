@@ -1,36 +1,26 @@
 import requests
 from pprint import pprint
 import json
-
-def slugify(name):
-    return name.lower().replace(' ', '-').replace('.', '').replace("'", '')
-
-
-def getType(name):
-    url = f"https://pokeapi.co/api/v2/pokemon/{name.lower()}"
-    res = requests.get(url)
-
-    if res.status_code != 200:
-        return []
-
-    data = res.json()
-    types = [t["type"]["name"].capitalize() for t in data["types"]]
-    return types
-
+from helper import fetch_pokemon_data, calculate_speed, pokeSlugify
 
 def get_move_metadata(move_name):
-    url = f"https://pokeapi.co/api/v2/move/{slugify(move_name)}"
-    res = requests.get(url)
-    if res.status_code != 200:
+    # Keep this local for now or move to helper if needed later
+    slug = move_name.lower().replace(' ', '-').replace("'", "")
+    url = f"https://pokeapi.co/api/v2/move/{slug}"
+    try:
+        res = requests.get(url, timeout=2)
+        if res.status_code != 200:
+            return {'type': None, 'power': None, 'accuracy': None, 'category': None}
+        
+        data = res.json()
+        return {
+            'type': data['type']['name'].capitalize(),
+            'power': data['power'],
+            'accuracy': data['accuracy'],
+            'category': data['damage_class']['name'].capitalize()
+        }
+    except:
         return {'type': None, 'power': None, 'accuracy': None, 'category': None}
-    
-    data = res.json()
-    return {
-        'type': data['type']['name'].capitalize(),
-        'power': data['power'],
-        'accuracy': data['accuracy'],
-        'category': data['damage_class']['name'].capitalize()
-    }
 
 
 def readTeam(teamRaw):
@@ -39,12 +29,18 @@ def readTeam(teamRaw):
     
     types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
     team_weakness = {t: {"weak": 0, "resist": 0, "immune": 0} for t in types}
+    
+    # Speed Nature Modifiers
+    speed_plus = ["Timid", "Jolly", "Hasty", "Naive"]
+    speed_minus = ["Brave", "Relaxed", "Quiet", "Sassy"]
 
     for i, block in enumerate(teamRaw):
         lines = block.strip().split('\n')
         poke_data = {
             'Pokemon': '',
             'Type': [],
+            'Base Stats': {}, # New
+            'Speed': 0,       # New
             'Item': '',
             'Ability': '',
             'Shiny': False,
@@ -58,11 +54,11 @@ def readTeam(teamRaw):
             'Damage From': {}
         }
 
+        # 1. Parse Raw Text
         for line in lines:
             line = line.strip()
             if '@' in line:
                 poke_data['Pokemon'] = line.split('@')[0].strip()
-                poke_data['Type'] = getType(slugify(poke_data['Pokemon']))
                 poke_data['Item'] = line.split('@')[1].strip()
             elif line.startswith('Ability:'):
                 poke_data['Ability'] = line.split('Ability:')[1].strip()
@@ -73,8 +69,11 @@ def readTeam(teamRaw):
             elif line.startswith('EVs:'):
                 evs = line.split('EVs:')[1].strip().split('/')
                 for ev in evs:
-                    val, stat = ev.strip().split(' ')
-                    poke_data['EVs'][stat] = int(val)
+                    parts = ev.strip().split(' ')
+                    if len(parts) >= 2:
+                        val = int(parts[0])
+                        stat = parts[1]
+                        poke_data['EVs'][stat] = val
             elif line.endswith('Nature'):
                 poke_data['Nature'] = line.replace('Nature', '').strip()
             elif line.startswith('-'):
@@ -84,6 +83,31 @@ def readTeam(teamRaw):
                     'name': move_name,
                     **move_data
                 })
+
+        # 2. Enrich with API Data (Types, Base Stats, Sprite)
+        api_data = fetch_pokemon_data(poke_data['Pokemon'])
+        if api_data:
+            poke_data['Type'] = api_data['types']
+            poke_data['Base Stats'] = api_data['stats']
+            
+            # 3. Calculate Real Speed
+            base_spe = api_data['stats'].get('speed', 100)
+            ev_spe = poke_data['EVs'].get('Spe', 0)
+            nature_mod = 1.0
+            if poke_data['Nature'] in speed_plus: nature_mod = 1.1
+            elif poke_data['Nature'] in speed_minus: nature_mod = 0.9
+            
+            poke_data['Speed'] = calculate_speed(base_spe, ev_spe, 31, nature_mod, poke_data['Item'])
+        else:
+            # Fallback if API fails
+            poke_data['Type'] = [] 
+            poke_data['Speed'] = 0
+
+        # 4. Calculate Weaknesses (Resisting existing logic)
+        dmg_from, dmg_to = damageRelations(poke_data['Type'])
+        
+        # ... (Rest of existing immunity logic) ...
+
 
         dmg_from, dmg_to = damageRelations(poke_data['Type'])
         

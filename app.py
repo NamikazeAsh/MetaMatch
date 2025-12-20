@@ -1,16 +1,21 @@
 import streamlit as st
 import re
 import requests
+import json
+import pandas as pd
+import altair as alt
 from PIL import Image
 from io import BytesIO
 from helper import *
 from team_read import *
 from suggestion_call import *
 from smogon_scrape import *
+from type_chart import get_multiplier
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
-st.markdown("""
+# --- Global CSS ---
+st.markdown(r'''
 <style>
     .main .block-container {
         padding-top: 2rem;
@@ -25,14 +30,19 @@ st.markdown("""
     .main {
         background-color: #1a1f2e;
     }
+    div[data-testid="stMetricValue"] {
+        font-size: 28px;
+        font-weight: bold;
+    }
+    div[data-testid="stMetricLabel"] {
+        font-weight: bold;
+        color: #888;
+    }
 </style>
-""", unsafe_allow_html=True)
-
-from type_chart import get_multiplier
+''', unsafe_allow_html=True)
 
 # --- Helper Functions ---
 def extract_pokemon_names(raw_data):
-    # Pattern now matches: Start of line, (Letters, spaces, hyphens, dots), followed by @
     pattern = r'^([A-Za-z][A-Za-z\s\-\.]*?)\s*@'
     names = []
     lines = raw_data.split('\n')
@@ -57,9 +67,6 @@ def get_pokemon_sprite(name):
             if sprite_url: return sprite_url
     except: pass
     return None
-
-def format_pokemon_name(name):
-    return name.capitalize()
 
 # --- Main UI Layout ---
 col1, col2, col3 = st.columns([2, 1, 2])
@@ -273,13 +280,11 @@ Careful Nature
             st.session_state.pokemon_data = pokemon_data
             st.session_state.pokemon_names = extract_pokemon_names(pokemon_data)
             
-            # Run Analysis
             with st.spinner("Analyzing team dynamics..."):
                 team, team_weakness = readTeam(pokemon_data)
                 detectRole(team)
                 addComments(team)
                 coverage = coverageCheck(team)
-                
                 suggestions = get_suggestions(team)
                 
                 st.session_state.analysis = {
@@ -288,7 +293,6 @@ Careful Nature
                     'coverage': coverage,
                     'suggestions': suggestions
                 }
-                
                 st.session_state.submitted = True
                 st.rerun()
 
@@ -305,37 +309,23 @@ Careful Nature
 if not st.session_state.submitted:
     st.info("👈 Use the sidebar to paste your team and start analysis!")
     
-# --- Main Content Area ---
-if not st.session_state.submitted:
-    st.info("👈 Use the sidebar to paste your team and start analysis!")
-    
 if st.session_state.submitted and st.session_state.pokemon_names:
     
     type_map = {
-        'Fire': {'color': '#FF4422', 'icon': '🔥'}, 
-        'Water': {'color': '#3399FF', 'icon': '💧'}, 
-        'Grass': {'color': '#77CC55', 'icon': '🌿'},
-        'Electric': {'color': '#FFCC33', 'icon': '⚡'}, 
-        'Psychic': {'color': '#FF5599', 'icon': '🔮'}, 
-        'Ice': {'color': '#66CCFF', 'icon': '❄️'},
-        'Fighting': {'color': '#BB5544', 'icon': '🥊'}, 
-        'Poison': {'color': '#AA5599', 'icon': '☠️'}, 
-        'Ground': {'color': '#DDBB55', 'icon': '🏜️'},
-        'Flying': {'color': '#8899FF', 'icon': '🕊️'}, 
-        'Bug': {'color': '#AABB22', 'icon': '🐞'}, 
-        'Rock': {'color': '#BBAA66', 'icon': '🪨'},
-        'Ghost': {'color': '#6666BB', 'icon': '👻'}, 
-        'Dragon': {'color': '#7766EE', 'icon': '🐲'}, 
-        'Dark': {'color': '#775544', 'icon': '🌑'},
-        'Steel': {'color': '#AAAABB', 'icon': '⚙️'}, 
-        'Fairy': {'color': '#EE99AA', 'icon': '✨'}, 
-        'Normal': {'color': '#AAAA99', 'icon': '⚪'}
+        'Fire': {'color': '#FF4422', 'icon': '🔥'}, 'Water': {'color': '#3399FF', 'icon': '💧'}, 
+        'Grass': {'color': '#77CC55', 'icon': '🌿'}, 'Electric': {'color': '#FFCC33', 'icon': '⚡'}, 
+        'Psychic': {'color': '#FF5599', 'icon': '🔮'}, 'Ice': {'color': '#66CCFF', 'icon': '❄️'},
+        'Fighting': {'color': '#BB5544', 'icon': '🥊'}, 'Poison': {'color': '#AA5599', 'icon': '☠️'}, 
+        'Ground': {'color': '#DDBB55', 'icon': '🏜️'}, 'Flying': {'color': '#8899FF', 'icon': '🕊️'}, 
+        'Bug': {'color': '#AABB22', 'icon': '🐞'}, 'Rock': {'color': '#BBAA66', 'icon': '🪨'},
+        'Ghost': {'color': '#6666BB', 'icon': '👻'}, 'Dragon': {'color': '#7766EE', 'icon': '🐲'}, 
+        'Dark': {'color': '#775544', 'icon': '🌑'}, 'Steel': {'color': '#AAAABB', 'icon': '⚙️'}, 
+        'Fairy': {'color': '#EE99AA', 'icon': '✨'}, 'Normal': {'color': '#AAAA99', 'icon': '⚪'}
     }
 
     # --- Metrics Dashboard ---
     st.markdown("## 📊 Team Dashboard")
     
-    # Calculate Metrics
     coverage = st.session_state.analysis['coverage']
     weakness = st.session_state.analysis['weakness']
     team_data = st.session_state.analysis['team']
@@ -343,7 +333,6 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     covered_count = sum(1 for v in coverage.values() if v)
     most_weak_type = max(weakness.items(), key=lambda x: x[1]['weak'])
     
-    # Determine Team Archetype
     roles = []
     for p in team_data.values():
         roles.extend(p['Roles'])
@@ -351,34 +340,16 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     archetype = "Balanced"
     arch_icon = "⚖️"
     if roles.count("Wall") + roles.count("Tank") >= 3: 
-        archetype = "Stall / Bulky"
-        arch_icon = "🐢"
+        archetype = "Stall / Bulky"; arch_icon = "🐢"
     elif roles.count("Sweeper") + roles.count("Wallbreaker") >= 4: 
-        archetype = "Hyper Offense"
-        arch_icon = "⚔️"
+        archetype = "Hyper Offense"; arch_icon = "⚔️"
     
-    # Custom CSS for Metrics & Cards
-    st.markdown("""
-        <style>
-        div[data-testid="stMetricValue"] {
-            font-size: 28px;
-            font-weight: bold;
-        }
-        div[data-testid="stMetricLabel"] {
-            font-weight: bold;
-            color: #888;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
     m1, m2, m3 = st.columns(3)
     m1.metric("Archetype", f"{arch_icon} {archetype}")
-    
     with m2:
         st.metric("Type Coverage", f"{covered_count}/18")
         st.progress(covered_count / 18)
     
-    # Un-bland the Top Weakness metric
     weak_type_name = most_weak_type[0].capitalize()
     t_info_m = type_map.get(weak_type_name, {'color': '#777', 'icon': '❓'})
     weak_label = f"{t_info_m['icon']} {weak_type_name}"
@@ -388,274 +359,146 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     else:
         m3.metric("Top Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="off")
 
-    # --- Pokemon Trading Cards ---
+    # --- Squad Section ---
     st.markdown("## 🦸 Your Squad")
-    
-    # Robust Grid Layout: Process in chunks of 3
     names = st.session_state.pokemon_names
     for i in range(0, len(names), 3):
         cols = st.columns(3)
-        batch_names = names[i:i+3]
-        
-        for j, name in enumerate(batch_names):
+        batch = names[i:i+3]
+        for j, name in enumerate(batch):
             idx = i + j
-            poke_data = team_data[idx]
-            
+            poke = team_data[idx]
             with cols[j]:
                 with st.container(border=True):
-                    # 1. Header: Name & Sprite
                     c1, c2 = st.columns([1, 2])
                     with c1:
-                        sprite_url = get_pokemon_sprite(name)
-                        if sprite_url:
-                            st.image(sprite_url, width=80)
-                        else:
-                            st.text("👾")
+                        sprite = get_pokemon_sprite(name)
+                        if sprite: st.image(sprite, width=80)
+                        else: st.text("👾")
                     with c2:
                         st.markdown(f"**{name}**")
-                        # Type Badges
                         badges = ""
-                        for t in poke_data['Type']:
-                            t_info = type_map.get(t, {'color': '#777', 'icon': '❓'})
-                            badges += (
-                                f'<span style="background-color:{t_info["color"]};'
-                                f'color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:4px">'
-                                f'{t_info["icon"]} {t}</span>'
-                            )
+                        for t in poke['Type']:
+                            t_i = type_map.get(t, {'color': '#777', 'icon': '❓'})
+                            badges += f'<span style="background-color:{t_i["color"]};color:white;padding:2px 6px;border-radius:4px;font-size:12px;margin-right:4px">{t_i["icon"]} {t}</span>'
                         st.markdown(badges, unsafe_allow_html=True)
-
                     st.markdown("---")
-                    
-                    # 2. Key Stats
-                    # Roles
-                    if poke_data['Roles']:
-                        role_str = " • ".join(poke_data['Roles'][:3]) # Limit to 3 roles
-                        st.caption(f"🛡️ {role_str}")
-                    
-                    # Item / Ability
-                    st.caption(f"🎒 **{poke_data['Item']}**")
-                    st.caption(f"✨ {poke_data['Ability']}")
-                    
-                    # EV Quick Look
-                    if poke_data['EVs']:
-                        top_evs = sorted(poke_data['EVs'].items(), key=lambda x: x[1], reverse=True)[:2]
-                        ev_str = ", ".join([f"{k} {v}" for k, v in top_evs])
-                        st.caption(f"💪 {ev_str}")
+                    if poke['Roles']:
+                        st.caption(f"🛡️ {' • '.join(poke['Roles'][:3])}")
+                    st.caption(f"🎒 **{poke['Item']}** | ✨ {poke['Ability']}")
+                    if poke['EVs']:
+                        top_evs = sorted(poke['EVs'].items(), key=lambda x: x[1], reverse=True)[:2]
+                        st.caption(f"💪 {', '.join([f'{k} {v}' for k, v in top_evs])}")
 
     st.markdown("---")
     
+    # --- Detailed Analysis Tabs ---
     st.header("Detailed Analysis")
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "Defensive Matrix", "Offensive Matrix"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "Defensive Matrix", "Offensive Matrix", "Speed Tiers"])
 
     with tab1:
-        coverage = st.session_state.analysis['coverage']
-        covered = sum(1 for v in coverage.values() if v)
-        total = len(coverage)
-        st.metric("Type Coverage", f"{covered}/{total} types")
-        
-        # Display covered types as badges
-        st.write("**Covered Types:**")
+        st.metric("Type Coverage", f"{covered_count}/18 types")
         covered_html = ""
         for t, is_covered in coverage.items():
             if is_covered:
-                t_info = type_map.get(t.capitalize(), {'color': '#777', 'icon': '❓'})
-                covered_html += (
-                    f'<span style="background-color:{t_info["color"]};'
-                    f'color:white;padding:4px 8px;border-radius:4px;font-size:14px;margin:4px;display:inline-block">'
-                    f'{t_info["icon"]} {t.capitalize()}</span>'
-                )
+                t_i = type_map.get(t.capitalize(), {'color': '#777', 'icon': '❓'})
+                covered_html += f'<span style="background-color:{t_i["color"]};color:white;padding:4px 8px;border-radius:4px;font-size:14px;margin:4px;display:inline-block">{t_i["icon"]} {t.capitalize()}</span>'
         st.markdown(covered_html, unsafe_allow_html=True)
-        
-        missing = [t for t, v in coverage.items() if not v]
-        if missing:
-            st.warning("⚠️ Missing offensive coverage for several types.")
+        if [t for t, v in coverage.items() if not v]: st.warning("⚠️ Missing offensive coverage for several types.")
 
     with tab2:
-        team_weakness = st.session_state.analysis['weakness']
         st.write("**Team Vulnerabilities:**")
-        
-        for type_name, counts in team_weakness.items():
-            cap_type = type_name.capitalize()
+        for t_n, counts in weakness.items():
+            cap_t = t_n.capitalize()
             if counts['weak'] >= 2:
-                t_info = type_map.get(cap_type, {'color': '#777', 'icon': '❓'})
-                
-                # Colors for alert box
-                bg_color = "rgba(255, 75, 75, 0.2)" if counts['weak'] >= 3 else "rgba(255, 165, 0, 0.1)"
-                border_color = "#ff4b4b" if counts['weak'] >= 3 else "#ffa500"
-                critical_tag = "— ⚠️ CRITICAL" if counts['weak'] >= 3 else ""
-                
-                # Construct HTML using standard triple quotes
-                alert_html = f"""
-                <div style="background-color:{bg_color}; padding:10px; border-radius:5px; border-left: 5px solid {border_color}; margin-bottom:10px;">
-                    <span style="background-color:{t_info['color']}; color:white; padding:2px 8px; border-radius:4px; font-size:14px; margin-right:10px;">
-                        {t_info['icon']} {cap_type}
-                    </span>
-                    <b>{counts['weak']} Weaknesses</b> {critical_tag}
-                </div>
-                """
-                st.markdown(alert_html, unsafe_allow_html=True)
+                t_i = type_map.get(cap_t, {'color': '#777', 'icon': '❓'})
+                bg = "rgba(255, 75, 75, 0.2)" if counts['weak'] >= 3 else "rgba(255, 165, 0, 0.1)"
+                bc = "#ff4b4b" if counts['weak'] >= 3 else "#ffa500"
+                tag = "— ⚠️ CRITICAL" if counts['weak'] >= 3 else ""
+                alert = f'<div style="background-color:{bg}; padding:10px; border-radius:5px; border-left: 5px solid {bc}; margin-bottom:10px;"><span style="background-color:{t_i["color"]}; color:white; padding:2px 8px; border-radius:4px; font-size:14px; margin-right:10px;">{t_i["icon"]} {cap_t}</span><b>{counts["weak"]} Weaknesses</b> {tag}</div>'
+                st.markdown(alert, unsafe_allow_html=True)
 
     with tab3:
         if st.session_state.analysis['suggestions']:
             sugg = st.session_state.analysis['suggestions']
             st.subheader("🛡️ Team Analysis")
             if 'team_analysis' in sugg:
-                for point in sugg['team_analysis']:
-                    st.write(f"• {point}")
+                for p in sugg['team_analysis']: st.write(f"• {p}")
             st.markdown("---")
             st.subheader("🔍 Pokemon Specific Tips")
-            if 'pokemon_specific' in sugg and isinstance(sugg['pokemon_specific'], dict):
-                for poke_name, advice in sugg['pokemon_specific'].items():
-                    with st.expander(f"Tips for **{poke_name}**", expanded=True):
-                        st.write(advice)
-        else:
-            st.info("Run analysis to see suggestions.")
+            if 'pokemon_specific' in sugg:
+                for pk, adv in sugg['pokemon_specific'].items():
+                    with st.expander(f"Tips for **{pk}**", expanded=True): st.write(adv)
+        else: st.info("Run analysis to see suggestions.")
 
     with tab4:
         if st.session_state.analysis['suggestions'] and 'threats' in st.session_state.analysis['suggestions']:
-            threats = st.session_state.analysis['suggestions']['threats']
-            if not threats:
-                st.info("No specific threats identified.")
-            for threat in threats:
+            for threat in st.session_state.analysis['suggestions']['threats']:
                 with st.container():
-                    t_col1, t_col2 = st.columns([1, 5])
+                    t1, t2 = st.columns([1, 5])
                     name = threat.get('pokemon', 'Unknown')
-                    desc = threat.get('explanation', '')
-                    counter = threat.get('counter_play', '')
-                    with t_col1:
-                        sprite_url = get_pokemon_sprite(name)
-                        if sprite_url:
-                            st.image(sprite_url, width=80)
-                        else:
-                            st.text("👾")
-                    with t_col2:
+                    with t1:
+                        sprite = get_pokemon_sprite(name)
+                        if sprite: st.image(sprite, width=80)
+                        else: st.text("👾")
+                    with t2:
                         st.subheader(name)
-                        st.write(f"**Why:** {desc}")
-                        if counter:
-                            st.info(f"**Counter Strategy:** {counter}")
+                        st.write(f"**Why:** {threat.get('explanation', '')}")
+                        if threat.get('counter_play'): st.info(f"**Counter Strategy:** {threat.get('counter_play')}")
                     st.markdown("---")
-        else:
-            st.info("Run analysis to see meta threats.")
+        else: st.info("Run analysis to see meta threats.")
             
     with tab5:
-        st.subheader("🛡️ Type Matchup Matrix", help="Shows how much damage YOUR team takes from each type. Red = You are weak.")
-        
-        # Visual Legend
-        legend_html = """
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-            <span style="background-color: #7b1e1e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 4x Weak</span>
-            <span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟧 2x Weak</span>
-            <span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span>
-            <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 0.5x Resist</span>
-            <span style="background-color: #1e8449; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🌲 0.25x Resist</span>
-            <span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span>
-        </div>
-        """
-        st.markdown(legend_html, unsafe_allow_html=True)
-        
-        # Construct DataFrame
-        import pandas as pd
-        
-        all_types = [
-            "Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", 
-            "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"
-        ]
-        
-        matrix_rows = []
-        for poke in team_data.values():
-            row = {"Pokemon": poke['Pokemon']}
-            dmg_dict = poke['Damage From']
-            
-            for t in all_types:
-                val = dmg_dict.get(t.lower(), 1.0)
-                row[t] = val
-                
-            matrix_rows.append(row)
-            
-        df = pd.DataFrame(matrix_rows)
-        df.set_index("Pokemon", inplace=True)
-        
-        # Define Color Map Function
-        def color_cells(val):
-            if val == 0:
-                return 'background-color: #2c3e50; color: #ecf0f1' # Dark Blue/Black for Immunity
-            elif val >= 4:
-                return 'background-color: #7b1e1e; color: white' # Deep Red for 4x
-            elif val >= 2:
-                return 'background-color: #c0392b; color: white' # Red for 2x
-            elif val <= 0.25:
-                return 'background-color: #1e8449; color: white' # Deep Green for 0.25x
-            elif val <= 0.5:
-                return 'background-color: #27ae60; color: white' # Green for 0.5x
-            return '' # Default for neutral
-            
-        # Apply Style
-        styled_df = df.style.map(color_cells).format("{:.1f}")
-        
-        st.dataframe(styled_df, use_container_width=True, height=250)
+        st.subheader("🛡️ Type Matchup Matrix", help="Damage taken from each type. Red = Weak.")
+        st.markdown('<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #7b1e1e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 4x Weak</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟧 2x Weak</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 0.5x Resist</span><span style="background-color: #1e8449; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🌲 0.25x Resist</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>', unsafe_allow_html=True)
+        all_types = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
+        rows = []
+        for p in team_data.values():
+            r = {"Pokemon": p['Pokemon']}
+            for t in all_types: r[t] = p['Damage From'].get(t.lower(), 1.0)
+            rows.append(r)
+        df = pd.DataFrame(rows).set_index("Pokemon")
+        def c_c(v):
+            if v == 0: return 'background-color: #2c3e50; color: #ecf0f1'
+            if v >= 4: return 'background-color: #7b1e1e; color: white'
+            if v >= 2: return 'background-color: #c0392b; color: white'
+            if v <= 0.25: return 'background-color: #1e8449; color: white'
+            if v <= 0.5: return 'background-color: #27ae60; color: white'
+            return ''
+        st.dataframe(df.style.map(c_c).format("{:.1f}"), use_container_width=True, height=250)
 
     with tab6:
-        st.subheader("⚔️ Offensive Coverage Matrix", help="Shows the best damage YOUR team can deal to each type. Green = You have a Super Effective move.")
-        
-        # Offensive Visual Legend
-        off_legend_html = """
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-            <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 2x Super Effective</span>
-            <span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span>
-            <span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 0.5x Resisted</span>
-            <span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span>
-        </div>
-        """
-        st.markdown(off_legend_html, unsafe_allow_html=True)
-        
-        # Construct Offensive DataFrame
-        off_matrix_rows = []
-        for poke in team_data.values():
-            row = {"Pokemon": poke['Pokemon']}
-            moves = poke['Moves']
-            
-            for t_def in all_types:
-                # Find best move against this type
-                max_mult = 0.0
-                
-                # Check actual moves
-                for move in moves:
-                    if move['category'] != 'Status':
-                        atk_type = move['type']
-                        mult = get_multiplier(atk_type, t_def)
-                        if mult > max_mult:
-                            max_mult = mult
-                            
-                # Handle case where Pokemon has no attacking moves (default to neutral if logic fails, else 0)
-                if not moves and max_mult == 0.0:
-                     max_mult = 1.0
-                
-                row[t_def] = max_mult
-                
-            off_matrix_rows.append(row)
-            
-        off_df = pd.DataFrame(off_matrix_rows)
-        off_df.set_index("Pokemon", inplace=True)
-        
-        # Define Color Map Function for Offense
-        def color_cells_off(val):
-            if val >= 2:
-                return 'background-color: #27ae60; color: white' # Green for SE
-            elif val == 0:
-                return 'background-color: #2c3e50; color: #ecf0f1' # Dark for Immune
-            elif val <= 0.5:
-                return 'background-color: #c0392b; color: white' # Red for Resisted
-            return '' # Default for neutral
-            
-        # Apply Style
-        styled_off_df = off_df.style.map(color_cells_off).format("{:.1f}")
-        
-        st.dataframe(styled_off_df, use_container_width=True, height=250)
+        st.subheader("⚔️ Offensive Coverage Matrix", help="Best damage you deal to each type. Green = Super Effective.")
+        st.markdown('<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 2x SE</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 0.5x Resisted</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>', unsafe_allow_html=True)
+        o_rows = []
+        for p in team_data.values():
+            r = {"Pokemon": p['Pokemon']}
+            for t_d in all_types:
+                m_m = 0.0
+                for m in p['Moves']:
+                    if m['category'] != 'Status':
+                        mult = get_multiplier(m['type'], t_d)
+                        if mult > m_m: m_m = mult
+                if not p['Moves'] and m_m == 0.0: m_m = 1.0
+                r[t_d] = m_m
+            o_rows.append(r)
+        o_df = pd.DataFrame(o_rows).set_index("Pokemon")
+        def c_c_o(v):
+            if v >= 2: return 'background-color: #27ae60; color: white'
+            if v == 0: return 'background-color: #2c3e50; color: #ecf0f1'
+            if v <= 0.5: return 'background-color: #c0392b; color: white'
+            return ''
+        st.dataframe(o_df.style.map(c_c_o).format("{:.1f}"), use_container_width=True, height=250)
 
-
-
-
-    
-
-
-                                
+    with tab7:
+        st.subheader("⚡ Speed Tiers", help="Compare team speed against meta threats.")
+        try:
+            with open("jsons/meta_speeds.json", "r") as f: m_s = json.load(f)
+        except: m_s = []
+        u_s = [{'Name': p['Pokemon'], 'Speed': p.get('Speed', 0), 'Type': 'Your Team'} for p in team_data.values()]
+        c_d = u_s + [{'Name': m['label'], 'Speed': m['speed'], 'Type': 'Meta'} for m in m_s[:40]]
+        df_c = pd.DataFrame(c_d).sort_values(by="Speed", ascending=False)
+        base = alt.Chart(df_c).encode(y=alt.Y('Name', sort='-x', axis=alt.Axis(title=None)), x=alt.X('Speed', axis=alt.Axis(title='Speed Stat')), tooltip=['Name', 'Speed', 'Type'])
+        dots = base.mark_circle(size=100).encode(color=alt.Color('Type', scale=alt.Scale(domain=['Your Team', 'Meta'], range=['#3399FF', '#888888'])), opacity=alt.condition(alt.datum.Type == 'Your Team', alt.value(1.0), alt.value(0.5)))
+        text = base.mark_text(align='left', dx=10, color='#3399FF', fontWeight='bold').encode(text=alt.Text('Speed'), opacity=alt.condition(alt.datum.Type == 'Your Team', alt.value(1.0), alt.value(0.0)))
+        st.altair_chart((dots + text).properties(height=600), use_container_width=True)

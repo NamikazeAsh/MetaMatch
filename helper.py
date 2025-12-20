@@ -1,31 +1,92 @@
+import requests
+import re
+import json
+import os
+
+CACHE_FILE = "jsons/api_cache.json"
+
+def load_cache():
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, "r") as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_cache(cache):
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+    with open(CACHE_FILE, "w") as f:
+        json.dump(cache, f, indent=2)
+
+# Global in-memory cache to reduce reads
+API_CACHE = load_cache()
+
 def pokeSlugify(name):
-    name = name.lower().replace(' ', '-').replace('.', '').replace("'", '').replace(':', '')
+    """
+    Normalize Pokemon names for API/Smogon usage.
+    """
+    name = name.lower()
+    name = name.replace(" ", "-")
+    name = name.replace(".", "")
+    name = name.replace("'", "")
+    name = name.replace("%", "")
     
-    name_x = {
-        "ogerpon-wellspring": "ogerpon-wellspring-mask",
-        "ogerpon-hearthflame": "ogerpon-hearthflame-mask", 
-        "ogerpon-cornerstone": "ogerpon-cornerstone-mask",
-        "keldeo": "keldeo-ordinary",
-        "enamorus": "enamorus-incarnate",
-        "indeedee": "indeedee-male",
-        "mimikyu": "mimikyu-disguised",
-        "maushold": "maushold-family-of-four",
-        "basculegion": "basculegion-male",
-        "basculegion-f": "basculegion-female",
-        "thundurus": "thundurus-incarnate",
-        "tornadus": "tornadus-incarnate",
-        "landorus": "landorus-incarnate",
-        "aegislash": "aegislash-shield",
-        "pumpkaboo": "pumpkaboo-average",
-        "gourgeist": "gourgeist-average",
-        "zygarde": "zygarde-50",
-        "oricorio": "oricorio-baile",
-        "lycanroc": "lycanroc-midday",
-        "wishiwashi": "wishiwashi-solo",
-        "minior": "minior-red-meteor",
-        "urshifu": "urshifu-single-strike",
+    # Special cases for API compatibility
+    if "urshifu" in name and "rapid" not in name and "single" not in name:
+        name = "urshifu-single-strike" # Default
+    if "iron-valiant" in name: return "iron-valiant"
+    if "roaring-moon" in name: return "roaring-moon"
+    
+    return name
+
+def fetch_pokemon_data(name):
+    """
+    Fetches full Pokemon data (types, stats, sprites) with caching.
+    """
+    slug = pokeSlugify(name)
+    
+    # Check Cache
+    if slug in API_CACHE and 'stats' in API_CACHE[slug]:
+        return API_CACHE[slug]
+    
+    url = f"https://pokeapi.co/api/v2/pokemon/{slug}"
+    try:
+        res = requests.get(url, timeout=5)
+        if res.status_code == 200:
+            data = res.json()
+            
+            # Extract only what we need to save space
+            processed_data = {
+                'types': [t["type"]["name"].capitalize() for t in data["types"]],
+                'stats': {s["stat"]["name"]: s["base_stat"] for s in data["stats"]},
+                'sprite': data['sprites']['front_default'],
+                'abilities': [a['ability']['name'] for a in data['abilities']]
+            }
+            
+            # Update Cache
+            API_CACHE[slug] = processed_data
+            save_cache(API_CACHE)
+            return processed_data
+    except Exception as e:
+        print(f"Error fetching {name}: {e}")
         
-        "tatsugiri": "tatsugiri-stretchy",
-    }
+    return None
+
+def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item=""):
+    """
+    Calculates the actual Speed stat at Level 100.
+    """
+    # Stat Formula: floor(((2 * Base + IV + (EV/4)) * Level / 100) + 5) * Nature
+    level = 100
+    stat = int(((2 * base_speed + iv + (ev / 4)) * level / 100) + 5)
+    stat = int(stat * nature_mod)
     
-    return name_x.get(name, name)
+    # Apply Items
+    if item.lower() == "choice scarf":
+        stat = int(stat * 1.5)
+    elif item.lower() == "iron ball":
+        stat = int(stat * 0.5)
+        
+    return stat
