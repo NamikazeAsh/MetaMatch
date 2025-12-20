@@ -44,6 +44,39 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 
 ---
 
+## 🔄 How It Works
+
+```mermaid
+graph TD
+    A[User Input] -->|Showdown Export| B(Streamlit App)
+    B --> C{Analysis Pipeline}
+    
+    subgraph "Static Analysis"
+    C --> D[Team Parser]
+    D -->|PokeAPI| E[Enrich Data]
+    E --> F[Role Detection]
+    E --> G[Type Calculator]
+    end
+    
+    subgraph "Meta Context"
+    H[Smogon Stats] -->|Scraper| I[Meta/Speed Tiers]
+    I --> J[AI Context]
+    end
+    
+    subgraph "AI Reasoning"
+    C --> K[Ollama LLM]
+    J --> K
+    K --> L[Strategic Advice]
+    end
+    
+    F --> M[Dashboard UI]
+    G --> M
+    L --> M
+    I --> M
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
