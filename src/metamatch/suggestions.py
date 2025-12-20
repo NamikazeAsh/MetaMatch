@@ -22,7 +22,9 @@ def get_suggestions(team):
     
     while attempt < max_retries:
         # Use the OpenAI client to connect to a local Ollama instance
-        client = OpenAI(base_url='http://localhost:11434/v1', api_key='ollama')
+        # Docker support: check env var, default to localhost
+        base_url = os.getenv('OLLAMA_HOST', 'http://localhost:11434') + '/v1'
+        client = OpenAI(base_url=base_url, api_key='ollama')
         attempt += 1
         
         try:

@@ -122,6 +122,18 @@ graph TD
     streamlit run src/metamatch/app.py
     ```
 
+### 🐳 Docker Quickstart (No Python Needed)
+
+1.  **Run the App:**
+    ```bash
+    docker-compose up -d
+    ```
+2.  **Pull the Model:** (One time only)
+    ```bash
+    docker exec -it metamatch-ollama ollama pull llama3.2:3b-instruct-q4_K_M
+    ```
+3.  **Open:** Go to `http://localhost:8501`
+
 ---
 
 ## 🧪 Quality Assurance (Testing)
