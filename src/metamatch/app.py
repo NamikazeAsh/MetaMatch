@@ -15,7 +15,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from metamatch.utils import pokeSlugify
 from metamatch.team import readTeam, detectRole, addComments, coverageCheck
-from metamatch.suggestions import get_suggestions
+from metamatch.suggestions import get_suggestions, get_team_guide
 from metamatch.scrapers import generate_speed_tiers
 from metamatch.type_chart import get_multiplier
 from metamatch import config
@@ -28,196 +28,64 @@ st.markdown(r'''
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
     /* Global Base */
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 0rem;
-    }
-    .stApp {
-        background: radial-gradient(circle at 50% 50%, #1a1f2e 0%, #0f1219 100%);
-        color: #e0e0e0;
-        font-family: 'Inter', sans-serif;
-    }
+    .main .block-container { padding-top: 2rem; padding-bottom: 0rem; }
+    .stApp { background: radial-gradient(circle at 50% 50%, #1a1f2e 0%, #0f1219 100%); color: #e0e0e0; font-family: 'Inter', sans-serif; }
     
     /* Transparent Header */
-    .stApp > header {
-        background-color: transparent;
-    }
+    .stApp > header { background-color: transparent; }
 
     /* Sidebar Glassmorphism */
-    [data-testid="stSidebar"] {
-        background: rgba(255, 255, 255, 0.02) !important;
-        backdrop-filter: blur(20px);
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    [data-testid="stSidebar"] .stMarkdown h1, [data-testid="stSidebar"] .stMarkdown h2 {
-        color: #00d4ff;
-        text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-    }
+    [data-testid="stSidebar"] { background: rgba(255, 255, 255, 0.02) !important; backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
+    [data-testid="stSidebar"] .stMarkdown h1, [data-testid="stSidebar"] .stMarkdown h2 { color: #00d4ff; text-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
 
     /* Metrics Glowing Style */
-    div[data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.03);
-        padding: 15px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    div[data-testid="stMetricValue"] {
-        font-family: 'Inter', sans-serif;
-        font-weight: 800 !important;
-        color: #fff !important;
-        text-shadow: 0 0 15px rgba(255,255,255,0.2);
-    }
-    div[data-testid="stMetricLabel"] {
-        color: #888 !important;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-size: 0.75rem !important;
-    }
+    div[data-testid="stMetric"] { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    div[data-testid="stMetricValue"] { font-family: 'Inter', sans-serif; font-weight: 800 !important; color: #fff !important; text-shadow: 0 0 15px rgba(255,255,255,0.2); }
+    div[data-testid="stMetricLabel"] { color: #888 !important; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem !important; }
 
     /* Glass Buttons */
-    .stButton > button {
-        background: rgba(0, 212, 255, 0.1) !important;
-        color: #00d4ff !important;
-        border: 1px solid #00d4ff !important;
-        backdrop-filter: blur(5px);
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-        width: 100%;
-    }
-    .stButton > button:hover {
-        background: rgba(0, 212, 255, 0.2) !important;
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.4) !important;
-        transform: scale(1.02);
-    }
+    .stButton > button { background: rgba(0, 212, 255, 0.1) !important; color: #00d4ff !important; border: 1px solid #00d4ff !important; backdrop-filter: blur(5px); border-radius: 8px !important; font-weight: 600 !important; transition: all 0.3s ease !important; width: 100%; }
+    .stButton > button:hover { background: rgba(0, 212, 255, 0.2) !important; box-shadow: 0 0 20px rgba(0, 212, 255, 0.4) !important; transform: scale(1.02); }
 
     /* Futuristic Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background-color: transparent;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background: rgba(255, 255, 255, 0.02) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        border-radius: 8px 8px 0 0 !important;
-        color: #888 !important;
-        padding: 10px 20px !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background: rgba(0, 212, 255, 0.05) !important;
-        border-color: #00d4ff !important;
-        color: #00d4ff !important;
-        box-shadow: 0 -4px 10px rgba(0, 212, 255, 0.1);
-    }
+    .stTabs [data-baseweb="tab-list"] { gap: 10px; background-color: transparent; }
+    .stTabs [data-baseweb="tab"] { background: rgba(255, 255, 255, 0.02) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; border-radius: 8px 8px 0 0 !important; color: #888 !important; padding: 10px 20px !important; }
+    .stTabs [aria-selected="true"] { background: rgba(0, 212, 255, 0.05) !important; border-color: #00d4ff !important; color: #00d4ff !important; box-shadow: 0 -4px 10px rgba(0, 212, 255, 0.1); }
 
     /* Text Area / Inputs */
-    .stTextArea textarea {
-        background: rgba(0, 0, 0, 0.2) !important;
-        color: #00ffcc !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 10px !important;
-    }
-    .stTextArea textarea:focus {
-        border-color: #00d4ff !important;
-        box-shadow: 0 0 10px rgba(0, 212, 255, 0.2) !important;
-    }
+    .stTextArea textarea { background: rgba(0, 0, 0, 0.2) !important; color: #00ffcc !important; font-family: 'JetBrains Mono', monospace !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 10px !important; }
+    .stTextArea textarea:focus { border-color: #00d4ff !important; box-shadow: 0 0 10px rgba(0, 212, 255, 0.2) !important; }
 
     /* Pokemon Card Glassmorphism */
-    .pokemon-card {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 20px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    .pokemon-card:hover {
-        transform: translateY(-5px);
-    }
-    .poke-name {
-        font-size: 1.4rem;
-        font-weight: 700;
-        margin-bottom: 5px;
-        color: #fff;
-    }
-    .role-badge {
-        display: inline-block;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        margin-right: 4px;
-        border: 1px solid rgba(255,255,255,0.1);
-        color: #ddd;
-    }
+    .pokemon-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 16px; padding: 20px; margin-bottom: 20px; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden; }
+    .pokemon-card:hover { transform: translateY(-5px); }
+    .poke-name { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; color: #fff; }
+    .role-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; margin-right: 4px; border: 1px solid rgba(255,255,255,0.1); color: #ddd; }
     
     /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.1);
-    }
-    ::-webkit-scrollbar-thumb {
-        background: rgba(255,255,255,0.1);
-        border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 212, 255, 0.3);
-    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.3); }
 
     /* Animations */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     
-    @keyframes pulseGlow {
-        0% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
-        50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); }
-        100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
-    }
+    @keyframes pulseGlow { 0% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); } 50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); } 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); } }
 
-    .pokemon-card {
-        animation: fadeInUp 0.6s ease-out forwards;
-    }
+    .pokemon-card { animation: fadeInUp 0.6s ease-out forwards; }
 
     /* Progress Bar Overhaul */
-    div[data-testid="stProgress"] > div > div > div > div {
-        background-image: linear-gradient(90deg, #00d4ff, #00ffcc) !important;
-        box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
-    }
+    div[data-testid="stProgress"] > div > div > div > div { background-image: linear-gradient(90deg, #00d4ff, #00ffcc) !important; box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
     
     /* Neon Dividers */
-    hr {
-        border: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent);
-        margin: 2rem 0;
-    }
+    hr { border: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent); margin: 2rem 0; }
 
     /* Background Atmospheric Particles */
-    .stApp::before {
-        content: "";
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: 
+    .stApp::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: 
             radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.05) 0%, transparent 20%),
             radial-gradient(circle at 80% 70%, rgba(0, 255, 204, 0.05) 0%, transparent 20%);
-        pointer-events: none;
-        z-index: -1;
-    }
+            pointer-events: none; z-index: -1; }
 </style>
 ''', unsafe_allow_html=True)
 
@@ -434,13 +302,13 @@ Careful Nature
 
     st.caption("🐞 Quick Load Presets:")
     b1, b2, b3 = st.columns(3)
-    if b1.button("⚖️ Bal", use_container_width=True):
+    if b1.button("⚖️ Bal", width='stretch'):
         st.session_state.default_input = debug_team_balanced
         st.rerun()
-    if b2.button("🌧️ Rain", use_container_width=True):
+    if b2.button("🌧️ Rain", width='stretch'):
         st.session_state.default_input = debug_team_rain
         st.rerun()
-    if b3.button("🐢 Stall", use_container_width=True):
+    if b3.button("🐢 Stall", width='stretch'):
         st.session_state.default_input = debug_team_stall
         st.rerun()
 
@@ -465,24 +333,26 @@ Careful Nature
                 addComments(team)
                 coverage = coverageCheck(team)
                 suggestions = get_suggestions(team)
+                guide = get_team_guide(team)
                 
                 st.session_state.analysis = {
                     'team': team,
                     'weakness': team_weakness,
                     'coverage': coverage,
-                    'suggestions': suggestions
+                    'suggestions': suggestions,
+                    'guide': guide
                 }
                 st.session_state.submitted = True
                 st.rerun()
 
     with st.expander("ℹ️ Supported Formats"):
         st.code("""
-        Pikachu @ Light Ball
-        Ability: Static
-        EVs: 252 Atk / 4 HP
+Pikachu @ Light Ball
+Ability: Static
+EVs: 252 Atk / 4 HP
 
-        Charizard @ Charcoal  
-        Ability: Blaze""", language="text")
+Charizard @ Charcoal  
+Ability: Blaze""", language="text")
 
 # --- Main UI Layout ---
 col1, col2, col3 = st.columns([2, 1, 2])
@@ -598,7 +468,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     
     # --- Detailed Analysis Tabs ---
     st.header("Detailed Analysis")
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "Defensive Matrix", "Offensive Matrix", "Speed Tiers"])
+    tab1, tab2, tab3, tab4, tab8, tab5, tab6, tab7 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "📋 Coach Guide", "Defensive Matrix", "Offensive Matrix", "Speed Tiers"])
 
     with tab1:
         st.metric("Type Coverage", f"{covered_count}/18 types")
@@ -626,8 +496,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
         if st.session_state.analysis['suggestions']:
             sugg = st.session_state.analysis['suggestions']
             st.subheader("🛡️ Team Analysis")
-            if 'team_analysis' in sugg:
-                for p in sugg['team_analysis']: st.write(f"• {p}")
+            if 'team_analysis' in sugg: st.write(f"• {sugg['team_analysis'][0]}")
             st.markdown("---")
             st.subheader("🔍 Pokemon Specific Tips")
             if 'pokemon_specific' in sugg:
@@ -651,6 +520,34 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                         if threat.get('counter_play'): st.info(f"**Counter Strategy:** {threat.get('counter_play')}")
                     st.markdown("---")
         else: st.info("Run analysis to see meta threats.")
+
+    with tab8:
+        if st.session_state.analysis.get('guide'):
+            g = st.session_state.analysis['guide']
+            st.subheader("🎓 Team Pilot Guide")
+            
+            st.info(f"**🏆 Win Condition:** {g.get('win_condition', 'N/A')}")
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("### 🏁 Lead Options")
+                for l in g.get('lead_options', []):
+                    st.success(f"**{l.get('pokemon')}**: {l.get('scenario')}")
+            
+            with c2:
+                st.markdown("### 💎 Tera Strategy")
+                tera = g.get('tera_strategy')
+                if isinstance(tera, dict):
+                     st.warning(f"**{tera.get('pokemon')}**: {tera.get('when_to_use')}")
+                else:
+                    st.write(str(tera))
+
+            st.markdown("### 🤝 Key Combinations")
+            for c in g.get('key_combos', []):
+                with st.expander(f"🔗 {c.get('name')}", expanded=True):
+                    st.write(c.get('description'))
+        else:
+            st.warning("Guide generation failed or is unavailable.")
             
     with tab5:
         st.subheader("🛡️ Type Matchup Matrix", help="Damage taken from each type. Red = Weak.")
@@ -669,7 +566,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             if v <= 0.25: return 'background-color: #1e8449; color: white'
             if v <= 0.5: return 'background-color: #27ae60; color: white'
             return ''
-        st.dataframe(df.style.map(c_c).format("{:.1f}"), use_container_width=True, height=250)
+        st.dataframe(df.style.map(c_c).format("{:.1f}"), width='stretch', height=250)
 
     with tab6:
         st.subheader("⚔️ Offensive Coverage Matrix", help="Best damage you deal to each type. Green = Super Effective.")
@@ -692,12 +589,13 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             if v == 0: return 'background-color: #2c3e50; color: #ecf0f1'
             if v <= 0.5: return 'background-color: #c0392b; color: white'
             return ''
-        st.dataframe(o_df.style.map(c_c_o).format("{:.1f}"), use_container_width=True, height=250)
+        st.dataframe(o_df.style.map(c_c_o).format("{:.1f}"), width='stretch', height=250)
 
     with tab7:
         st.subheader("⚡ Speed Tiers", help="Compare team speed against meta threats.")
         try:
-            with open(config.JSON_DIR / "meta_speeds.json", "r") as f: m_s = json.load(f)
+            with open(config.JSON_DIR / "meta_speeds.json", "r") as f:
+                m_s = json.load(f)
         except:
             m_s = []
         u_s = [{'Name': p['Pokemon'], 'Speed': p.get('Speed', 0), 'Type': 'Your Team'} for p in team_data.values()]
