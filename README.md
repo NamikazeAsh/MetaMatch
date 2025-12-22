@@ -14,13 +14,17 @@
 ### 🧠 Smart Analysis
 *   **Role Detection:** Automatically identifies 30+ competitive roles (e.g., *Wall, Setup Sweeper, Cleric, Hazard Setter*) based on movesets and stats.
 *   **Deep Logic:** Calculates type weaknesses while respecting **Abilities** and **Items** (e.g., ignores Ground damage for *Levitate* or *Air Balloon* users).
+*   **Smart Caching:** High-performance analysis with persistent caching for Move Metadata and Type Interactions, ensuring instant results on subsequent runs.
 *   **Meta Integration:** Scrapes live Smogon usage stats to identify top-tier threats relevant to the current season.
 
 ### 🤖 AI-Powered Coaching
 *   **Local LLM Integration:** Connects to **Ollama** (Llama 3.2) to act as a competitive coach.
-*   **Team Synergy:** Provides high-level feedback on your team's archetype (e.g., "Hyper Offense", "Stall").
+*   **Strategic Pilot Guide:** Generates a comprehensive gameplay guide for your specific team:
+    *   **Win Conditions:** Identifies your primary path to victory.
+    *   **Lead Options:** Suggests optimal leads based on matchups.
+    *   **Key Combos:** Highlights synergies like "Volt-Turn" or defensive cores.
+*   **Context-Aware Advice:** The AI receives a cleaned, stat-rich dataset (Base Stats, Real Speed) to prevent hallucinations and provide grounded advice.
 *   **Threat Hunter:** Identifies specific meta counters to your team and suggests counter-strategies.
-*   **Detailed Tips:** Gives per-Pokemon advice (e.g., "Swap Leftovers for Heavy-Duty Boots on Volcarona").
 
 ### 📊 Futuristic 2026 Dashboard
 *   **Neon Glassmorphism:** A premium UI featuring semi-transparent surfaces, `backdrop-filter` blurs, and high-fidelity typography.
