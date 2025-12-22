@@ -133,3 +133,8 @@ cython_debug/
 
 # Custom
 test_scr/
+
+# Data Artifacts
+data/json/*
+!data/json/topPoke.json
+!data/json/meta_speeds.json
