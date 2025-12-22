@@ -288,8 +288,6 @@ EVs: 248 HP / 252 Def / 8 SpD
 Impish Nature
 - Brave Bird
 - Roost
-- Defog
-- U-turn
 
 Garganacl @ Leftovers
 Ability: Purifying Salt
@@ -300,16 +298,132 @@ Careful Nature
 - Iron Defense
 - Body Press"""
 
+    debug_team_sand = """
+Tyranitar @ Smooth Rock
+Ability: Sand Stream
+EVs: 252 HP / 4 Atk / 252 SpD
+Careful Nature
+- Stealth Rock
+- Stone Edge
+- Knock Off
+- Earthquake
+
+Excadrill @ Life Orb
+Ability: Sand Rush
+EVs: 252 Atk / 4 Def / 252 Spe
+Jolly Nature
+- Swords Dance
+- Iron Head
+- Rock Slide
+- High Horsepower
+
+Garganacl @ Covert Cloak
+Ability: Purifying Salt
+EVs: 252 HP / 4 Atk / 252 SpD
+Careful Nature
+- Salt Cure
+- Recover
+- Stone Edge
+- Earthquake
+
+Corviknight @ Leftovers
+Ability: Pressure
+EVs: 252 HP / 4 Def / 252 SpD
+Impish Nature
+- Defog
+- Roost
+- Brave Bird
+- U-turn
+
+Rotom-Wash @ Leftovers
+Ability: Levitate
+EVs: 252 HP / 252 Def / 4 SpA
+Bold Nature
+- Volt Switch
+- Hydro Pump
+- Will-O-Wisp
+- Pain Split
+
+Glimmora @ Focus Sash
+Ability: Toxic Debris
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Mortal Spin
+- Power Gem
+- Sludge Wave
+- Stealth Rock"""
+
+    debug_team_bulky = """
+Great Tusk @ Booster Energy
+Ability: Protosynthesis
+EVs: 252 Atk / 4 SpD / 252 Spe
+Jolly Nature
+- Headlong Rush
+- Close Combat
+- Ice Spinner
+- Rapid Spin
+
+Garganacl @ Leftovers
+Ability: Purifying Salt
+EVs: 252 HP / 252 Def / 4 SpD
+Impish Nature
+- Salt Cure
+- Recover
+- Iron Defense
+- Protect
+
+Corviknight @ Rocky Helmet
+Ability: Pressure
+EVs: 248 HP / 252 Def / 8 SpD
+Impish Nature
+- Brave Bird
+- Roost
+- Defog
+- U-turn
+
+Glimmora @ Heavy-Duty Boots
+Ability: Toxic Debris
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Mortal Spin
+- Power Gem
+- Stealth Rock
+- Spikes
+
+Volcarona @ Heavy-Duty Boots
+Ability: Flame Body
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Quiver Dance
+- Fiery Dance
+- Bug Buzz
+- Giga Drain
+
+Dragapult @ Choice Specs
+Ability: Infiltrator
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Draco Meteor
+- Shadow Ball
+- U-turn
+- Flamethrower"""
+
     st.caption("🐞 Quick Load Presets:")
-    b1, b2, b3 = st.columns(3)
-    if b1.button("⚖️ Bal", width='stretch'):
+    b1, b2, b3, b4, b5 = st.columns(5)
+    if b1.button("⚖️ Bal", use_container_width=True):
         st.session_state.default_input = debug_team_balanced
         st.rerun()
-    if b2.button("🌧️ Rain", width='stretch'):
+    if b2.button("🌧️ Rain", use_container_width=True):
         st.session_state.default_input = debug_team_rain
         st.rerun()
-    if b3.button("🐢 Stall", width='stretch'):
+    if b3.button("🐢 Stall", use_container_width=True):
         st.session_state.default_input = debug_team_stall
+        st.rerun()
+    if b4.button("🏜️ Sand", use_container_width=True):
+        st.session_state.default_input = debug_team_sand
+        st.rerun()
+    if b5.button("💪 Bulky", use_container_width=True):
+        st.session_state.default_input = debug_team_bulky
         st.rerun()
 
     with st.form("pokemon_form"):
