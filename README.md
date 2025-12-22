@@ -12,7 +12,8 @@
 ## ✨ Features
 
 ### 🧠 Smart Analysis
-*   **Role Detection:** Automatically identifies 30+ competitive roles (e.g., *Wall, Setup Sweeper, Cleric, Hazard Setter*) based on movesets and stats.
+*   **Role Detection:** Automatically identifies 35+ competitive roles (e.g., *Wall, Setup Sweeper, Cleric, Forced Switcher, Stallbreaker*) based on movesets, abilities, items, and stats.
+*   **Archetype Engine:** Classifies your team's high-level strategy (*Hyper Offense, Bulky Offense, Stall, Volt-Turn, Weather, Trick Room*) based on detected roles.
 *   **Deep Logic:** Calculates type weaknesses while respecting **Abilities** and **Items** (e.g., ignores Ground damage for *Levitate* or *Air Balloon* users).
 *   **Smart Caching:** High-performance analysis with persistent caching for Move Metadata and Type Interactions, ensuring instant results on subsequent runs.
 *   **Meta Integration:** Scrapes live Smogon usage stats to identify top-tier threats relevant to the current season.

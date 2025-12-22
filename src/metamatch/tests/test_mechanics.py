@@ -219,5 +219,69 @@ EVs: 252 Atk
         # 26. Torterra (Grass/Ground) vs Ice -> 4x Weak
         self.assertEqual(team[7]['Damage From'].get('ice'), 4.0)
 
+from ..team import detectRole
+
+class TestRoles(unittest.TestCase):
+    def test_weather_roles(self):
+        """
+        Test detection of Weather Setters and Abusers.
+        """
+        # Mock team dict structure expected by detectRole
+        team = {
+            0: {"Pokemon": "Pelipper", "Ability": "Drizzle", "Item": "Damp Rock", "Moves": ["Surf"], "EVs": {}, "Roles": []},
+            1: {"Pokemon": "Barraskewda", "Ability": "Swift Swim", "Item": "Choice Band", "Moves": ["Liquidation"], "EVs": {}, "Roles": []},
+            2: {"Pokemon": "Torkoal", "Ability": "Drought", "Item": "Heat Rock", "Moves": ["Lava Plume"], "EVs": {}, "Roles": []},
+            3: {"Pokemon": "Walking Wake", "Ability": "Protosynthesis", "Item": "Choice Specs", "Moves": ["Hydro Steam"], "EVs": {}, "Roles": []}
+        }
+        
+        detectRole(team)
+        
+        self.assertIn("Weather Setter", team[0]["Roles"])
+        self.assertIn("Weather Abuser", team[1]["Roles"])
+        self.assertIn("Weather Setter", team[2]["Roles"])
+        self.assertIn("Weather Abuser", team[3]["Roles"])
+
+    def test_sweeper_roles(self):
+        """
+        Test detection of Sweeper sub-types.
+        """
+        team = {
+            0: {"Pokemon": "Garchomp", "Ability": "Rough Skin", "Item": "Life Orb", "Moves": ["Swords Dance"], "EVs": {"Atk": 252, "Spe": 252}, "Roles": []},
+            1: {"Pokemon": "Iron Valiant", "Ability": "Quark Drive", "Item": "Booster Energy", "Moves": ["Calm Mind"], "EVs": {"SpA": 252, "Spe": 252}, "Roles": []}
+        }
+        
+        detectRole(team)
+        
+        # Garchomp: Atk 252 + Spe 252 -> Physical Sweeper, Fast Sweeper
+        self.assertIn("Physical Sweeper", team[0]["Roles"])
+        self.assertIn("Fast Sweeper", team[0]["Roles"])
+        self.assertIn("Setup Sweeper", team[0]["Roles"]) # Has Swords Dance
+        
+        # Iron Valiant: SpA 252 + Spe 252 -> Special Sweeper, Fast Sweeper
+        self.assertIn("Special Sweeper", team[1]["Roles"])
+        self.assertIn("Fast Sweeper", team[1]["Roles"])
+        self.assertIn("Setup Sweeper", team[1]["Roles"]) # Has Calm Mind
+
+    def test_utility_roles(self):
+        """
+        Test detection of Phazers (Forced Switcher) and Stallbreakers.
+        """
+        team = {
+            0: {"Pokemon": "Dragonite", "Ability": "Multiscale", "Item": "Heavy-Duty Boots", "Moves": ["Dragon Tail"], "EVs": {}, "Roles": []},
+            1: {"Pokemon": "Heatran", "Ability": "Flash Fire", "Item": "Leftovers", "Moves": ["Taunt", "Magma Storm"], "EVs": {"SpA": 252}, "Roles": []},
+            2: {"Pokemon": "Garganacl", "Ability": "Purifying Salt", "Item": "Red Card", "Moves": ["Salt Cure"], "EVs": {}, "Roles": []}
+        }
+        
+        detectRole(team)
+        
+        # Dragonite: Has Dragon Tail -> Forced Switcher
+        self.assertIn("Forced Switcher", team[0]["Roles"])
+        
+        # Heatran: Has Taunt + SpA EVs -> Stallbreaker
+        self.assertIn("Stallbreaker", team[1]["Roles"])
+        
+        # Garganacl: Has Red Card -> Forced Switcher
+        self.assertIn("Forced Switcher", team[2]["Roles"])
+
 if __name__ == '__main__':
     unittest.main()

@@ -396,10 +396,32 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     
     archetype = "Balanced"
     arch_icon = "⚖️"
-    if roles.count("Wall") + roles.count("Tank") >= 3: 
-        archetype = "Stall / Bulky"; arch_icon = "🐢"
-    elif roles.count("Sweeper") + roles.count("Wallbreaker") >= 4: 
-        archetype = "Hyper Offense"; arch_icon = "⚔️"
+    
+    wall_tank_count = roles.count("Wall") + roles.count("Tank")
+    sweeper_count = sum(1 for r in roles if "Sweeper" in r or "Breaker" in r)
+    weather_count = roles.count("Weather Setter") + roles.count("Weather Abuser")
+    pivot_count = roles.count("Pivot")
+    tr_count = roles.count("Trick Room Setter")
+    bulky_offense_count = roles.count("Bulky Attacker") + roles.count("Tank")
+
+    if tr_count >= 1:
+        archetype = "Trick Room"
+        arch_icon = "🌀"
+    elif weather_count >= 2:
+        archetype = "Weather Offense"
+        arch_icon = "🌦️"
+    elif pivot_count >= 3:
+        archetype = "Volt-Turn / Pivot"
+        arch_icon = "🔄"
+    elif wall_tank_count >= 4: # Increased threshold for pure stall
+        archetype = "Stall"
+        arch_icon = "🐢"
+    elif sweeper_count >= 4: 
+        archetype = "Hyper Offense"
+        arch_icon = "⚔️"
+    elif bulky_offense_count >= 3:
+        archetype = "Bulky Offense"
+        arch_icon = "🛡️⚔️"
     
     m1, m2, m3 = st.columns(3)
     m1.metric("Archetype", f"{arch_icon} {archetype}")
@@ -493,33 +515,50 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                 st.markdown(alert, unsafe_allow_html=True)
 
     with tab3:
-        if st.session_state.analysis['suggestions']:
+        if st.session_state.analysis.get('suggestions'):
             sugg = st.session_state.analysis['suggestions']
             st.subheader("🛡️ Team Analysis")
-            if 'team_analysis' in sugg: st.write(f"• {sugg['team_analysis'][0]}")
+            if 'team_analysis' in sugg and isinstance(sugg['team_analysis'], list):
+                for p in sugg['team_analysis']:
+                    st.write(f"• {p}")
             st.markdown("---")
             st.subheader("🔍 Pokemon Specific Tips")
-            if 'pokemon_specific' in sugg:
+            if 'pokemon_specific' in sugg and isinstance(sugg['pokemon_specific'], dict):
                 for pk, adv in sugg['pokemon_specific'].items():
-                    with st.expander(f"Tips for **{pk}**", expanded=True): st.write(adv)
+                    # Handle potential raw JSON string issues by ensuring adv is a string
+                    advice_text = str(adv)
+                    if isinstance(adv, dict):
+                        # If nested dict, just dump it cleanly or take values
+                        advice_text = ", ".join([str(v) for v in adv.values()])
+                    
+                    with st.expander(f"Tips for **{pk}**", expanded=True): 
+                        st.write(advice_text)
         else: st.info("Run analysis to see suggestions.")
 
     with tab4:
-        if st.session_state.analysis['suggestions'] and 'threats' in st.session_state.analysis['suggestions']:
-            for threat in st.session_state.analysis['suggestions']['threats']:
-                with st.container():
-                    t1, t2 = st.columns([1, 5])
-                    name = threat.get('pokemon', 'Unknown')
-                    with t1:
-                        sprite = get_pokemon_sprite(name)
-                        if sprite: st.image(sprite, width=80)
-                        else: st.text("👾")
-                    with t2:
-                        st.subheader(name)
-                        st.write(f"**Why:** {threat.get('explanation', '')}")
-                        if threat.get('counter_play'): st.info(f"**Counter Strategy:** {threat.get('counter_play')}")
-                    st.markdown("---")
-        else: st.info("Run analysis to see meta threats.")
+        sugg = st.session_state.analysis.get('suggestions')
+        if sugg and 'threats' in sugg:
+            threats = sugg['threats']
+            if threats:
+                for threat in threats:
+                    with st.container():
+                        t1, t2 = st.columns([1, 5])
+                        name = threat.get('pokemon', 'Unknown')
+                        with t1:
+                            sprite = get_pokemon_sprite(name)
+                            if sprite: st.image(sprite, width=80)
+                            else: st.text("👾")
+                        with t2:
+                            st.subheader(name)
+                            st.write(f"**Why:** {threat.get('explanation', '')}")
+                            if threat.get('counter_play'): st.info(f"**Counter Strategy:** {threat.get('counter_play')}")
+                        st.markdown("---")
+            else:
+                st.success("✅ No major meta threats identified based on current context!")
+        elif st.session_state.submitted:
+             st.warning("⚠️ No threat data returned from analysis.")
+        else:
+             st.info("Run analysis to see meta threats.")
 
     with tab8:
         if st.session_state.analysis.get('guide'):

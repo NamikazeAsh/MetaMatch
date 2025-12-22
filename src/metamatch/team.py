@@ -168,7 +168,8 @@ def detectRole(team):
     screen_moves = {"Light Screen", "Reflect", "Aurora Veil"}
     trickroom_moves = {"Trick Room"}
     spinblock_types = {"Ghost"}
-    weather_abilities = {"Swift Swim": "rain", "Chlorophyll": "sun", "Sand Rush": "sand", "Sand Force": "sand", "Sand Veil": "sand", "Slush Rush": "hail", "Snow Cloak": "hail", "Solar Power": "sun"}
+    weather_setter_abilities = {"drizzle", "drought", "sand stream", "snow warning", "orichalcum pulse", "hadron engine"}
+    weather_abilities = {"swift swim": "rain", "chlorophyll": "sun", "sand rush": "sand", "sand force": "sand", "sand veil": "sand", "slush rush": "hail", "snow cloak": "hail", "solar power": "sun", "slush rush": "snow", "quark drive": "electric", "protosynthesis": "sun"}
     choice_items = {"choice scarf": "Speed Control","choice band": "Physical Breaker","choice specs": "Special Breaker"}
     defensive_items = {"leftovers", "rocky helmet", "assault vest", "eviolite", "heavy-duty boots"}
     offensive_items = {"life orb", "expert belt", "muscle band", "wise glasses"}
@@ -193,7 +194,18 @@ def detectRole(team):
         if any(move in moves for move in pivot_moves):
             team[poke]["Roles"].append("Pivot")
         
-        # Defensive roles
+        # New: Forced Switcher (Phazer)
+        phazing_moves = {"Roar", "Whirlwind", "Dragon Tail", "Circle Throw", "Yawn", "Perish Song", "Red Card"}
+        if any(move in moves for move in phazing_moves) or item == "red card":
+            team[poke]["Roles"].append("Forced Switcher")
+
+        # New: Stallbreaker (Taunt/Encore + Offense)
+        stallbreak_moves = {"Taunt", "Encore", "Substitute", "Disable", "Torment"}
+        if any(move in moves for move in stallbreak_moves):
+            # Must have some offensive presence to be a stallbreaker, otherwise it's just support
+            if evs.get("Atk", 0) > 100 or evs.get("SpA", 0) > 100:
+                team[poke]["Roles"].append("Stallbreaker")
+                # Defensive roles
         if any(move in moves for move in recovery_moves):
             if evs.get('HP', 0) > 100 or evs.get('Def', 0) > 200 or evs.get('SpD', 0) > 200:
                 team[poke]["Roles"].append("Wall")
@@ -238,7 +250,7 @@ def detectRole(team):
         weather_moves = {"Sunny Day", "Rain Dance", "Sandstorm", "Hail", "Snow"}
         terrain_moves = {"Electric Terrain", "Grassy Terrain", "Misty Terrain", "Psychic Terrain"}
         
-        if any(move in moves for move in weather_moves):
+        if any(move in moves for move in weather_moves) or ability in [a.lower() for a in weather_setter_abilities]:
             team[poke]["Roles"].append("Weather Setter")
         if any(move in moves for move in terrain_moves):
             team[poke]["Roles"].append("Terrain Setter")
