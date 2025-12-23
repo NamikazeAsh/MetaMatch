@@ -135,11 +135,10 @@ with st.sidebar:
         selected_name = st.selectbox("Load a saved team:", ["Select..."] + team_names)
         
         if selected_name != "Select...":
-            # Find selected team data
             selected_team = next((t for t in saved_teams_data if t['name'] == selected_name), None)
             
             if selected_team:
-                # Improved Team Preview
+                # Render Preview
                 pk_list = selected_team.get('pokemon_names', [])
                 if pk_list:
                     preview_html = '<div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; margin-bottom: 10px;">'
@@ -168,7 +167,7 @@ with st.sidebar:
     st.markdown("---")
     st.header("📋 Team Input")
     
-    # Define Debug Teams
+    # Default Presets
     debug_team_balanced = """
 Rotom-Wash @ Leftovers
 Ability: Levitate

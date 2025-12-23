@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-# Base project directory (3 levels up from this file: src/metamatch/config.py -> src/metamatch -> src -> root)
+# Base project directory
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Data Directories

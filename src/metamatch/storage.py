@@ -5,7 +5,7 @@ from datetime import datetime
 from metamatch import config
 
 def extract_pokemon_names(raw_data):
-    """Extracted from app.py to avoid circular imports and keep logic dry."""
+    """Parses Pokemon names from raw showdown export text."""
     pattern = r'^([A-Za-z][A-Za-z\s\-\.]*?)\s*@'
     names = []
     lines = raw_data.split('\n')
@@ -34,7 +34,7 @@ def save_team(name, raw_text, analysis=None, user_id="default"):
     else:
         user_data = {"teams": {}}
     
-    # Store pokemon names for easy preview without parsing
+    # Cache names for UI preview
     pokemon_names = extract_pokemon_names(raw_text)
     
     user_data["teams"][name] = {
@@ -63,14 +63,13 @@ def list_teams_detailed(user_id="default"):
         try:
             user_data = json.load(f)
             teams = list(user_data.get("teams", {}).values())
-            # Sort by date
             teams.sort(key=lambda x: x.get('updated_at', ''), reverse=True)
             return teams
         except json.JSONDecodeError:
             return []
 
 def list_teams(user_id="default"):
-    """Legacy support - returns just names."""
+    """Returns a list of saved team names."""
     teams = list_teams_detailed(user_id)
     return [t['name'] for t in teams]
 
