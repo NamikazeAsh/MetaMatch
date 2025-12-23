@@ -138,3 +138,5 @@ test_scr/
 data/json/*
 !data/json/topPoke.json
 !data/json/meta_speeds.json
+data/stats/
+data/user/

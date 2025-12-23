@@ -19,6 +19,7 @@ from metamatch.suggestions import get_suggestions, get_team_guide
 from metamatch.scrapers import generate_speed_tiers
 from metamatch.type_chart import get_multiplier
 from metamatch import config
+from metamatch import storage
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
@@ -127,6 +128,44 @@ if 'default_input' not in st.session_state:
 
 # --- Sidebar: Input & Controls ---
 with st.sidebar:
+    st.header("📂 Saved Teams")
+    saved_teams_data = storage.list_teams_detailed()
+    if saved_teams_data:
+        team_names = [t['name'] for t in saved_teams_data]
+        selected_name = st.selectbox("Load a saved team:", ["Select..."] + team_names)
+        
+        if selected_name != "Select...":
+            # Find selected team data
+            selected_team = next((t for t in saved_teams_data if t['name'] == selected_name), None)
+            
+            if selected_team:
+                # Improved Team Preview
+                pk_list = selected_team.get('pokemon_names', [])
+                if pk_list:
+                    preview_html = '<div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; margin-bottom: 10px;">'
+                    preview_html += '<div style="font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Squad Preview</div>'
+                    preview_html += '<div style="display: flex; flex-wrap: wrap; gap: 4px;">'
+                    for pk in pk_list[:6]:
+                        preview_html += f'<span style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.2); color: #00d4ff; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">{pk}</span>'
+                    preview_html += '</div></div>'
+                    st.markdown(preview_html, unsafe_allow_html=True)
+                
+                c1, c2 = st.columns(2)
+                if c1.button("📂 Load", use_container_width=True, key="load_btn"):
+                    st.session_state.default_input = selected_team['raw_text']
+                    if selected_team.get('analysis'):
+                        st.session_state.analysis = selected_team['analysis']
+                        st.session_state.pokemon_names = extract_pokemon_names(selected_team['raw_text'])
+                        st.session_state.submitted = True
+                    st.rerun()
+                if c2.button("🗑️ Delete", use_container_width=True, key="del_btn"):
+                    if storage.delete_team(selected_name):
+                        st.success(f"Deleted {selected_name}")
+                        st.rerun()
+    else:
+        st.info("No saved teams yet.")
+    
+    st.markdown("---")
     st.header("📋 Team Input")
     
     # Define Debug Teams
@@ -458,6 +497,18 @@ Timid Nature
                 }
                 st.session_state.submitted = True
                 st.rerun()
+
+    if st.session_state.submitted:
+        st.markdown("---")
+        with st.expander("💾 Save Analysis", expanded=True):
+            team_name = st.text_input("Team Name:", placeholder="e.g. My Rain Team v1")
+            if st.button("💾 Save Current Analysis", use_container_width=True):
+                if team_name:
+                    storage.save_team(team_name, st.session_state.pokemon_data, st.session_state.analysis)
+                    st.success(f"Saved '{team_name}'!")
+                    st.rerun()
+                else:
+                    st.error("Please enter a name for the team.")
 
     with st.expander("ℹ️ Supported Formats"):
         st.code("""

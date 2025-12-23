@@ -18,6 +18,12 @@
 *   **Smart Caching:** High-performance analysis with persistent caching for Move Metadata and Type Interactions, ensuring instant results on subsequent runs.
 *   **Meta Integration:** Scrapes live Smogon usage stats to identify top-tier threats relevant to the current season.
 
+### 💾 Local Persistence
+*   **Saved Teams:** Save your favorite teams to your local machine with a single click.
+*   **Instant Recall:** Load saved teams instantly—bypassing the AI analysis wait time for previously analyzed builds.
+*   **Version Control:** Organize your builds with custom names (e.g., "Rain Offense v3") to track your team's evolution.
+*   **Modular Storage:** Built with a "Storage Adapter" pattern, making it trivial to switch from local JSON files to a cloud database for deployment.
+
 ### 🤖 AI-Powered Coaching
 *   **Local LLM Integration:** Connects to **Ollama** (Llama 3.2) to act as a competitive coach.
 *   **Strategic Pilot Guide:** Generates a comprehensive gameplay guide for your specific team:
