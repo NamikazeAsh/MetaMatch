@@ -17,11 +17,17 @@
 *   **Deep Logic:** Calculates type weaknesses while respecting **Abilities** and **Items** (e.g., ignores Ground damage for *Levitate* or *Air Balloon* users).
 *   **Smart Caching:** High-performance analysis with persistent caching for Move Metadata and Type Interactions, ensuring instant results on subsequent runs.
 *   **Meta Integration:** Scrapes live Smogon usage stats to identify top-tier threats relevant to the current season.
+*   **Meta Auditor:** Validates movesets against high-ladder usage stats, flagging statistically suboptimal choices (e.g., using *Shell Bell* when 98% of players use *Rocky Helmet*).
 
 ### 🤝 Teammate Recommender
 *   **Statistical Synergy:** Suggests optimal teammates based on Smogon "Chaos" correlation matrices from millions of competitive battles.
 *   **Team Glue:** Identifies the statistical "glue" Pokemon that best complement your current squad composition.
 *   **Real-time Analysis:** Generates data-driven recommendations instantly without relying on LLM processing.
+
+### 🧮 Statistical Engine
+MetaMatch processes raw "Chaos" data from Smogon (detailed usage statistics) to power its auditor and recommender systems.
+*   **Weighted Usage:** Calculates the exact usage frequency of every Move, Item, and Ability relative to the Pokemon's total appearance rate.
+*   **Correlation Matrices:** Utilizes 2D sparse matrices to map teammate synergy scores across the entire metagame.
 
 ### 📁 Team Management
 *   **Local Persistence:** Save and organize favorite team builds directly to the local filesystem.
@@ -175,6 +181,7 @@ python -m unittest src/metamatch/tests/test_mechanics.py
 *   **`src/metamatch/team.py`**: Core logic for parsing teams and calculating stats/weaknesses.
 *   **`src/metamatch/suggestions.py`**: LLM integration and strategic advice generator.
 *   **`src/metamatch/recommender.py`**: Statistical engine for calculating teammate synergy scores.
+*   **`src/metamatch/auditor.py`**: Statistical engine for validating sets against meta usage trends.
 *   **`src/metamatch/scrapers.py`**: Smogon usage stats scraper (supports Chaos data).
 *   **`src/metamatch/storage.py`**: Local persistence adapter for saving and loading teams.
 *   **`src/metamatch/utils.py`**: Shared utilities and API caching.
