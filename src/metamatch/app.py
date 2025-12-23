@@ -20,6 +20,7 @@ from metamatch.scrapers import generate_speed_tiers
 from metamatch.type_chart import get_multiplier
 from metamatch import config
 from metamatch import storage
+from metamatch import recommender
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
@@ -612,7 +613,9 @@ if st.session_state.submitted and st.session_state.pokemon_names:
         batch = names[i:i+3]
         for j, name in enumerate(batch):
             idx = i + j
-            poke = team_data[idx]
+            # Handle potential key mismatch (int vs string) from JSON loading
+            poke = team_data.get(idx) or team_data.get(str(idx))
+            if not poke: continue 
             
             # Get Type Color for Glow
             primary_type = poke['Type'][0] if poke['Type'] else 'Normal'
@@ -654,7 +657,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     
     # --- Detailed Analysis Tabs ---
     st.header("Detailed Analysis")
-    tab1, tab2, tab3, tab4, tab8, tab5, tab6, tab7 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "📋 Coach Guide", "Defensive Matrix", "Offensive Matrix", "Speed Tiers"])
+    tab1, tab2, tab3, tab4, tab8, tab_rec, tab5, tab6, tab7 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "📋 Coach Guide", "🤖 Recommendations", "Defensive Matrix", "Offensive Matrix", "Speed Tiers"])
 
     with tab1:
         st.metric("Type Coverage", f"{covered_count}/18 types")
@@ -751,6 +754,44 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                     st.write(c.get('description'))
         else:
             st.warning("Guide generation failed or is unavailable.")
+
+    with tab_rec:
+        st.subheader("🤖 Statistical Teammate Recommendations")
+        st.caption("Based on real Smogon usage data and teammate correlation matrices.")
+        
+        recs = recommender.get_recommendations(st.session_state.pokemon_names)
+        
+        if recs:
+            rec_cols = st.columns(3)
+            max_score = recs[0][1]
+            
+            for i, (name, score) in enumerate(recs):
+                col = rec_cols[i % 3]
+                match_pct = int((score / max_score) * 100)
+                
+                # Determine color based on match %
+                glow_color = "#00d4ff" # Default Cyan
+                if match_pct > 80: glow_color = "#00ff88" # Green
+                elif match_pct < 50: glow_color = "#ffaa00" # Orange
+                
+                with col:
+                    rec_html = f"""
+                    <div class="pokemon-card" style="border: 1px solid {glow_color}44; box-shadow: 0 0 15px -5px {glow_color}, inset 0 0 20px -15px {glow_color}; min-height: 180px;">
+                        <div style="text-align: center;">
+                            <div style="position: relative; display: inline-block;">
+                                <div style="position: absolute; width: 60px; height: 60px; background: {glow_color}; filter: blur(30px); opacity: 0.4; z-index: 0; top: 10px; left: 10px;"></div>
+                                <img src="{get_pokemon_sprite(name) or ''}" width="100" style="position: relative; z-index: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); transition: transform 0.3s;">
+                            </div>
+                            <div class="poke-name" style="font-size: 1.2rem; margin-top: 10px;">{name}</div>
+                            <div style="margin-top: 10px; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 20px; display: inline-block; border: 1px solid {glow_color}66;">
+                                <span style="color: {glow_color}; font-weight: 800; font-size: 1.1rem;">{match_pct}%</span> <span style="font-size: 0.8rem; opacity: 0.8;">Synergy</span>
+                            </div>
+                        </div>
+                    </div>
+                    """
+                    st.markdown(rec_html, unsafe_allow_html=True)
+        else:
+            st.info("No recommendations available. Try analyzing a different team or update meta data.")
             
     with tab5:
         st.subheader("🛡️ Type Matchup Matrix", help="Damage taken from each type. Red = Weak.")

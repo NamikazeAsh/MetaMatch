@@ -27,19 +27,60 @@ API_CACHE = load_cache()
 def pokeSlugify(name):
     """
     Normalize Pokemon names for API/Smogon usage.
+    Handles tricky forms like Ogerpon, Urshifu, and Paradox mons.
     """
-    name = name.lower()
+    name = name.lower().strip()
     name = name.replace(" ", "-")
     name = name.replace(".", "")
     name = name.replace("'", "")
     name = name.replace("%", "")
     
-    # Special cases for API compatibility
-    if "urshifu" in name and "rapid" not in name and "single" not in name:
-        name = "urshifu-single-strike" # Default
-    if "iron-valiant" in name: return "iron-valiant"
-    if "roaring-moon" in name: return "roaring-moon"
+    # Explicit Mappings for PokeAPI quirks
+    special_cases = {
+        # Ogerpon
+        "ogerpon-wellspring": "ogerpon-wellspring-mask",
+        "ogerpon-hearthflame": "ogerpon-hearthflame-mask",
+        "ogerpon-cornerstone": "ogerpon-cornerstone-mask",
+        "ogerpon-teal": "ogerpon",
+        
+        # Urshifu
+        "urshifu-rapid-strike": "urshifu-rapid-strike",
+        "urshifu": "urshifu-single-strike", # Default if unspecified
+        
+        # Paldean Tauros
+        "tauros-paldea-water": "tauros-paldea-aqua-breed",
+        "tauros-paldea-fire": "tauros-paldea-blaze-breed",
+        "tauros-paldea-combat": "tauros-paldea-combat-breed",
+        
+        # Paradox / Others
+        "iron-valiant": "iron-valiant", # Already correct but good to be explicit
+        "roaring-moon": "roaring-moon",
+        "great-tusk": "great-tusk",
+        "scream-tail": "scream-tail",
+        "flutter-mane": "flutter-mane",
+        "slither-wing": "slither-wing",
+        "sandy-shocks": "sandy-shocks",
+        "iron-treads": "iron-treads",
+        "iron-bundle": "iron-bundle",
+        "iron-hands": "iron-hands",
+        "iron-jugulis": "iron-jugulis",
+        "iron-moth": "iron-moth",
+        "iron-thorns": "iron-thorns",
+        "wo-chien": "wo-chien",
+        "chien-pao": "chien-pao",
+        "ting-lu": "ting-lu",
+        "chi-yu": "chi-yu",
+        
+        # Megas / Forms (if you ever add Gen 6/7)
+        "mimikyu": "mimikyu-disguised",
+        "aegislash": "aegislash-shield",
+        "giratina": "giratina-altered",
+        "shaymin": "shaymin-land",
+    }
     
+    if name in special_cases:
+        return special_cases[name]
+        
     return name
 
 def fetch_pokemon_data(name):

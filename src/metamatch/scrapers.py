@@ -53,12 +53,13 @@ def parse_smogon_usage(path, top_n=100):
     """
     if not path:
         return []
-    pat = re.compile(r'^\s*|\s*\d+\s*|\s*([^|]+?)\s*|')
+    # Matches the Pokémon name column in Smogon's table format: | Rank | Name | ...
+    pat = re.compile(r'^ \| \d+\s+\| ([^|]+?) \|')
     names = []
     try:
         with open(path, 'r', encoding='utf-8') as f:
             for line in f:
-                m = pat.match(line)
+                m = pat.search(line)
                 if not m:
                     continue
                 names.append(m.group(1).strip())
@@ -112,13 +113,19 @@ def main():
     
     # --- Define target files ---
     target_files = ["gen9ou-1825.txt", "gen9ou-1695.txt"] 
+    chaos_file = "gen9ou-1825.json" # Advanced stats with teammate correlations
     
-    # --- Download files ---
+    # --- Download text files ---
     downloaded_paths = []
     for filename in target_files:
         path = download_stat_file(stats_base_url, filename)
         if path:
             downloaded_paths.append(path)
+
+    # --- Download Chaos JSON ---
+    print("\nDownloading Chaos data for recommender...")
+    chaos_url = stats_base_url + "chaos/"
+    download_stat_file(chaos_url, chaos_file)
             
     if not downloaded_paths:
         print("No stats files were downloaded. Aborting update.")
