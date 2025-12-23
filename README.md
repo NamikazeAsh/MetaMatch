@@ -18,11 +18,15 @@
 *   **Smart Caching:** High-performance analysis with persistent caching for Move Metadata and Type Interactions, ensuring instant results on subsequent runs.
 *   **Meta Integration:** Scrapes live Smogon usage stats to identify top-tier threats relevant to the current season.
 
-### 💾 Local Persistence
-*   **Saved Teams:** Save your favorite teams to your local machine with a single click.
-*   **Instant Recall:** Load saved teams instantly—bypassing the AI analysis wait time for previously analyzed builds.
-*   **Version Control:** Organize your builds with custom names (e.g., "Rain Offense v3") to track your team's evolution.
-*   **Modular Storage:** Built with a "Storage Adapter" pattern, making it trivial to switch from local JSON files to a cloud database for deployment.
+### 🤝 Teammate Recommender
+*   **Statistical Synergy:** Suggests optimal teammates based on Smogon "Chaos" correlation matrices from millions of competitive battles.
+*   **Team Glue:** Identifies the statistical "glue" Pokemon that best complement your current squad composition.
+*   **Real-time Analysis:** Generates data-driven recommendations instantly without relying on LLM processing.
+
+### 📁 Team Management
+*   **Local Persistence:** Save and organize favorite team builds directly to the local filesystem.
+*   **Instant Recall:** Instant dashboard loading for analyzed teams, bypassing the full analysis pipeline for previously processed builds.
+*   **Modular Storage:** Built with a storage adapter pattern for flexible integration between local JSON and cloud databases.
 
 ### 🤖 AI-Powered Coaching
 *   **Local LLM Integration:** Connects to **Ollama** (Llama 3.2) to act as a competitive coach.
@@ -83,8 +87,13 @@ graph TD
     E --> G[Type Calculator]
     end
     
+    subgraph "Statistical Analysis"
+    H[Smogon Stats] -->|Chaos JSON| R[Recommender Engine]
+    R -->|Synergy Scores| M[Dashboard UI]
+    end
+    
     subgraph "Meta Context"
-    H[Smogon Stats] -->|Scraper| I[Meta/Speed Tiers]
+    H -->|Scraper| I[Meta/Speed Tiers]
     I --> J[AI Context]
     end
     
@@ -94,7 +103,7 @@ graph TD
     K --> L[Strategic Advice]
     end
     
-    F --> M[Dashboard UI]
+    F --> M
     G --> M
     L --> M
     I --> M
@@ -165,7 +174,9 @@ python -m unittest src/metamatch/tests/test_mechanics.py
 *   **`src/metamatch/app.py`**: The Streamlit frontend and dashboard.
 *   **`src/metamatch/team.py`**: Core logic for parsing teams and calculating stats/weaknesses.
 *   **`src/metamatch/suggestions.py`**: LLM integration and strategic advice generator.
-*   **`src/metamatch/scrapers.py`**: Smogon usage stats scraper and speed tier generator.
+*   **`src/metamatch/recommender.py`**: Statistical engine for calculating teammate synergy scores.
+*   **`src/metamatch/scrapers.py`**: Smogon usage stats scraper (supports Chaos data).
+*   **`src/metamatch/storage.py`**: Local persistence adapter for saving and loading teams.
 *   **`src/metamatch/utils.py`**: Shared utilities and API caching.
 *   **`src/metamatch/config.py`**: Centralized path and environment configuration.
 *   **`data/`**: Persistent storage for JSON caches and raw stats.
