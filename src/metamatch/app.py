@@ -21,6 +21,7 @@ from metamatch.type_chart import get_multiplier
 from metamatch import config
 from metamatch import storage
 from metamatch import recommender
+from metamatch import auditor
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
@@ -499,6 +500,23 @@ Timid Nature
                 st.rerun()
 
     if st.session_state.submitted:
+        # --- Meta Auditor ---
+        audit_warnings = auditor.audit_team(st.session_state.analysis['team'])
+        if audit_warnings:
+            st.markdown("---")
+            with st.expander(f"⚠️ Meta Audit ({len(audit_warnings)} Warnings)", expanded=True):
+                st.caption("We detected some statistically unusual choices compared to the current high-ladder meta.")
+                for w in audit_warnings:
+                    st.markdown(f"""
+                    <div style="background: rgba(255, 165, 0, 0.1); border-left: 4px solid #ffa500; padding: 10px; margin-bottom: 8px; border-radius: 4px;">
+                        <div style="font-weight: bold; color: #ffa500;">{w['pokemon']} - {w['category']}</div>
+                        <div style="font-size: 0.9rem;">
+                            You are running <b>{w['current']}</b> (Used by only {w['usage']:.1f}%).<br>
+                            <span style="opacity: 0.8;">Standard: {w['suggestion']}</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
         st.markdown("---")
         with st.expander("💾 Save Analysis", expanded=True):
             team_name = st.text_input("Team Name:", placeholder="e.g. My Rain Team v1")
