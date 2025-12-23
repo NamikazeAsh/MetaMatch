@@ -74,6 +74,7 @@ Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculate
 graph TD
     A[User Input] -->|Showdown Export| B(Streamlit App)
     B --> C{Analysis Pipeline}
+    B <-->|Save/Load Teams| S[Local Storage]
     
     subgraph "Static Analysis"
     C --> D[Team Parser]
@@ -97,6 +98,7 @@ graph TD
     G --> M
     L --> M
     I --> M
+    S -->|Instant Recall| M
 ```
 
 ---
