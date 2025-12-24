@@ -15,7 +15,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from metamatch.utils import pokeSlugify
 from metamatch.team import readTeam, detectRole, addComments, coverageCheck
-from metamatch.suggestions import get_suggestions, get_team_guide
+from metamatch.suggestions import get_suggestions, get_team_guide, get_chat_response
 from metamatch.scrapers import generate_speed_tiers
 from metamatch.type_chart import get_multiplier
 from metamatch import config
@@ -94,17 +94,17 @@ st.markdown(r'''
 
 # --- Helper Functions ---
 def extract_pokemon_names(raw_data):
-    pattern = r'^([A-Za-z][A-Za-z\s\-\.]*?)\s*@'
     names = []
     lines = raw_data.split('\n')
     for line in lines:
         line = line.strip()
         if not line: continue
-        match = re.search(pattern, line)
-        if match:
-            name = match.group(1).strip()
-            if name and name not in names:
-                names.append(name)
+        if '@' in line:
+            raw_name = line.split('@')[0].strip()
+            # Remove gender like (M), (F), (m), (f)
+            clean_name = re.sub(r'\s*\([MFmf]\)$', '', raw_name)
+            if clean_name and clean_name not in names:
+                names.append(clean_name)
     return names
 
 def get_pokemon_sprite(name):
@@ -120,6 +120,10 @@ def get_pokemon_sprite(name):
         pass
     return None
 
+@st.cache_data(ttl=300)
+def get_cached_teams():
+    return storage.list_teams_detailed()
+
 # Initialize Session State
 if 'submitted' not in st.session_state:
     st.session_state.submitted = False
@@ -127,11 +131,13 @@ if 'pokemon_names' not in st.session_state:
     st.session_state.pokemon_names = []
 if 'default_input' not in st.session_state:
     st.session_state.default_input = ""
+if 'chat_messages' not in st.session_state:
+    st.session_state.chat_messages = []
 
 # --- Sidebar: Input & Controls ---
 with st.sidebar:
     st.header("📂 Saved Teams")
-    saved_teams_data = storage.list_teams_detailed()
+    saved_teams_data = get_cached_teams()
     if saved_teams_data:
         team_names = [t['name'] for t in saved_teams_data]
         selected_name = st.selectbox("Load a saved team:", ["Select..."] + team_names)
@@ -161,6 +167,7 @@ with st.sidebar:
                     st.rerun()
                 if c2.button("🗑️ Delete", use_container_width=True, key="del_btn"):
                     if storage.delete_team(selected_name):
+                        get_cached_teams.clear() # Clear cache
                         st.success(f"Deleted {selected_name}")
                         st.rerun()
     else:
@@ -523,6 +530,7 @@ Timid Nature
             if st.button("💾 Save Current Analysis", use_container_width=True):
                 if team_name:
                     storage.save_team(team_name, st.session_state.pokemon_data, st.session_state.analysis)
+                    get_cached_teams.clear() # Clear cache
                     st.success(f"Saved '{team_name}'!")
                     st.rerun()
                 else:
@@ -663,7 +671,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                         <span style="opacity: 0.8;">✨ {poke['Ability']}</span>
                     </div>
                      <div class="stat-text" style="font-size: 0.75rem; margin-top:8px; color: {type_color}; opacity: 0.9; font-family: monospace;">
-                        {', '.join([f'{v} {k}' for k, v in sorted(poke['EVs'].items(), key=lambda x: x[1], reverse=True)[:2]])}
+                        {poke['Nature']} Nature • {', '.join([f'{v} {k}' for k, v in sorted(poke['EVs'].items(), key=lambda x: x[1], reverse=True)[:2]])}
                      </div>
                 </div>
             </div>
@@ -675,49 +683,137 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     
     # --- Detailed Analysis Tabs ---
     st.header("Detailed Analysis")
-    tab1, tab2, tab3, tab4, tab8, tab_rec, tab5, tab6, tab7 = st.tabs(["Coverage", "Weaknesses", "Suggestions", "Meta Threats", "📋 Coach Guide", "🤖 Recommendations", "Defensive Matrix", "Offensive Matrix", "Speed Tiers"])
+    tab_overview, tab3, tab4, tab8, tab_rec, tab_matrix, tab7, tab_chat = st.tabs([
+        "Team Overview", "Suggestions", "Meta Threats", "Coach Guide", "Recommendations", "Matchup Matrices", "Speed Tiers", "Coach Chat"
+    ])
 
-    with tab1:
-        st.metric("Type Coverage", f"{covered_count}/18 types")
-        covered_html = ""
-        for t, is_covered in coverage.items():
-            if is_covered:
-                t_i = type_map.get(t.capitalize(), {'color': '#777', 'icon': '❓'})
-                covered_html += f'<span style="background-color:{t_i["color"]};color:white;padding:4px 8px;border-radius:4px;font-size:14px;margin:4px;display:inline-block">{t_i["icon"]} {t.capitalize()}</span>'
-        st.markdown(covered_html, unsafe_allow_html=True)
-        if [t for t, v in coverage.items() if not v]: st.warning("⚠️ Missing offensive coverage for several types.")
+    with tab_chat:
+        st.subheader("💬 Ask the Coach (Powered by RAG)")
+        st.caption("Ask specific questions about counters, mechanics, or strategy. The AI uses Smogon data to answer.")
+        
+        # Chat History Container
+        chat_container = st.container()
+        
+        # Render History
+        with chat_container:
+            if "chat_messages" not in st.session_state:
+                st.session_state.chat_messages = []
+                
+            for msg in st.session_state.chat_messages:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
+        
+        # Input
+        if prompt := st.chat_input("How do I beat Kingambit?"):
+            # 1. User Message
+            st.session_state.chat_messages.append({"role": "user", "content": prompt})
+            with chat_container:
+                with st.chat_message("user"):
+                    st.markdown(prompt)
+            
+            # 2. AI Response
+            with chat_container:
+                with st.chat_message("assistant"):
+                    response_placeholder = st.empty()
+                    full_response = ""
+                    
+                    # Call RAG Chat Stream
+                    stream = get_chat_response(
+                        prompt, 
+                        st.session_state.analysis['team'],
+                        st.session_state.analysis['weakness']
+                    )
+                    
+                    for chunk in stream:
+                        content = chunk.choices[0].delta.content or ""
+                        full_response += content
+                        response_placeholder.markdown(full_response + "▌")
+                    
+                    response_placeholder.markdown(full_response)
+            
+            # 3. Save to History
+            st.session_state.chat_messages.append({"role": "assistant", "content": full_response})
 
-    with tab2:
-        st.write("**Team Vulnerabilities:**")
-        for t_n, counts in weakness.items():
-            cap_t = t_n.capitalize()
-            if counts['weak'] >= 2:
-                t_i = type_map.get(cap_t, {'color': '#777', 'icon': '❓'})
-                bg = "rgba(255, 75, 75, 0.2)" if counts['weak'] >= 3 else "rgba(255, 165, 0, 0.1)"
-                bc = "#ff4b4b" if counts['weak'] >= 3 else "#ffa500"
-                tag = "— ⚠️ CRITICAL" if counts['weak'] >= 3 else ""
-                alert = f'<div style="background-color:{bg}; padding:10px; border-radius:5px; border-left: 5px solid {bc}; margin-bottom:10px;"><span style="background-color:{t_i["color"]}; color:white; padding:2px 8px; border-radius:4px; font-size:14px; margin-right:10px;">{t_i["icon"]} {cap_t}</span><b>{counts["weak"]} Weaknesses</b> {tag}</div>'
-                st.markdown(alert, unsafe_allow_html=True)
+    with tab_overview:
+        c1, c2 = st.columns(2)
+        with c1:
+            st.subheader("Offensive Coverage")
+            st.metric("Type Coverage", f"{covered_count}/18 types")
+            covered_html = ""
+            for t, is_covered in coverage.items():
+                if is_covered:
+                    t_i = type_map.get(t.capitalize(), {'color': '#777', 'icon': '❓'})
+                    covered_html += f'<span style="background-color:{t_i["color"]};color:white;padding:4px 8px;border-radius:4px;font-size:14px;margin:4px;display:inline-block">{t_i["icon"]} {t.capitalize()}</span>'
+            st.markdown(covered_html, unsafe_allow_html=True)
+            if [t for t, v in coverage.items() if not v]: st.warning("⚠️ Missing offensive coverage for several types.")
+
+        with c2:
+            st.subheader("Defensive Vulnerabilities")
+            for t_n, counts in weakness.items():
+                cap_t = t_n.capitalize()
+                if counts['weak'] >= 2:
+                    t_i = type_map.get(cap_t, {'color': '#777', 'icon': '❓'})
+                    bg = "rgba(255, 75, 75, 0.2)" if counts['weak'] >= 3 else "rgba(255, 165, 0, 0.1)"
+                    bc = "#ff4b4b" if counts['weak'] >= 3 else "#ffa500"
+                    tag = "— ⚠️ CRITICAL" if counts['weak'] >= 3 else ""
+                    
+                    # On-the-fly lookup for weak Pokémon
+                    weak_mons = []
+                    for p in team_data.values():
+                        # Check multiplier from 'Damage From' dict
+                        if p.get('Damage From', {}).get(t_n.lower(), 1.0) > 1:
+                            weak_mons.append(p['Pokemon'])
+                    
+                    tooltip = f"Weak: {', '.join(weak_mons)}"
+                    
+                    alert = f'''
+                    <div title="{tooltip}" style="background-color:{bg}; padding:10px; border-radius:5px; border-left: 5px solid {bc}; margin-bottom:10px; cursor: help;">
+                        <span style="background-color:{t_i["color"]}; color:white; padding:2px 8px; border-radius:4px; font-size:14px; margin-right:10px;">{t_i["icon"]} {cap_t}</span>
+                        <b>{counts["weak"]} Weaknesses</b> {tag}
+                    </div>
+                    '''
+                    st.markdown(alert, unsafe_allow_html=True)
 
     with tab3:
         if st.session_state.analysis.get('suggestions'):
             sugg = st.session_state.analysis['suggestions']
-            st.subheader("🛡️ Team Analysis")
+            
+            # --- Team Analysis Section ---
+            st.subheader("🛡️ Strategic Overview")
             if 'team_analysis' in sugg and isinstance(sugg['team_analysis'], list):
                 for p in sugg['team_analysis']:
-                    st.write(f"• {p}")
+                    st.markdown(f"""
+                    <div style="background: rgba(0, 212, 255, 0.05); border-left: 4px solid #00d4ff; padding: 12px 16px; margin-bottom: 12px; border-radius: 0 8px 8px 0;">
+                        <span style="font-size: 1.1rem; margin-right: 8px;">💡</span>
+                        <span style="color: #e0e0e0; font-size: 0.95rem;">{p}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
             st.markdown("---")
-            st.subheader("🔍 Pokemon Specific Tips")
+            
+            # --- Pokemon Specific Section ---
+            st.subheader("🔍 Optimization Tips")
             if 'pokemon_specific' in sugg and isinstance(sugg['pokemon_specific'], dict):
                 for pk, adv in sugg['pokemon_specific'].items():
-                    # Handle potential raw JSON string issues by ensuring adv is a string
+                    # Format advice text
                     advice_text = str(adv)
                     if isinstance(adv, dict):
-                        # If nested dict, just dump it cleanly or take values
                         advice_text = ", ".join([str(v) for v in adv.values()])
                     
-                    with st.expander(f"Tips for **{pk}**", expanded=True): 
-                        st.write(advice_text)
+                    sprite_url = get_pokemon_sprite(pk) or ""
+                    
+                    st.markdown(f"""
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; align-items: start; gap: 15px; transition: all 0.2s;">
+                        <div style="flex-shrink: 0; background: rgba(255, 255, 255, 0.05); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                            <img src="{sprite_url}" width="50" style="filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));">
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.1rem; color: #00d4ff; margin-bottom: 4px;">{pk}</div>
+                            <div style="color: #ccc; font-size: 0.9rem; line-height: 1.5;">{advice_text}</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
         else: st.info("Run analysis to see suggestions.")
 
     with tab4:
@@ -725,19 +821,36 @@ if st.session_state.submitted and st.session_state.pokemon_names:
         if sugg and 'threats' in sugg:
             threats = sugg['threats']
             if threats:
+                st.caption("⚠️ High-priority threats identified by AI analysis based on your team composition.")
                 for threat in threats:
-                    with st.container():
-                        t1, t2 = st.columns([1, 5])
-                        name = threat.get('pokemon', 'Unknown')
-                        with t1:
-                            sprite = get_pokemon_sprite(name)
-                            if sprite: st.image(sprite, width=80)
-                            else: st.text("👾")
-                        with t2:
-                            st.subheader(name)
-                            st.write(f"**Why:** {threat.get('explanation', '')}")
-                            if threat.get('counter_play'): st.info(f"**Counter Strategy:** {threat.get('counter_play')}")
-                        st.markdown("---")
+                    name = threat.get('pokemon', 'Unknown')
+                    explanation = threat.get('explanation', 'No explanation provided.')
+                    counter = threat.get('counter_play', 'No specific counter play provided.')
+                    sprite_url = get_pokemon_sprite(name) or ""
+                    
+                    threat_html = f"""
+                    <div style="background: rgba(255, 50, 50, 0.05); border: 1px solid rgba(255, 75, 75, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                        <div style="flex-shrink: 0; text-align: center; width: 80px;">
+                            <div style="background: rgba(255, 0, 0, 0.1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px auto;">
+                                <img src="{sprite_url}" width="60" style="filter: drop-shadow(0 0 5px rgba(255,0,0,0.4));">
+                            </div>
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 1.2rem; font-weight: 700; color: #ff6b6b; letter-spacing: 0.5px;">{name}</span>
+                                <span style="font-size: 0.7rem; background: rgba(255, 75, 75, 0.2); color: #ff9999; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(255, 75, 75, 0.3);">MAJOR THREAT</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #e0e0e0; margin-bottom: 12px; line-height: 1.5;">
+                                {explanation}
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.2); border-left: 3px solid #ff6b6b; padding: 10px; border-radius: 0 6px 6px 0;">
+                                <div style="font-size: 0.75rem; color: #ff6b6b; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">🛡️ Counter Strategy</div>
+                                <div style="font-size: 0.85rem; color: #ccc;">{counter}</div>
+                            </div>
+                        </div>
+                    </div>
+                    """
+                    st.markdown(threat_html, unsafe_allow_html=True)
             else:
                 st.success("✅ No major meta threats identified based on current context!")
         elif st.session_state.submitted:
@@ -811,8 +924,8 @@ if st.session_state.submitted and st.session_state.pokemon_names:
         else:
             st.info("No recommendations available. Try analyzing a different team or update meta data.")
             
-    with tab5:
-        st.subheader("🛡️ Type Matchup Matrix", help="Damage taken from each type. Red = Weak.")
+    with tab_matrix:
+        st.subheader("🛡️ Defensive Matchup Matrix", help="Damage taken from each type. Red = Weak.")
         st.markdown(r'''<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #7b1e1e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 4x Weak</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟧 2x Weak</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 0.5x Resist</span><span style="background-color: #1e8449; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🌲 0.25x Resist</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>''', unsafe_allow_html=True)
         all_types = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
         rows = []
@@ -830,7 +943,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             return ''
         st.dataframe(df.style.map(c_c).format("{:.1f}"), width='stretch', height=250)
 
-    with tab6:
+        st.markdown("---")
         st.subheader("⚔️ Offensive Coverage Matrix", help="Best damage you deal to each type. Green = Super Effective.")
         st.markdown(r'''<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 2x SE</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 0.5x Resisted</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>''', unsafe_allow_html=True)
         o_rows = []

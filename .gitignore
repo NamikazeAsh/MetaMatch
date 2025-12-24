@@ -140,3 +140,5 @@ data/json/*
 !data/json/meta_speeds.json
 data/stats/
 data/user/
+
+data/chroma_db/

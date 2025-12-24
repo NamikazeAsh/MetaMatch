@@ -30,6 +30,8 @@ def pokeSlugify(name):
     Handles tricky forms like Ogerpon, Urshifu, and Paradox mons.
     """
     name = name.lower().strip()
+    # Remove gender
+    name = re.sub(r'\s*\([mf]\)$', '', name)
     name = name.replace(" ", "-")
     name = name.replace(".", "")
     name = name.replace("'", "")

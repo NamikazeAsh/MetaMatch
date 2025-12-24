@@ -3,6 +3,8 @@ requests
 openai
 python-dotenv
 beautifulsoup4
-
-
-
+pandas
+altair
+chromadb
+sentence-transformers
+Pillow

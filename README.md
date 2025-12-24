@@ -5,23 +5,22 @@
 [![Ollama](https://img.shields.io/badge/AI-Ollama-000000?logo=ollama&logoColor=white)](https://ollama.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**MetaMatch** is an advanced AI-powered Pokémon team analysis tool. It combines hard-coded competitive logic with Large Language Model (LLM) insights to provide deep feedback on team synergy, weaknesses, and current meta threats.
+**MetaMatch** is a hybrid AI/ML system designed for high-precision competitive Pokémon team analysis. It integrates deterministic mathematical engines with probabilistic Large Language Model (LLM) reasoning, utilizing Retrieval-Augmented Generation (RAG) to ground strategic advice in domain-specific metadata.
 
 ![MetaMatch Dashboard](assets/images/dark_logo_transp.png)
 
 ## ✨ Features
 
-### 🧠 Smart Analysis
+### 🧠 Smart Analysis Engine
 *   **Role Detection:** Automatically identifies 35+ competitive roles (e.g., *Wall, Setup Sweeper, Cleric, Forced Switcher, Stallbreaker*) based on movesets, abilities, items, and stats.
-*   **Archetype Engine:** Classifies your team's high-level strategy (*Hyper Offense, Bulky Offense, Stall, Volt-Turn, Weather, Trick Room*) based on detected roles.
+*   **Archetype Engine:** Classifies team strategy (*Hyper Offense, Bulky Offense, Stall, Volt-Turn, Weather, Trick Room*) using detected role distributions.
 *   **Deep Logic:** Calculates type weaknesses while respecting **Abilities** and **Items** (e.g., ignores Ground damage for *Levitate* or *Air Balloon* users).
-*   **Smart Caching:** High-performance analysis with persistent caching for Move Metadata and Type Interactions, ensuring instant results on subsequent runs.
-*   **Meta Integration:** Scrapes live Smogon usage stats to identify top-tier threats relevant to the current season.
 *   **Meta Auditor:** Validates movesets against high-ladder usage stats, flagging statistically suboptimal choices (e.g., using *Shell Bell* when 98% of players use *Rocky Helmet*).
+*   **Performance Optimized:** Implements intelligent caching for file I/O and API calls to ensure low-latency responsiveness.
 
 ### 🤝 Teammate Recommender
 *   **Statistical Synergy:** Suggests optimal teammates based on Smogon "Chaos" correlation matrices from millions of competitive battles.
-*   **Team Glue:** Identifies the statistical "glue" Pokemon that best complement your current squad composition.
+*   **Team Glue:** Identifies the statistical "glue" Pokemon that best complement your current squad composition using weighted synergy scores.
 *   **Real-time Analysis:** Generates data-driven recommendations instantly without relying on LLM processing.
 
 ### 🧮 Statistical Engine
@@ -34,100 +33,77 @@ MetaMatch processes raw "Chaos" data from Smogon (detailed usage statistics) to 
 *   **Instant Recall:** Instant dashboard loading for analyzed teams, bypassing the full analysis pipeline for previously processed builds.
 *   **Modular Storage:** Built with a storage adapter pattern for flexible integration between local JSON and cloud databases.
 
-### 🤖 AI-Powered Coaching
-*   **Local LLM Integration:** Connects to **Ollama** (Llama 3.2) to act as a competitive coach.
-*   **Strategic Pilot Guide:** Generates a comprehensive gameplay guide for your specific team:
-    *   **Win Conditions:** Identifies your primary path to victory.
+### 🤖 AI-Powered Coaching (RAG-Enhanced)
+MetaMatch implements a sophisticated RAG pipeline to ground LLM reasoning in verified data.
+*   **Retrieval-Augmented Generation (RAG):** Uses a **Vector Database (ChromaDB)** to retrieve real-time competitive strategies from Smogon's Strategy Dex, embedded using `all-MiniLM-L6-v2`.
+*   **Context-Aware Chat:** Retrieves relevant competitive guides and cross-references them with **exact team data** (Moves, EVs, Nature) to provide grounded advice.
+*   **Deterministic Anchoring:** Injects pre-calculated Python-derived "Hard Facts" into the prompt context to eliminate logic hallucinations regarding game mechanics.
+*   **Strategic Pilot Guide:** Generates a comprehensive gameplay guide:
+    *   **Win Conditions:** Identifies the primary path to victory.
     *   **Lead Options:** Suggests optimal leads based on matchups.
     *   **Key Combos:** Highlights synergies like "Volt-Turn" or defensive cores.
-*   **Context-Aware Advice:** The AI receives a cleaned, stat-rich dataset (Base Stats, Real Speed) to prevent hallucinations and provide grounded advice.
-*   **Threat Hunter:** Identifies specific meta counters to your team and suggests counter-strategies.
 
-### 📊 Futuristic 2026 Dashboard
-*   **Neon Glassmorphism:** A premium UI featuring semi-transparent surfaces, `backdrop-filter` blurs, and high-fidelity typography.
-*   **Dynamic Neon Glow:** Pokémon cards feature unique outer glows that match their primary type color.
-*   **Micro-Animations:** Fluid entrance animations and glowing, pulsing interactive elements for a "living" HUD experience.
-*   **At-a-Glance Metrics:** Glowing dashboard tiles for Team Archetype, Type Coverage, and Critical Weaknesses.
-*   **Heatmaps & Speed Tiers:** Visualized data via glowing matrices and interactive Altair speed charts.
+## 💡 Why MetaMatch? (Hybrid AI vs. Generic LLMs)
 
----
+Generic LLMs "guess" — MetaMatch **calculates**.
 
-## 💡 Why MetaMatch? (vs. Generic LLMs)
-
-Why not just ask ChatGPT? Because generic LLMs "guess" — MetaMatch **calculates**.
-
-| Feature | 🤖 Generic LLMs (ChatGPT/Claude) | ⚪ MetaMatch |
+| Feature | 🤖 Generic LLMs (ChatGPT/Claude) | ⚪ MetaMatch (RAG Engine) |
 | :--- | :--- | :--- |
-| **Accuracy** | **Hallucinations:** Can fail simple type math (e.g., ignoring *Levitate*). | **Hard Logic:** Deterministic type calculator respecting Abilities & Items. |
-| **Data Freshness**| **Cutoff Dates:** Doesn't know this month's usage stats. | **Live Meta:** Scrapes Smogon stats *on demand* for real-time relevance. |
-| **Hybrid Engine** | **Text Only:** Generates plausible-sounding but often mathematically flawed advice. | **Math + AI:** Uses code for 100% accurate stats/weaknesses, and AI for high-level strategy. |
-| **Model Efficiency** | **Massive:** Needs massive frontier models (**GPT-5.2**) to minimize hallucinations. | **Lightweight:** Works perfectly with a tiny ~3B model (Llama 3.2) because logic is offloaded to code. |
-| **Workflow** | **Slow Prompting:** "Here is my new team..." (copy-paste-repeat). | **Rapid Iteration:** Tweak one move in the sidebar -> Instant re-analysis. |
+| **Accuracy** | **Hallucinations:** Often fails simple type math (e.g. ignoring *Levitate*). | **Fact-Anchored:** LLM is provided with hard-coded logic "Ground Truths". |
+| **Data Freshness**| **Knowledge Cutoff:** Lacks access to real-time meta shifts. | **Dynamic Retrieval:** Scrapes and embeds the latest Smogon strategies. |
+| **Logic Engine** | **Probabilistic:** Estimates matchup advantages. | **Deterministic:** Calculates exact multipliers before AI generation. |
+| **Model Efficiency** | **Resource Intensive:** Requires massive frontier models to minimize errors. | **Lightweight:** Optimized for local ~3B models by offloading logic to code. |
+| **Workflow** | **Manual Prompting:** Requires constant copy-pasting of team data. | **Seamless Integration:** One-click re-analysis on team changes. |
 
 ### 🧪 Real World Examples
 
 #### 1. The "Rotom-Wash" Test
-**Scenario:** You ask for the weaknesses of a standard **Rotom-Wash** (*Electric/Water* type with *Levitate* ability).
+**Scenario:** Weaknesses of a standard **Rotom-Wash** (*Electric/Water* type with *Levitate* ability).
 *   **Generic LLM:** "Rotom-Wash is Electric/Water. Electric is weak to Ground. Therefore, **Rotom-Wash is weak to Ground**." ❌ *(Fails to account for Ability)*
 *   **MetaMatch:** `Ground: 0.0` (Immune) ✅
 
 #### 2. The "Air Balloon Heatran" Test
-**Scenario:** You have a **Heatran** (*Fire/Steel*) holding an **Air Balloon**.
+**Scenario:** **Heatran** (*Fire/Steel*) holding an **Air Balloon**.
 *   **Generic LLM:** Often overlooks the item and flags a **4x Ground weakness**. ❌
 *   **MetaMatch:** Correctly identifies the item grants **Ground Immunity** until popped. ✅
 
 ---
 
-## 🔄 How It Works
+## 🔄 Pipeline Architecture
 
 ```mermaid
 graph TD
     A[User Input] -->|Showdown Export| B(Streamlit App)
     B --> C{Analysis Pipeline}
-    B <-->|Save/Load Teams| S[Local Storage]
+    
+    subgraph "RAG AI Engine"
+    C --> H[Smogon Strategy Dex]
+    H -->|Scrape/Clean| I[ChromaDB Vector Store]
+    I -->|Semantic Search| J[Context Injection]
+    B -->|Pre-calculated Stats| J
+    J --> K[Ollama LLM]
+    K --> L[Grounded Advice]
+    end
     
     subgraph "Static Analysis"
     C --> D[Team Parser]
     D -->|PokeAPI| E[Enrich Data]
-    E --> F[Role Detection]
     E --> G[Type Calculator]
     end
-    
-    subgraph "Statistical Analysis"
-    H[Smogon Stats] -->|Chaos JSON| R[Recommender Engine]
-    R -->|Synergy Scores| M[Dashboard UI]
-    end
-    
-    subgraph "Meta Context"
-    H -->|Scraper| I[Meta/Speed Tiers]
-    I --> J[AI Context]
-    end
-    
-    subgraph "AI Reasoning"
-    C --> K[Ollama LLM]
-    J --> K
-    K --> L[Strategic Advice]
-    end
-    
-    F --> M
-    G --> M
-    L --> M
-    I --> M
-    S -->|Instant Recall| M
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Deployment
 
 ### Prerequisites
 1.  **Python 3.10+**
-2.  **Ollama** (for AI features):
+2.  **Ollama**:
     *   Install Ollama from [ollama.com](https://ollama.com/).
     *   Pull the model: `ollama pull llama3.2:3b-instruct-q4_K_M`
     *   Start the server: `ollama serve`
 
-### Installation
+### Local Setup
 
 1.  **Clone the Repository:**
     ```bash
@@ -140,54 +116,59 @@ graph TD
     pip install -r requirements.txt
     ```
     
-3.  **Generate Meta Data:** (First time setup)
+3.  **Initialize Data & RAG Index:** (First time setup)
     ```bash
+    # Scrape usage stats for Recommender/Auditor
     python src/metamatch/scrapers.py
+
+    # Scrape strategy guides & build Vector DB for AI Coach
+    python src/metamatch/rag/build_index.py
     ```
 
-4.  **Run the App:**
+4.  **Launch Application:**
     ```bash
     streamlit run src/metamatch/app.py
     ```
 
-### 🐳 Docker Quickstart (No Python Needed)
+### 🐳 Docker Deployment
 
-1.  **Run the App:**
+1.  **Compose Up:**
     ```bash
     docker-compose up -d
     ```
-2.  **Pull the Model:** (One time only)
+2.  **Initialize Model:**
     ```bash
     docker exec -it metamatch-ollama ollama pull llama3.2:3b-instruct-q4_K_M
     ```
-3.  **Open:** Go to `http://localhost:8501`
+3.  **Access:** `http://localhost:8501`
 
 ---
 
-## 🧪 Quality Assurance (Testing)
+## 🧪 Quality Assurance
 
-MetaMatch includes a comprehensive test suite to verify the "Hard Logic" engine. It checks 26+ edge cases including complex dual-type multipliers, ability immunities, and item overrides.
+MetaMatch includes a comprehensive test suite to verify the deterministic logic engine. It checks 26+ edge cases including complex dual-type multipliers, ability immunities, and item overrides.
 
-**Run the tests:**
+**Execute Tests:**
 ```bash
 python -m unittest src/metamatch/tests/test_mechanics.py
 ```
 
 ---
 
-## 🛠️ Architecture
+## 🛠️ Module Overview
 
-*   **`src/metamatch/app.py`**: The Streamlit frontend and dashboard.
-*   **`src/metamatch/team.py`**: Core logic for parsing teams and calculating stats/weaknesses.
-*   **`src/metamatch/suggestions.py`**: LLM integration and strategic advice generator.
-*   **`src/metamatch/recommender.py`**: Statistical engine for calculating teammate synergy scores.
-*   **`src/metamatch/auditor.py`**: Statistical engine for validating sets against meta usage trends.
-*   **`src/metamatch/scrapers.py`**: Smogon usage stats scraper (supports Chaos data).
-*   **`src/metamatch/storage.py`**: Local persistence adapter for saving and loading teams.
-*   **`src/metamatch/utils.py`**: Shared utilities and API caching.
-*   **`src/metamatch/config.py`**: Centralized path and environment configuration.
-*   **`data/`**: Persistent storage for JSON caches and raw stats.
-*   **`assets/`**: Static image assets and logos.
+*   **`src/metamatch/app.py`**: Streamlit frontend and dashboard orchestration.
+*   **`src/metamatch/team.py`**: Core parsing and deterministic calculation engine.
+*   **`src/metamatch/suggestions.py`**: LLM orchestration, RAG Context injection, and prompt engineering.
+*   **`src/metamatch/rag/`**: Vector database management:
+    *   **`scraper.py`**: ETL pipeline for strategy documentation.
+    *   **`store.py`**: ChromaDB interface and embedding management.
+    *   **`build_index.py`**: Index initialization.
+*   **`src/metamatch/recommender.py`**: Statistical synergy calculator.
+*   **`src/metamatch/auditor.py`**: Meta-usage validation engine.
+*   **`src/metamatch/scrapers.py`**: Smogon Chaos data scraping pipeline.
+*   **`src/metamatch/storage.py`**: Data persistence layer.
+*   **`src/metamatch/utils.py`**: API caching and text normalization.
 
 ---
 
@@ -199,6 +180,7 @@ However, MetaMatch represents a philosophy of **Efficiency & Transparency**:
 1.  **Right Tool for the Job:** We shouldn't need a massive frontier model to calculate a Speed stat. Code is perfect for rules; AI is perfect for strategy.
 2.  **Privacy:** By optimizing for smaller models (Llama 3B), MetaMatch allows you to keep your strategies local and offline.
 3.  **The "Hybrid" Bet:** We believe the future of AI isn't just "bigger models," but "models that know how to use tools." MetaMatch is a proof-of-concept for that future.
+4.  **The Persistent Reasoning Gap:** Even with RAG and deterministic anchoring, small-parameter models (3B-8B) face an inherent "reasoning gap" compared to larger frontier models. While MetaMatch minimizes factual hallucinations by offloading math to Python, the model's ability to synthesize high-level strategic nuance remains a persistent constraint of local, small-scale AI.
 
 ---
 
@@ -216,9 +198,7 @@ Contributions are welcome! Whether it's adding new Role definitions, improving t
 
 ## 🙏 Acknowledgements
 
-MetaMatch is built upon the incredible work of the Pokémon community:
-
-*   **[PokeAPI](https://pokeapi.co/)**: For providing the comprehensive database of Pokémon, types, and moves.
-*   **[Smogon University](https://www.smogon.com/)**: For the competitive usage stats that power our meta-analysis.
-*   **[Ollama](https://ollama.com/)**: For enabling local LLM execution, keeping analysis private and fast.
-*   **[Streamlit](https://streamlit.io/)**: For the framework that makes building this dashboard a breeze.
+*   **[PokeAPI](https://pokeapi.co/)**: Comprehensive Pokémon relational data.
+*   **[Smogon University](https://www.smogon.com/)**: Usage statistics and strategy documentation.
+*   **[Ollama](https://ollama.com/)**: Local LLM execution framework.
+*   **[Streamlit](https://streamlit.io/)**: Data dashboarding framework.

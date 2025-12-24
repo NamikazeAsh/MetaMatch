@@ -29,7 +29,7 @@ def readTeam(teamRaw):
     teamRaw = teamRaw.strip().split('\n\n')
     
     types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
-    team_weakness = {t: {"weak": 0, "resist": 0, "immune": 0} for t in types}
+    team_weakness = {t: {"weak": 0, "resist": 0, "immune": 0, "pokemon": []} for t in types}
     
     # Speed Nature Modifiers
     speed_plus = ["Timid", "Jolly", "Hasty", "Naive"]
@@ -138,6 +138,7 @@ def readTeam(teamRaw):
         for dmg in dmg_from:
             if dmg_from[dmg] > 1:
                 team_weakness[dmg]['weak'] += 1
+                team_weakness[dmg]['pokemon'].append(poke_data['Pokemon'])
             elif dmg_from[dmg] == 0:
                 team_weakness[dmg]['immune'] += 1
             elif dmg_from[dmg] < 1:
@@ -389,7 +390,7 @@ def coverageCheck(team):
     for poke in team:
         moves = team[poke]['Moves']
         for move in moves:
-            if (move['category'] != 'Status') &  (coverage[move['type']] == False):
+            if (move['category'] != 'Status') & (coverage[move['type']] == False):
                 coverage[move['type']] = True
         
     return coverage

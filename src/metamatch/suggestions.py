@@ -6,6 +6,71 @@ from pprint import pprint
 import re
 import openai
 from . import config
+from .rag import store
+
+def get_chat_response(user_query, team_context=None, team_weakness=None):
+    """
+    RAG-enabled chat function with pre-calculated "Hard Facts" to prevent hallucinations.
+    """
+    load_dotenv()
+    base_url = os.getenv('OLLAMA_HOST', 'http://localhost:11434') + '/v1'
+    client = OpenAI(base_url=base_url, api_key='ollama')
+    
+    # 1. Retrieve RAG Context
+    rag_hits = store.query_strategies(user_query, n_results=3)
+    rag_context = ""
+    if rag_hits:
+        rag_context = "### SMOGON STRATEGY DATABASE (READ THIS FOR MOVES/COUNTERS)\n"
+        for hit in rag_hits:
+            rag_context += f"SOURCE [{hit['metadata'].get('pokemon')}]: {hit['text']}\n\n"
+            
+    # 2. Format Team Context with "TRUE FACTS"
+    team_str = ""
+    if team_context:
+        team_str = "### YOUR TEAM'S ACTUAL STATS (THE ABSOLUTE TRUTH)\n"
+        for p in team_context.values():
+            types = "/".join(p.get('Type', []))
+            moves = ", ".join([m['name'] for m in p.get('Moves', [])])
+            evs = ", ".join([f"{k}:{v}" for k, v in p.get('EVs', {}).items()])
+            team_str += f"- {p['Pokemon']} | TYPE: {types} | ITEM: {p.get('Item')} | ABILITY: {p.get('Ability')} | NATURE: {p.get('Nature')} | EVS: {evs} | MOVES: {moves}\n"
+
+    # 3. Inject Pre-calculated Math (Weakness Map)
+    weak_str = ""
+    if team_weakness:
+        weak_str = "### TEAM-WIDE VULNERABILITIES (CALCULATED BY ENGINE)\n"
+        for t, counts in team_weakness.items():
+            if counts['weak'] > 0:
+                weak_str += f"- {t.capitalize()}: {counts['weak']} members of your team are WEAK to this.\n"
+
+    # 4. Construct the "Ground Truth" System Prompt
+    system_content = f"""
+    You are a competitive Pokemon coach. 
+    
+    CRITICAL RULES:
+    1. NO QUESTIONS: Do not ask the user for information. You have all the data you need in the sections below. 
+    2. ANALYZE AND ADVISE: Look at the 'TEAM-WIDE VULNERABILITIES'. If even 1 mon is weak to a threat's STAB, mention it.
+    3. THE DATA IS THE TRUTH: Use the 'YOUR TEAM'S ACTUAL STATS' for types and moves.
+    4. SMOGON KNOWLEDGE: Use the 'SMOGON STRATEGY DATABASE' to understand the opponent.
+
+    {team_str}
+    
+    {weak_str}
+
+    {rag_context}
+    """
+    
+    # 5. Stream Response
+    stream = client.chat.completions.create(
+        model="llama3.2:3b-instruct-q4_K_M",
+        messages=[
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_query}
+        ],
+        stream=True,
+        temperature=0.1
+    )
+    
+    return stream
 
 def get_suggestions(team):
     load_dotenv()
