@@ -75,9 +75,9 @@ Generic LLMs "guess" — MetaMatch **calculates**.
 graph TD
     A[User Input] -->|Showdown Export| B(Streamlit App)
     B --> C{Analysis Pipeline}
-    B <-->|Save/Load Teams| S[Local Storage (JSON)]
+    B <-->|Save/Load Teams| S[Local Storage]
 
-    subgraph "RAG AI Engine"
+    subgraph RAG [RAG AI Engine]
     C --> H[Smogon Strategy Dex]
     H -->|Scrape/Clean| I[ChromaDB Vector Store]
     I -->|Semantic Search| J[Context Injection]
@@ -86,14 +86,14 @@ graph TD
     K --> L[Grounded Advice]
     end
 
-    subgraph "Static Analysis"
+    subgraph Static [Static Analysis]
     C --> D[Team Parser]
     D -->|PokeAPI| E[Enrich Data]
     E --> F[Role Detection]
     E --> G[Type Calculator]
     end
 
-    subgraph "Statistical Engine"
+    subgraph Stats [Statistical Engine]
     M[Smogon Chaos Data] -->|Weighted Usage| N[Meta Auditor]
     M -->|Correlation Matrix| O[Teammate Recommender]
     end
