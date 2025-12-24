@@ -69,13 +69,14 @@ Generic LLMs "guess" — MetaMatch **calculates**.
 
 ---
 
-## 🔄 Pipeline Architecture
+## 🔄 System Architecture
 
 ```mermaid
 graph TD
     A[User Input] -->|Showdown Export| B(Streamlit App)
     B --> C{Analysis Pipeline}
-    
+    B <-->|Save/Load Teams| S[Local Storage (JSON)]
+
     subgraph "RAG AI Engine"
     C --> H[Smogon Strategy Dex]
     H -->|Scrape/Clean| I[ChromaDB Vector Store]
@@ -84,12 +85,25 @@ graph TD
     J --> K[Ollama LLM]
     K --> L[Grounded Advice]
     end
-    
+
     subgraph "Static Analysis"
     C --> D[Team Parser]
     D -->|PokeAPI| E[Enrich Data]
+    E --> F[Role Detection]
     E --> G[Type Calculator]
     end
+
+    subgraph "Statistical Engine"
+    M[Smogon Chaos Data] -->|Weighted Usage| N[Meta Auditor]
+    M -->|Correlation Matrix| O[Teammate Recommender]
+    end
+
+    F --> P[Dashboard UI]
+    G --> P
+    L --> P
+    N --> P
+    O --> P
+    S -->|Instant Recall| P
 ```
 
 ---
