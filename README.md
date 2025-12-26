@@ -35,7 +35,10 @@ MetaMatch processes raw "Chaos" data from Smogon (detailed usage statistics) to 
 
 ### 🤖 AI-Powered Coaching (RAG-Enhanced)
 MetaMatch implements a sophisticated RAG pipeline to ground LLM reasoning in verified data.
-*   **Retrieval-Augmented Generation (RAG):** Uses a **Vector Database (ChromaDB)** to retrieve real-time competitive strategies from Smogon's Strategy Dex, embedded using `all-MiniLM-L6-v2`.
+*   **Retrieval-Augmented Generation (RAG):** Uses a **Vector Database (ChromaDB)** to retrieve real-time competitive strategies from Smogon's Strategy Dex.
+    *   **Model Upgrade:** Now powered by `BAAI/bge-small-en-v1.5` for high-precision semantic search.
+    *   **Granular Chunking:** splits analysis into focused "Checks & Counters", "Moveset Mechanics", and "Team Options" chunks.
+*   **Concept Awareness:** Ingests high-level strategy guides (e.g., "How to Beat Stall", "Hyper Offense 101") to answer broad archetypal questions.
 *   **Context-Aware Chat:** Retrieves relevant competitive guides and cross-references them with **exact team data** (Moves, EVs, Nature) to provide grounded advice.
 *   **Deterministic Anchoring:** Injects pre-calculated Python-derived "Hard Facts" into the prompt context to eliminate logic hallucinations regarding game mechanics.
 *   **Strategic Pilot Guide:** Generates a comprehensive gameplay guide:
@@ -52,7 +55,7 @@ Generic LLMs "guess" — MetaMatch **calculates**.
 | **Accuracy** | **Hallucinations:** Often fails simple type math (e.g. ignoring *Levitate*). | **Fact-Anchored:** LLM is provided with hard-coded logic "Ground Truths". |
 | **Data Freshness**| **Knowledge Cutoff:** Lacks access to real-time meta shifts. | **Dynamic Retrieval:** Scrapes and embeds the latest Smogon strategies. |
 | **Logic Engine** | **Probabilistic:** Estimates matchup advantages. | **Deterministic:** Calculates exact multipliers before AI generation. |
-| **Model Efficiency** | **Resource Intensive:** Requires massive frontier models to minimize errors. | **Lightweight:** Optimized for local ~3B models by offloading logic to code. |
+| **Model Efficiency** | **Resource Intensive:** Requires massive frontier models to minimize errors. | **Lightweight:** Optimized for local ~3B models (`llama3.2:3b`) by offloading logic to code. |
 | **Workflow** | **Manual Prompting:** Requires constant copy-pasting of team data. | **Seamless Integration:** One-click re-analysis on team changes. |
 
 ### 🧪 Real World Examples
@@ -79,10 +82,10 @@ graph TD
 
     subgraph RAG [RAG AI Engine]
     C --> H[Smogon Strategy Dex]
-    H -->|Scrape/Clean| I[ChromaDB Vector Store]
-    I -->|Semantic Search| J[Context Injection]
+    H -->|Granular Scraper| I[ChromaDB Vector Store]
+    I -->|Semantic Search (BGE-Small)| J[Context Injection]
     B -->|Pre-calculated Stats| J
-    J --> K[Ollama LLM]
+    J --> K[Ollama LLM (Llama 3.2 3B)]
     K --> L[Grounded Advice]
     end
 
@@ -135,7 +138,7 @@ graph TD
     # Scrape usage stats for Recommender/Auditor
     python src/metamatch/scrapers.py
 
-    # Scrape strategy guides & build Vector DB for AI Coach
+    # Scrape strategies, concepts & build Vector DB for AI Coach
     python src/metamatch/rag/build_index.py
     ```
 
@@ -143,6 +146,12 @@ graph TD
     ```bash
     streamlit run src/metamatch/app.py
     ```
+
+### 🤖 Automation
+
+MetaMatch includes a **self-updating pipeline** (`scripts/update_meta.py`) configured via GitHub Actions.
+*   **Schedule:** Checks for new Smogon stats on the 3rd of every month.
+*   **Action:** Automatically downloads the latest `chaos.json` and commits it to the repository, ensuring your Recommender engine is always synced with the meta.
 
 ### 🐳 Docker Deployment
 
@@ -174,10 +183,11 @@ python -m unittest src/metamatch/tests/test_mechanics.py
 *   **`src/metamatch/app.py`**: Streamlit frontend and dashboard orchestration.
 *   **`src/metamatch/team.py`**: Core parsing and deterministic calculation engine.
 *   **`src/metamatch/suggestions.py`**: LLM orchestration, RAG Context injection, and prompt engineering.
+*   **`src/metamatch/logic_engine.py`**: Deterministic logic engine for chat (matchups, immunities, speed tiers).
 *   **`src/metamatch/rag/`**: Vector database management:
-    *   **`scraper.py`**: ETL pipeline for strategy documentation.
-    *   **`store.py`**: ChromaDB interface and embedding management.
-    *   **`build_index.py`**: Index initialization.
+    *   **`scraper.py`**: ETL pipeline for strategy documentation (granular chunking).
+    *   **`store.py`**: ChromaDB interface and embedding management (`BAAI/bge-small-en-v1.5`).
+    *   **`build_index.py`**: Index initialization (concepts + strategies).
 *   **`src/metamatch/recommender.py`**: Statistical synergy calculator.
 *   **`src/metamatch/auditor.py`**: Meta-usage validation engine.
 *   **`src/metamatch/scrapers.py`**: Smogon Chaos data scraping pipeline.

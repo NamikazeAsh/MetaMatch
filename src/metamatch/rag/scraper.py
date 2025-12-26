@@ -35,6 +35,51 @@ def get_pokemon_context(name):
     # This header acts as a strong "anchor" for the semantic search
     return f"Pokemon: {name}. Type: {types}. Abilities: {abilities}."
 
+def split_into_paragraphs(html_text, min_length=50):
+    """
+    Splits HTML content into meaningful text chunks based on <p> tags.
+    merges small paragraphs to avoid fragmentation.
+    """
+    if not html_text: 
+        return []
+    
+    soup = BeautifulSoup(html_text, 'html.parser')
+    chunks = []
+    current_chunk = ""
+    
+    for element in soup.recursiveChildGenerator():
+        if element.name in ['p', 'h3', 'h4', 'li']:
+            text = element.get_text(strip=True)
+            if not text: continue
+            
+            # If it's a header, start a new chunk immediately
+            if element.name in ['h3', 'h4']:
+                if current_chunk: chunks.append(current_chunk)
+                current_chunk = f"[{text}] "
+            else:
+                if len(current_chunk) + len(text) > 1000: # Soft limit
+                    chunks.append(current_chunk)
+                    current_chunk = text
+                else:
+                    if current_chunk: current_chunk += " "
+                    current_chunk += text
+        elif element.name is None and not element.parent.name in ['p', 'h3', 'h4', 'li']:
+            # Loose text not in tags
+            text = element.strip()
+            if len(text) > 20:
+                if current_chunk: current_chunk += " "
+                current_chunk += text
+
+    if current_chunk:
+        chunks.append(current_chunk)
+        
+    # Fallback if no tags found (just plain text or weird formatting)
+    if not chunks:
+        raw = soup.get_text(separator=" ").strip()
+        if raw: chunks.append(raw)
+        
+    return chunks
+
 def fetch_smogon_strategies():
     """
     Fetches Gen 9 OU analyses and parses them into chunks.
@@ -61,54 +106,69 @@ def fetch_smogon_strategies():
         # 1. Fetch Enrichment Data (Types, Abilities)
         context_header = get_pokemon_context(pokemon)
         
-        # 2. Parse Overview
+        # 2. Parse Overview (Split by paragraph)
         if 'overview' in analysis and analysis['overview']:
-            text = clean_html(analysis['overview'])
-            # Combine Header + Specific Content
-            full_text = f"{context_header} Overview: {text}"
-            
-            chunks.append({
-                "pokemon": pokemon,
-                "category": "Overview",
-                "text": full_text,
-                "metadata": {"pokemon": pokemon, "type": "overview"}
-            })
+            paragraphs = split_into_paragraphs(analysis['overview'])
+            for idx, p in enumerate(paragraphs):
+                full_text = f"{context_header} Overview Part {idx+1}: {p}"
+                chunks.append({
+                    "pokemon": pokemon,
+                    "category": "Overview",
+                    "text": full_text,
+                    "metadata": {"pokemon": pokemon, "type": "overview", "part": idx}
+                })
 
         # 3. Parse Sets
         if 'sets' in analysis:
             for set_name, set_data in analysis['sets'].items():
-                description = clean_html(set_data.get('description', ''))
+                description_html = set_data.get('description', '')
+                
+                # Split set descriptions too, as they often contain "Usage Tips" and "Team Options"
+                paragraphs = split_into_paragraphs(description_html)
                 
                 moves = ", ".join(set_data.get('moves', []))
                 item = set_data.get('item', 'None')
                 ability = set_data.get('ability', 'None')
                 nature = set_data.get('nature', 'None')
                 
-                set_block = (
+                # Base set info header
+                set_header = (
                     f"{context_header} Set '{set_name}': "
                     f"Item: {item} | Ability: {ability} | Nature: {nature} | "
                     f"Moves: {moves}. "
-                    f"Strategy: {description}"
                 )
                 
-                chunks.append({
-                    "pokemon": pokemon,
-                    "category": "Set",
-                    "text": set_block,
-                    "metadata": {"pokemon": pokemon, "type": "set", "set_name": set_name}
-                })
+                if not paragraphs:
+                    # Fallback for empty description
+                    chunks.append({
+                        "pokemon": pokemon,
+                        "category": "Set",
+                        "text": set_header,
+                        "metadata": {"pokemon": pokemon, "type": "set", "set_name": set_name, "part": 0}
+                    })
+                
+                for idx, p in enumerate(paragraphs):
+                    full_text = f"{set_header} Strategy Part {idx+1}: {p}"
+                    
+                    chunks.append({
+                        "pokemon": pokemon,
+                        "category": "Set",
+                        "text": full_text,
+                        "metadata": {"pokemon": pokemon, "type": "set", "set_name": set_name, "part": idx}
+                    })
 
-        # 4. Parse Comments
+
+        # 4. Parse Comments (Split by paragraph/headers)
         if 'comments' in analysis and analysis['comments']:
-             text = clean_html(analysis['comments'])
-             full_text = f"{context_header} Strategy Comments: {text}"
-             
-             chunks.append({
-                "pokemon": pokemon,
-                "category": "Comments",
-                "text": full_text,
-                "metadata": {"pokemon": pokemon, "type": "comments"}
-            })
+             paragraphs = split_into_paragraphs(analysis['comments'])
+             for idx, p in enumerate(paragraphs):
+                 full_text = f"{context_header} Strategy Comments {idx+1}: {p}"
+                 chunks.append({
+                    "pokemon": pokemon,
+                    "category": "Comments",
+                    "text": full_text,
+                    "metadata": {"pokemon": pokemon, "type": "comments", "part": idx}
+                })
 
     print(f"\nParsed and enriched {len(chunks)} strategy chunks.")
     return chunks

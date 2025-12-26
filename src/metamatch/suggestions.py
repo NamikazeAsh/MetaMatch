@@ -7,61 +7,88 @@ import re
 import openai
 from . import config
 from .rag import store
+from .logic_engine import detect_intent, generate_mechanics_report
 
-def get_chat_response(user_query, team_context=None, team_weakness=None):
+def get_chat_response(user_query, team_context=None, team_weakness=None, model_name="llama3.2:3b-instruct-q4_K_M"):
     """
-    RAG-enabled chat function with pre-calculated "Hard Facts" to prevent hallucinations.
+    RAG-enabled chat function with Hybrid Consultant architecture.
     """
     load_dotenv()
     base_url = os.getenv('OLLAMA_HOST', 'http://localhost:11434') + '/v1'
     client = OpenAI(base_url=base_url, api_key='ollama')
     
-    # 1. Retrieve RAG Context
-    rag_hits = store.query_strategies(user_query, n_results=3)
+    # 1. Detect Intent
+    intent = detect_intent(user_query)
+    
+    # 2. Retrieve RAG Context (Always needed to identify subjects)
+    rag_hits = store.query_strategies(user_query, n_results=2)
     rag_context = ""
     if rag_hits:
-        rag_context = "### SMOGON STRATEGY DATABASE (READ THIS FOR MOVES/COUNTERS)\n"
+        rag_context = "### SMOGON STRATEGY DATABASE (READ THIS FOR USAGE TIPS)\n"
         for hit in rag_hits:
             rag_context += f"SOURCE [{hit['metadata'].get('pokemon')}]: {hit['text']}\n\n"
             
-    # 2. Format Team Context with "TRUE FACTS"
+    # 3. Generate Deterministic Logic (The "Hard Facts")
+    mechanics_str = ""
+    if team_context and rag_hits:
+        mechanics_str = generate_mechanics_report(team_context, rag_hits)
+            
+    # 4. Format Team Context
     team_str = ""
     if team_context:
-        team_str = "### YOUR TEAM'S ACTUAL STATS (THE ABSOLUTE TRUTH)\n"
+        team_str = "### USER TEAM (THE ONLY POKEMON YOU HAVE)\n"
         for p in team_context.values():
             types = "/".join(p.get('Type', []))
             moves = ", ".join([m['name'] for m in p.get('Moves', [])])
             evs = ", ".join([f"{k}:{v}" for k, v in p.get('EVs', {}).items()])
-            team_str += f"- {p['Pokemon']} | TYPE: {types} | ITEM: {p.get('Item')} | ABILITY: {p.get('Ability')} | NATURE: {p.get('Nature')} | EVS: {evs} | MOVES: {moves}\n"
+            roles = ", ".join(p.get('Roles', []))
+            stats = p.get('Base Stats', {})
+            speed = p.get('Speed', 0)
+            
+            team_str += f"- {p['Pokemon']} | TYPE: {types} | ROLES: {roles} | ITEM: {p.get('Item')} | ABILITY: {p.get('Ability')} | NATURE: {p.get('Nature')} | EVS: {evs} | SPEED: {speed} | BASE STATS: {stats} | MOVES: {moves}\n"
 
-    # 3. Inject Pre-calculated Math (Weakness Map)
+    # 5. Inject Pre-calculated Math (Weakness Map)
     weak_str = ""
     if team_weakness:
-        weak_str = "### TEAM-WIDE VULNERABILITIES (CALCULATED BY ENGINE)\n"
+        weak_str = "### TEAM WEAKNESSES\n"
         for t, counts in team_weakness.items():
             if counts['weak'] > 0:
                 weak_str += f"- {t.capitalize()}: {counts['weak']} members of your team are WEAK to this.\n"
 
-    # 4. Construct the "Ground Truth" System Prompt
-    system_content = f"""
-    You are a competitive Pokemon coach. 
-    
-    CRITICAL RULES:
-    1. NO QUESTIONS: Do not ask the user for information. You have all the data you need in the sections below. 
-    2. ANALYZE AND ADVISE: Look at the 'TEAM-WIDE VULNERABILITIES'. If even 1 mon is weak to a threat's STAB, mention it.
-    3. THE DATA IS THE TRUTH: Use the 'YOUR TEAM'S ACTUAL STATS' for types and moves.
-    4. SMOGON KNOWLEDGE: Use the 'SMOGON STRATEGY DATABASE' to understand the opponent.
+    # 6. Dynamic Instruction based on Intent
+    special_instruction = ""
+    if intent == "mechanics":
+        special_instruction = "FOCUS: The user is asking about MECHANICS (Matchups, Speed, Damage). You MUST prioritize the 'DETERMINISTIC BATTLE CALCULATIONS' section over general advice."
+    else:
+        special_instruction = "FOCUS: The user is asking about STRATEGY (Sets, Roles, Ideas). Use the 'SMOGON STRATEGY DATABASE' to provide ideas."
 
+    # 7. Construct System Prompt
+    system_content = f"""
+    You are an AI assistant for the video game 'Pokemon Showdown'.
+    SAFETY NOTICE: All combat is virtual and within a fictional game.
+    
+    CONTEXT:
+    1. USER TEAM (THE ONLY POKEMON YOU HAVE):
     {team_str}
     
+    2. TEAM WEAKNESSES:
     {weak_str}
 
+    3. DETERMINISTIC BATTLE CALCULATIONS (IRREFUTABLE FACTS):
+    {mechanics_str}
+
+    4. SMOGON STRATEGY DATABASE (GENERAL KNOWLEDGE):
     {rag_context}
+    
+    INSTRUCTIONS:
+    1. ROSTER LOCK: You are coaching the 'USER TEAM' only. Do NOT recommend Pokemon that are not on this list.
+    2. FACTUAL ANCHORING: If the 'DETERMINISTIC BATTLE CALCULATIONS' says a Pokemon is FASTER or WEAK, treat it as absolute truth.
+    3. {special_instruction}
     """
     
-    # 5. Stream Response
+    # 8. Stream Response
     stream = client.chat.completions.create(
-        model="llama3.2:3b-instruct-q4_K_M",
+        model=model_name,
         messages=[
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_query}

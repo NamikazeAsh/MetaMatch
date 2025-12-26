@@ -6,7 +6,7 @@ from metamatch import config
 
 # Persist DB in the data directory
 DB_PATH = config.DATA_DIR / "chroma_db"
-EMBEDDING_MODEL_NAME = 'all-MiniLM-L6-v2'
+EMBEDDING_MODEL_NAME = 'BAAI/bge-small-en-v1.5'
 
 def get_client():
     """

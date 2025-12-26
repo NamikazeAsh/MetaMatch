@@ -703,6 +703,17 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                 with st.chat_message(msg["role"]):
                     st.markdown(msg["content"])
         
+        # RAG Guide
+        with st.expander("💡 How to use the AI Coach efficiently", expanded=False):
+            st.markdown("""
+            **The AI works best with specific questions:**
+            - 🛡️ **Matchups:** "Who switches into Great Tusk?" or "Does Pecharunt wall Kingambit?"
+            - ⚡ **Speed:** "Is my Latios faster than Gholdengo?"
+            - 📝 **Sets:** "What is a good moveset for Assault Vest Hatterene?"
+            
+            *Avoid vague questions like "Is my team good?" or "Win condition?"*
+            """)
+
         # Input
         if prompt := st.chat_input("How do I beat Kingambit?"):
             # 1. User Message

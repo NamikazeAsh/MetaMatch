@@ -1,0 +1,37 @@
+name: Monthly Meta Update
+
+on:
+  schedule:
+    # Runs at 00:00 UTC on the 3rd of every month
+    - cron: '0 0 3 * *'
+  workflow_dispatch: # Allows manual triggering from GitHub UI for testing
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to commit the new files
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      run: |
+        pip install requests beautifulsoup4
+
+    - name: Run Update Script
+      run: python scripts/update_meta.py
+
+    - name: Commit and Push if Changed
+      run: |
+        git config user.name "MetaMatch Bot"
+        git config user.email "bot@metamatch.ai"
+        git add data/stats/
+        git commit -m "chore(data): auto-update smogon stats [skip ci]" || exit 0
+        git push
