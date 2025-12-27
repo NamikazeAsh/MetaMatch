@@ -142,3 +142,6 @@ data/stats/
 data/user/
 
 data/chroma_db/
+
+.gemini/
+gha-creds-*.json

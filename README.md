@@ -80,23 +80,23 @@ graph TD
     B --> C{Analysis Pipeline}
     B <-->|Save/Load Teams| S[Local Storage]
 
-    subgraph RAG [RAG AI Engine]
+    subgraph RAG_Engine ["RAG AI Engine"]
     C --> H[Smogon Strategy Dex]
     H -->|Granular Scraper| I[ChromaDB Vector Store]
-    I -->|Semantic Search (BGE-Small)| J[Context Injection]
+    I -->|"Semantic Search (BGE-Small)"| J[Context Injection]
     B -->|Pre-calculated Stats| J
-    J --> K[Ollama LLM (Llama 3.2 3B)]
+    J --> K["Ollama LLM (Llama 3.2 3B)"]
     K --> L[Grounded Advice]
     end
 
-    subgraph Static [Static Analysis]
+    subgraph Static_Analysis ["Static Analysis"]
     C --> D[Team Parser]
     D -->|PokeAPI| E[Enrich Data]
     E --> F[Role Detection]
     E --> G[Type Calculator]
     end
 
-    subgraph Stats [Statistical Engine]
+    subgraph Statistical_Engine ["Statistical Engine"]
     M[Smogon Chaos Data] -->|Weighted Usage| N[Meta Auditor]
     M -->|Correlation Matrix| O[Teammate Recommender]
     end
