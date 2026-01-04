@@ -10,9 +10,9 @@ The entry point is `Manager`, which acts as the orchestrator. It uses the `Route
 graph LR
     User[User Query] --> Manager
     Manager --> Router{Semantic Router}
-    Router -->|Mechanics| Tactician[Clemont 🧪]
-    Router -->|Strategy| Coach[Prof. Oak 📜]
-    Router -->|Builder| Auditor[Brock 🍳]
+    Router -->|Mechanics| Tactician["Clemont 🧪"]
+    Router -->|Strategy| Coach["Prof. Oak 📜"]
+    Router -->|Builder| Auditor["Brock 🍳"]
     Tactician --> Response
     Coach --> Response
     Auditor --> Response
