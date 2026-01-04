@@ -18,14 +18,15 @@ def load_chaos_data():
 def audit_team(team_data):
     """
     Audits the team against Smogon usage stats.
-    Returns a list of warnings.
+    Returns a dictionary with full usage reports and a list of warnings.
     """
     chaos_data = load_chaos_data()
     if not chaos_data:
-        return []
+        return {"reports": {}, "warnings": []}
 
     warnings = []
-    USAGE_THRESHOLD = 3.0 # Percent
+    reports = {}
+    USAGE_THRESHOLD = 5.0 # Percent
 
     for idx, pokemon in team_data.items():
         name = pokemon['Pokemon']
@@ -39,8 +40,7 @@ def audit_team(team_data):
         if not p_data:
             continue
 
-        # Total weighted usage for this Pokemon
-        # Sum of abilities is the most reliable "total weight"
+        reports[name] = {"item": {}, "ability": {}, "moves": {}}
         total_weight = sum(p_data.get('Abilities', {}).values())
         if total_weight == 0: continue
 
@@ -51,17 +51,17 @@ def audit_team(team_data):
             target_norm = normalize(target)
             for s_name, s_val in stats_dict.items():
                 if normalize(s_name) == target_norm:
-                    return s_val
-            return 0
+                    return s_name, s_val
+            return None, 0
 
-        # 2. Audit Item
+        # Audit Item
         user_item = pokemon.get('Item', '')
-        if user_item and user_item.lower() != "none":
+        if user_item:
             item_stats = p_data.get('Items', {})
-            # Total items might be less than total_weight if some players use "nothing"
             item_weight = sum(item_stats.values())
-            count = find_stat(user_item, item_stats)
+            real_name, count = find_stat(user_item, item_stats)
             pct = (count / item_weight * 100) if item_weight > 0 else 0
+            reports[name]["item"] = {"name": user_item, "usage": pct}
             
             if pct < USAGE_THRESHOLD:
                 top_name, top_val = max(item_stats.items(), key=lambda x: x[1])
@@ -70,36 +70,30 @@ def audit_team(team_data):
                     "suggestion": f"{top_name.title()} ({(top_val/item_weight*100):.1f}%)"
                 })
         
-        # 3. Audit Ability
+        # Audit Ability
         user_ability = pokemon.get('Ability', '')
         if user_ability:
             ability_stats = p_data.get('Abilities', {})
-            count = find_stat(user_ability, ability_stats)
+            real_name, count = find_stat(user_ability, ability_stats)
             pct = (count / total_weight * 100)
-            if pct < USAGE_THRESHOLD:
-                top_name, top_val = max(ability_stats.items(), key=lambda x: x[1])
-                warnings.append({
-                    "pokemon": name, "category": "Ability", "current": user_ability, "usage": pct,
-                    "suggestion": f"{top_name.title()} ({(top_val/total_weight*100):.1f}%)"
-                })
+            reports[name]["ability"] = {"name": user_ability, "usage": pct}
 
-        # 4. Audit Moves
+        # Audit Moves
         user_moves = [m['name'] for m in pokemon.get('Moves', [])]
         move_stats = p_data.get('Moves', {})
-        
         for move in user_moves:
-            count = find_stat(move, move_stats)
-            # Move usage % is (count / total_pokemon_weight) * 100
+            real_name, count = find_stat(move, move_stats)
             pct = (count / total_weight) * 100
+            reports[name]["moves"][move] = pct
             
             if pct < USAGE_THRESHOLD:
-                top_moves = sorted(move_stats.items(), key=lambda x:x[1], reverse=True)[:3]
-                suggestion = ", ".join([f"{k.title()} ({(v/total_weight)*100:.1f}%)" for k,v in top_moves])
+                top_moves = sorted(move_stats.items(), key=lambda x:x[1], reverse=True)[:2]
+                suggestion = ", ".join([f"{k} ({(v/total_weight)*100:.1f}%)" for k,v in top_moves])
                 warnings.append({
                     "pokemon": name, "category": "Move", "current": move, "usage": pct,
                     "suggestion": f"Common: {suggestion}"
                 })
 
-    return warnings
+    return {"reports": reports, "warnings": warnings}
 
 

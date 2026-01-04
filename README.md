@@ -33,6 +33,12 @@ MetaMatch processes raw "Chaos" data from Smogon (detailed usage statistics) to 
 *   **Instant Recall:** Instant dashboard loading for analyzed teams, bypassing the full analysis pipeline for previously processed builds.
 *   **Modular Storage:** Built with a storage adapter pattern for flexible integration between local JSON and cloud databases.
 
+### 🤖 Multi-Agent System (MAS)
+MetaMatch deploys three specialized agents to handle distinct query types, ensuring expert-level accuracy without hallucinations.
+*   **Clemont 🧪 (Tactician):** A strict, deterministic engine (Temp 0.0) that calculates hard facts. Solves mechanics questions like "Is Rotom-Wash weak to Ground?" by cross-referencing Abilities and Type Charts.
+*   **Professor Oak 📜 (Coach):** A creative strategist (Temp 0.4) that uses RAG to explain win conditions and high-level game plans.
+*   **Brock 🍳 (Builder):** A data-driven analyst (Temp 0.2) that audits teams against real-time usage stats, citing exact percentages for items and moves.
+
 ### 🤖 AI-Powered Coaching (RAG-Enhanced)
 MetaMatch implements a sophisticated RAG pipeline to ground LLM reasoning in verified data.
 *   **Retrieval-Augmented Generation (RAG):** Uses a **Vector Database (ChromaDB)** to retrieve real-time competitive strategies from Smogon's Strategy Dex.
@@ -80,13 +86,23 @@ graph TD
     B --> C{Analysis Pipeline}
     B <-->|Save/Load Teams| S[Local Storage]
 
-    subgraph RAG_Engine ["RAG AI Engine"]
-    C --> H[Smogon Strategy Dex]
+    subgraph AI_Core ["Multi-Agent Core"]
+    C --> R["Semantic Router (MiniLM-L6)"]
+    R -->|Mechanics| T["Clemont (Tactician)"]
+    R -->|Strategy| U["Prof. Oak (Coach)"]
+    R -->|Stats| V["Brock (Builder)"]
+    B -->|Calculated Math| T
+    H -->|RAG Context| U
+    M -->|Usage Data| V
+    T --> W[Response]
+    U --> W
+    V --> W
+    end
+
+    subgraph RAG_Engine ["RAG System"]
+    H[Smogon Strategy Dex]
     H -->|Granular Scraper| I[ChromaDB Vector Store]
-    I -->|"Semantic Search (BGE-Small)"| J[Context Injection]
-    B -->|Pre-calculated Stats| J
-    J --> K["Ollama LLM (Llama 3.2 3B)"]
-    K --> L[Grounded Advice]
+    I -->|"Semantic Search (BGE-Small)"| U
     end
 
     subgraph Static_Analysis ["Static Analysis"]
@@ -181,6 +197,7 @@ python -m unittest src/metamatch/tests/test_mechanics.py
 ## 🛠️ Module Overview
 
 *   **`src/metamatch/app.py`**: Streamlit frontend and dashboard orchestration.
+*   **`src/metamatch/agents/`**: Multi-Agent System (Router, Manager, Clemont, Oak, Brock).
 *   **`src/metamatch/team.py`**: Core parsing and deterministic calculation engine.
 *   **`src/metamatch/suggestions.py`**: LLM orchestration, RAG Context injection, and prompt engineering.
 *   **`src/metamatch/logic_engine.py`**: Deterministic logic engine for chat (matchups, immunities, speed tiers).

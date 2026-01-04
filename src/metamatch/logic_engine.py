@@ -138,15 +138,17 @@ def analyze_matchup(user_pokemon, opponent_name):
             resistances.append(f"{atk_type} ({mult}x)")
             
     if weaknesses:
-        facts.append(f"DEFENSE: {user_name} takes SUPER EFFECTIVE damage from {opponent_name}'s {', '.join(weaknesses)} moves.")
+        facts.append(f"DEFENSE: {user_name} takes SUPER EFFECTIVE (Weak) damage from {opponent_name}'s {', '.join(weaknesses)} moves.")
     if immunities:
-        facts.append(f"DEFENSE: {user_name} is IMMUNE to {opponent_name}'s {', '.join(immunities)} moves.")
+        facts.append(f"DEFENSE: {user_name} is HARD IMMUNE to {opponent_name}'s {', '.join(immunities)} moves.")
     if resistances:
         facts.append(f"DEFENSE: {user_name} RESISTS {opponent_name}'s {', '.join(resistances)} moves.")
 
     # 4. Offensive Analysis (Outgoing Damage)
     moves = user_pokemon.get('Moves', [])
     super_moves = []
+    
+    opp_abilities = [a.lower() for a in opp_data.get('abilities', [])]
     
     for move in moves:
         m_type = move.get('type')
@@ -156,6 +158,24 @@ def analyze_matchup(user_pokemon, opponent_name):
         if m_cat == 'Status' or not m_type:
             continue
             
+        m_type_lower = m_type.lower()
+        
+        # Check Opponent Immunities to this move
+        is_opp_immune = False
+        if m_type_lower == 'ground' and 'levitate' in opp_abilities:
+            is_opp_immune = True
+        elif m_type_lower == 'electric' and any(a in opp_abilities for a in ['volt-absorb', 'lightning-rod', 'motor-drive']):
+            is_opp_immune = True
+        elif m_type_lower == 'water' and any(a in opp_abilities for a in ['water-absorb', 'storm-drain', 'dry-skin']):
+            is_opp_immune = True
+        elif m_type_lower == 'fire' and any(a in opp_abilities for a in ['flash-fire', 'well-baked-body']):
+            is_opp_immune = True
+        elif m_type_lower == 'grass' and 'sap-sipper' in opp_abilities:
+            is_opp_immune = True
+
+        if is_opp_immune:
+            continue # Move does 0 damage, not super effective
+
         mult = get_type_effectiveness(m_type, opp_types)
         if mult >= 4.0:
             super_moves.append(f"{m_name} ({m_type} - 4x FATAL)")

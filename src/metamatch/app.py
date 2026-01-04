@@ -508,7 +508,8 @@ Timid Nature
 
     if st.session_state.submitted:
         # --- Meta Auditor ---
-        audit_warnings = auditor.audit_team(st.session_state.analysis['team'])
+        audit_results = auditor.audit_team(st.session_state.analysis['team'])
+        audit_warnings = audit_results.get("warnings", [])
         if audit_warnings:
             st.markdown("---")
             with st.expander(f"⚠️ Meta Audit ({len(audit_warnings)} Warnings)", expanded=True):
@@ -700,18 +701,32 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                 st.session_state.chat_messages = []
                 
             for msg in st.session_state.chat_messages:
-                with st.chat_message(msg["role"]):
+                # Use name and avatar if stored, fallback to role defaults
+                display_name = msg.get("name", msg["role"])
+                with st.chat_message(display_name, avatar=msg.get("avatar")):
+                    if msg["role"] == "assistant" and "name" in msg:
+                         st.markdown(f"**{msg['name']}**")
                     st.markdown(msg["content"])
         
         # RAG Guide
         with st.expander("💡 How to use the AI Coach efficiently", expanded=False):
             st.markdown("""
-            **The AI works best with specific questions:**
-            - 🛡️ **Matchups:** "Who switches into Great Tusk?" or "Does Pecharunt wall Kingambit?"
-            - ⚡ **Speed:** "Is my Latios faster than Gholdengo?"
-            - 📝 **Sets:** "What is a good moveset for Assault Vest Hatterene?"
+            **Meet your Coaching Staff:**
             
-            *Avoid vague questions like "Is my team good?" or "Win condition?"*
+            🧪 **Clemont** (Mechanics Engine)
+            *Ask him about math, specific interactions, and speed tiers.*
+            *   "Is Rotom-Wash weak to Ground?"
+            *   "Who is faster: Dragapult or Zamazenta?"
+            
+            📜 **Professor Oak** (Strategy Mentor)
+            *Ask him about win conditions, game plans, and high-level concepts.*
+            *   "How do I beat Stall teams?"
+            *   "What is the best lead for this team?"
+            
+            🍳 **Brock** (Team Builder)
+            *Ask him about sets, items, and meta usage stats.*
+            *   "What is the most popular item for Great Tusk?"
+            *   "Is this moveset good?"
             """)
 
         # Input
@@ -724,7 +739,18 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             
             # 2. AI Response
             with chat_container:
-                with st.chat_message("assistant"):
+                from metamatch.agents import AgentManager
+                manager = AgentManager()
+                agent_name = manager.get_active_agent_name(prompt)
+                
+                # Extract emoji for avatar
+                avatar = "🤖"
+                if "🧪" in agent_name: avatar = "🧪"
+                elif "📜" in agent_name: avatar = "📜"
+                elif "🍳" in agent_name: avatar = "🍳"
+
+                with st.chat_message(agent_name, avatar=avatar):
+                    st.markdown(f"**{agent_name}**")
                     response_placeholder = st.empty()
                     full_response = ""
                     
@@ -742,8 +768,13 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                     
                     response_placeholder.markdown(full_response)
             
-            # 3. Save to History
-            st.session_state.chat_messages.append({"role": "assistant", "content": full_response})
+            # 3. Save to History with persona details
+            st.session_state.chat_messages.append({
+                "role": "assistant", 
+                "name": agent_name,
+                "avatar": avatar,
+                "content": full_response
+            })
 
     with tab_overview:
         c1, c2 = st.columns(2)
