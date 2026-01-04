@@ -82,47 +82,47 @@ Generic LLMs "guess" — MetaMatch **calculates**.
 
 ```mermaid
 graph TD
-    A[User Input] -->|Showdown Export| B(Streamlit App)
-    B --> C{Analysis Pipeline}
-    B <-->|Save/Load Teams| S[Local Storage]
+    A["User Input"] -->|"Showdown Export"| B("Streamlit App")
+    B --> C{"Analysis Pipeline"}
+    B <-->|"Save/Load Teams"| S["Local Storage"]
 
     subgraph AI_Core ["Multi-Agent Core"]
     C --> R["Semantic Router (MiniLM-L6)"]
     R -->|Mechanics| T["Clemont (Tactician)"]
     R -->|Strategy| U["Prof. Oak (Coach)"]
     R -->|Stats| V["Brock (Builder)"]
-    B -->|Calculated Math| T
-    H -->|RAG Context| U
-    M -->|Usage Data| V
+    B -->|"Calculated Math"| T
+    H -->|"RAG Context"| U
+    M -->|"Usage Data"| V
     T --> W[Response]
     U --> W
     V --> W
     end
 
     subgraph RAG_Engine ["RAG System"]
-    H[Smogon Strategy Dex]
-    H -->|Granular Scraper| I[ChromaDB Vector Store]
+    H["Smogon Strategy Dex"]
+    H -->|"Granular Scraper"| I["ChromaDB Vector Store"]
     I -->|"Semantic Search (BGE-Small)"| U
     end
 
     subgraph Static_Analysis ["Static Analysis"]
-    C --> D[Team Parser]
-    D -->|PokeAPI| E[Enrich Data]
-    E --> F[Role Detection]
-    E --> G[Type Calculator]
+    C --> D["Team Parser"]
+    D -->|PokeAPI| E["Enrich Data"]
+    E --> F["Role Detection"]
+    E --> G["Type Calculator"]
     end
 
     subgraph Statistical_Engine ["Statistical Engine"]
-    M[Smogon Chaos Data] -->|Weighted Usage| N[Meta Auditor]
-    M -->|Correlation Matrix| O[Teammate Recommender]
+    M["Smogon Chaos Data"] -->|"Weighted Usage"| N["Meta Auditor"]
+    M -->|"Correlation Matrix"| O["Teammate Recommender"]
     end
 
-    F --> P[Dashboard UI]
+    F --> P["Dashboard UI"]
     G --> P
-    L --> P
+    W --> P
     N --> P
     O --> P
-    S -->|Instant Recall| P
+    S -->|"Instant Recall"| P
 ```
 
 ---
