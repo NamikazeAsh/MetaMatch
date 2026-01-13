@@ -142,8 +142,8 @@ def main():
     print("\nParsing downloaded files...")
     combined_names = set()
     for path in downloaded_paths:
-        # Get top 100 from each format to populate the search bar
-        names = parse_smogon_usage(path, top_n=100)
+        # Get top 1000 from each format to populate the search bar
+        names = parse_smogon_usage(path, top_n=1000)
         combined_names.update(names)
     
     sorted_names = list(combined_names)
