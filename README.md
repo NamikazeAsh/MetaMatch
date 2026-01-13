@@ -18,9 +18,11 @@
 *   **Meta Auditor:** Validates movesets against high-ladder usage stats, flagging statistically suboptimal choices (e.g., using *Shell Bell* when 98% of players use *Rocky Helmet*).
 *   **Performance Optimized:** Implements intelligent caching for file I/O and API calls to ensure low-latency responsiveness.
 
-### 🤝 Teammate Recommender
+### 🤝 Teammate Recommender & Composer
 *   **Statistical Synergy:** Suggests optimal teammates based on Smogon "Chaos" correlation matrices from millions of competitive battles.
-*   **Team Glue:** Identifies the statistical "glue" Pokemon that best complement your current squad composition using weighted synergy scores.
+*   **Multi-Format Mastery:** Seamlessly toggle between **OU, UU, and National Dex** to find partners across different metagames.
+*   **Quick Match (New):** Don't have a team? Pick 1-5 Pokémon to instantly identify the best "meta glue" and structural partners for your core.
+*   **Structural Intelligence:** The engine goes beyond popularity—it understands **role redundancy**. Testing shows that removing a pivot like *Landorus-T* causes the system to immediately prioritize *Great Tusk* or *Corviknight* to maintain team infrastructure (hazards/removal) before suggesting offensive threats.
 *   **Real-time Analysis:** Generates data-driven recommendations instantly without relying on LLM processing.
 
 ### 🧮 Statistical Engine

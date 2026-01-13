@@ -111,22 +111,29 @@ def main():
     print("Starting Smogon stats update...")
     stats_base_url = get_latest_stats_url()
     
-    # --- Define target files ---
-    target_files = ["gen9ou-1825.txt", "gen9ou-1695.txt"] 
-    chaos_file = "gen9ou-1825.json" # Advanced stats with teammate correlations
+    # --- Define target formats ---
+    TARGET_FORMATS = {
+        "OU": {"txt": "gen9ou-1825.txt", "json": "gen9ou-1825.json"},
+        "UU": {"txt": "gen9uu-1760.txt", "json": "gen9uu-1760.json"},
+        "NatDex": {"txt": "gen9nationaldex-1760.txt", "json": "gen9nationaldex-1760.json"}
+    }
     
-    # --- Download text files ---
+    # --- Download files ---
     downloaded_paths = []
-    for filename in target_files:
-        path = download_stat_file(stats_base_url, filename)
-        if path:
-            downloaded_paths.append(path)
-
-    # --- Download Chaos JSON ---
-    print("\nDownloading Chaos data for recommender...")
-    chaos_url = stats_base_url + "chaos/"
-    download_stat_file(chaos_url, chaos_file)
+    chaos_url_base = stats_base_url + "chaos/"
+    
+    for fmt, files in TARGET_FORMATS.items():
+        print(f"\nProcessing {fmt}...")
+        
+        # Text file (Usage)
+        txt_path = download_stat_file(stats_base_url, files["txt"])
+        if txt_path:
+            downloaded_paths.append(txt_path)
             
+        # JSON file (Chaos/Partners)
+        print(f"Downloading Chaos data for {fmt}...")
+        download_stat_file(chaos_url_base, files["json"])
+
     if not downloaded_paths:
         print("No stats files were downloaded. Aborting update.")
         return
@@ -135,13 +142,14 @@ def main():
     print("\nParsing downloaded files...")
     combined_names = set()
     for path in downloaded_paths:
-        names = parse_smogon_usage(path, top_n=60)
+        # Get top 100 from each format to populate the search bar
+        names = parse_smogon_usage(path, top_n=100)
         combined_names.update(names)
     
     sorted_names = list(combined_names)
 
     # --- Fetch types and save final JSON ---
-    print(f"Found {len(sorted_names)} unique Pokémon. Fetching data...")
+    print(f"Found {len(sorted_names)} unique Pokémon across all formats. Fetching data...")
     top_poke_data = {}
     for name in sorted_names:
         data = fetch_pokemon_data(name)
@@ -152,6 +160,7 @@ def main():
         json.dump(top_poke_data, f, indent=2)
         
     # --- Generate Speed Tiers ---
+    # We use the combined list so users see speed tiers for everything relevant
     speed_tiers = generate_speed_tiers(sorted_names)
     with open(config.JSON_DIR / "meta_speeds.json", "w") as f:
         json.dump(speed_tiers, f, indent=2)

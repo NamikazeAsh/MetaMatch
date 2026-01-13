@@ -556,7 +556,69 @@ with col2:
         st.title("MetaMatch")
 
 if not st.session_state.submitted:
-    st.info("👈 Use the sidebar to paste your team and start analysis!")
+    # --- Quick Match Feature ---
+    st.markdown("### 🤝 Quick Match")
+    st.caption("Don't have a full team? Pick 1-5 Pokémon to find their best partners.")
+    
+    # Format Selection Pills
+    tgt_format = st.pills(
+        "Competitive Format",
+        options=["OU", "UU", "NatDex"],
+        default=["OU"],
+        selection_mode="multi",
+        label_visibility="collapsed"
+    )
+    fmt_map = {"OU": "gen9ou", "UU": "gen9uu", "NatDex": "gen9natdex"}
+
+    # Load meta mons for selection
+    try:
+        with open(config.JSON_DIR / "topPoke.json", "r") as f:
+            meta_pokes = list(json.load(f).keys())
+    except:
+        meta_pokes = []
+
+    qm_selection = st.multiselect(
+        "Select your core (Max 5):", 
+        options=meta_pokes,
+        max_selections=5,
+        placeholder="Search for a Pokémon...",
+        key="quick_match_select"
+    )
+    
+    if qm_selection:
+        # Convert selected labels (e.g. "OU") to internal IDs (e.g. "gen9ou")
+        # Handle case where user deselects all (tgt_format is empty list) -> default to OU
+        selected_fmts = [fmt_map.get(f) for f in tgt_format] if tgt_format else ["gen9ou"]
+        recs = recommender.get_recommendations(qm_selection, top_n=16, format_id=selected_fmts)
+        
+        if recs:
+            st.markdown(f"**Top recommended partners for your squad:**")
+            # recs is list of (name, score)
+            max_score = recs[0][1]
+            
+            for i in range(0, len(recs), 4):
+                cols = st.columns(4)
+                batch = recs[i:i+4]
+                for j, (name, score) in enumerate(batch):
+                    match_pct = int((score / max_score) * 100) if max_score > 0 else 0
+                    glow_color = "#00ff88" if match_pct > 80 else "#00d4ff"
+                    
+                    with cols[j]:
+                        sprite_url = get_pokemon_sprite(name) or ""
+                        st.markdown(f"""
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid {glow_color}44; border-radius: 12px; padding: 10px; text-align: center; transition: transform 0.2s; margin-bottom: 15px;">
+                            <img src="{sprite_url}" width="70" style="filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-top: 5px; color: #fff;">{name}</div>
+                            <div title="Based on high-ladder weighted usage statistics from Smogon." style="cursor: help; margin-top: 5px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 15px; display: inline-block; border: 1px solid {glow_color}66;">
+                                <span style="color: {glow_color}; font-weight: bold; font-size: 0.8rem;">{match_pct}% Synergy</span>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+        else:
+            st.caption("No specific recommendations found for this combination.")
+
+    st.markdown("---")
+    st.info("👈 **To start a full analysis:** Paste your Showdown team export in the sidebar!")
     
 if st.session_state.submitted and st.session_state.pokemon_names:
     
@@ -932,7 +994,21 @@ if st.session_state.submitted and st.session_state.pokemon_names:
         st.subheader("🤖 Statistical Teammate Recommendations")
         st.caption("Based on real Smogon usage data and teammate correlation matrices.")
         
-        recs = recommender.get_recommendations(st.session_state.pokemon_names)
+        # Format Selection Pills
+        tgt_format_rec = st.pills(
+            "Target Format",
+            options=["OU", "UU", "NatDex"],
+            default=["OU"],
+            selection_mode="multi",
+            key="rec_format_pills"
+        )
+        fmt_map = {"OU": "gen9ou", "UU": "gen9uu", "NatDex": "gen9natdex"}
+
+        selected_fmts_rec = [fmt_map.get(f) for f in tgt_format_rec] if tgt_format_rec else ["gen9ou"]
+        recs = recommender.get_recommendations(
+            st.session_state.pokemon_names, 
+            format_id=selected_fmts_rec
+        )
         
         if recs:
             rec_cols = st.columns(3)
