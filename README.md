@@ -78,6 +78,15 @@ Generic LLMs "guess" — MetaMatch **calculates**.
 *   **Generic LLM:** Often overlooks the item and flags a **4x Ground weakness**. ❌
 *   **MetaMatch:** Correctly identifies the item grants **Ground Immunity** until popped. ✅
 
+#### 3. The "Role Void" Test (Teammate Composer)
+**Scenario:** A National Dex core of *Heatran, Tapu Fini, Kartana, and Dragapult*.
+*   **Action:** We removed the primary defensive pivot, **Landorus-Therian**.
+*   **MetaMatch:** Immediately deprioritized offensive threats and spiked recommendations for **Great Tusk** and **Corviknight**. The engine recognized the sudden lack of *Hazard Removal* and *Ground Immunity*, prioritizing structural repair over raw synergy. ✅
+
+#### 4. The "Foundation First" Test
+**Scenario:** Starting a new build with only *Kartana* and *Dragapult* (two frail breakers).
+*   **MetaMatch:** Instead of suggesting high-damage partners like *Kyurem* (which would compound defensive liabilities), it recommended **Heatran** (Steel glue), **Landorus-T** (Intimidate pivot), and **Toxapex** (Regenerator wall). It built the defensive "scaffolding" required to support the glass cannons first. ✅
+
 ---
 
 ## 🔄 System Architecture
