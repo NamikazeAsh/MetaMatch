@@ -54,6 +54,12 @@ def pokeSlugify(name):
         "tauros-paldea-fire": "tauros-paldea-blaze-breed",
         "tauros-paldea-combat": "tauros-paldea-combat-breed",
         
+        # Enamorus / Basculegion
+        "enamorus": "enamorus-incarnate",
+        "enamorus-therian": "enamorus-therian",
+        "basculegion": "basculegion-male",
+        "basculegion-f": "basculegion-female",
+        
         # Paradox / Others
         "iron-valiant": "iron-valiant", # Already correct but good to be explicit
         "roaring-moon": "roaring-moon",

@@ -25,10 +25,17 @@
 *   **Structural Intelligence:** The engine goes beyond popularity—it understands **role redundancy**. Testing shows that removing a pivot like *Landorus-T* causes the system to immediately prioritize *Great Tusk* or *Corviknight* to maintain team infrastructure (hazards/removal) before suggesting offensive threats.
 *   **Real-time Analysis:** Generates data-driven recommendations instantly without relying on LLM processing.
 
+### 🔎 Set Finder & Move Search
+*   **Reverse-Engineering Engine:** Input any combination of moves (e.g., *Thunder Wave + Scald*) to find which Pokémon run them.
+*   **Dual-Mode Search:**
+    *   **Verified Sets:** Instantly retrieves official competitive sets from the Smogon Strategy Dex (OU, UU, NatDex) with full spread details (Nature, Item, EVs).
+    *   **Experimental Matches:** Scans the entire usage statistics database to find "Loose Matches" — Pokémon that use your selected moves on the ladder (>1%), identifying "homemade" or niche tech that hasn't been documented yet.
+
 ### 🧮 Statistical Engine
 MetaMatch processes raw "Chaos" data from Smogon (detailed usage statistics) to power its auditor and recommender systems.
 *   **Weighted Usage:** Calculates the exact usage frequency of every Move, Item, and Ability relative to the Pokemon's total appearance rate.
 *   **Correlation Matrices:** Utilizes 2D sparse matrices to map teammate synergy scores across the entire metagame.
+*   **Master Strategy Database:** Consolidates verified competitive sets from multiple formats (OU, UU, NatDex) into a single, optimized lookup engine.
 
 ### 📁 Team Management
 *   **Local Persistence:** Save and organize favorite team builds directly to the local filesystem.
@@ -165,6 +172,9 @@ graph TD
     # Scrape usage stats for Recommender/Auditor
     python src/metamatch/scrapers.py
 
+    # Build Master Strategy Database
+    python scripts/build_strategy_cache.py
+
     # Scrape strategies, concepts & build Vector DB for AI Coach
     python src/metamatch/rag/build_index.py
     ```
@@ -218,6 +228,7 @@ python -m unittest src/metamatch/tests/test_mechanics.py
     *   **`build_index.py`**: Index initialization (concepts + strategies).
 *   **`src/metamatch/recommender.py`**: Statistical synergy calculator.
 *   **`src/metamatch/auditor.py`**: Meta-usage validation engine.
+*   **`src/metamatch/strategy_data.py`**: Master Strategy Database and dual-mode move search logic.
 *   **`src/metamatch/scrapers.py`**: Smogon Chaos data scraping pipeline.
 *   **`src/metamatch/storage.py`**: Data persistence layer.
 *   **`src/metamatch/utils.py`**: API caching and text normalization.

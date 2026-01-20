@@ -1,58 +1,33 @@
 [
   {
-    "label": "Scarf Deoxys-Speed",
-    "speed": 756,
-    "owner": "Deoxys-Speed"
+    "label": "Scarf Wugtrio",
+    "speed": 558,
+    "owner": "Wugtrio"
   },
   {
-    "label": "Scarf Zamazenta",
-    "speed": 618,
-    "owner": "Zamazenta"
+    "label": "Scarf Ambipom",
+    "speed": 541,
+    "owner": "Ambipom"
   },
   {
-    "label": "Scarf Darkrai",
-    "speed": 574,
-    "owner": "Darkrai"
-  },
-  {
-    "label": "Scarf Tornadus-Therian",
-    "speed": 562,
-    "owner": "Tornadus-Therian"
-  },
-  {
-    "label": "Scarf Ogerpon",
+    "label": "Scarf Dugtrio-Alola",
     "speed": 525,
-    "owner": "Ogerpon"
+    "owner": "Dugtrio-Alola"
   },
   {
-    "label": "Scarf Walking Wake",
-    "speed": 522,
-    "owner": "Walking Wake"
-  },
-  {
-    "label": "Scarf Iron Treads",
+    "label": "Scarf Pyroar",
     "speed": 513,
-    "owner": "Iron Treads"
+    "owner": "Pyroar"
   },
   {
-    "label": "Max Deoxys-Speed",
-    "speed": 504,
-    "owner": "Deoxys-Speed"
+    "label": "Scarf Manaphy",
+    "speed": 492,
+    "owner": "Manaphy"
   },
   {
-    "label": "Scarf Gliscor",
-    "speed": 475,
-    "owner": "Gliscor"
-  },
-  {
-    "label": "Scarf Moltres",
-    "speed": 459,
-    "owner": "Moltres"
-  },
-  {
-    "label": "Scarf Pecharunt",
-    "speed": 453,
-    "owner": "Pecharunt"
+    "label": "Scarf Frogadier",
+    "speed": 483,
+    "owner": "Frogadier"
   },
   {
     "label": "Choice Scarf Gholdengo",
@@ -60,14 +35,14 @@
     "owner": "Gholdengo"
   },
   {
-    "label": "Scarf Glimmora",
+    "label": "Scarf Rotom-Fan",
     "speed": 447,
-    "owner": "Glimmora"
+    "owner": "Rotom-Fan"
   },
   {
-    "label": "Scarf Ceruledge",
-    "speed": 442,
-    "owner": "Ceruledge"
+    "label": "Scarf Altaria",
+    "speed": 426,
+    "owner": "Altaria"
   },
   {
     "label": "Max Speed Dragapult",
@@ -75,88 +50,83 @@
     "owner": "Dragapult"
   },
   {
-    "label": "Max Zamazenta",
-    "speed": 412,
-    "owner": "Zamazenta"
+    "label": "Max Wugtrio",
+    "speed": 372,
+    "owner": "Wugtrio"
   },
   {
-    "label": "Max Darkrai",
-    "speed": 383,
-    "owner": "Darkrai"
+    "label": "Max Ambipom",
+    "speed": 361,
+    "owner": "Ambipom"
   },
   {
-    "label": "Max Tornadus-Therian",
-    "speed": 375,
-    "owner": "Tornadus-Therian"
-  },
-  {
-    "label": "Max Ogerpon",
+    "label": "Max Dugtrio-Alola",
     "speed": 350,
-    "owner": "Ogerpon"
+    "owner": "Dugtrio-Alola"
   },
   {
-    "label": "Max Walking Wake",
-    "speed": 348,
-    "owner": "Walking Wake"
-  },
-  {
-    "label": "Max Iron Treads",
+    "label": "Max Pyroar",
     "speed": 342,
-    "owner": "Iron Treads"
+    "owner": "Pyroar"
   },
   {
-    "label": "Max Gliscor",
-    "speed": 317,
-    "owner": "Gliscor"
+    "label": "Max Manaphy",
+    "speed": 328,
+    "owner": "Manaphy"
   },
   {
-    "label": "Max Moltres",
-    "speed": 306,
-    "owner": "Moltres"
+    "label": "Max Frogadier",
+    "speed": 322,
+    "owner": "Frogadier"
   },
   {
-    "label": "Max Pecharunt",
-    "speed": 302,
-    "owner": "Pecharunt"
-  },
-  {
-    "label": "Max Glimmora",
+    "label": "Max Rotom-Fan",
     "speed": 298,
-    "owner": "Glimmora"
+    "owner": "Rotom-Fan"
   },
   {
-    "label": "Max Ceruledge",
-    "speed": 295,
-    "owner": "Ceruledge"
+    "label": "Max Altaria",
+    "speed": 284,
+    "owner": "Altaria"
   },
   {
-    "label": "Max Heatran",
-    "speed": 278,
-    "owner": "Heatran"
+    "label": "Max Slurpuff",
+    "speed": 267,
+    "owner": "Slurpuff"
   },
   {
-    "label": "Max Volcanion",
-    "speed": 262,
-    "owner": "Volcanion"
-  },
-  {
-    "label": "Max Corviknight",
-    "speed": 256,
-    "owner": "Corviknight"
-  },
-  {
-    "label": "Max Pelipper",
+    "label": "Max Vulpix",
     "speed": 251,
-    "owner": "Pelipper"
+    "owner": "Vulpix"
   },
   {
-    "label": "Max Grimmsnarl",
+    "label": "Max Weezing-Galar",
     "speed": 240,
-    "owner": "Grimmsnarl"
+    "owner": "Weezing-Galar"
   },
   {
-    "label": "Max Ting-Lu",
+    "label": "Max Rampardos",
+    "speed": 236,
+    "owner": "Rampardos"
+  },
+  {
+    "label": "Max Axew",
+    "speed": 234,
+    "owner": "Axew"
+  },
+  {
+    "label": "Max Arctozolt",
+    "speed": 229,
+    "owner": "Arctozolt"
+  },
+  {
+    "label": "Max Blipbug",
     "speed": 207,
-    "owner": "Ting-Lu"
+    "owner": "Blipbug"
+  },
+  {
+    "label": "Max Hydrapple",
+    "speed": 205,
+    "owner": "Hydrapple"
   }
 ]
