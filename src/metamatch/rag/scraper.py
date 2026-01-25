@@ -106,16 +106,24 @@ def fetch_smogon_strategies():
         # 1. Fetch Enrichment Data (Types, Abilities)
         context_header = get_pokemon_context(pokemon)
         
-        # 2. Parse Overview (Split by paragraph)
+        # 2. Parse Overview (Split by paragraph) with Heuristic Detection
         if 'overview' in analysis and analysis['overview']:
             paragraphs = split_into_paragraphs(analysis['overview'])
             for idx, p in enumerate(paragraphs):
-                full_text = f"{context_header} Overview Part {idx+1}: {p}"
+                # Heuristic: Check for counter-play keywords
+                category = "Overview"
+                p_lower = p.lower()
+                if any(kw in p_lower for kw in ["check", "counter", "weakness", "struggle", "revenge kill", "threat", "wall"]):
+                    category = "Checks & Counters"
+                    full_text = f"{context_header} **COUNTERPLAY / WEAKNESSES**: {p}"
+                else:
+                    full_text = f"{context_header} Overview Part {idx+1}: {p}"
+
                 chunks.append({
                     "pokemon": pokemon,
-                    "category": "Overview",
+                    "category": category,
                     "text": full_text,
-                    "metadata": {"pokemon": pokemon, "type": "overview", "part": idx}
+                    "metadata": {"pokemon": pokemon, "type": category.lower(), "part": idx}
                 })
 
         # 3. Parse Sets
@@ -148,13 +156,20 @@ def fetch_smogon_strategies():
                     })
                 
                 for idx, p in enumerate(paragraphs):
-                    full_text = f"{set_header} Strategy Part {idx+1}: {p}"
+                    # Apply Heuristic Detection to Set Descriptions too
+                    category = "Set"
+                    p_lower = p.lower()
+                    if any(kw in p_lower for kw in ["check", "counter", "weakness", "struggle", "revenge kill", "threat", "wall"]):
+                        category = "Checks & Counters"
+                        full_text = f"{set_header} **COUNTERPLAY / WEAKNESSES** (from Set): {p}"
+                    else:
+                        full_text = f"{set_header} Strategy Part {idx+1}: {p}"
                     
                     chunks.append({
                         "pokemon": pokemon,
-                        "category": "Set",
+                        "category": category,
                         "text": full_text,
-                        "metadata": {"pokemon": pokemon, "type": "set", "set_name": set_name, "part": idx}
+                        "metadata": {"pokemon": pokemon, "type": category.lower(), "set_name": set_name, "part": idx}
                     })
 
 
@@ -169,6 +184,25 @@ def fetch_smogon_strategies():
                     "text": full_text,
                     "metadata": {"pokemon": pokemon, "type": "comments", "part": idx}
                 })
+
+        # 5. Parse Checks & Counters (New - Future Proofing)
+        if 'checks' in analysis and analysis['checks']:
+            for idx, check in enumerate(analysis['checks']):
+                check_name = check.get('name', 'General Counters')
+                check_desc = check.get('description', '')
+                
+                # Split description if it's long HTML
+                paragraphs = split_into_paragraphs(check_desc)
+                if not paragraphs and check_desc: paragraphs = [check_desc]
+                
+                for p_idx, p in enumerate(paragraphs):
+                    full_text = f"{context_header} **MAJOR THREAT** ({check_name}): {p}"
+                    chunks.append({
+                        "pokemon": pokemon,
+                        "category": "Checks & Counters",
+                        "text": full_text,
+                        "metadata": {"pokemon": pokemon, "type": "checks", "check_name": check_name, "part": p_idx}
+                    })
 
     print(f"\nParsed and enriched {len(chunks)} strategy chunks.")
     return chunks
