@@ -608,6 +608,11 @@ if not st.session_state.submitted:
             selected_fmts = [fmt_map.get(f) for f in tgt_format] if tgt_format else ["gen9ou"]
             recs = recommender.get_recommendations(qm_selection, top_n=16, format_id=selected_fmts)
             
+            # Load strategy data for set recommendations
+            strat_data = get_master_strategy_data()
+            # Map format labels for filtering sets (e.g., "OU", "UU", "NatDex")
+            selected_format_labels = tgt_format if tgt_format else ["OU"]
+            
             if recs:
                 st.markdown(f"**Top recommended partners for your squad:**")
                 # recs is list of (name, score)
@@ -620,15 +625,78 @@ if not st.session_state.submitted:
                         match_pct = int((score / max_score) * 100) if max_score > 0 else 0
                         glow_color = "#00ff88" if match_pct > 80 else "#00d4ff"
                         
+                        # Get sets for this Pokemon filtered by selected formats
+                        pokemon_sets = []
+                        if name in strat_data:
+                            all_sets = strat_data[name].get("sets", {})
+                            for set_name, set_info in all_sets.items():
+                                # Check if set matches any selected format (e.g., "Sun Sweeper (OU)" contains "OU")
+                                for fmt_label in selected_format_labels:
+                                    if f"({fmt_label})" in set_name:
+                                        pokemon_sets.append((set_name, set_info))
+                                        break
+                        
                         with cols[j]:
                             sprite_url = get_pokemon_sprite(name) or ""
+                            
+                            # Build sets HTML
+                            sets_html = ""
+                            if pokemon_sets:
+                                sets_html = '<div style="margin-top: 8px; text-align: left;">'
+                                for set_name, set_info in pokemon_sets[:3]:  # Show max 3 sets
+                                    # Extract key info
+                                    item = set_info.get("item", "")
+                                    if isinstance(item, list):
+                                        item = item[0] if item else ""
+                                    ability = set_info.get("ability", "")
+                                    if isinstance(ability, list):
+                                        ability = ability[0] if ability else ""
+                                    
+                                    # Handle "None" ability (Pokémon with only one ability)
+                                    if not ability or ability == "None":
+                                        ability = ""
+                                    
+                                    # Clean set name (remove format suffix)
+                                    display_name = set_name.rsplit(" (", 1)[0]
+                                    
+                                    # Build info line (item only if no ability)
+                                    if ability:
+                                        info_line = f"{item} · {ability}"
+                                    else:
+                                        info_line = item
+                                    
+                                    sets_html += f'''
+                                    <div style="background: rgba(0,0,0,0.25); border-radius: 6px; padding: 6px 10px; margin-top: 6px; border-left: 3px solid {glow_color};">
+                                        <div style="font-size: 0.8rem; font-weight: 600; color: #fff;">{display_name}</div>
+                                        <div style="font-size: 0.7rem; color: #aaa; margin-top: 3px;">{info_line}</div>
+                                    </div>'''
+                                sets_html += '</div>'
+                            else:
+                                sets_html = '<div class="qm-sets-container" style="font-size: 0.65rem; color: #666; margin-top: 8px;">No verified sets</div>'
+                            
+                            # Wrap sets in a hover-reveal container
+                            sets_wrapper = f'<div class="qm-sets-container">{sets_html}</div>' if pokemon_sets else sets_html
+                            
                             st.markdown(f"""
-                            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid {glow_color}44; border-radius: 12px; padding: 10px; text-align: center; transition: transform 0.2s; margin-bottom: 15px;">
+                            <style>
+                                .qm-card .qm-sets-container {{
+                                    max-height: 0;
+                                    overflow: hidden;
+                                    opacity: 0;
+                                    transition: max-height 0.3s ease, opacity 0.3s ease;
+                                }}
+                                .qm-card:hover .qm-sets-container {{
+                                    max-height: 300px;
+                                    opacity: 1;
+                                }}
+                            </style>
+                            <div class="qm-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid {glow_color}44; border-radius: 12px; padding: 10px; text-align: center; transition: transform 0.2s; margin-bottom: 15px; cursor: pointer;">
                                 <img src="{sprite_url}" width="70" style="filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
                                 <div style="font-weight: 700; font-size: 0.9rem; margin-top: 5px; color: #fff;">{name}</div>
                                 <div title="Based on high-ladder weighted usage statistics from Smogon." style="cursor: help; margin-top: 5px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 15px; display: inline-block; border: 1px solid {glow_color}66;">
                                     <span style="color: {glow_color}; font-weight: bold; font-size: 0.8rem;">{match_pct}% Synergy</span>
                                 </div>
+                                {sets_wrapper}
                             </div>
                             """, unsafe_allow_html=True)
             else:

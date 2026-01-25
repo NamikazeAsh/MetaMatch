@@ -2,6 +2,14 @@ import json
 from pathlib import Path
 from metamatch import config
 
+
+def is_mega(pokemon_name: str) -> bool:
+    """Check if a Pokemon is a Mega Evolution."""
+    name_lower = pokemon_name.lower()
+    # Matches patterns like "Charizard-Mega-X", "Gengar-Mega", etc.
+    return "-mega" in name_lower
+
+
 def get_recommendations(current_team_names, top_n=5, format_id="gen9ou"):
     """
     Analyzes the chaos data to find the best teammates for the current team.
@@ -24,6 +32,9 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou"):
         format_ids = [format_id]
     else:
         format_ids = format_id
+
+    # Check if the current team already has a Mega Pokemon
+    team_has_mega = any(is_mega(name) for name in current_team_names)
 
     # Map to store aggregated scores: {TeammateName: TotalScore}
     candidate_scores = {}
@@ -60,8 +71,13 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou"):
             if p_data:
                 teammates = p_data.get('Teammates', {})
                 for mate, score in teammates.items():
-                    if mate.lower() not in team_set:
-                        candidate_scores[mate] = candidate_scores.get(mate, 0) + score
+                    # Skip if teammate is already on team
+                    if mate.lower() in team_set:
+                        continue
+                    # Skip Mega recommendations if team already has a Mega
+                    if team_has_mega and is_mega(mate):
+                        continue
+                    candidate_scores[mate] = candidate_scores.get(mate, 0) + score
 
     # Sort candidates by total score
     sorted_candidates = sorted(candidate_scores.items(), key=lambda x: x[1], reverse=True)

@@ -84,6 +84,7 @@ def pokeSlugify(name):
         "aegislash": "aegislash-shield",
         "giratina": "giratina-altered",
         "shaymin": "shaymin-land",
+        "keldeo": "keldeo-ordinary",
     }
     
     if name in special_cases:
