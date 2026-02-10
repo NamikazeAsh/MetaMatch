@@ -1,3 +1,14 @@
+import os
+import warnings
+import logging
+
+# --- Suppress Startup Warnings ---
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+warnings.filterwarnings('ignore', category=UserWarning, module='triton')
+warnings.filterwarnings('ignore', category=FutureWarning, module='google.api_core')
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+
 import streamlit as st
 import re
 import requests
@@ -159,326 +170,24 @@ with st.sidebar:
                     st.markdown(preview_html, unsafe_allow_html=True)
                 
                 c1, c2 = st.columns(2)
-                if c1.button("📂 Load", use_container_width=True, key="load_btn"):
+                if c1.button("📂 Load", use_container_width=True):
                     st.session_state.default_input = selected_team['raw_text']
                     if selected_team.get('analysis'):
                         st.session_state.analysis = selected_team['analysis']
                         st.session_state.pokemon_names = extract_pokemon_names(selected_team['raw_text'])
                         st.session_state.submitted = True
                     st.rerun()
-                if c2.button("🗑️ Delete", use_container_width=True, key="del_btn"):
+                if c2.button("🗑️ Delete", use_container_width=True):
                     if storage.delete_team(selected_name):
                         get_cached_teams.clear() # Clear cache
                         st.success(f"Deleted {selected_name}")
                         st.rerun()
     else:
         st.info("No saved teams yet.")
-    
-    if st.button("🔄 Clear Cache (Dev)", use_container_width=True):
-        st.cache_resource.clear()
-        st.cache_data.clear()
-        st.rerun()
 
     st.markdown("---")
     st.header("📋 Team Input")
     
-    # Default Presets
-    debug_team_balanced = """
-Rotom-Wash @ Leftovers
-Ability: Levitate
-EVs: 252 HP / 4 Def / 252 SpD
-Calm Nature
-- Volt Switch
-- Hydro Pump
-- Will-O-Wisp
-- Pain Split
-
-Garchomp @ Rocky Helmet
-Ability: Rough Skin
-Tera Type: Steel
-EVs: 252 HP / 4 Def / 252 Spe
-Jolly Nature
-- Stealth Rock
-- Earthquake
-- Dragon Tail
-- Spikes
-
-Kingambit @ Black Glasses
-Ability: Supreme Overlord
-Tera Type: Dark
-EVs: 252 Atk / 4 SpD / 252 Spe
-Adamant Nature
-- Swords Dance
-- Kowtow Cleave
-- Iron Head
-- Sucker Punch
-
-Iron Valiant @ Booster Energy
-Ability: Quark Drive
-Tera Type: Fairy
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-- Moonblast
-- Close Combat
-- Thunderbolt
-- Encore
-
-Heatran @ Air Balloon
-Ability: Flash Fire
-Tera Type: Grass
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-- Magma Storm
-- Earth Power
-- Taunt
-- Stealth Rock
-
-Rillaboom @ Choice Band
-Ability: Grassy Surge
-Tera Type: Grass
-EVs: 252 Atk / 4 Def / 252 Spe
-Adamant Nature
-- Grassy Glide
-- Wood Hammer
-- Knock Off
-- U-turn"""
-
-    debug_team_rain = """
-Pelipper @ Damp Rock
-Ability: Drizzle
-EVs: 248 HP / 252 Def / 8 SpD
-Bold Nature
-- Surf
-- Hurricane
-- U-turn
-- Roost
-
-Barraskewda @ Choice Band
-Ability: Swift Swim
-EVs: 252 Atk / 4 SpD / 252 Spe
-Adamant Nature
-- Liquidation
-- Close Combat
-- Flip Turn
-- Aqua Jet
-
-Archaludon @ Power Herb
-Ability: Stamina
-EVs: 252 SpA / 4 SpD / 252 Spe
-Modest Nature
-- Electro Shot
-- Draco Meteor
-- Flash Cannon
-- Body Press
-
-Iron Treads @ Booster Energy
-Ability: Quark Drive
-EVs: 252 Atk / 4 SpD / 252 Spe
-Jolly Nature
-- Rapid Spin
-- Earthquake
-- Iron Head
-- Stealth Rock
-
-Greninja @ Life Orb
-Ability: Battle Bond
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-- Hydro Pump
-- Dark Pulse
-- Water Shuriken
-- Spikes
-
-Zapdos @ Heavy-Duty Boots
-Ability: Static
-EVs: 252 HP / 104 Def / 152 Spe
-Timid Nature
-- Thunder
-- Hurricane
-- Volt Switch
-- Roost"""
-
-    debug_team_stall = """
-Alomomola @ Heavy-Duty Boots
-Ability: Regenerator
-EVs: 252 HP / 4 Def / 252 SpD
-Calm Nature
-- Wish
-- Protect
-- Flip Turn
-- Scald
-
-Clodsire @ Leftovers
-Ability: Unaware
-EVs: 248 HP / 8 Def / 252 SpD
-Careful Nature
-- Earthquake
-- Toxic
-- Recover
-- Stealth Rock
-
-Blissey @ Heavy-Duty Boots
-Ability: Natural Cure
-EVs: 252 HP / 252 Def / 4 SpD
-Bold Nature
-- Seismic Toss
-- Soft-Boiled
-- Stealth Rock
-- Thunder Wave
-
-Dondozo @ Leftovers
-Ability: Unaware
-EVs: 252 HP / 252 Def / 4 SpD
-Impish Nature
-- Liquidation
-- Body Press
-- Curse
-- Rest
-
-Corviknight @ Leftovers
-Ability: Pressure
-EVs: 248 HP / 252 Def / 8 SpD
-Impish Nature
-- Brave Bird
-- Roost
-
-Garganacl @ Leftovers
-Ability: Purifying Salt
-EVs: 252 HP / 4 Def / 252 SpD
-Careful Nature
-- Salt Cure
-- Recover
-- Iron Defense
-- Body Press"""
-
-    debug_team_sand = """
-Tyranitar @ Smooth Rock
-Ability: Sand Stream
-EVs: 252 HP / 4 Atk / 252 SpD
-Careful Nature
-- Stealth Rock
-- Stone Edge
-- Knock Off
-- Earthquake
-
-Excadrill @ Life Orb
-Ability: Sand Rush
-EVs: 252 Atk / 4 Def / 252 Spe
-Jolly Nature
-- Swords Dance
-- Iron Head
-- Rock Slide
-- High Horsepower
-
-Garganacl @ Covert Cloak
-Ability: Purifying Salt
-EVs: 252 HP / 4 Atk / 252 SpD
-Careful Nature
-- Salt Cure
-- Recover
-- Stone Edge
-- Earthquake
-
-Corviknight @ Leftovers
-Ability: Pressure
-EVs: 252 HP / 4 Def / 252 SpD
-Impish Nature
-- Defog
-- Roost
-- Brave Bird
-- U-turn
-
-Rotom-Wash @ Leftovers
-Ability: Levitate
-EVs: 252 HP / 252 Def / 4 SpA
-Bold Nature
-- Volt Switch
-- Hydro Pump
-- Will-O-Wisp
-- Pain Split
-
-Glimmora @ Focus Sash
-Ability: Toxic Debris
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-- Mortal Spin
-- Power Gem
-- Sludge Wave
-- Stealth Rock"""
-
-    debug_team_bulky = """
-Great Tusk @ Booster Energy
-Ability: Protosynthesis
-EVs: 252 Atk / 4 SpD / 252 Spe
-Jolly Nature
-- Headlong Rush
-- Close Combat
-- Ice Spinner
-- Rapid Spin
-
-Garganacl @ Leftovers
-Ability: Purifying Salt
-EVs: 252 HP / 252 Def / 4 SpD
-Impish Nature
-- Salt Cure
-- Recover
-- Iron Defense
-- Protect
-
-Corviknight @ Rocky Helmet
-Ability: Pressure
-EVs: 248 HP / 252 Def / 8 SpD
-Impish Nature
-- Brave Bird
-- Roost
-- Defog
-- U-turn
-
-Glimmora @ Heavy-Duty Boots
-Ability: Toxic Debris
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-- Mortal Spin
-- Power Gem
-- Stealth Rock
-- Spikes
-
-Volcarona @ Heavy-Duty Boots
-Ability: Flame Body
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-- Quiver Dance
-- Fiery Dance
-- Bug Buzz
-- Giga Drain
-
-Dragapult @ Choice Specs
-Ability: Infiltrator
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-- Draco Meteor
-- Shadow Ball
-- U-turn
-- Flamethrower"""
-
-    st.caption("🐞 Quick Load Presets:")
-    b1, b2, b3, b4, b5 = st.columns(5)
-    if b1.button("⚖️ Bal", use_container_width=True):
-        st.session_state.default_input = debug_team_balanced
-        st.rerun()
-    if b2.button("🌧️ Rain", use_container_width=True):
-        st.session_state.default_input = debug_team_rain
-        st.rerun()
-    if b3.button("🐢 Stall", use_container_width=True):
-        st.session_state.default_input = debug_team_stall
-        st.rerun()
-    if b4.button("🏜️ Sand", use_container_width=True):
-        st.session_state.default_input = debug_team_sand
-        st.rerun()
-    if b5.button("💪 Bulky", use_container_width=True):
-        st.session_state.default_input = debug_team_bulky
-        st.rerun()
-
     with st.form("pokemon_form"):
         pokemon_data = st.text_area(
             "Paste Showdown Export:",
@@ -544,13 +253,31 @@ Timid Nature
                     st.error("Please enter a name for the team.")
 
     with st.expander("ℹ️ Supported Formats"):
+        st.markdown("""
+        MetaMatch supports the standard **Pokémon Showdown Export** format. 
+        You can copy your team directly from the 'Export' button in the Showdown Teambuilder.
+        
+        **Recognized Fields:**
+        - `Pokemon @ Item` (Optional item)
+        - `Ability: Name`
+        - `Tera Type: Type`
+        - `EVs: 252 HP / 252 Def`
+        - `Nature Name Nature` (e.g., *Adamant Nature*)
+        - `- Move Name` (Starting with a hyphen)
+        
+        *Note: Nicknames are currently not supported. Please use the species name directly.*
+        """)
         st.code("""
-Pikachu @ Light Ball
-Ability: Static
-EVs: 252 Atk / 4 HP
-
-Charizard @ Charcoal  
-Ability: Blaze""", language="text")
+Rotom-Wash @ Leftovers
+Ability: Levitate
+Tera Type: Steel
+EVs: 252 HP / 252 Def / 4 SpD
+Bold Nature
+- Volt Switch
+- Hydro Pump
+- Will-O-Wisp
+- Pain Split
+        """, language="text")
 
 @st.cache_resource
 def get_master_strategy_data():
