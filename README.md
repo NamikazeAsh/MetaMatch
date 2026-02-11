@@ -31,6 +31,19 @@
     *   **Verified Sets:** Instantly retrieves official competitive sets from the Smogon Strategy Dex (OU, UU, NatDex) with full spread details (Nature, Item, EVs).
     *   **Experimental Matches:** Scans the entire usage statistics database to find "Loose Matches" — Pokémon that use your selected moves on the ladder (>1%), identifying "homemade" or niche tech that hasn't been documented yet.
 
+### 📼 Replay Auditor (Battle Post-Mortem)
+*   **One-Click Analysis:** Paste any Pokémon Showdown replay link to receive an instant tactical breakdown.
+*   **Momentum Chart:** Visualizes battle momentum turn-by-turn — watch for swings where lines cross to identify pivotal moments.
+*   **Faint Timeline:** See exactly which Pokémon KO'd yours, what move they used, and the damage dealt (including self-KOs like Explosion).
+*   **Blunder Detection:** Identifies 6 types of misplays:
+    *   Lost Hazard Remover early ("You let Corviknight die before removing Stealth Rock")
+    *   Setup Fodder (gave opponent free boosts)
+    *   Wasted Sweeper (setup mon KO'd without dealing damage)
+    *   Hazard Chip Death (fainted to Stealth Rock/Spikes)
+    *   Weather War Loss (lost weather control advantage)
+    *   Momentum Collapse (massive swing in single turn)
+*   **Hazard Damage Summary:** Tracks cumulative entry hazard chip per Pokémon with Heavy-Duty Boots recommendations.
+
 ### 🧮 Statistical Engine
 MetaMatch processes raw "Chaos" data from Smogon (detailed usage statistics) to power its auditor and recommender systems.
 *   **Weighted Usage:** Calculates the exact usage frequency of every Move, Item, and Ability relative to the Pokemon's total appearance rate.
