@@ -24,7 +24,7 @@ from pathlib import Path
 # Adds the 'src' directory to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from metamatch.utils import pokeSlugify
+from metamatch.utils import pokeSlugify, is_pokepaste_url, fetch_pokepaste
 from metamatch.team import readTeam, detectRole, addComments, coverageCheck
 from metamatch.suggestions import get_suggestions, get_team_guide, get_chat_response
 from metamatch.scrapers import generate_speed_tiers
@@ -191,16 +191,27 @@ with st.sidebar:
     
     with st.form("pokemon_form"):
         pokemon_data = st.text_area(
-            "Paste Showdown Export:",
+            "Paste Showdown Export or pokepast.es link:",
             value=st.session_state.default_input,
-            placeholder="Pikachu @ Light Ball...",
+            placeholder="Pikachu @ Light Ball...\n\nOR paste a pokepast.es link",
             height=400,
-            help="Paste your team from Pokemon Showdown here."
+            help="Paste your team from Pokemon Showdown or a pokepast.es URL."
         )
         
         submit_button = st.form_submit_button("Analyze Team", type="primary")
         
         if submit_button and pokemon_data:
+            # Auto-detect pokepast.es URLs and fetch
+            if is_pokepaste_url(pokemon_data):
+                with st.spinner("Fetching team from pokepast.es..."):
+                    fetched = fetch_pokepaste(pokemon_data)
+                    if fetched:
+                        pokemon_data = fetched
+                        st.toast("✅ Loaded team from pokepast.es!")
+                    else:
+                        st.error("Failed to fetch from pokepast.es. Check the URL.")
+                        st.stop()
+            
             st.session_state.pokemon_data = pokemon_data
             st.session_state.pokemon_names = extract_pokemon_names(pokemon_data)
             

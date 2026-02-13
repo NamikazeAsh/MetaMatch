@@ -141,3 +141,51 @@ def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item=""):
         stat = int(stat * 0.5)
         
     return stat
+
+
+# --- Pokepaste Integration ---
+POKEPASTE_PATTERN = re.compile(r'pokepast\.es/([a-zA-Z0-9]+)')
+
+def is_pokepaste_url(text: str) -> bool:
+    """Check if text contains a pokepast.es URL."""
+    return bool(POKEPASTE_PATTERN.search(text.strip()))
+
+def fetch_pokepaste(url_or_id: str) -> str | None:
+    """
+    Fetch raw team export from pokepast.es.
+    Accepts full URL or just the paste ID.
+    Returns the raw Showdown export text, or None on failure.
+    """
+    text = url_or_id.strip()
+    
+    # Extract ID from URL if needed
+    match = POKEPASTE_PATTERN.search(text)
+    if match:
+        paste_id = match.group(1)
+    else:
+        paste_id = text  # Assume it's just the ID
+    
+    try:
+        raw_url = f"https://pokepast.es/{paste_id}/raw"
+        resp = requests.get(raw_url, timeout=5)
+        if resp.status_code == 200:
+            # Normalize line endings (pokepaste returns \r\n)
+            return resp.text.replace('\r\n', '\n').strip()
+        return None
+    except Exception:
+        return None
+
+def is_showdown_export(text: str) -> bool:
+    """
+    Detect if text looks like a Showdown team export.
+    Checks for common patterns like '@' (item), 'Ability:', 'EVs:', 'Nature'.
+    """
+    text = text.strip()
+    if not text:
+        return False
+    # Must have at least one Pokemon with item OR ability line
+    has_item = '@' in text
+    has_ability = 'Ability:' in text
+    has_nature = 'Nature' in text
+    has_move = text.count('\n-') >= 1
+    return (has_item or has_ability) and (has_nature or has_move)
