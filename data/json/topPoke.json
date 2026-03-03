@@ -1,3552 +1,167 @@
 {
-  "Conkeldurr": [
-    "Fighting"
-  ],
-  "Blastoise": [
-    "Water"
-  ],
-  "Dwebble": [
-    "Bug",
-    "Rock"
-  ],
-  "Fuecoco": [
-    "Fire"
-  ],
-  "Heracross": [
-    "Bug",
-    "Fighting"
-  ],
-  "Whiscash": [
-    "Water",
-    "Ground"
-  ],
-  "Mismagius": [
-    "Ghost"
-  ],
-  "Sliggoo": [
-    "Dragon"
-  ],
-  "Crocalor": [
-    "Fire"
-  ],
-  "Hatenna": [
-    "Psychic"
-  ],
-  "Pikachu": [
-    "Electric"
-  ],
-  "Vigoroth": [
-    "Normal"
-  ],
-  "Mawile-Mega": [
-    "Steel",
-    "Fairy"
-  ],
-  "Dubwool": [
-    "Normal"
-  ],
-  "Kingler": [
-    "Water"
-  ],
-  "Amaura": [
-    "Rock",
-    "Ice"
-  ],
-  "Gliscor": [
-    "Ground",
-    "Flying"
-  ],
-  "Heatmor": [
-    "Fire"
-  ],
-  "Gourgeist-Super": [
-    "Ghost",
+  "Cherrim": [
     "Grass"
-  ],
-  "Darumaka-Galar": [
-    "Ice"
-  ],
-  "Scyther": [
-    "Bug",
-    "Flying"
-  ],
-  "Doduo": [
-    "Normal",
-    "Flying"
-  ],
-  "Vibrava": [
-    "Ground",
-    "Dragon"
-  ],
-  "Froslass": [
-    "Ice",
-    "Ghost"
-  ],
-  "Rampardos": [
-    "Rock"
-  ],
-  "Dartrix": [
-    "Grass",
-    "Flying"
-  ],
-  "Mothim": [
-    "Bug",
-    "Flying"
-  ],
-  "Bibarel": [
-    "Normal",
-    "Water"
-  ],
-  "Arctovish": [
-    "Water",
-    "Ice"
-  ],
-  "Croconaw": [
-    "Water"
-  ],
-  "Flamigo": [
-    "Flying",
-    "Fighting"
-  ],
-  "Cosmog": [
-    "Psychic"
-  ],
-  "Grimer": [
-    "Poison"
-  ],
-  "Charizard-Mega-Y": [
-    "Fire",
-    "Flying"
-  ],
-  "Porygon2": [
-    "Normal"
-  ],
-  "Fearow": [
-    "Normal",
-    "Flying"
-  ],
-  "Oshawott": [
-    "Water"
-  ],
-  "Reuniclus": [
-    "Psychic"
-  ],
-  "Luxray": [
-    "Electric"
-  ],
-  "Dratini": [
-    "Dragon"
-  ],
-  "Magnemite": [
-    "Electric",
-    "Steel"
-  ],
-  "Turtonator": [
-    "Fire",
-    "Dragon"
-  ],
-  "Meowscarada": [
-    "Grass",
-    "Dark"
-  ],
-  "Wugtrio": [
-    "Water"
-  ],
-  "Shroodle": [
-    "Poison",
-    "Normal"
-  ],
-  "Onix": [
-    "Rock",
-    "Ground"
-  ],
-  "Keldeo": [
-    "Water",
-    "Fighting"
-  ],
-  "Hoopa": [
-    "Psychic",
-    "Ghost"
-  ],
-  "Happiny": [
-    "Normal"
-  ],
-  "Vileplume": [
-    "Grass",
-    "Poison"
-  ],
-  "Carbink": [
-    "Rock",
-    "Fairy"
-  ],
-  "Caterpie": [
-    "Bug"
-  ],
-  "Oranguru": [
-    "Normal",
-    "Psychic"
-  ],
-  "Monferno": [
-    "Fire",
-    "Fighting"
-  ],
-  "Slaking": [
-    "Normal"
-  ],
-  "Dachsbun": [
-    "Fairy"
-  ],
-  "Sandy Shocks": [
-    "Electric",
-    "Ground"
-  ],
-  "Wigglytuff": [
-    "Normal",
-    "Fairy"
-  ],
-  "Clauncher": [
-    "Water"
-  ],
-  "Slowbro-Mega": [
-    "Water",
-    "Psychic"
-  ],
-  "Walrein": [
-    "Ice",
-    "Water"
-  ],
-  "Veluza": [
-    "Water",
-    "Psychic"
-  ],
-  "Skiploom": [
-    "Grass",
-    "Flying"
-  ],
-  "Banette": [
-    "Ghost"
-  ],
-  "Plusle": [
-    "Electric"
-  ],
-  "Pidgeotto": [
-    "Normal",
-    "Flying"
-  ],
-  "Marshtomp": [
-    "Water",
-    "Ground"
-  ],
-  "Corviknight": [
-    "Flying",
-    "Steel"
-  ],
-  "Maschiff": [
-    "Dark"
-  ],
-  "Swadloon": [
-    "Bug",
-    "Grass"
-  ],
-  "Litwick": [
-    "Ghost",
-    "Fire"
-  ],
-  "Dewott": [
-    "Water"
-  ],
-  "Exeggutor": [
-    "Grass",
-    "Psychic"
-  ],
-  "Chinchou": [
-    "Water",
-    "Electric"
-  ],
-  "Toxel": [
-    "Electric",
-    "Poison"
-  ],
-  "Chandelure": [
-    "Ghost",
-    "Fire"
-  ],
-  "Crawdaunt": [
-    "Water",
-    "Dark"
-  ],
-  "Umbreon": [
-    "Dark"
-  ],
-  "Delphox": [
-    "Fire",
-    "Psychic"
-  ],
-  "Tropius": [
-    "Grass",
-    "Flying"
-  ],
-  "Latias-Mega": [
-    "Dragon",
-    "Psychic"
-  ],
-  "Carnivine": [
-    "Grass"
-  ],
-  "Suicune": [
-    "Water"
-  ],
-  "Kingambit": [
-    "Dark",
-    "Steel"
-  ],
-  "Weezing": [
-    "Poison"
-  ],
-  "Clefairy": [
-    "Fairy"
   ],
   "Riolu": [
     "Fighting"
-  ],
-  "Gothorita": [
-    "Psychic"
-  ],
-  "Clawitzer": [
-    "Water"
-  ],
-  "Aipom": [
-    "Normal"
-  ],
-  "Alakazam": [
-    "Psychic"
   ],
   "Noctowl": [
     "Normal",
     "Flying"
   ],
-  "Galvantula": [
-    "Bug",
-    "Electric"
+  "Meltan": [
+    "Steel"
   ],
-  "Grimmsnarl": [
-    "Dark",
-    "Fairy"
-  ],
-  "Fomantis": [
-    "Grass"
-  ],
-  "Budew": [
-    "Grass",
-    "Poison"
-  ],
-  "Noibat": [
-    "Flying",
-    "Dragon"
-  ],
-  "Luvdisc": [
+  "Toxapex": [
+    "Poison",
     "Water"
   ],
-  "Scovillain": [
+  "Chesnaught": [
     "Grass",
-    "Fire"
+    "Fighting"
   ],
-  "Axew": [
-    "Dragon"
+  "Greninja": [
+    "Water",
+    "Dark"
   ],
-  "Raging Bolt": [
-    "Electric",
-    "Dragon"
+  "Rabsca": [
+    "Bug",
+    "Psychic"
   ],
-  "Beedrill-Mega": [
+  "Cofagrigus": [
+    "Ghost"
+  ],
+  "Skiddo": [
+    "Grass"
+  ],
+  "Venonat": [
     "Bug",
     "Poison"
+  ],
+  "Landorus-Therian": [
+    "Ground",
+    "Flying"
+  ],
+  "Shaymin": [
+    "Grass"
+  ],
+  "Espurr": [
+    "Psychic"
+  ],
+  "Cyndaquil": [
+    "Fire"
+  ],
+  "Brionne": [
+    "Water"
+  ],
+  "Feebas": [
+    "Water"
+  ],
+  "Piplup": [
+    "Water"
+  ],
+  "Castform": [
+    "Normal"
+  ],
+  "Marowak": [
+    "Ground"
+  ],
+  "Girafarig": [
+    "Normal",
+    "Psychic"
+  ],
+  "Chimecho": [
+    "Psychic"
+  ],
+  "Hatenna": [
+    "Psychic"
+  ],
+  "Swirlix": [
+    "Fairy"
+  ],
+  "Tyrogue": [
+    "Fighting"
   ],
   "Iron Jugulis": [
     "Dark",
-    "Flying"
-  ],
-  "Hydreigon": [
-    "Dark",
-    "Dragon"
-  ],
-  "Dewpider": [
-    "Water",
-    "Bug"
-  ],
-  "Articuno-Galar": [
-    "Psychic",
-    "Flying"
-  ],
-  "Shellos": [
-    "Water"
-  ],
-  "Incineroar": [
-    "Fire",
-    "Dark"
-  ],
-  "Tandemaus": [
-    "Normal"
-  ],
-  "Trevenant": [
-    "Ghost",
-    "Grass"
-  ],
-  "Rotom-Mow": [
-    "Electric",
-    "Grass"
-  ],
-  "Zorua": [
-    "Dark"
-  ],
-  "Manectric-Mega": [
-    "Electric"
-  ],
-  "Cutiefly": [
-    "Bug",
-    "Fairy"
-  ],
-  "Quaquaval": [
-    "Water",
-    "Fighting"
-  ],
-  "Diglett": [
-    "Ground"
-  ],
-  "Tyranitar": [
-    "Rock",
-    "Dark"
-  ],
-  "Oddish": [
-    "Grass",
-    "Poison"
-  ],
-  "Floragato": [
-    "Grass"
-  ],
-  "Rapidash-Galar": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Wormadam-Sandy": [
-    "Bug",
-    "Ground"
-  ],
-  "Zigzagoon": [
-    "Normal"
-  ],
-  "Qwilfish": [
-    "Water",
-    "Poison"
-  ],
-  "Corvisquire": [
     "Flying"
   ],
   "Enamorus-Therian": [
     "Fairy",
     "Flying"
   ],
-  "Pineco": [
-    "Bug"
-  ],
-  "Tentacool": [
-    "Water",
-    "Poison"
-  ],
-  "Omanyte": [
-    "Rock",
-    "Water"
-  ],
-  "Corsola": [
-    "Water",
-    "Rock"
-  ],
-  "Mudbray": [
-    "Ground"
-  ],
-  "Sandshrew": [
-    "Ground"
-  ],
-  "Inteleon": [
-    "Water"
-  ],
-  "Overqwil": [
-    "Dark",
-    "Poison"
-  ],
-  "Capsakid": [
-    "Grass"
-  ],
-  "Jirachi": [
-    "Steel",
-    "Psychic"
-  ],
-  "Ursaluna": [
-    "Ground",
-    "Normal"
-  ],
-  "Chimchar": [
-    "Fire"
-  ],
-  "Gimmighoul": [
-    "Ghost"
-  ],
-  "Haunter": [
-    "Ghost",
-    "Poison"
-  ],
-  "Houndoom-Mega": [
-    "Dark",
-    "Fire"
-  ],
-  "Abra": [
-    "Psychic"
-  ],
-  "Eevee": [
-    "Normal"
-  ],
-  "Pidgeot": [
-    "Normal",
-    "Flying"
-  ],
-  "Mudsdale": [
-    "Ground"
-  ],
-  "Tinkatink": [
-    "Fairy",
-    "Steel"
-  ],
-  "Deoxys-Defense": [
-    "Psychic"
-  ],
-  "Surskit": [
-    "Bug",
-    "Water"
-  ],
-  "Farfetch'd": [
-    "Normal",
-    "Flying"
-  ],
-  "Frosmoth": [
-    "Ice",
-    "Bug"
-  ],
-  "Pincurchin": [
-    "Electric"
-  ],
-  "Dunsparce": [
-    "Normal"
-  ],
-  "Altaria-Mega": [
-    "Dragon",
-    "Fairy"
-  ],
-  "Wartortle": [
-    "Water"
-  ],
-  "Appletun": [
-    "Grass",
-    "Dragon"
-  ],
-  "Lanturn": [
-    "Water",
-    "Electric"
-  ],
-  "Spewpa": [
-    "Bug"
-  ],
-  "Dragonite": [
-    "Dragon",
-    "Flying"
-  ],
-  "Impidimp": [
-    "Dark",
-    "Fairy"
-  ],
-  "Natu": [
-    "Psychic",
-    "Flying"
-  ],
-  "Applin": [
-    "Grass",
-    "Dragon"
-  ],
-  "Emboar": [
-    "Fire",
-    "Fighting"
-  ],
-  "Nidorina": [
-    "Poison"
-  ],
-  "Bonsly": [
-    "Rock"
-  ],
-  "Poltchageist": [
-    "Grass",
-    "Ghost"
-  ],
-  "Flygon": [
-    "Ground",
-    "Dragon"
-  ],
-  "Scatterbug": [
-    "Bug"
-  ],
-  "Herdier": [
-    "Normal"
-  ],
-  "Machop": [
-    "Fighting"
-  ],
-  "Sizzlipede": [
-    "Fire",
-    "Bug"
-  ],
-  "Pignite": [
-    "Fire",
-    "Fighting"
-  ],
-  "Rotom-Frost": [
-    "Electric",
-    "Ice"
-  ],
-  "Beldum": [
-    "Steel",
-    "Psychic"
-  ],
-  "Celesteela": [
-    "Steel",
-    "Flying"
-  ],
-  "Glalie": [
-    "Ice"
-  ],
-  "Mime Jr.": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Slither Wing": [
-    "Bug",
-    "Fighting"
-  ],
-  "Wormadam-Trash": [
-    "Bug",
-    "Steel"
-  ],
-  "Porygon-Z": [
-    "Normal"
-  ],
-  "Tsareena": [
-    "Grass"
-  ],
-  "Arcanine": [
-    "Fire"
-  ],
-  "Iron Valiant": [
-    "Fairy",
-    "Fighting"
-  ],
-  "Tinkaton": [
-    "Fairy",
-    "Steel"
-  ],
-  "Hippopotas": [
-    "Ground"
-  ],
-  "Dottler": [
-    "Bug",
-    "Psychic"
-  ],
-  "Togedemaru": [
-    "Electric",
-    "Steel"
-  ],
-  "Kabutops": [
-    "Rock",
-    "Water"
-  ],
-  "Blitzle": [
-    "Electric"
-  ],
-  "Chatot": [
-    "Normal",
-    "Flying"
-  ],
-  "Torracat": [
-    "Fire"
-  ],
-  "Hawlucha": [
-    "Fighting",
-    "Flying"
-  ],
-  "Copperajah": [
-    "Steel"
-  ],
-  "Solosis": [
-    "Psychic"
-  ],
-  "Milotic": [
-    "Water"
-  ],
-  "Drakloak": [
-    "Dragon",
-    "Ghost"
-  ],
-  "Hitmonchan": [
-    "Fighting"
-  ],
-  "Cobalion": [
-    "Steel",
-    "Fighting"
-  ],
-  "Altaria": [
-    "Dragon",
-    "Flying"
-  ],
-  "Politoed": [
-    "Water"
-  ],
-  "Steenee": [
-    "Grass"
-  ],
-  "Stoutland": [
-    "Normal"
-  ],
-  "Sharpedo-Mega": [
-    "Water",
-    "Dark"
-  ],
-  "Scizor": [
-    "Bug",
-    "Steel"
-  ],
-  "Cyclizar": [
-    "Dragon",
-    "Normal"
-  ],
-  "Cinderace": [
-    "Fire"
-  ],
-  "Fezandipiti": [
-    "Poison",
-    "Fairy"
-  ],
-  "Bergmite": [
-    "Ice"
-  ],
-  "Regidrago": [
-    "Dragon"
-  ],
-  "Honedge": [
-    "Steel",
-    "Ghost"
-  ],
-  "Slurpuff": [
-    "Fairy"
-  ],
-  "Pinsir": [
-    "Bug"
-  ],
-  "Goomy": [
-    "Dragon"
-  ],
-  "Marowak-Alola": [
-    "Fire",
-    "Ghost"
-  ],
-  "Raboot": [
-    "Fire"
-  ],
-  "Sinistcha": [
-    "Grass",
-    "Ghost"
-  ],
-  "Tirtouga": [
-    "Water",
-    "Rock"
-  ],
-  "Trumbeak": [
-    "Normal",
-    "Flying"
-  ],
-  "Lickilicky": [
-    "Normal"
-  ],
-  "Gurdurr": [
-    "Fighting"
-  ],
-  "Zamazenta": [
-    "Fighting"
-  ],
-  "Nihilego": [
-    "Rock",
-    "Poison"
-  ],
-  "Ribombee": [
-    "Bug",
-    "Fairy"
-  ],
-  "Klefki": [
-    "Steel",
-    "Fairy"
-  ],
-  "Durant": [
-    "Bug",
-    "Steel"
-  ],
-  "Nymble": [
-    "Bug"
-  ],
-  "Excadrill": [
-    "Ground",
-    "Steel"
-  ],
-  "Ting-Lu": [
-    "Dark",
-    "Ground"
-  ],
-  "Timburr": [
-    "Fighting"
-  ],
-  "Oricorio-Sensu": [
-    "Ghost",
-    "Flying"
-  ],
-  "Toucannon": [
-    "Normal",
-    "Flying"
-  ],
-  "Illumise": [
-    "Bug"
-  ],
-  "Darkrai": [
-    "Dark"
-  ],
-  "Diggersby": [
-    "Normal",
-    "Ground"
-  ],
-  "Squirtle": [
-    "Water"
-  ],
-  "Golisopod": [
-    "Bug",
-    "Water"
-  ],
-  "Gothitelle": [
-    "Psychic"
-  ],
-  "Vulpix-Alola": [
-    "Ice"
-  ],
-  "Gourgeist-Large": [
-    "Ghost",
-    "Grass"
-  ],
-  "Unown": [
-    "Psychic"
-  ],
-  "Pikipek": [
-    "Normal",
-    "Flying"
-  ],
-  "Rillaboom": [
-    "Grass"
-  ],
-  "Dhelmise": [
-    "Ghost",
-    "Grass"
-  ],
-  "Clamperl": [
-    "Water"
-  ],
-  "Barraskewda": [
-    "Water"
-  ],
-  "Sandygast": [
-    "Ghost",
-    "Ground"
-  ],
-  "Zebstrika": [
-    "Electric"
-  ],
-  "Tapu Koko": [
-    "Electric",
-    "Fairy"
-  ],
-  "Salazzle": [
-    "Poison",
-    "Fire"
-  ],
-  "Brambleghast": [
-    "Grass",
-    "Ghost"
-  ],
-  "Dusclops": [
-    "Ghost"
-  ],
-  "Pawmi": [
-    "Electric"
-  ],
-  "Swablu": [
-    "Normal",
-    "Flying"
-  ],
-  "Silicobra": [
-    "Ground"
-  ],
-  "Cetoddle": [
-    "Ice"
-  ],
-  "Meltan": [
-    "Steel"
-  ],
-  "Grumpig": [
-    "Psychic"
-  ],
-  "Litten": [
-    "Fire"
-  ],
-  "Flapple": [
-    "Grass",
-    "Dragon"
-  ],
-  "Mesprit": [
-    "Psychic"
-  ],
-  "Stunfisk-Galar": [
-    "Ground",
-    "Steel"
-  ],
-  "Grookey": [
-    "Grass"
-  ],
-  "Snubbull": [
-    "Fairy"
-  ],
-  "Charizard": [
-    "Fire",
-    "Flying"
-  ],
-  "Yanma": [
-    "Bug",
-    "Flying"
-  ],
-  "Starmie": [
-    "Water",
-    "Psychic"
-  ],
-  "Bellossom": [
-    "Grass"
-  ],
-  "Murkrow": [
-    "Dark",
-    "Flying"
-  ],
-  "Arrokuda": [
-    "Water"
-  ],
-  "Magby": [
-    "Fire"
-  ],
-  "Vanillish": [
-    "Ice"
-  ],
-  "Vanillite": [
-    "Ice"
-  ],
-  "Qwilfish-Hisui": [
-    "Dark",
-    "Poison"
-  ],
-  "Lilligant-Hisui": [
-    "Grass",
-    "Fighting"
-  ],
-  "Persian-Alola": [
-    "Dark"
-  ],
-  "Furret": [
-    "Normal"
-  ],
-  "Seedot": [
-    "Grass"
-  ],
-  "Tyranitar-Mega": [
-    "Rock",
-    "Dark"
-  ],
-  "Metapod": [
-    "Bug"
-  ],
-  "Ponyta-Galar": [
-    "Psychic"
-  ],
-  "Ninjask": [
-    "Bug",
-    "Flying"
-  ],
-  "Iron Hands": [
-    "Fighting",
-    "Electric"
-  ],
-  "Meowth-Alola": [
-    "Dark"
-  ],
-  "Rhydon": [
-    "Ground",
-    "Rock"
-  ],
-  "Gible": [
-    "Dragon",
-    "Ground"
-  ],
-  "Bombirdier": [
-    "Flying",
-    "Dark"
-  ],
-  "Scorbunny": [
-    "Fire"
-  ],
-  "Salamence": [
-    "Dragon",
-    "Flying"
-  ],
-  "Articuno": [
-    "Ice",
-    "Flying"
-  ],
   "Accelgor": [
     "Bug"
   ],
-  "Beautifly": [
-    "Bug",
-    "Flying"
+  "Chandelure": [
+    "Ghost",
+    "Fire"
   ],
   "Kommo-o": [
     "Dragon",
     "Fighting"
   ],
-  "Dragonair": [
-    "Dragon"
-  ],
-  "Cottonee": [
-    "Grass",
+  "Tapu Lele": [
+    "Psychic",
     "Fairy"
   ],
-  "Nincada": [
-    "Bug",
-    "Ground"
-  ],
-  "Serperior": [
-    "Grass"
-  ],
-  "Flaaffy": [
-    "Electric"
-  ],
-  "Regirock": [
-    "Rock"
-  ],
-  "Beartic": [
+  "Arctozolt": [
+    "Electric",
     "Ice"
   ],
-  "Rookidee": [
-    "Flying"
-  ],
-  "Teddiursa": [
+  "Porygon2": [
     "Normal"
-  ],
-  "Decidueye": [
-    "Grass",
-    "Ghost"
-  ],
-  "Kricketot": [
-    "Bug"
-  ],
-  "Ampharos-Mega": [
-    "Electric",
-    "Dragon"
-  ],
-  "Honchkrow": [
-    "Dark",
-    "Flying"
-  ],
-  "Hoothoot": [
-    "Normal",
-    "Flying"
-  ],
-  "Iron Thorns": [
-    "Rock",
-    "Electric"
-  ],
-  "Porygon": [
-    "Normal"
-  ],
-  "Pawmot": [
-    "Electric",
-    "Fighting"
-  ],
-  "Xatu": [
-    "Psychic",
-    "Flying"
-  ],
-  "Shelmet": [
-    "Bug"
-  ],
-  "Bramblin": [
-    "Grass",
-    "Ghost"
-  ],
-  "Breloom": [
-    "Grass",
-    "Fighting"
-  ],
-  "Toedscool": [
-    "Ground",
-    "Grass"
-  ],
-  "Roserade": [
-    "Grass",
-    "Poison"
-  ],
-  "Rotom-Fan": [
-    "Electric",
-    "Flying"
-  ],
-  "Escavalier": [
-    "Bug",
-    "Steel"
-  ],
-  "Magcargo": [
-    "Fire",
-    "Rock"
-  ],
-  "Regieleki": [
-    "Electric"
-  ],
-  "Sableye": [
-    "Dark",
-    "Ghost"
-  ],
-  "Carkol": [
-    "Rock",
-    "Fire"
-  ],
-  "Toedscruel": [
-    "Ground",
-    "Grass"
-  ],
-  "Petilil": [
-    "Grass"
-  ],
-  "Quaxwell": [
-    "Water"
-  ],
-  "Kecleon": [
-    "Normal"
-  ],
-  "Slowpoke-Galar": [
-    "Psychic"
-  ],
-  "Empoleon": [
-    "Water",
-    "Steel"
-  ],
-  "Braviary-Hisui": [
-    "Psychic",
-    "Flying"
-  ],
-  "Elekid": [
-    "Electric"
-  ],
-  "Linoone-Galar": [
-    "Dark",
-    "Normal"
-  ],
-  "Smeargle": [
-    "Normal"
-  ],
-  "Cloyster": [
-    "Water",
-    "Ice"
-  ],
-  "Whirlipede": [
-    "Bug",
-    "Poison"
-  ],
-  "Girafarig": [
-    "Normal",
-    "Psychic"
-  ],
-  "Torkoal": [
-    "Fire"
-  ],
-  "Dodrio": [
-    "Normal",
-    "Flying"
-  ],
-  "Typhlosion-Hisui": [
-    "Fire",
-    "Ghost"
-  ],
-  "Aron": [
-    "Steel",
-    "Rock"
-  ],
-  "Fraxure": [
-    "Dragon"
-  ],
-  "Tapu Bulu": [
-    "Grass",
-    "Fairy"
-  ],
-  "Mamoswine": [
-    "Ice",
-    "Ground"
-  ],
-  "Torterra": [
-    "Grass",
-    "Ground"
-  ],
-  "Gligar": [
-    "Ground",
-    "Flying"
-  ],
-  "Muk-Alola": [
-    "Poison",
-    "Dark"
-  ],
-  "Vespiquen": [
-    "Bug",
-    "Flying"
-  ],
-  "Seviper": [
-    "Poison"
-  ],
-  "Cleffa": [
-    "Fairy"
-  ],
-  "Weedle": [
-    "Bug",
-    "Poison"
-  ],
-  "Perrserker": [
-    "Steel"
-  ],
-  "Cyndaquil": [
-    "Fire"
-  ],
-  "Audino-Mega": [
-    "Normal",
-    "Fairy"
-  ],
-  "Tadbulb": [
-    "Electric"
-  ],
-  "Granbull": [
-    "Fairy"
-  ],
-  "Calyrex": [
-    "Psychic",
-    "Grass"
-  ],
-  "Klawf": [
-    "Rock"
-  ],
-  "Delcatty": [
-    "Normal"
-  ],
-  "Octillery": [
-    "Water"
-  ],
-  "Tangela": [
-    "Grass"
-  ],
-  "Polteageist": [
-    "Ghost"
-  ],
-  "Gallade-Mega": [
-    "Psychic",
-    "Fighting"
-  ],
-  "Dondozo": [
-    "Water"
-  ],
-  "Gengar": [
-    "Ghost",
-    "Poison"
-  ],
-  "Pumpkaboo-Super": [
-    "Ghost",
-    "Grass"
-  ],
-  "Gastly": [
-    "Ghost",
-    "Poison"
-  ],
-  "Treecko": [
-    "Grass"
-  ],
-  "Greedent": [
-    "Normal"
-  ],
-  "Wooper": [
-    "Water",
-    "Ground"
-  ],
-  "Sinistea": [
-    "Ghost"
-  ],
-  "Sceptile-Mega": [
-    "Grass",
-    "Dragon"
-  ],
-  "Wobbuffet": [
-    "Psychic"
-  ],
-  "Lombre": [
-    "Water",
-    "Grass"
-  ],
-  "Garchomp-Mega": [
-    "Dragon",
-    "Ground"
-  ],
-  "Chesnaught": [
-    "Grass",
-    "Fighting"
-  ],
-  "Grafaiai": [
-    "Poison",
-    "Normal"
-  ],
-  "Arboliva": [
-    "Grass",
-    "Normal"
-  ],
-  "Primeape": [
-    "Fighting"
-  ],
-  "Sunflora": [
-    "Grass"
-  ],
-  "Cranidos": [
-    "Rock"
-  ],
-  "Steelix-Mega": [
-    "Steel",
-    "Ground"
-  ],
-  "Diancie-Mega": [
-    "Rock",
-    "Fairy"
-  ],
-  "Boldore": [
-    "Rock"
   ],
   "Probopass": [
     "Rock",
     "Steel"
   ],
-  "Salandit": [
-    "Poison",
+  "Vivillon": [
+    "Bug",
+    "Flying"
+  ],
+  "Lampent": [
+    "Ghost",
     "Fire"
   ],
-  "Tyrogue": [
-    "Fighting"
-  ],
-  "Machamp": [
-    "Fighting"
-  ],
-  "Anorith": [
-    "Rock",
-    "Bug"
-  ],
-  "Latios-Mega": [
-    "Dragon",
-    "Psychic"
-  ],
-  "Wattrel": [
-    "Electric",
-    "Flying"
-  ],
-  "Fidough": [
-    "Fairy"
-  ],
-  "Swoobat": [
-    "Psychic",
-    "Flying"
-  ],
-  "Baltoy": [
-    "Ground",
-    "Psychic"
-  ],
-  "Slowking": [
-    "Water",
-    "Psychic"
-  ],
-  "Dedenne": [
-    "Electric",
-    "Fairy"
-  ],
-  "Ariados": [
-    "Bug",
-    "Poison"
-  ],
-  "Brute Bonnet": [
-    "Grass",
-    "Dark"
-  ],
-  "Gabite": [
-    "Dragon",
-    "Ground"
-  ],
-  "Chespin": [
-    "Grass"
-  ],
-  "Drizzile": [
-    "Water"
-  ],
-  "Claydol": [
-    "Ground",
-    "Psychic"
-  ],
-  "Garbodor": [
-    "Poison"
-  ],
-  "Sawsbuck": [
-    "Normal",
-    "Grass"
-  ],
-  "Pidgey": [
-    "Normal",
-    "Flying"
-  ],
-  "Kingdra": [
-    "Water",
-    "Dragon"
-  ],
-  "Armarouge": [
-    "Fire",
-    "Psychic"
-  ],
-  "Snom": [
-    "Ice",
-    "Bug"
-  ],
-  "Gholdengo": [
-    "Steel",
-    "Ghost"
-  ],
-  "Meowth-Galar": [
-    "Steel"
-  ],
-  "Obstagoon": [
-    "Dark",
-    "Normal"
-  ],
-  "Orthworm": [
-    "Steel"
-  ],
-  "Lopunny": [
-    "Normal"
-  ],
-  "Wailmer": [
-    "Water"
-  ],
-  "Heatran": [
-    "Fire",
-    "Steel"
-  ],
-  "Wurmple": [
-    "Bug"
-  ],
-  "Weezing-Galar": [
-    "Poison",
-    "Fairy"
-  ],
-  "Raichu-Alola": [
-    "Electric",
-    "Psychic"
-  ],
-  "Volbeat": [
-    "Bug"
-  ],
-  "Audino": [
-    "Normal"
-  ],
-  "Passimian": [
-    "Fighting"
-  ],
-  "Stonjourner": [
-    "Rock"
-  ],
-  "Ferroseed": [
-    "Grass",
-    "Steel"
-  ],
-  "Victreebel": [
-    "Grass",
-    "Poison"
-  ],
-  "Ditto": [
-    "Normal"
-  ],
-  "Scraggy": [
-    "Dark",
-    "Fighting"
-  ],
-  "Mantine": [
-    "Water",
-    "Flying"
-  ],
-  "Spiritomb": [
-    "Ghost",
-    "Dark"
-  ],
-  "Mew": [
-    "Psychic"
-  ],
-  "Ralts": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Swinub": [
-    "Ice",
-    "Ground"
-  ],
-  "Minccino": [
-    "Normal"
-  ],
-  "Wyrdeer": [
-    "Normal",
-    "Psychic"
-  ],
-  "Rotom-Wash": [
-    "Electric",
-    "Water"
-  ],
-  "Raichu": [
-    "Electric"
-  ],
-  "Komala": [
+  "Aipom": [
     "Normal"
   ],
   "Aegislash": [
     "Steel",
     "Ghost"
   ],
-  "Darumaka": [
-    "Fire"
-  ],
-  "Spoink": [
-    "Psychic"
-  ],
-  "Psyduck": [
-    "Water"
-  ],
-  "Rapidash": [
-    "Fire"
-  ],
-  "Sableye-Mega": [
-    "Dark",
-    "Ghost"
-  ],
-  "Enamorus": [
-    "Fairy",
-    "Flying"
-  ],
-  "Cursola": [
-    "Ghost"
-  ],
-  "Furfrou": [
-    "Normal"
-  ],
-  "Mr. Mime-Galar": [
-    "Ice",
-    "Psychic"
-  ],
-  "Pyukumuku": [
-    "Water"
-  ],
-  "Tapu Lele": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Clobbopus": [
-    "Fighting"
-  ],
-  "Naclstack": [
-    "Rock"
-  ],
-  "Camerupt-Mega": [
-    "Fire",
-    "Ground"
-  ],
-  "Larvitar": [
-    "Rock",
-    "Ground"
-  ],
-  "Golem": [
-    "Rock",
-    "Ground"
-  ],
-  "Maractus": [
-    "Grass"
-  ],
-  "Bellsprout": [
-    "Grass",
-    "Poison"
-  ],
-  "Drowzee": [
-    "Psychic"
-  ],
-  "Haxorus": [
-    "Dragon"
-  ],
-  "Luxio": [
-    "Electric"
-  ],
-  "Relicanth": [
+  "Carracosta": [
     "Water",
     "Rock"
   ],
-  "Druddigon": [
-    "Dragon"
-  ],
-  "Shinx": [
-    "Electric"
-  ],
-  "Woobat": [
-    "Psychic",
-    "Flying"
-  ],
-  "Wynaut": [
-    "Psychic"
-  ],
-  "Bagon": [
-    "Dragon"
-  ],
-  "Raticate": [
+  "Linoone": [
     "Normal"
   ],
-  "Glaceon": [
-    "Ice"
-  ],
-  "Sirfetch'd": [
-    "Fighting"
-  ],
-  "Deino": [
-    "Dark",
-    "Dragon"
-  ],
-  "Prinplup": [
-    "Water"
-  ],
-  "Donphan": [
-    "Ground"
-  ],
-  "Wingull": [
-    "Water",
-    "Flying"
-  ],
-  "Wooper-Paldea": [
-    "Poison",
-    "Ground"
-  ],
-  "Brionne": [
-    "Water"
-  ],
-  "Ledian": [
-    "Bug",
-    "Flying"
-  ],
-  "Togekiss": [
-    "Fairy",
-    "Flying"
-  ],
-  "Shuckle": [
-    "Bug",
-    "Rock"
-  ],
-  "Togetic": [
-    "Fairy",
-    "Flying"
-  ],
-  "Electivire": [
-    "Electric"
-  ],
-  "Coalossal": [
-    "Rock",
-    "Fire"
-  ],
-  "Tarountula": [
+  "Caterpie": [
     "Bug"
   ],
-  "Metang": [
-    "Steel",
-    "Psychic"
+  "Porygon": [
+    "Normal"
   ],
-  "Sandshrew-Alola": [
-    "Ice",
-    "Steel"
-  ],
-  "Urshifu-Rapid-Strike": [
-    "Fighting",
-    "Water"
-  ],
-  "Voltorb-Hisui": [
-    "Electric",
+  "Lilligant": [
     "Grass"
   ],
-  "Phione": [
-    "Water"
+  "Obstagoon": [
+    "Dark",
+    "Normal"
   ],
-  "Delibird": [
-    "Ice",
-    "Flying"
+  "Cresselia": [
+    "Psychic"
+  ],
+  "Houndstone": [
+    "Ghost"
   ],
   "Quagsire": [
     "Water",
     "Ground"
   ],
-  "Abomasnow": [
-    "Grass",
-    "Ice"
-  ],
-  "Arbok": [
-    "Poison"
-  ],
-  "Xurkitree": [
-    "Electric"
-  ],
-  "Grapploct": [
-    "Fighting"
-  ],
-  "Ogerpon": [
-    "Grass"
-  ],
-  "Zoroark-Hisui": [
-    "Normal",
-    "Ghost"
-  ],
-  "Houndstone": [
-    "Ghost"
-  ],
-  "Poipole": [
-    "Poison"
-  ],
-  "Cradily": [
-    "Rock",
-    "Grass"
-  ],
-  "Crobat": [
-    "Poison",
-    "Flying"
-  ],
-  "Lairon": [
-    "Steel",
-    "Rock"
-  ],
-  "Dreepy": [
-    "Dragon",
-    "Ghost"
-  ],
-  "Rowlet": [
-    "Grass",
-    "Flying"
-  ],
-  "Rolycoly": [
-    "Rock"
-  ],
-  "Mareep": [
-    "Electric"
-  ],
-  "Blissey": [
-    "Normal"
-  ],
-  "Deerling": [
-    "Normal",
-    "Grass"
-  ],
-  "Eldegoss": [
-    "Grass"
-  ],
-  "Aggron": [
-    "Steel",
-    "Rock"
-  ],
-  "Aromatisse": [
-    "Fairy"
-  ],
-  "Snover": [
-    "Grass",
-    "Ice"
-  ],
-  "Skuntank": [
-    "Poison",
-    "Dark"
-  ],
-  "Ninetales-Alola": [
-    "Ice",
-    "Fairy"
-  ],
-  "Kyurem": [
-    "Dragon",
-    "Ice"
-  ],
-  "Sandslash-Alola": [
-    "Ice",
-    "Steel"
-  ],
-  "Munkidori": [
-    "Poison",
-    "Psychic"
-  ],
-  "Skiddo": [
-    "Grass"
-  ],
-  "Zweilous": [
-    "Dark",
-    "Dragon"
-  ],
-  "Virizion": [
-    "Grass",
-    "Fighting"
-  ],
-  "Chingling": [
-    "Psychic"
-  ],
-  "Crustle": [
-    "Bug",
-    "Rock"
-  ],
-  "Moltres-Galar": [
-    "Dark",
-    "Flying"
-  ],
-  "Cherrim": [
-    "Grass"
-  ],
-  "Cacnea": [
-    "Grass"
-  ],
-  "Okidogi": [
-    "Poison",
-    "Fighting"
-  ],
-  "Clefable": [
-    "Fairy"
-  ],
-  "Typhlosion": [
-    "Fire"
-  ],
-  "Sneasel": [
-    "Dark",
-    "Ice"
-  ],
-  "Manectric": [
-    "Electric"
-  ],
-  "Arcanine-Hisui": [
-    "Fire",
-    "Rock"
-  ],
-  "Munchlax": [
-    "Normal"
-  ],
-  "Lampent": [
-    "Ghost",
-    "Fire"
-  ],
-  "Elgyem": [
-    "Psychic"
-  ],
-  "Linoone": [
-    "Normal"
-  ],
-  "Poochyena": [
-    "Dark"
-  ],
-  "Jumpluff": [
-    "Grass",
-    "Flying"
-  ],
-  "Finneon": [
-    "Water"
-  ],
-  "Oricorio-Pa'u": [
-    "Psychic",
-    "Flying"
-  ],
-  "Mankey": [
-    "Fighting"
-  ],
-  "Arctozolt": [
-    "Electric",
-    "Ice"
-  ],
-  "Ponyta": [
-    "Fire"
-  ],
-  "Tentacruel": [
-    "Water",
-    "Poison"
-  ],
-  "Geodude-Alola": [
-    "Rock",
-    "Electric"
-  ],
-  "Mudkip": [
-    "Water"
-  ],
-  "Guzzlord": [
-    "Dark",
-    "Dragon"
-  ],
-  "Marowak": [
-    "Ground"
-  ],
-  "Lilligant": [
-    "Grass"
-  ],
-  "Charizard-Mega-X": [
-    "Fire",
-    "Dragon"
-  ],
-  "Trapinch": [
-    "Ground"
-  ],
-  "Hakamo-o": [
-    "Dragon",
-    "Fighting"
-  ],
-  "Tangrowth": [
-    "Grass"
-  ],
-  "Toxapex": [
-    "Poison",
-    "Water"
-  ],
-  "Foongus": [
-    "Grass",
-    "Poison"
-  ],
-  "Primarina": [
-    "Water",
-    "Fairy"
-  ],
-  "Phantump": [
-    "Ghost",
-    "Grass"
-  ],
-  "Ludicolo": [
-    "Water",
-    "Grass"
-  ],
-  "Lechonk": [
-    "Normal"
-  ],
-  "Kartana": [
-    "Grass",
-    "Steel"
-  ],
-  "Deoxys-Speed": [
-    "Psychic"
-  ],
-  "Zapdos-Galar": [
-    "Fighting",
-    "Flying"
-  ],
-  "Pidgeot-Mega": [
-    "Normal",
-    "Flying"
-  ],
-  "Rufflet": [
-    "Normal",
-    "Flying"
-  ],
-  "Lickitung": [
-    "Normal"
-  ],
-  "Dragapult": [
-    "Dragon",
-    "Ghost"
-  ],
-  "Sigilyph": [
-    "Psychic",
-    "Flying"
-  ],
-  "Great Tusk": [
-    "Ground",
-    "Fighting"
-  ],
-  "Azumarill": [
-    "Water",
-    "Fairy"
-  ],
-  "Gumshoos": [
-    "Normal"
-  ],
-  "Staraptor": [
-    "Normal",
-    "Flying"
-  ],
-  "Venonat": [
-    "Bug",
-    "Poison"
-  ],
-  "Comfey": [
-    "Fairy"
-  ],
-  "Bisharp": [
-    "Dark",
-    "Steel"
-  ],
-  "Miltank": [
-    "Normal"
-  ],
-  "Pawniard": [
-    "Dark",
-    "Steel"
-  ],
-  "Carracosta": [
-    "Water",
-    "Rock"
-  ],
-  "Hoopa-Unbound": [
-    "Psychic",
-    "Dark"
-  ],
-  "Pangoro": [
-    "Fighting",
-    "Dark"
-  ],
-  "Chansey": [
-    "Normal"
-  ],
-  "Igglybuff": [
-    "Normal",
-    "Fairy"
-  ],
-  "Corphish": [
-    "Water"
-  ],
-  "Scizor-Mega": [
-    "Bug",
-    "Steel"
-  ],
-  "Golduck": [
-    "Water"
-  ],
-  "Victini": [
-    "Psychic",
-    "Fire"
-  ],
-  "Combusken": [
-    "Fire",
-    "Fighting"
-  ],
-  "Zapdos": [
-    "Electric",
-    "Flying"
-  ],
-  "Regice": [
-    "Ice"
-  ],
-  "Sneasel-Hisui": [
-    "Fighting",
-    "Poison"
-  ],
-  "Rotom": [
-    "Electric",
-    "Ghost"
-  ],
-  "Lurantis": [
-    "Grass"
-  ],
-  "Yungoos": [
-    "Normal"
-  ],
-  "Grimer-Alola": [
-    "Poison",
-    "Dark"
-  ],
-  "Klinklang": [
-    "Steel"
-  ],
-  "Pancham": [
-    "Fighting"
-  ],
-  "Masquerain": [
-    "Bug",
-    "Flying"
-  ],
-  "Zorua-Hisui": [
-    "Normal",
-    "Ghost"
-  ],
-  "Scolipede": [
-    "Bug",
-    "Poison"
-  ],
-  "Charcadet": [
-    "Fire"
-  ],
-  "Runerigus": [
-    "Ground",
-    "Ghost"
-  ],
-  "Dracozolt": [
-    "Electric",
-    "Dragon"
-  ],
-  "Vivillon": [
-    "Bug",
-    "Flying"
-  ],
-  "Azurill": [
-    "Normal",
-    "Fairy"
-  ],
-  "Goldeen": [
-    "Water"
-  ],
-  "Cosmoem": [
-    "Psychic"
-  ],
-  "Exeggutor-Alola": [
-    "Grass",
-    "Dragon"
-  ],
-  "Drampa": [
-    "Normal",
-    "Dragon"
-  ],
-  "Parasect": [
-    "Bug",
-    "Grass"
-  ],
-  "Medicham": [
-    "Fighting",
-    "Psychic"
-  ],
-  "Camerupt": [
-    "Fire",
-    "Ground"
-  ],
-  "Braixen": [
-    "Fire"
-  ],
-  "Krokorok": [
-    "Ground",
-    "Dark"
-  ],
-  "Aggron-Mega": [
-    "Steel"
-  ],
-  "Florges": [
-    "Fairy"
-  ],
-  "Marill": [
-    "Water",
-    "Fairy"
-  ],
-  "Bewear": [
-    "Normal",
-    "Fighting"
-  ],
-  "Steelix": [
-    "Steel",
-    "Ground"
-  ],
-  "Trubbish": [
-    "Poison"
-  ],
-  "Entei": [
-    "Fire"
-  ],
-  "Silvally": [
-    "Normal"
-  ],
-  "Bronzong": [
-    "Steel",
-    "Psychic"
-  ],
-  "Exeggcute": [
-    "Grass",
-    "Psychic"
-  ],
-  "Swanna": [
-    "Water",
-    "Flying"
-  ],
-  "Gloom": [
-    "Grass",
-    "Poison"
-  ],
-  "Drilbur": [
-    "Ground"
-  ],
-  "Buzzwole": [
-    "Bug",
-    "Fighting"
-  ],
-  "Mienshao": [
-    "Fighting"
-  ],
-  "Slowpoke": [
-    "Water",
-    "Psychic"
-  ],
-  "Pichu": [
-    "Electric"
-  ],
-  "Regigigas": [
-    "Normal"
-  ],
-  "Shelgon": [
-    "Dragon"
-  ],
-  "Sobble": [
-    "Water"
-  ],
-  "Samurott-Hisui": [
-    "Water",
-    "Dark"
-  ],
-  "Skeledirge": [
-    "Fire",
-    "Ghost"
-  ],
-  "Quaxly": [
-    "Water"
-  ],
-  "Dugtrio": [
-    "Ground"
-  ],
-  "Oricorio-Pom-Pom": [
-    "Electric",
-    "Flying"
-  ],
-  "Frigibax": [
-    "Dragon",
-    "Ice"
-  ],
-  "Lotad": [
-    "Water",
-    "Grass"
-  ],
-  "Drifloon": [
-    "Ghost",
-    "Flying"
-  ],
-  "Jellicent": [
-    "Water",
-    "Ghost"
-  ],
-  "Hatterene": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Mabosstiff": [
-    "Dark"
-  ],
-  "Crabrawler": [
-    "Fighting"
-  ],
-  "Electrike": [
-    "Electric"
-  ],
-  "Poliwag": [
-    "Water"
-  ],
-  "Liepard": [
-    "Dark"
-  ],
-  "Blaziken": [
-    "Fire",
-    "Fighting"
-  ],
-  "Lapras": [
-    "Water",
-    "Ice"
-  ],
-  "Sealeo": [
-    "Ice",
-    "Water"
-  ],
-  "Electrode-Hisui": [
-    "Electric",
-    "Grass"
-  ],
-  "Tyrunt": [
-    "Rock",
-    "Dragon"
-  ],
-  "Thwackey": [
-    "Grass"
-  ],
-  "Arctibax": [
-    "Dragon",
-    "Ice"
-  ],
-  "Greninja": [
-    "Water",
-    "Dark"
-  ],
-  "Rotom-Heat": [
-    "Electric",
-    "Fire"
-  ],
-  "Dolliv": [
-    "Grass",
-    "Normal"
-  ],
-  "Zarude": [
-    "Dark",
-    "Grass"
-  ],
-  "Bounsweet": [
-    "Grass"
-  ],
-  "Talonflame": [
-    "Fire",
-    "Flying"
-  ],
-  "Iron Boulder": [
-    "Rock",
-    "Psychic"
-  ],
-  "Hattrem": [
-    "Psychic"
-  ],
-  "Mienfoo": [
-    "Fighting"
-  ],
-  "Ninetales": [
-    "Fire"
-  ],
-  "Iron Crown": [
-    "Steel",
-    "Psychic"
-  ],
-  "Spinda": [
-    "Normal"
-  ],
-  "Gogoat": [
-    "Grass"
-  ],
-  "Slakoth": [
-    "Normal"
-  ],
-  "Zangoose": [
-    "Normal"
-  ],
-  "Mightyena": [
-    "Dark"
-  ],
-  "Iron Moth": [
-    "Fire",
-    "Poison"
-  ],
-  "Snorlax": [
-    "Normal"
-  ],
-  "Floette": [
-    "Fairy"
-  ],
-  "Absol": [
-    "Dark"
-  ],
-  "Ledyba": [
-    "Bug",
-    "Flying"
-  ],
-  "Landorus-Therian": [
-    "Ground",
-    "Flying"
-  ],
-  "Magikarp": [
-    "Water"
-  ],
-  "Slowbro-Galar": [
-    "Poison",
-    "Psychic"
-  ],
-  "Sunkern": [
-    "Grass"
-  ],
-  "Golurk": [
-    "Ground",
-    "Ghost"
-  ],
-  "Shuppet": [
-    "Ghost"
-  ],
-  "Ekans": [
-    "Poison"
-  ],
-  "Wo-Chien": [
-    "Dark",
-    "Grass"
-  ],
-  "Heracross-Mega": [
-    "Bug",
-    "Fighting"
-  ],
-  "Glimmora": [
-    "Rock",
-    "Poison"
-  ],
-  "Feraligatr": [
-    "Water"
-  ],
-  "Whimsicott": [
-    "Grass",
-    "Fairy"
-  ],
-  "Farigiraf": [
-    "Normal",
-    "Psychic"
-  ],
-  "Espurr": [
-    "Psychic"
-  ],
-  "Milcery": [
-    "Fairy"
-  ],
-  "Voltorb": [
-    "Electric"
-  ],
-  "Basculegion-F": [
-    "Water",
-    "Ghost"
-  ],
-  "Pecharunt": [
-    "Poison",
-    "Ghost"
-  ],
-  "Electabuzz": [
-    "Electric"
-  ],
-  "Graveler": [
-    "Rock",
-    "Ground"
-  ],
-  "Mantyke": [
-    "Water",
-    "Flying"
-  ],
-  "Machoke": [
-    "Fighting"
-  ],
-  "Sliggoo-Hisui": [
-    "Steel",
-    "Dragon"
-  ],
-  "Minun": [
-    "Electric"
-  ],
-  "Dewgong": [
-    "Water",
-    "Ice"
-  ],
-  "Geodude": [
-    "Rock",
-    "Ground"
-  ],
-  "Chewtle": [
-    "Water"
-  ],
-  "Dusknoir": [
-    "Ghost"
-  ],
-  "Stakataka": [
-    "Rock",
-    "Steel"
-  ],
-  "Kirlia": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Celebi": [
-    "Psychic",
-    "Grass"
-  ],
-  "Mandibuzz": [
-    "Dark",
-    "Flying"
-  ],
-  "Skwovet": [
-    "Normal"
-  ],
-  "Bronzor": [
-    "Steel",
-    "Psychic"
-  ],
-  "Swampert-Mega": [
-    "Water",
-    "Ground"
-  ],
-  "Stunky": [
-    "Poison",
-    "Dark"
-  ],
-  "Drifblim": [
-    "Ghost",
-    "Flying"
-  ],
-  "Cofagrigus": [
-    "Ghost"
-  ],
-  "Hariyama": [
-    "Fighting"
-  ],
-  "Ampharos": [
-    "Electric"
-  ],
-  "Charmander": [
-    "Fire"
-  ],
-  "Chimecho": [
-    "Psychic"
-  ],
-  "Cetitan": [
-    "Ice"
-  ],
-  "Cinccino": [
-    "Normal"
-  ],
-  "Scrafty": [
-    "Dark",
-    "Fighting"
-  ],
-  "Vullaby": [
-    "Dark",
-    "Flying"
-  ],
-  "Meganium": [
-    "Grass"
-  ],
-  "Quilladin": [
-    "Grass"
-  ],
-  "Necrozma": [
-    "Psychic"
-  ],
-  "Golbat": [
-    "Poison",
-    "Flying"
-  ],
-  "Iron Leaves": [
-    "Grass",
-    "Psychic"
-  ],
-  "Dipplin": [
-    "Grass",
-    "Dragon"
-  ],
-  "Leafeon": [
-    "Grass"
-  ],
-  "Bastiodon": [
-    "Rock",
-    "Steel"
-  ],
-  "Wiglett": [
-    "Water"
-  ],
-  "Butterfree": [
-    "Bug",
-    "Flying"
-  ],
-  "Tepig": [
-    "Fire"
-  ],
-  "Shroomish": [
-    "Grass"
-  ],
-  "Bunnelby": [
-    "Normal"
-  ],
-  "Vulpix": [
-    "Fire"
-  ],
-  "Togepi": [
-    "Fairy"
-  ],
-  "Simipour": [
-    "Water"
-  ],
-  "Numel": [
-    "Fire",
-    "Ground"
-  ],
-  "Shedinja": [
-    "Bug",
-    "Ghost"
-  ],
-  "Espeon": [
-    "Psychic"
-  ],
-  "Diglett-Alola": [
-    "Ground",
-    "Steel"
-  ],
-  "Clodsire": [
-    "Poison",
-    "Ground"
-  ],
-  "Tornadus-Therian": [
-    "Flying"
-  ],
-  "Rabsca": [
-    "Bug",
-    "Psychic"
-  ],
-  "Cacturne": [
-    "Grass",
-    "Dark"
-  ],
-  "Frogadier": [
-    "Water"
-  ],
-  "Solrock": [
-    "Rock",
-    "Psychic"
-  ],
-  "Slowking-Galar": [
-    "Poison",
-    "Psychic"
-  ],
-  "Kangaskhan": [
-    "Normal"
-  ],
-  "Sudowoodo": [
-    "Rock"
-  ],
-  "Bouffalant": [
-    "Normal"
-  ],
-  "Rockruff": [
-    "Rock"
-  ],
-  "Glalie-Mega": [
-    "Ice"
-  ],
-  "Bidoof": [
-    "Normal"
-  ],
-  "Scream Tail": [
-    "Fairy",
-    "Psychic"
-  ],
-  "Charmeleon": [
-    "Fire"
-  ],
-  "Eelektross": [
-    "Electric"
-  ],
-  "Venusaur-Mega": [
-    "Grass",
-    "Poison"
-  ],
-  "Totodile": [
-    "Water"
-  ],
-  "Fletchinder": [
-    "Fire",
-    "Flying"
-  ],
-  "Avalugg-Hisui": [
-    "Ice",
-    "Rock"
-  ],
-  "Gardevoir": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Huntail": [
-    "Water"
-  ],
-  "Inkay": [
-    "Dark",
-    "Psychic"
-  ],
-  "Makuhita": [
-    "Fighting"
-  ],
-  "Combee": [
-    "Bug",
-    "Flying"
-  ],
-  "Slowbro": [
-    "Water",
-    "Psychic"
-  ],
-  "Tauros": [
-    "Normal"
-  ],
-  "Kleavor": [
-    "Bug",
-    "Rock"
-  ],
-  "Piloswine": [
-    "Ice",
-    "Ground"
-  ],
-  "Duosion": [
-    "Psychic"
-  ],
-  "Sandile": [
-    "Ground",
-    "Dark"
-  ],
-  "Nacli": [
-    "Rock"
-  ],
-  "Omastar": [
-    "Rock",
-    "Water"
-  ],
-  "Barbaracle": [
-    "Rock",
-    "Water"
-  ],
-  "Ursaring": [
-    "Normal"
-  ],
-  "Nidoking": [
-    "Poison",
-    "Ground"
-  ],
-  "Shieldon": [
-    "Rock",
-    "Steel"
-  ],
-  "Latias": [
-    "Dragon",
-    "Psychic"
-  ],
-  "Growlithe": [
-    "Fire"
-  ],
-  "Watchog": [
-    "Normal"
-  ],
-  "Doublade": [
-    "Steel",
-    "Ghost"
-  ],
-  "Heliolisk": [
-    "Electric",
-    "Normal"
-  ],
-  "Melmetal": [
-    "Steel"
-  ],
-  "Garganacl": [
-    "Rock"
-  ],
-  "Electrode": [
-    "Electric"
-  ],
-  "Skrelp": [
-    "Poison",
-    "Water"
-  ],
-  "Drapion": [
-    "Poison",
-    "Dark"
-  ],
-  "Tapu Fini": [
-    "Water",
-    "Fairy"
-  ],
-  "Floatzel": [
-    "Water"
-  ],
-  "Purugly": [
-    "Normal"
-  ],
-  "Hitmonlee": [
-    "Fighting"
-  ],
-  "Toxicroak": [
-    "Poison",
-    "Fighting"
-  ],
-  "Emolga": [
-    "Electric",
-    "Flying"
-  ],
-  "Skitty": [
-    "Normal"
-  ],
-  "Mimikyu": [
-    "Ghost",
-    "Fairy"
-  ],
-  "Shiinotic": [
-    "Grass",
-    "Fairy"
-  ],
-  "Slugma": [
-    "Fire"
-  ],
-  "Sawk": [
-    "Fighting"
-  ],
-  "Volcanion": [
-    "Fire",
-    "Water"
-  ],
-  "Buizel": [
-    "Water"
-  ],
-  "Pelipper": [
-    "Water",
-    "Flying"
-  ],
-  "Hoppip": [
-    "Grass",
-    "Flying"
-  ],
-  "Sprigatito": [
-    "Grass"
-  ],
-  "Sewaddle": [
-    "Bug",
-    "Grass"
-  ],
-  "Sylveon": [
-    "Fairy"
-  ],
-  "Crabominable": [
-    "Fighting",
-    "Ice"
-  ],
-  "Gorebyss": [
-    "Water"
-  ],
-  "Roggenrola": [
-    "Rock"
-  ],
-  "Lopunny-Mega": [
-    "Normal",
-    "Fighting"
-  ],
-  "Volcarona": [
-    "Bug",
-    "Fire"
-  ],
-  "Metagross": [
-    "Steel",
-    "Psychic"
-  ],
-  "Musharna": [
-    "Psychic"
-  ],
-  "Rattata": [
-    "Normal"
-  ],
-  "Seel": [
-    "Water"
-  ],
-  "Archeops": [
-    "Rock",
-    "Flying"
-  ],
-  "Morgrem": [
-    "Dark",
-    "Fairy"
-  ],
-  "Palossand": [
-    "Ghost",
-    "Ground"
-  ],
-  "Cufant": [
-    "Steel"
-  ],
-  "Swirlix": [
-    "Fairy"
-  ],
-  "Meditite": [
-    "Fighting",
-    "Psychic"
-  ],
-  "Basculegion": [
-    "Water",
-    "Ghost"
-  ],
-  "Uxie": [
-    "Psychic"
-  ],
-  "Fennekin": [
-    "Fire"
-  ],
-  "Archaludon": [
-    "Steel",
-    "Dragon"
-  ],
-  "Pupitar": [
-    "Rock",
-    "Ground"
-  ],
-  "Duraludon": [
-    "Steel",
-    "Dragon"
-  ],
-  "Simisage": [
-    "Grass"
-  ],
-  "Grubbin": [
-    "Bug"
-  ],
-  "Graveler-Alola": [
-    "Rock",
-    "Electric"
-  ],
-  "Mawile": [
-    "Steel",
-    "Fairy"
-  ],
-  "Gyarados": [
-    "Water",
-    "Flying"
-  ],
-  "Samurott": [
-    "Water"
-  ],
-  "Seaking": [
-    "Water"
-  ],
-  "Flittle": [
-    "Psychic"
-  ],
-  "Absol-Mega": [
-    "Dark"
-  ],
-  "Nidoqueen": [
-    "Poison",
-    "Ground"
-  ],
-  "Cubone": [
-    "Ground"
-  ],
-  "Servine": [
-    "Grass"
-  ],
-  "Quilava": [
-    "Fire"
-  ],
-  "Iron Treads": [
-    "Ground",
-    "Steel"
-  ],
-  "Noivern": [
-    "Flying",
-    "Dragon"
-  ],
-  "Nuzleaf": [
-    "Grass",
-    "Dark"
-  ],
-  "Jangmo-o": [
-    "Dragon"
-  ],
-  "Gallade": [
-    "Psychic",
-    "Fighting"
-  ],
-  "Hippowdon": [
-    "Ground"
-  ],
-  "Staryu": [
-    "Water"
-  ],
-  "Venusaur": [
-    "Grass",
-    "Poison"
-  ],
-  "Pinsir-Mega": [
-    "Bug",
-    "Flying"
-  ],
-  "Shaymin": [
-    "Grass"
-  ],
-  "Stunfisk": [
-    "Ground",
-    "Electric"
-  ],
-  "Mr. Rime": [
-    "Ice",
-    "Psychic"
-  ],
-  "Magneton": [
-    "Electric",
-    "Steel"
-  ],
-  "Popplio": [
-    "Water"
-  ],
-  "Kubfu": [
-    "Fighting"
-  ],
-  "Medicham-Mega": [
-    "Fighting",
-    "Psychic"
-  ],
-  "Terapagos": [
-    "Normal"
-  ],
-  "Persian": [
-    "Normal"
-  ],
-  "Magmar": [
-    "Fire"
-  ],
-  "Mareanie": [
-    "Poison",
-    "Water"
-  ],
-  "Meowth": [
-    "Normal"
-  ],
-  "Kilowattrel": [
-    "Electric",
-    "Flying"
-  ],
-  "Zamazenta-Crowned": [
-    "Fighting",
-    "Steel"
-  ],
-  "Azelf": [
-    "Psychic"
-  ],
-  "Sharpedo": [
-    "Water",
-    "Dark"
-  ],
-  "Yamper": [
-    "Electric"
-  ],
-  "Poliwhirl": [
-    "Water"
-  ],
-  "Raikou": [
-    "Electric"
-  ],
-  "Froakie": [
-    "Water"
-  ],
-  "Ceruledge": [
-    "Fire",
-    "Ghost"
-  ],
-  "Lumineon": [
-    "Water"
-  ],
-  "Registeel": [
-    "Steel"
-  ],
-  "Gardevoir-Mega": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Thievul": [
-    "Dark"
-  ],
-  "Manaphy": [
-    "Water"
-  ],
-  "Raticate-Alola": [
-    "Dark",
-    "Normal"
-  ],
-  "Jynx": [
-    "Ice",
-    "Psychic"
-  ],
-  "Goodra-Hisui": [
-    "Steel",
-    "Dragon"
-  ],
-  "Barboach": [
-    "Water",
-    "Ground"
-  ],
-  "Cryogonal": [
-    "Ice"
-  ],
-  "Larvesta": [
-    "Bug",
-    "Fire"
-  ],
-  "Bellibolt": [
-    "Electric"
-  ],
-  "Purrloin": [
-    "Dark"
-  ],
-  "Shellder": [
-    "Water"
-  ],
-  "Turtwig": [
-    "Grass"
-  ],
-  "Weavile": [
-    "Dark",
-    "Ice"
-  ],
-  "Magnezone": [
-    "Electric",
-    "Steel"
-  ],
-  "Sandaconda": [
-    "Ground"
-  ],
-  "Rhyperior": [
-    "Ground",
-    "Rock"
-  ],
-  "Eelektrik": [
-    "Electric"
-  ],
-  "Wailord": [
-    "Water"
-  ],
-  "Simisear": [
-    "Fire"
-  ],
-  "Croagunk": [
-    "Poison",
-    "Fighting"
-  ],
-  "Banette-Mega": [
-    "Ghost"
-  ],
-  "Cubchoo": [
-    "Ice"
-  ],
-  "Jigglypuff": [
-    "Normal",
-    "Fairy"
-  ],
-  "Aurorus": [
-    "Rock",
-    "Ice"
-  ],
-  "Unfezant": [
-    "Normal",
-    "Flying"
-  ],
-  "Wimpod": [
-    "Bug",
-    "Water"
-  ],
-  "Zubat": [
-    "Poison",
-    "Flying"
-  ],
-  "Yanmega": [
-    "Bug",
-    "Flying"
-  ],
-  "Decidueye-Hisui": [
-    "Grass",
-    "Fighting"
-  ],
-  "Rhyhorn": [
-    "Ground",
-    "Rock"
-  ],
-  "Dustox": [
-    "Bug",
-    "Poison"
-  ],
-  "Skarmory": [
-    "Steel",
-    "Flying"
-  ],
-  "Feebas": [
-    "Water"
-  ],
-  "Charjabug": [
-    "Bug",
-    "Electric"
-  ],
-  "Moltres": [
-    "Fire",
-    "Flying"
-  ],
-  "Smoliv": [
-    "Grass",
-    "Normal"
-  ],
-  "Farfetch'd-Galar": [
-    "Fighting"
-  ],
-  "Lillipup": [
-    "Normal"
-  ],
-  "Vaporeon": [
-    "Water"
-  ],
-  "Throh": [
-    "Fighting"
-  ],
-  "Sandslash": [
-    "Ground"
-  ],
-  "Orbeetle": [
-    "Bug",
-    "Psychic"
-  ],
-  "Shiftry": [
-    "Grass",
-    "Dark"
-  ],
-  "Piplup": [
-    "Water"
-  ],
-  "Alomomola": [
-    "Water"
-  ],
-  "Vikavolt": [
-    "Bug",
-    "Electric"
-  ],
-  "Tauros-Paldea-Combat": [
-    "Fighting"
-  ],
-  "Houndour": [
-    "Dark",
-    "Fire"
-  ],
-  "Zeraora": [
-    "Electric"
-  ],
-  "Braviary": [
-    "Normal",
-    "Flying"
-  ],
-  "Hitmontop": [
-    "Fighting"
-  ],
-  "Snivy": [
-    "Grass"
-  ],
-  "Boltund": [
-    "Electric"
-  ],
-  "Glimmet": [
-    "Rock",
-    "Poison"
-  ],
-  "Pachirisu": [
-    "Electric"
-  ],
-  "Ivysaur": [
-    "Grass",
-    "Poison"
-  ],
-  "Varoom": [
-    "Steel",
-    "Poison"
-  ],
-  "Gulpin": [
-    "Poison"
-  ],
-  "Gourgeist-Small": [
-    "Ghost",
-    "Grass"
-  ],
-  "Venomoth": [
-    "Bug",
-    "Poison"
-  ],
-  "Tinkatuff": [
-    "Fairy",
-    "Steel"
-  ],
-  "Greavard": [
-    "Ghost"
-  ],
-  "Armaldo": [
-    "Rock",
-    "Bug"
-  ],
-  "Seadra": [
-    "Water"
-  ],
-  "Ferrothorn": [
-    "Grass",
-    "Steel"
-  ],
-  "Bulbasaur": [
-    "Grass",
-    "Poison"
-  ],
-  "Araquanid": [
-    "Water",
-    "Bug"
-  ],
-  "Goodra": [
-    "Dragon"
-  ],
-  "Glastrier": [
-    "Ice"
-  ],
-  "Growlithe-Hisui": [
-    "Fire",
-    "Rock"
-  ],
-  "Tyrantrum": [
-    "Rock",
-    "Dragon"
-  ],
-  "Revavroom": [
-    "Steel",
-    "Poison"
-  ],
-  "Avalugg": [
-    "Ice"
-  ],
-  "Pyroar": [
-    "Fire",
-    "Normal"
-  ],
-  "Zoroark": [
-    "Dark"
-  ],
-  "Beheeyem": [
-    "Psychic"
-  ],
-  "Lucario": [
-    "Fighting",
-    "Steel"
-  ],
-  "Ambipom": [
-    "Normal"
-  ],
-  "Sceptile": [
-    "Grass"
-  ],
-  "Misdreavus": [
-    "Ghost"
-  ],
-  "Gothita": [
-    "Psychic"
-  ],
-  "Gyarados-Mega": [
-    "Water",
-    "Dark"
-  ],
-  "Duskull": [
-    "Ghost"
-  ],
-  "Bayleef": [
-    "Grass"
-  ],
-  "Drednaw": [
-    "Water",
-    "Rock"
-  ],
-  "Lycanroc-Midnight": [
-    "Rock"
-  ],
-  "Dragalge": [
-    "Poison",
-    "Dragon"
-  ],
-  "Spidops": [
-    "Bug"
-  ],
-  "Remoraid": [
-    "Water"
-  ],
-  "Rattata-Alola": [
-    "Dark",
-    "Normal"
-  ],
-  "Falinks": [
-    "Fighting"
-  ],
-  "Wooloo": [
-    "Normal"
-  ],
-  "Zygarde-10%": [
-    "Dragon",
-    "Ground"
-  ],
-  "Cramorant": [
-    "Flying",
-    "Water"
-  ],
-  "Bruxish": [
-    "Water",
-    "Psychic"
-  ],
-  "Blacephalon": [
-    "Fire",
-    "Ghost"
-  ],
-  "Pansage": [
-    "Grass"
-  ],
-  "Sentret": [
-    "Normal"
-  ],
-  "Grovyle": [
-    "Grass"
-  ],
-  "Infernape": [
-    "Fire",
-    "Fighting"
-  ],
-  "Ogerpon-Wellspring": [
-    "Grass",
-    "Water"
-  ],
-  "Malamar": [
-    "Dark",
-    "Psychic"
-  ],
-  "Phanpy": [
-    "Ground"
-  ],
-  "Gigalith": [
-    "Rock"
-  ],
-  "Pawmo": [
-    "Electric",
-    "Fighting"
-  ],
-  "Nosepass": [
-    "Rock"
-  ],
-  "Koffing": [
-    "Poison"
-  ],
-  "Lunatone": [
-    "Rock",
-    "Psychic"
-  ],
-  "Dugtrio-Alola": [
-    "Ground",
-    "Steel"
-  ],
-  "Stantler": [
-    "Normal"
-  ],
   "Seismitoad": [
-    "Water",
-    "Ground"
-  ],
-  "Garchomp": [
-    "Dragon",
-    "Ground"
-  ],
-  "Weepinbell": [
-    "Grass",
-    "Poison"
-  ],
-  "Forretress": [
-    "Bug",
-    "Steel"
-  ],
-  "Corsola-Galar": [
-    "Ghost"
-  ],
-  "Ogerpon-Cornerstone": [
-    "Grass",
-    "Rock"
-  ],
-  "Exploud": [
-    "Normal"
-  ],
-  "Centiskorch": [
-    "Fire",
-    "Bug"
-  ],
-  "Horsea": [
-    "Water"
-  ],
-  "Abomasnow-Mega": [
-    "Grass",
-    "Ice"
-  ],
-  "Beedrill": [
-    "Bug",
-    "Poison"
-  ],
-  "Amoonguss": [
-    "Grass",
-    "Poison"
-  ],
-  "Aerodactyl": [
-    "Rock",
-    "Flying"
-  ],
-  "Lokix": [
-    "Bug",
-    "Dark"
-  ],
-  "Walking Wake": [
-    "Water",
-    "Dragon"
-  ],
-  "Starly": [
-    "Normal",
-    "Flying"
-  ],
-  "Buneary": [
-    "Normal"
-  ],
-  "Latios": [
-    "Dragon",
-    "Psychic"
-  ],
-  "Hydrapple": [
-    "Grass",
-    "Dragon"
-  ],
-  "Flareon": [
-    "Fire"
-  ],
-  "Mr. Mime": [
-    "Psychic",
-    "Fairy"
-  ],
-  "Silcoon": [
-    "Bug"
-  ],
-  "Hypno": [
-    "Psychic"
-  ],
-  "Staravia": [
-    "Normal",
-    "Flying"
-  ],
-  "Krabby": [
-    "Water"
-  ],
-  "Leavanny": [
-    "Bug",
-    "Grass"
-  ],
-  "Thundurus-Therian": [
-    "Electric",
-    "Flying"
-  ],
-  "Krookodile": [
-    "Ground",
-    "Dark"
-  ],
-  "Gastrodon": [
     "Water",
     "Ground"
   ],
@@ -3554,115 +169,3500 @@
     "Rock",
     "Electric"
   ],
-  "Jolteon": [
+  "Great Tusk": [
+    "Ground",
+    "Fighting"
+  ],
+  "Inkay": [
+    "Dark",
+    "Psychic"
+  ],
+  "Medicham-Mega": [
+    "Fighting",
+    "Psychic"
+  ],
+  "Happiny": [
+    "Normal"
+  ],
+  "Slowpoke": [
+    "Water",
+    "Psychic"
+  ],
+  "Rufflet": [
+    "Normal",
+    "Flying"
+  ],
+  "Hitmonlee": [
+    "Fighting"
+  ],
+  "Mareanie": [
+    "Poison",
+    "Water"
+  ],
+  "Diglett-Alola": [
+    "Ground",
+    "Steel"
+  ],
+  "Chespin": [
+    "Grass"
+  ],
+  "Boltund": [
     "Electric"
+  ],
+  "Bayleef": [
+    "Grass"
+  ],
+  "Rotom-Mow": [
+    "Electric",
+    "Grass"
+  ],
+  "Ninetales-Alola": [
+    "Ice",
+    "Fairy"
+  ],
+  "Leafeon": [
+    "Grass"
+  ],
+  "Bulbasaur": [
+    "Grass",
+    "Poison"
+  ],
+  "Gumshoos": [
+    "Normal"
+  ],
+  "Seviper": [
+    "Poison"
+  ],
+  "Trubbish": [
+    "Poison"
+  ],
+  "Aerodactyl": [
+    "Rock",
+    "Flying"
+  ],
+  "Azurill": [
+    "Normal",
+    "Fairy"
+  ],
+  "Leavanny": [
+    "Bug",
+    "Grass"
+  ],
+  "Kecleon": [
+    "Normal"
+  ],
+  "Sigilyph": [
+    "Psychic",
+    "Flying"
+  ],
+  "Toxel": [
+    "Electric",
+    "Poison"
+  ],
+  "Nidoking": [
+    "Poison",
+    "Ground"
+  ],
+  "Cursola": [
+    "Ghost"
+  ],
+  "Qwilfish-Hisui": [
+    "Dark",
+    "Poison"
+  ],
+  "Sentret": [
+    "Normal"
+  ],
+  "Corvisquire": [
+    "Flying"
+  ],
+  "Kangaskhan": [
+    "Normal"
+  ],
+  "Clobbopus": [
+    "Fighting"
+  ],
+  "Braviary-Hisui": [
+    "Psychic",
+    "Flying"
+  ],
+  "Typhlosion": [
+    "Fire"
+  ],
+  "Starly": [
+    "Normal",
+    "Flying"
+  ],
+  "Terapagos": [
+    "Normal"
+  ],
+  "Tentacool": [
+    "Water",
+    "Poison"
+  ],
+  "Garbodor": [
+    "Poison"
+  ],
+  "Vaporeon": [
+    "Water"
+  ],
+  "Bastiodon": [
+    "Rock",
+    "Steel"
+  ],
+  "Kartana": [
+    "Grass",
+    "Steel"
+  ],
+  "Lycanroc-Dusk": [
+    "Rock"
+  ],
+  "Lumineon": [
+    "Water"
+  ],
+  "Silcoon": [
+    "Bug"
+  ],
+  "Slowpoke-Galar": [
+    "Psychic"
+  ],
+  "Wyrdeer": [
+    "Normal",
+    "Psychic"
+  ],
+  "Bunnelby": [
+    "Normal"
+  ],
+  "Capsakid": [
+    "Grass"
+  ],
+  "Clefable": [
+    "Fairy"
+  ],
+  "Crobat": [
+    "Poison",
+    "Flying"
+  ],
+  "Simisage": [
+    "Grass"
+  ],
+  "Bonsly": [
+    "Rock"
+  ],
+  "Tangela": [
+    "Grass"
+  ],
+  "Heatran": [
+    "Fire",
+    "Steel"
+  ],
+  "Rotom-Wash": [
+    "Electric",
+    "Water"
+  ],
+  "Machamp": [
+    "Fighting"
+  ],
+  "Bounsweet": [
+    "Grass"
+  ],
+  "Duosion": [
+    "Psychic"
+  ],
+  "Weavile": [
+    "Dark",
+    "Ice"
+  ],
+  "Gourgeist-Large": [
+    "Ghost",
+    "Grass"
+  ],
+  "Charizard-Mega-X": [
+    "Fire",
+    "Dragon"
+  ],
+  "Inteleon": [
+    "Water"
+  ],
+  "Salazzle": [
+    "Poison",
+    "Fire"
+  ],
+  "Altaria": [
+    "Dragon",
+    "Flying"
+  ],
+  "Igglybuff": [
+    "Normal",
+    "Fairy"
+  ],
+  "Tapu Koko": [
+    "Electric",
+    "Fairy"
+  ],
+  "Jumpluff": [
+    "Grass",
+    "Flying"
+  ],
+  "Manaphy": [
+    "Water"
+  ],
+  "Pidgeot-Mega": [
+    "Normal",
+    "Flying"
+  ],
+  "Stonjourner": [
+    "Rock"
+  ],
+  "Marill": [
+    "Water",
+    "Fairy"
   ],
   "Poliwrath": [
     "Water",
     "Fighting"
   ],
-  "Torchic": [
+  "Dedenne": [
+    "Electric",
+    "Fairy"
+  ],
+  "Finizen": [
+    "Water"
+  ],
+  "Iron Treads": [
+    "Ground",
+    "Steel"
+  ],
+  "Dreepy": [
+    "Dragon",
+    "Ghost"
+  ],
+  "Mew": [
+    "Psychic"
+  ],
+  "Bisharp": [
+    "Dark",
+    "Steel"
+  ],
+  "Murkrow": [
+    "Dark",
+    "Flying"
+  ],
+  "Vileplume": [
+    "Grass",
+    "Poison"
+  ],
+  "Sliggoo": [
+    "Dragon"
+  ],
+  "Urshifu-Rapid-Strike": [
+    "Fighting",
+    "Water"
+  ],
+  "Zubat": [
+    "Poison",
+    "Flying"
+  ],
+  "Ninetales": [
+    "Fire"
+  ],
+  "Cetitan": [
+    "Ice"
+  ],
+  "Iron Crown": [
+    "Steel",
+    "Psychic"
+  ],
+  "Beldum": [
+    "Steel",
+    "Psychic"
+  ],
+  "Cramorant": [
+    "Flying",
+    "Water"
+  ],
+  "Tepig": [
+    "Fire"
+  ],
+  "Yungoos": [
+    "Normal"
+  ],
+  "Swinub": [
+    "Ice",
+    "Ground"
+  ],
+  "Onix": [
+    "Rock",
+    "Ground"
+  ],
+  "Mamoswine": [
+    "Ice",
+    "Ground"
+  ],
+  "Milcery": [
+    "Fairy"
+  ],
+  "Sawsbuck": [
+    "Normal",
+    "Grass"
+  ],
+  "Regieleki": [
+    "Electric"
+  ],
+  "Dartrix": [
+    "Grass",
+    "Flying"
+  ],
+  "Farfetch'd": [
+    "Normal",
+    "Flying"
+  ],
+  "Mawile": [
+    "Steel",
+    "Fairy"
+  ],
+  "Raichu": [
+    "Electric"
+  ],
+  "Hoopa-Unbound": [
+    "Psychic",
+    "Dark"
+  ],
+  "Aggron-Mega": [
+    "Steel"
+  ],
+  "Shelgon": [
+    "Dragon"
+  ],
+  "Stunfisk": [
+    "Ground",
+    "Electric"
+  ],
+  "Slowking": [
+    "Water",
+    "Psychic"
+  ],
+  "Skiploom": [
+    "Grass",
+    "Flying"
+  ],
+  "Impidimp": [
+    "Dark",
+    "Fairy"
+  ],
+  "Arrokuda": [
+    "Water"
+  ],
+  "Fearow": [
+    "Normal",
+    "Flying"
+  ],
+  "Krabby": [
+    "Water"
+  ],
+  "Hawlucha": [
+    "Fighting",
+    "Flying"
+  ],
+  "Iron Leaves": [
+    "Grass",
+    "Psychic"
+  ],
+  "Yamper": [
+    "Electric"
+  ],
+  "Marshtomp": [
+    "Water",
+    "Ground"
+  ],
+  "Psyduck": [
+    "Water"
+  ],
+  "Honedge": [
+    "Steel",
+    "Ghost"
+  ],
+  "Finneon": [
+    "Water"
+  ],
+  "Tinkaton": [
+    "Fairy",
+    "Steel"
+  ],
+  "Veluza": [
+    "Water",
+    "Psychic"
+  ],
+  "Alakazam": [
+    "Psychic"
+  ],
+  "Keldeo": [
+    "Water",
+    "Fighting"
+  ],
+  "Sunkern": [
+    "Grass"
+  ],
+  "Flittle": [
+    "Psychic"
+  ],
+  "Cufant": [
+    "Steel"
+  ],
+  "Eldegoss": [
+    "Grass"
+  ],
+  "Typhlosion-Hisui": [
+    "Fire",
+    "Ghost"
+  ],
+  "Beedrill": [
+    "Bug",
+    "Poison"
+  ],
+  "Wooper-Paldea": [
+    "Poison",
+    "Ground"
+  ],
+  "Carbink": [
+    "Rock",
+    "Fairy"
+  ],
+  "Scizor": [
+    "Bug",
+    "Steel"
+  ],
+  "Lickitung": [
+    "Normal"
+  ],
+  "Porygon-Z": [
+    "Normal"
+  ],
+  "Vibrava": [
+    "Ground",
+    "Dragon"
+  ],
+  "Luvdisc": [
+    "Water"
+  ],
+  "Meowth": [
+    "Normal"
+  ],
+  "Ogerpon-Cornerstone": [
+    "Grass",
+    "Rock"
+  ],
+  "Relicanth": [
+    "Water",
+    "Rock"
+  ],
+  "Vespiquen": [
+    "Bug",
+    "Flying"
+  ],
+  "Persian": [
+    "Normal"
+  ],
+  "Lickilicky": [
+    "Normal"
+  ],
+  "Farfetch'd-Galar": [
+    "Fighting"
+  ],
+  "Dugtrio-Alola": [
+    "Ground",
+    "Steel"
+  ],
+  "Gothita": [
+    "Psychic"
+  ],
+  "Oricorio-Pom-Pom": [
+    "Electric",
+    "Flying"
+  ],
+  "Sobble": [
+    "Water"
+  ],
+  "Graveler-Alola": [
+    "Rock",
+    "Electric"
+  ],
+  "Swoobat": [
+    "Psychic",
+    "Flying"
+  ],
+  "Claydol": [
+    "Ground",
+    "Psychic"
+  ],
+  "Naclstack": [
+    "Rock"
+  ],
+  "Iron Thorns": [
+    "Rock",
+    "Electric"
+  ],
+  "Deerling": [
+    "Normal",
+    "Grass"
+  ],
+  "Haunter": [
+    "Ghost",
+    "Poison"
+  ],
+  "Wormadam-Trash": [
+    "Bug",
+    "Steel"
+  ],
+  "Cinccino": [
+    "Normal"
+  ],
+  "Grubbin": [
+    "Bug"
+  ],
+  "Marowak-Alola": [
+    "Fire",
+    "Ghost"
+  ],
+  "Gogoat": [
+    "Grass"
+  ],
+  "Decidueye": [
+    "Grass",
+    "Ghost"
+  ],
+  "Calyrex": [
+    "Psychic",
+    "Grass"
+  ],
+  "Charmander": [
+    "Fire"
+  ],
+  "Beedrill-Mega": [
+    "Bug",
+    "Poison"
+  ],
+  "Stoutland": [
+    "Normal"
+  ],
+  "Chansey": [
+    "Normal"
+  ],
+  "Yanma": [
+    "Bug",
+    "Flying"
+  ],
+  "Druddigon": [
+    "Dragon"
+  ],
+  "Salandit": [
+    "Poison",
+    "Fire"
+  ],
+  "Musharna": [
+    "Psychic"
+  ],
+  "Shuppet": [
+    "Ghost"
+  ],
+  "Ampharos-Mega": [
+    "Electric",
+    "Dragon"
+  ],
+  "Weedle": [
+    "Bug",
+    "Poison"
+  ],
+  "Prinplup": [
+    "Water"
+  ],
+  "Blastoise": [
+    "Water"
+  ],
+  "Simipour": [
+    "Water"
+  ],
+  "Seadra": [
+    "Water"
+  ],
+  "Thundurus-Therian": [
+    "Electric",
+    "Flying"
+  ],
+  "Venusaur": [
+    "Grass",
+    "Poison"
+  ],
+  "Archaludon": [
+    "Steel",
+    "Dragon"
+  ],
+  "Crabrawler": [
+    "Fighting"
+  ],
+  "Blaziken": [
+    "Fire",
+    "Fighting"
+  ],
+  "Budew": [
+    "Grass",
+    "Poison"
+  ],
+  "Unown": [
+    "Psychic"
+  ],
+  "Shelmet": [
+    "Bug"
+  ],
+  "Kyurem": [
+    "Dragon",
+    "Ice"
+  ],
+  "Flygon": [
+    "Ground",
+    "Dragon"
+  ],
+  "Wingull": [
+    "Water",
+    "Flying"
+  ],
+  "Fletchinder": [
+    "Fire",
+    "Flying"
+  ],
+  "Pawmo": [
+    "Electric",
+    "Fighting"
+  ],
+  "Hippowdon": [
+    "Ground"
+  ],
+  "Rotom-Fan": [
+    "Electric",
+    "Flying"
+  ],
+  "Vanillite": [
+    "Ice"
+  ],
+  "Sandshrew-Alola": [
+    "Ice",
+    "Steel"
+  ],
+  "Heliolisk": [
+    "Electric",
+    "Normal"
+  ],
+  "Croconaw": [
+    "Water"
+  ],
+  "Pikipek": [
+    "Normal",
+    "Flying"
+  ],
+  "Pansage": [
+    "Grass"
+  ],
+  "Garganacl": [
+    "Rock"
+  ],
+  "Amaura": [
+    "Rock",
+    "Ice"
+  ],
+  "Mabosstiff": [
+    "Dark"
+  ],
+  "Corsola-Galar": [
+    "Ghost"
+  ],
+  "Wattrel": [
+    "Electric",
+    "Flying"
+  ],
+  "Articuno-Galar": [
+    "Psychic",
+    "Flying"
+  ],
+  "Smeargle": [
+    "Normal"
+  ],
+  "Eelektross": [
+    "Electric"
+  ],
+  "Elgyem": [
+    "Psychic"
+  ],
+  "Snom": [
+    "Ice",
+    "Bug"
+  ],
+  "Voltorb-Hisui": [
+    "Electric",
+    "Grass"
+  ],
+  "Maschiff": [
+    "Dark"
+  ],
+  "Floette": [
+    "Fairy"
+  ],
+  "Voltorb": [
+    "Electric"
+  ],
+  "Floragato": [
+    "Grass"
+  ],
+  "Grovyle": [
+    "Grass"
+  ],
+  "Combee": [
+    "Bug",
+    "Flying"
+  ],
+  "Wooper": [
+    "Water",
+    "Ground"
+  ],
+  "Bagon": [
+    "Dragon"
+  ],
+  "Tsareena": [
+    "Grass"
+  ],
+  "Shroomish": [
+    "Grass"
+  ],
+  "Heracross": [
+    "Bug",
+    "Fighting"
+  ],
+  "Tyrantrum": [
+    "Rock",
+    "Dragon"
+  ],
+  "Lucario": [
+    "Fighting",
+    "Steel"
+  ],
+  "Jigglypuff": [
+    "Normal",
+    "Fairy"
+  ],
+  "Zorua-Hisui": [
+    "Normal",
+    "Ghost"
+  ],
+  "Omanyte": [
+    "Rock",
+    "Water"
+  ],
+  "Mudsdale": [
+    "Ground"
+  ],
+  "Gourgeist-Super": [
+    "Ghost",
+    "Grass"
+  ],
+  "Wartortle": [
+    "Water"
+  ],
+  "Manectric": [
+    "Electric"
+  ],
+  "Farigiraf": [
+    "Normal",
+    "Psychic"
+  ],
+  "Rowlet": [
+    "Grass",
+    "Flying"
+  ],
+  "Stunfisk-Galar": [
+    "Ground",
+    "Steel"
+  ],
+  "Ponyta-Galar": [
+    "Psychic"
+  ],
+  "Rotom": [
+    "Electric",
+    "Ghost"
+  ],
+  "Thwackey": [
+    "Grass"
+  ],
+  "Corviknight": [
+    "Flying",
+    "Steel"
+  ],
+  "Tentacruel": [
+    "Water",
+    "Poison"
+  ],
+  "Darkrai": [
+    "Dark"
+  ],
+  "Grotle": [
+    "Grass"
+  ],
+  "Turtwig": [
+    "Grass"
+  ],
+  "Tapu Fini": [
+    "Water",
+    "Fairy"
+  ],
+  "Lapras": [
+    "Water",
+    "Ice"
+  ],
+  "Primarina": [
+    "Water",
+    "Fairy"
+  ],
+  "Steelix-Mega": [
+    "Steel",
+    "Ground"
+  ],
+  "Tornadus-Therian": [
+    "Flying"
+  ],
+  "Serperior": [
+    "Grass"
+  ],
+  "Azumarill": [
+    "Water",
+    "Fairy"
+  ],
+  "Poliwag": [
+    "Water"
+  ],
+  "Chimchar": [
+    "Fire"
+  ],
+  "Banette-Mega": [
+    "Ghost"
+  ],
+  "Doublade": [
+    "Steel",
+    "Ghost"
+  ],
+  "Grapploct": [
+    "Fighting"
+  ],
+  "Spinda": [
+    "Normal"
+  ],
+  "Perrserker": [
+    "Steel"
+  ],
+  "Axew": [
+    "Dragon"
+  ],
+  "Vulpix": [
+    "Fire"
+  ],
+  "Purugly": [
+    "Normal"
+  ],
+  "Delcatty": [
+    "Normal"
+  ],
+  "Cleffa": [
+    "Fairy"
+  ],
+  "Goodra-Hisui": [
+    "Steel",
+    "Dragon"
+  ],
+  "Vullaby": [
+    "Dark",
+    "Flying"
+  ],
+  "Primeape": [
+    "Fighting"
+  ],
+  "Timburr": [
+    "Fighting"
+  ],
+  "Shiftry": [
+    "Grass",
+    "Dark"
+  ],
+  "Scrafty": [
+    "Dark",
+    "Fighting"
+  ],
+  "Zangoose": [
+    "Normal"
+  ],
+  "Swadloon": [
+    "Bug",
+    "Grass"
+  ],
+  "Spewpa": [
+    "Bug"
+  ],
+  "Raticate-Alola": [
+    "Dark",
+    "Normal"
+  ],
+  "Lillipup": [
+    "Normal"
+  ],
+  "Orthworm": [
+    "Steel"
+  ],
+  "Aron": [
+    "Steel",
+    "Rock"
+  ],
+  "Spheal": [
+    "Ice",
+    "Water"
+  ],
+  "Staraptor": [
+    "Normal",
+    "Flying"
+  ],
+  "Numel": [
+    "Fire",
+    "Ground"
+  ],
+  "Ampharos": [
+    "Electric"
+  ],
+  "Servine": [
+    "Grass"
+  ],
+  "Volcanion": [
+    "Fire",
+    "Water"
+  ],
+  "Drifloon": [
+    "Ghost",
+    "Flying"
+  ],
+  "Diancie-Mega": [
+    "Rock",
+    "Fairy"
+  ],
+  "Turtonator": [
+    "Fire",
+    "Dragon"
+  ],
+  "Lilligant-Hisui": [
+    "Grass",
+    "Fighting"
+  ],
+  "Vulpix-Alola": [
+    "Ice"
+  ],
+  "Mightyena": [
+    "Dark"
+  ],
+  "Dragonair": [
+    "Dragon"
+  ],
+  "Vigoroth": [
+    "Normal"
+  ],
+  "Crawdaunt": [
+    "Water",
+    "Dark"
+  ],
+  "Morgrem": [
+    "Dark",
+    "Fairy"
+  ],
+  "Tadbulb": [
+    "Electric"
+  ],
+  "Rhydon": [
+    "Ground",
+    "Rock"
+  ],
+  "Nacli": [
+    "Rock"
+  ],
+  "Sylveon": [
+    "Fairy"
+  ],
+  "Manectric-Mega": [
+    "Electric"
+  ],
+  "Eevee": [
+    "Normal"
+  ],
+  "Togekiss": [
+    "Fairy",
+    "Flying"
+  ],
+  "Cloyster": [
+    "Water",
+    "Ice"
+  ],
+  "Goodra": [
+    "Dragon"
+  ],
+  "Metang": [
+    "Steel",
+    "Psychic"
+  ],
+  "Skarmory": [
+    "Steel",
+    "Flying"
+  ],
+  "Frogadier": [
+    "Water"
+  ],
+  "Rockruff": [
+    "Rock"
+  ],
+  "Taillow": [
+    "Normal",
+    "Flying"
+  ],
+  "Ralts": [
+    "Psychic",
+    "Fairy"
+  ],
+  "Golbat": [
+    "Poison",
+    "Flying"
+  ],
+  "Flareon": [
+    "Fire"
+  ],
+  "Foongus": [
+    "Grass",
+    "Poison"
+  ],
+  "Bombirdier": [
+    "Flying",
+    "Dark"
+  ],
+  "Bellibolt": [
+    "Electric"
+  ],
+  "Dusknoir": [
+    "Ghost"
+  ],
+  "Swablu": [
+    "Normal",
+    "Flying"
+  ],
+  "Poliwhirl": [
+    "Water"
+  ],
+  "Piloswine": [
+    "Ice",
+    "Ground"
+  ],
+  "Virizion": [
+    "Grass",
+    "Fighting"
+  ],
+  "Scovillain": [
+    "Grass",
+    "Fire"
+  ],
+  "Trumbeak": [
+    "Normal",
+    "Flying"
+  ],
+  "Garchomp": [
+    "Dragon",
+    "Ground"
+  ],
+  "Appletun": [
+    "Grass",
+    "Dragon"
+  ],
+  "Bidoof": [
+    "Normal"
+  ],
+  "Torkoal": [
+    "Fire"
+  ],
+  "Clawitzer": [
+    "Water"
+  ],
+  "Nincada": [
+    "Bug",
+    "Ground"
+  ],
+  "Amoonguss": [
+    "Grass",
+    "Poison"
+  ],
+  "Honchkrow": [
+    "Dark",
+    "Flying"
+  ],
+  "Lurantis": [
+    "Grass"
+  ],
+  "Alcremie": [
+    "Fairy"
+  ],
+  "Mienshao": [
+    "Fighting"
+  ],
+  "Pignite": [
+    "Fire",
+    "Fighting"
+  ],
+  "Coalossal": [
+    "Rock",
+    "Fire"
+  ],
+  "Graveler": [
+    "Rock",
+    "Ground"
+  ],
+  "Illumise": [
+    "Bug"
+  ],
+  "Basculegion-F": [
+    "Water",
+    "Ghost"
+  ],
+  "Tangrowth": [
+    "Grass"
+  ],
+  "Pincurchin": [
+    "Electric"
+  ],
+  "Staravia": [
+    "Normal",
+    "Flying"
+  ],
+  "Pawmi": [
+    "Electric"
+  ],
+  "Jellicent": [
+    "Water",
+    "Ghost"
+  ],
+  "Hariyama": [
+    "Fighting"
+  ],
+  "Articuno": [
+    "Ice",
+    "Flying"
+  ],
+  "Pancham": [
+    "Fighting"
+  ],
+  "Magikarp": [
+    "Water"
+  ],
+  "Melmetal": [
+    "Steel"
+  ],
+  "Sliggoo-Hisui": [
+    "Steel",
+    "Dragon"
+  ],
+  "Dipplin": [
+    "Grass",
+    "Dragon"
+  ],
+  "Barboach": [
+    "Water",
+    "Ground"
+  ],
+  "Raboot": [
+    "Fire"
+  ],
+  "Pachirisu": [
+    "Electric"
+  ],
+  "Pawniard": [
+    "Dark",
+    "Steel"
+  ],
+  "Bramblin": [
+    "Grass",
+    "Ghost"
+  ],
+  "Hitmontop": [
+    "Fighting"
+  ],
+  "Ditto": [
+    "Normal"
+  ],
+  "Fennekin": [
+    "Fire"
+  ],
+  "Altaria-Mega": [
+    "Dragon",
+    "Fairy"
+  ],
+  "Quilava": [
+    "Fire"
+  ],
+  "Roserade": [
+    "Grass",
+    "Poison"
+  ],
+  "Raichu-Alola": [
+    "Electric",
+    "Psychic"
+  ],
+  "Herdier": [
+    "Normal"
+  ],
+  "Clodsire": [
+    "Poison",
+    "Ground"
+  ],
+  "Elekid": [
+    "Electric"
+  ],
+  "Gimmighoul": [
+    "Ghost"
+  ],
+  "Latios-Mega": [
+    "Dragon",
+    "Psychic"
+  ],
+  "Miltank": [
+    "Normal"
+  ],
+  "Rellor": [
+    "Bug"
+  ],
+  "Blacephalon": [
+    "Fire",
+    "Ghost"
+  ],
+  "Barbaracle": [
+    "Rock",
+    "Water"
+  ],
+  "Delibird": [
+    "Ice",
+    "Flying"
+  ],
+  "Cyclizar": [
+    "Dragon",
+    "Normal"
+  ],
+  "Zigzagoon": [
+    "Normal"
+  ],
+  "Kingler": [
+    "Water"
+  ],
+  "Kleavor": [
+    "Bug",
+    "Rock"
+  ],
+  "Pineco": [
+    "Bug"
+  ],
+  "Silvally": [
+    "Normal"
+  ],
+  "Gastrodon": [
+    "Water",
+    "Ground"
+  ],
+  "Hydreigon": [
+    "Dark",
+    "Dragon"
+  ],
+  "Weezing-Galar": [
+    "Poison",
+    "Fairy"
+  ],
+  "Crabominable": [
+    "Fighting",
+    "Ice"
+  ],
+  "Muk": [
+    "Poison"
+  ],
+  "Cutiefly": [
+    "Bug",
+    "Fairy"
+  ],
+  "Oricorio-Pa'u": [
+    "Psychic",
+    "Flying"
+  ],
+  "Pecharunt": [
+    "Poison",
+    "Ghost"
+  ],
+  "Palossand": [
+    "Ghost",
+    "Ground"
+  ],
+  "Gulpin": [
+    "Poison"
+  ],
+  "Trevenant": [
+    "Ghost",
+    "Grass"
+  ],
+  "Clamperl": [
+    "Water"
+  ],
+  "Drizzile": [
+    "Water"
+  ],
+  "Snorlax": [
+    "Normal"
+  ],
+  "Dugtrio": [
+    "Ground"
+  ],
+  "Pupitar": [
+    "Rock",
+    "Ground"
+  ],
+  "Geodude-Alola": [
+    "Rock",
+    "Electric"
+  ],
+  "Weepinbell": [
+    "Grass",
+    "Poison"
+  ],
+  "Venusaur-Mega": [
+    "Grass",
+    "Poison"
+  ],
+  "Omastar": [
+    "Rock",
+    "Water"
+  ],
+  "Poochyena": [
+    "Dark"
+  ],
+  "Nymble": [
+    "Bug"
+  ],
+  "Grimer": [
+    "Poison"
+  ],
+  "Shroodle": [
+    "Poison",
+    "Normal"
+  ],
+  "Duskull": [
+    "Ghost"
+  ],
+  "Petilil": [
+    "Grass"
+  ],
+  "Diggersby": [
+    "Normal",
+    "Ground"
+  ],
+  "Darumaka": [
+    "Fire"
+  ],
+  "Clauncher": [
+    "Water"
+  ],
+  "Rapidash": [
     "Fire"
   ],
   "Fletchling": [
     "Normal",
     "Flying"
   ],
-  "Kadabra": [
-    "Psychic"
-  ],
-  "Finizen": [
+  "Kabutops": [
+    "Rock",
     "Water"
   ],
-  "Swampert": [
-    "Water",
+  "Ponyta": [
+    "Fire"
+  ],
+  "Snivy": [
+    "Grass"
+  ],
+  "Armaldo": [
+    "Rock",
+    "Bug"
+  ],
+  "Moltres-Galar": [
+    "Dark",
+    "Flying"
+  ],
+  "Aurorus": [
+    "Rock",
+    "Ice"
+  ],
+  "Regice": [
+    "Ice"
+  ],
+  "Moltres": [
+    "Fire",
+    "Flying"
+  ],
+  "Drilbur": [
     "Ground"
+  ],
+  "Electabuzz": [
+    "Electric"
+  ],
+  "Hitmonchan": [
+    "Fighting"
+  ],
+  "Tinkatink": [
+    "Fairy",
+    "Steel"
+  ],
+  "Tynamo": [
+    "Electric"
+  ],
+  "Lunatone": [
+    "Rock",
+    "Psychic"
+  ],
+  "Hippopotas": [
+    "Ground"
+  ],
+  "Stakataka": [
+    "Rock",
+    "Steel"
+  ],
+  "Gardevoir-Mega": [
+    "Psychic",
+    "Fairy"
+  ],
+  "Slaking": [
+    "Normal"
+  ],
+  "Decidueye-Hisui": [
+    "Grass",
+    "Fighting"
+  ],
+  "Pidgeot": [
+    "Normal",
+    "Flying"
+  ],
+  "Buizel": [
+    "Water"
+  ],
+  "Scatterbug": [
+    "Bug"
+  ],
+  "Kingdra": [
+    "Water",
+    "Dragon"
+  ],
+  "Shedinja": [
+    "Bug",
+    "Ghost"
+  ],
+  "Zeraora": [
+    "Electric"
+  ],
+  "Minccino": [
+    "Normal"
+  ],
+  "Lokix": [
+    "Bug",
+    "Dark"
+  ],
+  "Stantler": [
+    "Normal"
+  ],
+  "Jynx": [
+    "Ice",
+    "Psychic"
+  ],
+  "Cranidos": [
+    "Rock"
+  ],
+  "Dodrio": [
+    "Normal",
+    "Flying"
+  ],
+  "Haxorus": [
+    "Dragon"
+  ],
+  "Kubfu": [
+    "Fighting"
+  ],
+  "Staryu": [
+    "Water"
+  ],
+  "Togetic": [
+    "Fairy",
+    "Flying"
+  ],
+  "Sandslash-Alola": [
+    "Ice",
+    "Steel"
+  ],
+  "Gallade": [
+    "Psychic",
+    "Fighting"
+  ],
+  "Teddiursa": [
+    "Normal"
+  ],
+  "Zamazenta": [
+    "Fighting"
+  ],
+  "Conkeldurr": [
+    "Fighting"
+  ],
+  "Sandshrew": [
+    "Ground"
+  ],
+  "Shuckle": [
+    "Bug",
+    "Rock"
+  ],
+  "Charizard": [
+    "Fire",
+    "Flying"
+  ],
+  "Dewgong": [
+    "Water",
+    "Ice"
+  ],
+  "Gyarados": [
+    "Water",
+    "Flying"
+  ],
+  "Mothim": [
+    "Bug",
+    "Flying"
+  ],
+  "Toedscruel": [
+    "Ground",
+    "Grass"
+  ],
+  "Mr. Mime": [
+    "Psychic",
+    "Fairy"
+  ],
+  "Volbeat": [
+    "Bug"
+  ],
+  "Granbull": [
+    "Fairy"
+  ],
+  "Orbeetle": [
+    "Bug",
+    "Psychic"
+  ],
+  "Mudkip": [
+    "Water"
+  ],
+  "Slakoth": [
+    "Normal"
+  ],
+  "Togepi": [
+    "Fairy"
+  ],
+  "Camerupt": [
+    "Fire",
+    "Ground"
+  ],
+  "Mesprit": [
+    "Psychic"
+  ],
+  "Goomy": [
+    "Dragon"
+  ],
+  "Zweilous": [
+    "Dark",
+    "Dragon"
+  ],
+  "Slowbro-Galar": [
+    "Poison",
+    "Psychic"
+  ],
+  "Weezing": [
+    "Poison"
+  ],
+  "Necrozma": [
+    "Psychic"
+  ],
+  "Pyukumuku": [
+    "Water"
+  ],
+  "Dragapult": [
+    "Dragon",
+    "Ghost"
+  ],
+  "Tarountula": [
+    "Bug"
+  ],
+  "Blitzle": [
+    "Electric"
+  ],
+  "Heracross-Mega": [
+    "Bug",
+    "Fighting"
+  ],
+  "Slurpuff": [
+    "Fairy"
+  ],
+  "Wormadam-Sandy": [
+    "Bug",
+    "Ground"
+  ],
+  "Arcanine": [
+    "Fire"
+  ],
+  "Delphox": [
+    "Fire",
+    "Psychic"
+  ],
+  "Copperajah": [
+    "Steel"
+  ],
+  "Machop": [
+    "Fighting"
+  ],
+  "Skuntank": [
+    "Poison",
+    "Dark"
+  ],
+  "Nihilego": [
+    "Rock",
+    "Poison"
+  ],
+  "Sinistcha": [
+    "Grass",
+    "Ghost"
+  ],
+  "Walking Wake": [
+    "Water",
+    "Dragon"
+  ],
+  "Luxray": [
+    "Electric"
+  ],
+  "Umbreon": [
+    "Dark"
+  ],
+  "Dustox": [
+    "Bug",
+    "Poison"
+  ],
+  "Houndour": [
+    "Dark",
+    "Fire"
+  ],
+  "Surskit": [
+    "Bug",
+    "Water"
+  ],
+  "Tyrunt": [
+    "Rock",
+    "Dragon"
+  ],
+  "Growlithe-Hisui": [
+    "Fire",
+    "Rock"
+  ],
+  "Dwebble": [
+    "Bug",
+    "Rock"
+  ],
+  "Gligar": [
+    "Ground",
+    "Flying"
+  ],
+  "Cinderace": [
+    "Fire"
+  ],
+  "Bergmite": [
+    "Ice"
+  ],
+  "Bellsprout": [
+    "Grass",
+    "Poison"
+  ],
+  "Magnemite": [
+    "Electric",
+    "Steel"
+  ],
+  "Cottonee": [
+    "Grass",
+    "Fairy"
+  ],
+  "Scolipede": [
+    "Bug",
+    "Poison"
+  ],
+  "Cacturne": [
+    "Grass",
+    "Dark"
+  ],
+  "Silicobra": [
+    "Ground"
+  ],
+  "Bouffalant": [
+    "Normal"
+  ],
+  "Persian-Alola": [
+    "Dark"
+  ],
+  "Zoroark-Hisui": [
+    "Normal",
+    "Ghost"
+  ],
+  "Kingambit": [
+    "Dark",
+    "Steel"
+  ],
+  "Sneasel-Hisui": [
+    "Fighting",
+    "Poison"
+  ],
+  "Electrode": [
+    "Electric"
+  ],
+  "Dracozolt": [
+    "Electric",
+    "Dragon"
+  ],
+  "Overqwil": [
+    "Dark",
+    "Poison"
+  ],
+  "Baltoy": [
+    "Ground",
+    "Psychic"
+  ],
+  "Samurott-Hisui": [
+    "Water",
+    "Dark"
+  ],
+  "Tirtouga": [
+    "Water",
+    "Rock"
+  ],
+  "Croagunk": [
+    "Poison",
+    "Fighting"
+  ],
+  "Sandygast": [
+    "Ghost",
+    "Ground"
+  ],
+  "Snubbull": [
+    "Fairy"
+  ],
+  "Yanmega": [
+    "Bug",
+    "Flying"
+  ],
+  "Quaxwell": [
+    "Water"
+  ],
+  "Treecko": [
+    "Grass"
+  ],
+  "Heatmor": [
+    "Fire"
+  ],
+  "Spoink": [
+    "Psychic"
+  ],
+  "Monferno": [
+    "Fire",
+    "Fighting"
+  ],
+  "Nosepass": [
+    "Rock"
+  ],
+  "Parasect": [
+    "Bug",
+    "Grass"
+  ],
+  "Okidogi": [
+    "Poison",
+    "Fighting"
+  ],
+  "Walrein": [
+    "Ice",
+    "Water"
+  ],
+  "Munchlax": [
+    "Normal"
+  ],
+  "Excadrill": [
+    "Ground",
+    "Steel"
+  ],
+  "Shellder": [
+    "Water"
+  ],
+  "Victini": [
+    "Psychic",
+    "Fire"
+  ],
+  "Poltchageist": [
+    "Grass",
+    "Ghost"
+  ],
+  "Noivern": [
+    "Flying",
+    "Dragon"
+  ],
+  "Florges": [
+    "Fairy"
+  ],
+  "Fomantis": [
+    "Grass"
+  ],
+  "Frosmoth": [
+    "Ice",
+    "Bug"
+  ],
+  "Ivysaur": [
+    "Grass",
+    "Poison"
+  ],
+  "Meditite": [
+    "Fighting",
+    "Psychic"
+  ],
+  "Glimmet": [
+    "Rock",
+    "Poison"
+  ],
+  "Golduck": [
+    "Water"
+  ],
+  "Remoraid": [
+    "Water"
+  ],
+  "Pyroar": [
+    "Fire",
+    "Normal"
+  ],
+  "Arbok": [
+    "Poison"
+  ],
+  "Magneton": [
+    "Electric",
+    "Steel"
+  ],
+  "Slither Wing": [
+    "Bug",
+    "Fighting"
+  ],
+  "Lairon": [
+    "Steel",
+    "Rock"
+  ],
+  "Jangmo-o": [
+    "Dragon"
+  ],
+  "Hoothoot": [
+    "Normal",
+    "Flying"
+  ],
+  "Tauros-Paldea-Combat": [
+    "Fighting"
+  ],
+  "Aggron": [
+    "Steel",
+    "Rock"
+  ],
+  "Klinklang": [
+    "Steel"
+  ],
+  "Torracat": [
+    "Fire"
+  ],
+  "Larvesta": [
+    "Bug",
+    "Fire"
+  ],
+  "Seaking": [
+    "Water"
+  ],
+  "Pichu": [
+    "Electric"
+  ],
+  "Dragalge": [
+    "Poison",
+    "Dragon"
+  ],
+  "Combusken": [
+    "Fire",
+    "Fighting"
+  ],
+  "Wooloo": [
+    "Normal"
+  ],
+  "Abra": [
+    "Psychic"
+  ],
+  "Gastly": [
+    "Ghost",
+    "Poison"
+  ],
+  "Pinsir-Mega": [
+    "Bug",
+    "Flying"
+  ],
+  "Dottler": [
+    "Bug",
+    "Psychic"
+  ],
+  "Misdreavus": [
+    "Ghost"
+  ],
+  "Gliscor": [
+    "Ground",
+    "Flying"
+  ],
+  "Centiskorch": [
+    "Fire",
+    "Bug"
+  ],
+  "Eelektrik": [
+    "Electric"
   ],
   "Golett": [
     "Ground",
     "Ghost"
   ],
-  "Ducklett": [
+  "Greedent": [
+    "Normal"
+  ],
+  "Charjabug": [
+    "Bug",
+    "Electric"
+  ],
+  "Dachsbun": [
+    "Fairy"
+  ],
+  "Abomasnow-Mega": [
+    "Grass",
+    "Ice"
+  ],
+  "Emolga": [
+    "Electric",
+    "Flying"
+  ],
+  "Aromatisse": [
+    "Fairy"
+  ],
+  "Simisear": [
+    "Fire"
+  ],
+  "Hattrem": [
+    "Psychic"
+  ],
+  "Mime Jr.": [
+    "Psychic",
+    "Fairy"
+  ],
+  "Charizard-Mega-Y": [
+    "Fire",
+    "Flying"
+  ],
+  "Smoliv": [
+    "Grass",
+    "Normal"
+  ],
+  "Lycanroc-Midnight": [
+    "Rock"
+  ],
+  "Golem": [
+    "Rock",
+    "Ground"
+  ],
+  "Scyther": [
+    "Bug",
+    "Flying"
+  ],
+  "Froslass": [
+    "Ice",
+    "Ghost"
+  ],
+  "Sandy Shocks": [
+    "Electric",
+    "Ground"
+  ],
+  "Swanna": [
     "Water",
     "Flying"
   ],
-  "Spinarak": [
+  "Litten": [
+    "Fire"
+  ],
+  "Shiinotic": [
+    "Grass",
+    "Fairy"
+  ],
+  "Regirock": [
+    "Rock"
+  ],
+  "Swampert": [
+    "Water",
+    "Ground"
+  ],
+  "Scream Tail": [
+    "Fairy",
+    "Psychic"
+  ],
+  "Masquerain": [
+    "Bug",
+    "Flying"
+  ],
+  "Magmortar": [
+    "Fire"
+  ],
+  "Noibat": [
+    "Flying",
+    "Dragon"
+  ],
+  "Mr. Mime-Galar": [
+    "Ice",
+    "Psychic"
+  ],
+  "Medicham": [
+    "Fighting",
+    "Psychic"
+  ],
+  "Ledyba": [
+    "Bug",
+    "Flying"
+  ],
+  "Throh": [
+    "Fighting"
+  ],
+  "Sinistea": [
+    "Ghost"
+  ],
+  "Hoppip": [
+    "Grass",
+    "Flying"
+  ],
+  "Sawk": [
+    "Fighting"
+  ],
+  "Pawmot": [
+    "Electric",
+    "Fighting"
+  ],
+  "Pidgeotto": [
+    "Normal",
+    "Flying"
+  ],
+  "Geodude": [
+    "Rock",
+    "Ground"
+  ],
+  "Spidops": [
+    "Bug"
+  ],
+  "Gengar": [
+    "Ghost",
+    "Poison"
+  ],
+  "Krokorok": [
+    "Ground",
+    "Dark"
+  ],
+  "Sableye": [
+    "Dark",
+    "Ghost"
+  ],
+  "Drampa": [
+    "Normal",
+    "Dragon"
+  ],
+  "Flapple": [
+    "Grass",
+    "Dragon"
+  ],
+  "Uxie": [
+    "Psychic"
+  ],
+  "Rattata": [
+    "Normal"
+  ],
+  "Roggenrola": [
+    "Rock"
+  ],
+  "Hydrapple": [
+    "Grass",
+    "Dragon"
+  ],
+  "Audino-Mega": [
+    "Normal",
+    "Fairy"
+  ],
+  "Malamar": [
+    "Dark",
+    "Psychic"
+  ],
+  "Cetoddle": [
+    "Ice"
+  ],
+  "Gallade-Mega": [
+    "Psychic",
+    "Fighting"
+  ],
+  "Sableye-Mega": [
+    "Dark",
+    "Ghost"
+  ],
+  "Vanillish": [
+    "Ice"
+  ],
+  "Zorua": [
+    "Dark"
+  ],
+  "Ursaluna": [
+    "Ground",
+    "Normal"
+  ],
+  "Poipole": [
+    "Poison"
+  ],
+  "Mr. Rime": [
+    "Ice",
+    "Psychic"
+  ],
+  "Abomasnow": [
+    "Grass",
+    "Ice"
+  ],
+  "Breloom": [
+    "Grass",
+    "Fighting"
+  ],
+  "Magmar": [
+    "Fire"
+  ],
+  "Metagross": [
+    "Steel",
+    "Psychic"
+  ],
+  "Lechonk": [
+    "Normal"
+  ],
+  "Hypno": [
+    "Psychic"
+  ],
+  "Mienfoo": [
+    "Fighting"
+  ],
+  "Salamence": [
+    "Dragon",
+    "Flying"
+  ],
+  "Sealeo": [
+    "Ice",
+    "Water"
+  ],
+  "Skrelp": [
+    "Poison",
+    "Water"
+  ],
+  "Butterfree": [
+    "Bug",
+    "Flying"
+  ],
+  "Beartic": [
+    "Ice"
+  ],
+  "Grafaiai": [
+    "Poison",
+    "Normal"
+  ],
+  "Slowbro-Mega": [
+    "Water",
+    "Psychic"
+  ],
+  "Ogerpon-Wellspring": [
+    "Grass",
+    "Water"
+  ],
+  "Venomoth": [
     "Bug",
     "Poison"
   ],
-  "Grotle": [
-    "Grass"
+  "Dewott": [
+    "Water"
   ],
-  "Castform": [
+  "Audino": [
     "Normal"
   ],
-  "Muk": [
+  "Armarouge": [
+    "Fire",
+    "Psychic"
+  ],
+  "Chatot": [
+    "Normal",
+    "Flying"
+  ],
+  "Buzzwole": [
+    "Bug",
+    "Fighting"
+  ],
+  "Mantyke": [
+    "Water",
+    "Flying"
+  ],
+  "Lotad": [
+    "Water",
+    "Grass"
+  ],
+  "Wobbuffet": [
+    "Psychic"
+  ],
+  "Ferroseed": [
+    "Grass",
+    "Steel"
+  ],
+  "Houndoom-Mega": [
+    "Dark",
+    "Fire"
+  ],
+  "Wailmer": [
+    "Water"
+  ],
+  "Shinx": [
+    "Electric"
+  ],
+  "Grookey": [
+    "Grass"
+  ],
+  "Braixen": [
+    "Fire"
+  ],
+  "Pidgey": [
+    "Normal",
+    "Flying"
+  ],
+  "Solosis": [
+    "Psychic"
+  ],
+  "Ting-Lu": [
+    "Dark",
+    "Ground"
+  ],
+  "Rhyperior": [
+    "Ground",
+    "Rock"
+  ],
+  "Buneary": [
+    "Normal"
+  ],
+  "Meowth-Alola": [
+    "Dark"
+  ],
+  "Chinchou": [
+    "Water",
+    "Electric"
+  ],
+  "Houndoom": [
+    "Dark",
+    "Fire"
+  ],
+  "Carkol": [
+    "Rock",
+    "Fire"
+  ],
+  "Ludicolo": [
+    "Water",
+    "Grass"
+  ],
+  "Luxio": [
+    "Electric"
+  ],
+  "Bibarel": [
+    "Normal",
+    "Water"
+  ],
+  "Avalugg-Hisui": [
+    "Ice",
+    "Rock"
+  ],
+  "Popplio": [
+    "Water"
+  ],
+  "Ledian": [
+    "Bug",
+    "Flying"
+  ],
+  "Nidorina": [
     "Poison"
+  ],
+  "Quaquaval": [
+    "Water",
+    "Fighting"
+  ],
+  "Alomomola": [
+    "Water"
+  ],
+  "Makuhita": [
+    "Fighting"
+  ],
+  "Quaxly": [
+    "Water"
+  ],
+  "Clefairy": [
+    "Fairy"
+  ],
+  "Ambipom": [
+    "Normal"
+  ],
+  "Nidoqueen": [
+    "Poison",
+    "Ground"
+  ],
+  "Blissey": [
+    "Normal"
+  ],
+  "Nuzleaf": [
+    "Grass",
+    "Dark"
+  ],
+  "Iron Valiant": [
+    "Fairy",
+    "Fighting"
+  ],
+  "Torchic": [
+    "Fire"
+  ],
+  "Magnezone": [
+    "Electric",
+    "Steel"
+  ],
+  "Mareep": [
+    "Electric"
+  ],
+  "Milotic": [
+    "Water"
+  ],
+  "Shieldon": [
+    "Rock",
+    "Steel"
+  ],
+  "Arboliva": [
+    "Grass",
+    "Normal"
+  ],
+  "Tinkatuff": [
+    "Fairy",
+    "Steel"
+  ],
+  "Avalugg": [
+    "Ice"
+  ],
+  "Dunsparce": [
+    "Normal"
+  ],
+  "Litwick": [
+    "Ghost",
+    "Fire"
+  ],
+  "Reuniclus": [
+    "Psychic"
+  ],
+  "Togedemaru": [
+    "Electric",
+    "Steel"
+  ],
+  "Magby": [
+    "Fire"
+  ],
+  "Floatzel": [
+    "Water"
+  ],
+  "Celebi": [
+    "Psychic",
+    "Grass"
+  ],
+  "Krookodile": [
+    "Ground",
+    "Dark"
+  ],
+  "Dusclops": [
+    "Ghost"
+  ],
+  "Furfrou": [
+    "Normal"
+  ],
+  "Grumpig": [
+    "Psychic"
+  ],
+  "Sceptile-Mega": [
+    "Grass",
+    "Dragon"
+  ],
+  "Tandemaus": [
+    "Normal"
+  ],
+  "Stunky": [
+    "Poison",
+    "Dark"
+  ],
+  "Woobat": [
+    "Psychic",
+    "Flying"
+  ],
+  "Exeggutor": [
+    "Grass",
+    "Psychic"
+  ],
+  "Mismagius": [
+    "Ghost"
+  ],
+  "Pelipper": [
+    "Water",
+    "Flying"
+  ],
+  "Runerigus": [
+    "Ground",
+    "Ghost"
+  ],
+  "Vikavolt": [
+    "Bug",
+    "Electric"
+  ],
+  "Iron Boulder": [
+    "Rock",
+    "Psychic"
+  ],
+  "Donphan": [
+    "Ground"
+  ],
+  "Zebstrika": [
+    "Electric"
+  ],
+  "Flaaffy": [
+    "Electric"
+  ],
+  "Revavroom": [
+    "Steel",
+    "Poison"
+  ],
+  "Sandaconda": [
+    "Ground"
+  ],
+  "Basculegion": [
+    "Water",
+    "Ghost"
+  ],
+  "Ekans": [
+    "Poison"
+  ],
+  "Ariados": [
+    "Bug",
+    "Poison"
+  ],
+  "Tapu Bulu": [
+    "Grass",
+    "Fairy"
+  ],
+  "Xurkitree": [
+    "Electric"
+  ],
+  "Bewear": [
+    "Normal",
+    "Fighting"
+  ],
+  "Machoke": [
+    "Fighting"
+  ],
+  "Tauros": [
+    "Normal"
+  ],
+  "Sirfetch'd": [
+    "Fighting"
+  ],
+  "Purrloin": [
+    "Dark"
+  ],
+  "Cubone": [
+    "Ground"
+  ],
+  "Starmie": [
+    "Water",
+    "Psychic"
+  ],
+  "Sceptile": [
+    "Grass"
+  ],
+  "Chikorita": [
+    "Grass"
+  ],
+  "Tropius": [
+    "Grass",
+    "Flying"
+  ],
+  "Meganium": [
+    "Grass"
+  ],
+  "Dhelmise": [
+    "Ghost",
+    "Grass"
+  ],
+  "Linoone-Galar": [
+    "Dark",
+    "Normal"
+  ],
+  "Chingling": [
+    "Psychic"
+  ],
+  "Anorith": [
+    "Rock",
+    "Bug"
+  ],
+  "Lombre": [
+    "Water",
+    "Grass"
+  ],
+  "Charcadet": [
+    "Fire"
+  ],
+  "Muk-Alola": [
+    "Poison",
+    "Dark"
+  ],
+  "Huntail": [
+    "Water"
+  ],
+  "Frigibax": [
+    "Dragon",
+    "Ice"
+  ],
+  "Passimian": [
+    "Fighting"
+  ],
+  "Toucannon": [
+    "Normal",
+    "Flying"
+  ],
+  "Cacnea": [
+    "Grass"
+  ],
+  "Duraludon": [
+    "Steel",
+    "Dragon"
+  ],
+  "Arcanine-Hisui": [
+    "Fire",
+    "Rock"
+  ],
+  "Sandslash": [
+    "Ground"
+  ],
+  "Dewpider": [
+    "Water",
+    "Bug"
+  ],
+  "Guzzlord": [
+    "Dark",
+    "Dragon"
+  ],
+  "Kadabra": [
+    "Psychic"
+  ],
+  "Camerupt-Mega": [
+    "Fire",
+    "Ground"
+  ],
+  "Growlithe": [
+    "Fire"
+  ],
+  "Sneasel": [
+    "Dark",
+    "Ice"
+  ],
+  "Slowking-Galar": [
+    "Poison",
+    "Psychic"
+  ],
+  "Ceruledge": [
+    "Fire",
+    "Ghost"
+  ],
+  "Raikou": [
+    "Electric"
+  ],
+  "Sunflora": [
+    "Grass"
+  ],
+  "Larvitar": [
+    "Rock",
+    "Ground"
   ],
   "Terrakion": [
     "Rock",
     "Fighting"
   ],
-  "Lycanroc-Dusk": [
-    "Rock"
+  "Dubwool": [
+    "Normal"
   ],
-  "Cresselia": [
-    "Psychic"
+  "Zapdos": [
+    "Electric",
+    "Flying"
   ],
-  "Tynamo": [
+  "Watchog": [
+    "Normal"
+  ],
+  "Wurmple": [
+    "Bug"
+  ],
+  "Quilladin": [
+    "Grass"
+  ],
+  "Mudbray": [
+    "Ground"
+  ],
+  "Celesteela": [
+    "Steel",
+    "Flying"
+  ],
+  "Fuecoco": [
+    "Fire"
+  ],
+  "Minun": [
     "Electric"
+  ],
+  "Spiritomb": [
+    "Ghost",
+    "Dark"
+  ],
+  "Applin": [
+    "Grass",
+    "Dragon"
+  ],
+  "Sandile": [
+    "Ground",
+    "Dark"
+  ],
+  "Kricketot": [
+    "Bug"
   ],
   "Diancie": [
     "Rock",
     "Fairy"
   ],
-  "Chikorita": [
+  "Slugma": [
+    "Fire"
+  ],
+  "Infernape": [
+    "Fire",
+    "Fighting"
+  ],
+  "Rapidash-Galar": [
+    "Psychic",
+    "Fairy"
+  ],
+  "Doduo": [
+    "Normal",
+    "Flying"
+  ],
+  "Natu": [
+    "Psychic",
+    "Flying"
+  ],
+  "Zamazenta-Crowned": [
+    "Fighting",
+    "Steel"
+  ],
+  "Zarude": [
+    "Dark",
     "Grass"
+  ],
+  "Wigglytuff": [
+    "Normal",
+    "Fairy"
+  ],
+  "Dragonite": [
+    "Dragon",
+    "Flying"
+  ],
+  "Incineroar": [
+    "Fire",
+    "Dark"
+  ],
+  "Absol-Mega": [
+    "Dark"
+  ],
+  "Wynaut": [
+    "Psychic"
+  ],
+  "Kilowattrel": [
+    "Electric",
+    "Flying"
+  ],
+  "Corsola": [
+    "Water",
+    "Rock"
+  ],
+  "Latios": [
+    "Dragon",
+    "Psychic"
+  ],
+  "Samurott": [
+    "Water"
+  ],
+  "Gyarados-Mega": [
+    "Water",
+    "Dark"
+  ],
+  "Wugtrio": [
+    "Water"
+  ],
+  "Diglett": [
+    "Ground"
+  ],
+  "Fraxure": [
+    "Dragon"
+  ],
+  "Oricorio-Sensu": [
+    "Ghost",
+    "Flying"
+  ],
+  "Aerodactyl-Mega": [
+    "Rock",
+    "Flying"
+  ],
+  "Zoroark": [
+    "Dark"
+  ],
+  "Rolycoly": [
+    "Rock"
+  ],
+  "Squirtle": [
+    "Water"
+  ],
+  "Thievul": [
+    "Dark"
+  ],
+  "Exploud": [
+    "Normal"
+  ],
+  "Pangoro": [
+    "Fighting",
+    "Dark"
+  ],
+  "Raticate": [
+    "Normal"
+  ],
+  "Gigalith": [
+    "Rock"
+  ],
+  "Volcarona": [
+    "Bug",
+    "Fire"
+  ],
+  "Gorebyss": [
+    "Water"
+  ],
+  "Jolteon": [
+    "Electric"
+  ],
+  "Durant": [
+    "Bug",
+    "Steel"
+  ],
+  "Charmeleon": [
+    "Fire"
   ],
   "Swellow": [
     "Normal",
     "Flying"
   ],
-  "Joltik": [
-    "Bug",
-    "Electric"
+  "Zygarde-10%": [
+    "Dragon",
+    "Ground"
   ],
-  "Vanilluxe": [
-    "Ice"
-  ],
-  "Rellor": [
-    "Bug"
-  ],
-  "Roselia": [
+  "Victreebel": [
     "Grass",
     "Poison"
   ],
   "Swalot": [
     "Poison"
   ],
-  "Taillow": [
+  "Plusle": [
+    "Electric"
+  ],
+  "Empoleon": [
+    "Water",
+    "Steel"
+  ],
+  "Cosmog": [
+    "Psychic"
+  ],
+  "Braviary": [
     "Normal",
     "Flying"
   ],
-  "Magmortar": [
-    "Fire"
+  "Dolliv": [
+    "Grass",
+    "Normal"
   ],
-  "Spheal": [
-    "Ice",
+  "Deino": [
+    "Dark",
+    "Dragon"
+  ],
+  "Gloom": [
+    "Grass",
+    "Poison"
+  ],
+  "Arctibax": [
+    "Dragon",
+    "Ice"
+  ],
+  "Drapion": [
+    "Poison",
+    "Dark"
+  ],
+  "Golisopod": [
+    "Bug",
     "Water"
   ],
-  "Alcremie": [
+  "Araquanid": [
+    "Water",
+    "Bug"
+  ],
+  "Gabite": [
+    "Dragon",
+    "Ground"
+  ],
+  "Exeggcute": [
+    "Grass",
+    "Psychic"
+  ],
+  "Kirlia": [
+    "Psychic",
     "Fairy"
+  ],
+  "Sewaddle": [
+    "Bug",
+    "Grass"
+  ],
+  "Skitty": [
+    "Normal"
+  ],
+  "Ninjask": [
+    "Bug",
+    "Flying"
+  ],
+  "Arctovish": [
+    "Water",
+    "Ice"
+  ],
+  "Rillaboom": [
+    "Grass"
+  ],
+  "Comfey": [
+    "Fairy"
+  ],
+  "Oddish": [
+    "Grass",
+    "Poison"
+  ],
+  "Mankey": [
+    "Fighting"
+  ],
+  "Roselia": [
+    "Grass",
+    "Poison"
+  ],
+  "Goldeen": [
+    "Water"
+  ],
+  "Azelf": [
+    "Psychic"
+  ],
+  "Ducklett": [
+    "Water",
+    "Flying"
+  ],
+  "Iron Moth": [
+    "Fire",
+    "Poison"
+  ],
+  "Electrike": [
+    "Electric"
+  ],
+  "Grimmsnarl": [
+    "Dark",
+    "Fairy"
+  ],
+  "Cryogonal": [
+    "Ice"
+  ],
+  "Glimmora": [
+    "Rock",
+    "Poison"
+  ],
+  "Gardevoir": [
+    "Psychic",
+    "Fairy"
+  ],
+  "Carnivine": [
+    "Grass"
+  ],
+  "Gourgeist-Small": [
+    "Ghost",
+    "Grass"
+  ],
+  "Seel": [
+    "Water"
+  ],
+  "Koffing": [
+    "Poison"
+  ],
+  "Lopunny-Mega": [
+    "Normal",
+    "Fighting"
+  ],
+  "Torterra": [
+    "Grass",
+    "Ground"
+  ],
+  "Gothitelle": [
+    "Psychic"
+  ],
+  "Regigigas": [
+    "Normal"
+  ],
+  "Rotom-Frost": [
+    "Electric",
+    "Ice"
+  ],
+  "Unfezant": [
+    "Normal",
+    "Flying"
+  ],
+  "Solrock": [
+    "Rock",
+    "Psychic"
+  ],
+  "Whirlipede": [
+    "Bug",
+    "Poison"
+  ],
+  "Drednaw": [
+    "Water",
+    "Rock"
+  ],
+  "Wimpod": [
+    "Bug",
+    "Water"
+  ],
+  "Suicune": [
+    "Water"
+  ],
+  "Trapinch": [
+    "Ground"
+  ],
+  "Tyranitar": [
+    "Rock",
+    "Dark"
+  ],
+  "Glaceon": [
+    "Ice"
+  ],
+  "Brute Bonnet": [
+    "Grass",
+    "Dark"
+  ],
+  "Rhyhorn": [
+    "Ground",
+    "Rock"
+  ],
+  "Cubchoo": [
+    "Ice"
+  ],
+  "Oshawott": [
+    "Water"
+  ],
+  "Furret": [
+    "Normal"
+  ],
+  "Grimer-Alola": [
+    "Poison",
+    "Dark"
+  ],
+  "Beheeyem": [
+    "Psychic"
+  ],
+  "Gholdengo": [
+    "Steel",
+    "Ghost"
+  ],
+  "Beautifly": [
+    "Bug",
+    "Flying"
+  ],
+  "Snover": [
+    "Grass",
+    "Ice"
+  ],
+  "Fidough": [
+    "Fairy"
+  ],
+  "Froakie": [
+    "Water"
   ],
   "Kricketune": [
     "Bug"
   ],
-  "Aerodactyl-Mega": [
+  "Phanpy": [
+    "Ground"
+  ],
+  "Deoxys-Defense": [
+    "Psychic"
+  ],
+  "Shellos": [
+    "Water"
+  ],
+  "Sudowoodo": [
+    "Rock"
+  ],
+  "Flamigo": [
+    "Flying",
+    "Fighting"
+  ],
+  "Steenee": [
+    "Grass"
+  ],
+  "Lanturn": [
+    "Water",
+    "Electric"
+  ],
+  "Lopunny": [
+    "Normal"
+  ],
+  "Scizor-Mega": [
+    "Bug",
+    "Steel"
+  ],
+  "Enamorus": [
+    "Fairy",
+    "Flying"
+  ],
+  "Pumpkaboo-Super": [
+    "Ghost",
+    "Grass"
+  ],
+  "Cobalion": [
+    "Steel",
+    "Fighting"
+  ],
+  "Varoom": [
+    "Steel",
+    "Poison"
+  ],
+  "Latias": [
+    "Dragon",
+    "Psychic"
+  ],
+  "Galvantula": [
+    "Bug",
+    "Electric"
+  ],
+  "Oranguru": [
+    "Normal",
+    "Psychic"
+  ],
+  "Klefki": [
+    "Steel",
+    "Fairy"
+  ],
+  "Hoopa": [
+    "Psychic",
+    "Ghost"
+  ],
+  "Electivire": [
+    "Electric"
+  ],
+  "Bronzor": [
+    "Steel",
+    "Psychic"
+  ],
+  "Iron Hands": [
+    "Fighting",
+    "Electric"
+  ],
+  "Cradily": [
+    "Rock",
+    "Grass"
+  ],
+  "Darumaka-Galar": [
+    "Ice"
+  ],
+  "Mimikyu": [
+    "Ghost",
+    "Fairy"
+  ],
+  "Pikachu": [
+    "Electric"
+  ],
+  "Klawf": [
+    "Rock"
+  ],
+  "Drifblim": [
+    "Ghost",
+    "Flying"
+  ],
+  "Banette": [
+    "Ghost"
+  ],
+  "Munkidori": [
+    "Poison",
+    "Psychic"
+  ],
+  "Chewtle": [
+    "Water"
+  ],
+  "Fezandipiti": [
+    "Poison",
+    "Fairy"
+  ],
+  "Spinarak": [
+    "Bug",
+    "Poison"
+  ],
+  "Wailord": [
+    "Water"
+  ],
+  "Zapdos-Galar": [
+    "Fighting",
+    "Flying"
+  ],
+  "Meowth-Galar": [
+    "Steel"
+  ],
+  "Bellossom": [
+    "Grass"
+  ],
+  "Octillery": [
+    "Water"
+  ],
+  "Crocalor": [
+    "Fire"
+  ],
+  "Regidrago": [
+    "Dragon"
+  ],
+  "Seedot": [
+    "Grass"
+  ],
+  "Talonflame": [
+    "Fire",
+    "Flying"
+  ],
+  "Scorbunny": [
+    "Fire"
+  ],
+  "Phantump": [
+    "Ghost",
+    "Grass"
+  ],
+  "Horsea": [
+    "Water"
+  ],
+  "Raging Bolt": [
+    "Electric",
+    "Dragon"
+  ],
+  "Gothorita": [
+    "Psychic"
+  ],
+  "Sprigatito": [
+    "Grass"
+  ],
+  "Polteageist": [
+    "Ghost"
+  ],
+  "Registeel": [
+    "Steel"
+  ],
+  "Feraligatr": [
+    "Water"
+  ],
+  "Phione": [
+    "Water"
+  ],
+  "Xatu": [
+    "Psychic",
+    "Flying"
+  ],
+  "Rampardos": [
+    "Rock"
+  ],
+  "Vanilluxe": [
+    "Ice"
+  ],
+  "Cosmoem": [
+    "Psychic"
+  ],
+  "Glalie-Mega": [
+    "Ice"
+  ],
+  "Liepard": [
+    "Dark"
+  ],
+  "Pinsir": [
+    "Bug"
+  ],
+  "Boldore": [
+    "Rock"
+  ],
+  "Ogerpon": [
+    "Grass"
+  ],
+  "Ribombee": [
+    "Bug",
+    "Fairy"
+  ],
+  "Bronzong": [
+    "Steel",
+    "Psychic"
+  ],
+  "Slowbro": [
+    "Water",
+    "Psychic"
+  ],
+  "Rattata-Alola": [
+    "Dark",
+    "Normal"
+  ],
+  "Magcargo": [
+    "Fire",
+    "Rock"
+  ],
+  "Hakamo-o": [
+    "Dragon",
+    "Fighting"
+  ],
+  "Dondozo": [
+    "Water"
+  ],
+  "Glastrier": [
+    "Ice"
+  ],
+  "Swampert-Mega": [
+    "Water",
+    "Ground"
+  ],
+  "Totodile": [
+    "Water"
+  ],
+  "Toedscool": [
+    "Ground",
+    "Grass"
+  ],
+  "Maractus": [
+    "Grass"
+  ],
+  "Scraggy": [
+    "Dark",
+    "Fighting"
+  ],
+  "Rookidee": [
+    "Flying"
+  ],
+  "Skwovet": [
+    "Normal"
+  ],
+  "Tyranitar-Mega": [
+    "Rock",
+    "Dark"
+  ],
+  "Drowzee": [
+    "Psychic"
+  ],
+  "Wo-Chien": [
+    "Dark",
+    "Grass"
+  ],
+  "Whiscash": [
+    "Water",
+    "Ground"
+  ],
+  "Whimsicott": [
+    "Grass",
+    "Fairy"
+  ],
+  "Emboar": [
+    "Fire",
+    "Fighting"
+  ],
+  "Archeops": [
     "Rock",
     "Flying"
   ],
-  "Houndoom": [
+  "Hatterene": [
+    "Psychic",
+    "Fairy"
+  ],
+  "Mandibuzz": [
     "Dark",
+    "Flying"
+  ],
+  "Espeon": [
+    "Psychic"
+  ],
+  "Exeggutor-Alola": [
+    "Grass",
+    "Dragon"
+  ],
+  "Gible": [
+    "Dragon",
+    "Ground"
+  ],
+  "Mawile-Mega": [
+    "Steel",
+    "Fairy"
+  ],
+  "Crustle": [
+    "Bug",
+    "Rock"
+  ],
+  "Falinks": [
+    "Fighting"
+  ],
+  "Deoxys-Speed": [
+    "Psychic"
+  ],
+  "Skeledirge": [
+    "Fire",
+    "Ghost"
+  ],
+  "Komala": [
+    "Normal"
+  ],
+  "Bruxish": [
+    "Water",
+    "Psychic"
+  ],
+  "Sizzlipede": [
+    "Fire",
+    "Bug"
+  ],
+  "Wiglett": [
+    "Water"
+  ],
+  "Sharpedo": [
+    "Water",
+    "Dark"
+  ],
+  "Golurk": [
+    "Ground",
+    "Ghost"
+  ],
+  "Qwilfish": [
+    "Water",
+    "Poison"
+  ],
+  "Ferrothorn": [
+    "Grass",
+    "Steel"
+  ],
+  "Escavalier": [
+    "Bug",
+    "Steel"
+  ],
+  "Joltik": [
+    "Bug",
+    "Electric"
+  ],
+  "Garchomp-Mega": [
+    "Dragon",
+    "Ground"
+  ],
+  "Steelix": [
+    "Steel",
+    "Ground"
+  ],
+  "Dratini": [
+    "Dragon"
+  ],
+  "Politoed": [
+    "Water"
+  ],
+  "Glalie": [
+    "Ice"
+  ],
+  "Mantine": [
+    "Water",
+    "Flying"
+  ],
+  "Latias-Mega": [
+    "Dragon",
+    "Psychic"
+  ],
+  "Metapod": [
+    "Bug"
+  ],
+  "Toxicroak": [
+    "Poison",
+    "Fighting"
+  ],
+  "Drakloak": [
+    "Dragon",
+    "Ghost"
+  ],
+  "Absol": [
+    "Dark"
+  ],
+  "Corphish": [
+    "Water"
+  ],
+  "Meowscarada": [
+    "Grass",
+    "Dark"
+  ],
+  "Forretress": [
+    "Bug",
+    "Steel"
+  ],
+  "Sharpedo-Mega": [
+    "Water",
+    "Dark"
+  ],
+  "Ursaring": [
+    "Normal"
+  ],
+  "Entei": [
     "Fire"
+  ],
+  "Greavard": [
+    "Ghost"
+  ],
+  "Rotom-Heat": [
+    "Electric",
+    "Fire"
+  ],
+  "Brambleghast": [
+    "Grass",
+    "Ghost"
+  ],
+  "Electrode-Hisui": [
+    "Electric",
+    "Grass"
+  ],
+  "Barraskewda": [
+    "Water"
+  ],
+  "Jirachi": [
+    "Steel",
+    "Psychic"
+  ],
+  "Gurdurr": [
+    "Fighting"
   ]
 }

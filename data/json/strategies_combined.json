@@ -1,0 +1,7749 @@
+{
+  "Venusaur": {
+    "sets": {
+      "Sun Sweeper (OU)": {
+        "moves": [
+          "Growth",
+          "Giga Drain",
+          "Weather Ball",
+          "Sludge Bomb",
+          "Earth Power",
+          "Earthquake"
+        ],
+        "item": "Life Orb",
+        "ability": "Chlorophyll",
+        "nature": [
+          "Timid",
+          "Naive"
+        ]
+      },
+      "Sun Sweeper (UU)": {
+        "moves": [
+          "Growth",
+          "Weather Ball",
+          "Earth Power",
+          "Sludge Bomb",
+          "Giga Drain"
+        ],
+        "item": "Life Orb",
+        "ability": "Chlorophyll",
+        "nature": "Timid"
+      },
+      "Tank (NatDex)": {
+        "moves": [
+          "Giga Drain",
+          "Sludge Bomb",
+          "Earth Power",
+          "Synthesis"
+        ],
+        "item": "Venusaurite",
+        "ability": "Chlorophyll",
+        "nature": "Modest"
+      },
+      "Chlorophyll Sweeper (NatDex)": {
+        "moves": [
+          "Growth",
+          "Giga Drain",
+          "Weather Ball",
+          "Sludge Bomb",
+          "Earth Power"
+        ],
+        "item": "Life Orb",
+        "ability": "Chlorophyll",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Clefable": {
+    "sets": {
+      "Utility (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Moonblast",
+          "Moonlight",
+          "Thunder Wave",
+          "Knock Off"
+        ],
+        "item": [
+          "Leftovers",
+          "Sticky Barb",
+          "Rocky Helmet"
+        ],
+        "ability": "Magic Guard",
+        "nature": "Bold"
+      },
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Moonblast",
+          "Moonlight",
+          "Knock Off",
+          "Flamethrower"
+        ],
+        "item": [
+          "Leftovers",
+          "Sticky Barb"
+        ],
+        "ability": "Magic Guard",
+        "nature": "Bold"
+      },
+      "Unaware (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Moonblast",
+          "Moonlight",
+          "Thunder Wave",
+          "Knock Off"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Unaware",
+        "nature": "Bold"
+      },
+      "Utility (NatDex)": {
+        "moves": [
+          "Moonblast",
+          "Stealth Rock",
+          "Thunder Wave",
+          "Knock Off",
+          "Knock Off",
+          "Thunder Wave",
+          "Soft-Boiled"
+        ],
+        "item": "Leftovers",
+        "ability": "Magic Guard",
+        "nature": "Bold"
+      },
+      "Calm Mind (NatDex)": {
+        "moves": [
+          "Moonblast",
+          "Calm Mind",
+          "Knock Off",
+          "Flamethrower",
+          "Thunder",
+          "Soft-Boiled"
+        ],
+        "item": [
+          "Leftovers",
+          "Life Orb",
+          "Heavy-Duty Boots"
+        ],
+        "ability": [
+          "Magic Guard",
+          "Unaware"
+        ],
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Ninetales": {
+    "sets": {
+      "Sun Setter (OU)": {
+        "moves": [
+          "Weather Ball",
+          "Encore",
+          "Healing Wish",
+          "Will-O-Wisp"
+        ],
+        "item": "Heat Rock",
+        "ability": "Drought",
+        "nature": "Timid"
+      },
+      "Sun Setter (UU)": {
+        "moves": [
+          "Encore",
+          "Overheat",
+          "Healing Wish",
+          "Scorching Sands"
+        ],
+        "item": "Heat Rock",
+        "ability": "Drought",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Ninetales-Alola": {
+    "sets": {
+      "Aurora Veil (OU)": {
+        "moves": [
+          "Aurora Veil",
+          "Encore",
+          "Freeze-Dry",
+          "Moonblast",
+          "Moonblast",
+          "Snowscape",
+          "Roar"
+        ],
+        "item": "Light Clay",
+        "ability": "Snow Warning",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Arcanine-Hisui": {
+    "sets": {
+      "Choice Band (OU)": {
+        "moves": [
+          "Head Smash",
+          "Flare Blitz",
+          "Extreme Speed",
+          "Close Combat",
+          "Double-Edge"
+        ],
+        "item": "Choice Band",
+        "ability": "Rock Head",
+        "nature": "Jolly"
+      },
+      "Offensive (UU)": {
+        "moves": [
+          "Head Smash",
+          "Flare Blitz",
+          "Extreme Speed",
+          "Stealth Rock",
+          "Morning Sun",
+          "Double-Edge"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Focus Sash"
+        ],
+        "ability": "Rock Head",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Weezing-Galar": {
+    "sets": {
+      "Utility (OU)": {
+        "moves": [
+          "Defog",
+          "Will-O-Wisp",
+          "Pain Split",
+          "Protect",
+          "Sludge Bomb",
+          "Strange Steam",
+          "Toxic Spikes",
+          "Toxic"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Leftovers"
+        ],
+        "ability": "Neutralizing Gas",
+        "nature": "Bold"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Strange Steam",
+          "Will-O-Wisp",
+          "Pain Split",
+          "Defog",
+          "Flamethrower",
+          "Toxic Spikes"
+        ],
+        "item": [
+          "Black Sludge",
+          "Heavy-Duty Boots"
+        ],
+        "ability": [
+          "Neutralizing Gas",
+          "Levitate"
+        ],
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Chansey": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Seismic Toss",
+          "Soft-Boiled",
+          "Thunder Wave"
+        ],
+        "item": "Eviolite",
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Little Pink Blob (NatDex)": {
+        "moves": [
+          "Seismic Toss",
+          "Toxic",
+          "Thunder Wave",
+          "Soft-Boiled",
+          "Stealth Rock",
+          "Aromatherapy"
+        ],
+        "item": "Eviolite",
+        "ability": "None",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Ditto": {
+    "sets": {
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Transform"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Imposter",
+        "nature": "Quiet"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Zapdos": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Hurricane",
+          "Volt Switch",
+          "U-turn",
+          "Thunder Wave",
+          "Discharge",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Static",
+        "nature": "Bold"
+      },
+      "Offensive (OU)": {
+        "moves": [
+          "Hurricane",
+          "Volt Switch",
+          "Heat Wave",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Static",
+        "nature": "Timid"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Volt Switch",
+          "Hurricane",
+          "Heat Wave",
+          "Heat Wave",
+          "Defog",
+          "Hidden Power Ice",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Static",
+        "nature": "Bold"
+      },
+      "Offensive (NatDex)": {
+        "moves": [
+          "Hurricane",
+          "Thunderbolt",
+          "Thunder",
+          "Volt Switch",
+          "Weather Ball",
+          "Roost"
+        ],
+        "item": "Flyinium Z",
+        "ability": "Static",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Moltres": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Flamethrower",
+          "Roost",
+          "U-turn",
+          "Will-O-Wisp",
+          "Roar",
+          "Hurricane"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Flame Body",
+        "nature": "Bold"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Flamethrower",
+          "U-turn",
+          "Hurricane",
+          "Toxic",
+          "Scorching Sands",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Flame Body",
+        "nature": [
+          "Bold",
+          "Calm"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Moltres-Galar": {
+    "sets": {
+      "Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Fiery Wrath",
+          "Hurricane",
+          "Tera Blast",
+          "Agility",
+          "Taunt"
+        ],
+        "item": "Sitrus Berry",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Dragonite": {
+    "sets": {
+      "Dragon Dance (OU)": {
+        "moves": [
+          "Dragon Dance",
+          "Extreme Speed",
+          "Ice Spinner",
+          "Earthquake",
+          "Ice Spinner",
+          "Roost",
+          "Encore"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Multiscale",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      },
+      "Dragon Dance + Tera Blast (OU)": {
+        "moves": [
+          "Dragon Dance",
+          "Tera Blast",
+          "Earthquake",
+          "Encore",
+          "Roost",
+          "Extreme Speed"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Multiscale",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      },
+      "Dragon Dance + Scale Shot (OU)": {
+        "moves": [
+          "Dragon Dance",
+          "Scale Shot",
+          "Fire Punch",
+          "Encore"
+        ],
+        "item": "Loaded Dice",
+        "ability": "Multiscale",
+        "nature": "Adamant"
+      },
+      "Bulky Attacker (OU)": {
+        "moves": [
+          "Dragon Tail",
+          "Extreme Speed",
+          "Earthquake",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Multiscale",
+        "nature": "Adamant"
+      },
+      "Choice Band (OU)": {
+        "moves": [
+          "Outrage",
+          "Extreme Speed",
+          "Ice Spinner",
+          "Fire Punch",
+          "Earthquake"
+        ],
+        "item": "Choice Band",
+        "ability": "Multiscale",
+        "nature": "Adamant"
+      },
+      "Dragon Dance + Z-Move (NatDex)": {
+        "moves": [
+          "Dragon Dance",
+          "Outrage",
+          "Earthquake",
+          "Fire Punch"
+        ],
+        "item": "Dragonium Z",
+        "ability": "Multiscale",
+        "nature": "Jolly"
+      },
+      "Offensive Dragon Dance (NatDex)": {
+        "moves": [
+          "Dragon Dance",
+          "Earthquake",
+          "Ice Spinner",
+          "Roost",
+          "Extreme Speed",
+          "Dual Wingbeat"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Multiscale",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Quagsire": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Earthquake",
+          "Recover",
+          "Toxic"
+        ],
+        "item": "Leftovers",
+        "ability": "Unaware",
+        "nature": "Impish"
+      },
+      "Unaware Wall (UU)": {
+        "moves": [
+          "Earthquake",
+          "Toxic",
+          "Haze",
+          "Liquidation",
+          "Spikes",
+          "Recover"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Unaware",
+        "nature": [
+          "Impish",
+          "Careful"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Umbreon": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Foul Play",
+          "Wish",
+          "Protect",
+          "Thunder Wave",
+          "Toxic"
+        ],
+        "item": "Leftovers",
+        "ability": "Inner Focus",
+        "nature": "Calm"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Slowking": {
+    "sets": {
+      "Defensive Pivot (OU)": {
+        "moves": [
+          "Scald",
+          "Future Sight",
+          "Chilly Reception",
+          "Thunder Wave"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": [
+          "Relaxed",
+          "Sassy"
+        ]
+      },
+      "Utility Pivot (UU)": {
+        "moves": [
+          "Scald",
+          "Thunder Wave",
+          "Future Sight",
+          "Slack Off",
+          "Chilly Reception"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": [
+          "Sassy",
+          "Relaxed"
+        ]
+      },
+      "Defensive Pivot (NatDex)": {
+        "moves": [
+          "Scald",
+          "Future Sight",
+          "Teleport",
+          "Thunder Wave",
+          "Slack Off",
+          "Toxic"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": "Relaxed"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Slowking-Galar": {
+    "sets": {
+      "Defensive Pivot (OU)": {
+        "moves": [
+          "Chilly Reception",
+          "Sludge Bomb",
+          "Future Sight",
+          "Psychic Noise",
+          "Psyshock",
+          "Thunder Wave",
+          "Toxic",
+          "Flamethrower",
+          "Ice Beam"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": [
+          "Sassy",
+          "Relaxed"
+        ]
+      },
+      "Assault Vest (OU)": {
+        "moves": [
+          "Psyshock",
+          "Psychic Noise",
+          "Sludge Bomb",
+          "Flamethrower",
+          "Ice Beam"
+        ],
+        "item": "Assault Vest",
+        "ability": "Regenerator",
+        "nature": "Modest"
+      },
+      "Defensive Pivot (NatDex)": {
+        "moves": [
+          "Future Sight",
+          "Psychic Noise",
+          "Sludge Bomb",
+          "Chilly Reception",
+          "Thunder Wave",
+          "Toxic",
+          "Flamethrower"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": "Sassy"
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Psychic Noise",
+          "Sludge Bomb",
+          "Ice Beam",
+          "Flamethrower"
+        ],
+        "item": "Assault Vest",
+        "ability": "Regenerator",
+        "nature": "Calm"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Scizor": {
+    "sets": {
+      "Choice Band (OU)": {
+        "moves": [
+          "Bullet Punch",
+          "U-turn",
+          "Knock Off",
+          "Close Combat",
+          "Dual Wingbeat"
+        ],
+        "item": "Choice Band",
+        "ability": "Technician",
+        "nature": "Adamant"
+      },
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Bullet Punch",
+          "Close Combat",
+          "Knock Off"
+        ],
+        "item": "Life Orb",
+        "ability": "Technician",
+        "nature": "Adamant"
+      },
+      "Utility (OU)": {
+        "moves": [
+          "Bullet Punch",
+          "U-turn",
+          "Knock Off",
+          "Defog"
+        ],
+        "item": [
+          "Sitrus Berry",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "Technician",
+        "nature": "Adamant"
+      },
+      "Bulky Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Bullet Punch",
+          "Knock Off",
+          "U-turn",
+          "Sand Tomb",
+          "Roost"
+        ],
+        "item": "Scizorite",
+        "ability": "Light Metal",
+        "nature": "Impish"
+      },
+      "Offensive Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Bullet Punch",
+          "Close Combat",
+          "Knock Off",
+          "Sand Tomb"
+        ],
+        "item": "Scizorite",
+        "ability": "Light Metal",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Skarmory": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Body Press",
+          "Brave Bird",
+          "Iron Defense",
+          "Whirlwind",
+          "Roost",
+          "Spikes",
+          "Stealth Rock"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "Sturdy",
+        "nature": [
+          "Bold",
+          "Impish"
+        ]
+      },
+      "Wall (UU)": {
+        "moves": [
+          "Spikes",
+          "Stealth Rock",
+          "Body Press",
+          "Brave Bird",
+          "Whirlwind",
+          "Body Press",
+          "Brave Bird",
+          "Roost"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "Sturdy",
+        "nature": "Impish"
+      },
+      "Physical Wall (NatDex)": {
+        "moves": [
+          "Iron Defense",
+          "Body Press",
+          "Roost",
+          "Spikes"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "Sturdy",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Blissey": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Soft-Boiled",
+          "Calm Mind",
+          "Seismic Toss",
+          "Stealth Rock",
+          "Shadow Ball",
+          "Flamethrower"
+        ],
+        "item": [
+          "Leftovers",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Calm"
+      },
+      "Defensive Tank (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Seismic Toss",
+          "Shadow Ball",
+          "Soft-Boiled",
+          "Thunder Wave",
+          "Calm Mind"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Pink Blob (NatDex)": {
+        "moves": [
+          "Seismic Toss",
+          "Soft-Boiled",
+          "Wish",
+          "Toxic",
+          "Stealth Rock",
+          "Teleport",
+          "Protect"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Entei": {
+    "sets": {
+      "Offensive (OU)": {
+        "moves": [
+          "Sacred Fire",
+          "Extreme Speed",
+          "Stone Edge",
+          "Stomping Tantrum"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Choice Band"
+        ],
+        "ability": "Inner Focus",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Tyranitar": {
+    "sets": {
+      "Choice Band (OU)": {
+        "moves": [
+          "Knock Off",
+          "Stone Edge",
+          "Low Kick",
+          "Ice Punch"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Defensive (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Knock Off",
+          "Ice Beam",
+          "Roar",
+          "Thunder Wave"
+        ],
+        "item": [
+          "Smooth Rock",
+          "Heavy-Duty Boots",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Sassy"
+      },
+      "Offensive Utility (NatDex)": {
+        "moves": [
+          "Knock Off",
+          "Pursuit",
+          "Stone Edge",
+          "Ice Punch",
+          "Low Kick",
+          "Stealth Rock",
+          "Low Kick"
+        ],
+        "item": "Tyranitarite",
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Blaziken": {
+    "sets": {
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Close Combat",
+          "Flare Blitz",
+          "Stone Edge",
+          "Knock Off",
+          "Protect"
+        ],
+        "item": [
+          "Life Orb",
+          "Air Balloon"
+        ],
+        "ability": "Speed Boost",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Pelipper": {
+    "sets": {
+      "Rain Setter (OU)": {
+        "moves": [
+          "Hurricane",
+          "U-turn",
+          "Roost",
+          "Knock Off",
+          "Surf"
+        ],
+        "item": "Damp Rock",
+        "ability": "Drizzle",
+        "nature": [
+          "Relaxed",
+          "Sassy"
+        ]
+      },
+      "Rain Setter (NatDex)": {
+        "moves": [
+          "Scald",
+          "U-turn",
+          "Roost",
+          "Defog",
+          "Hurricane"
+        ],
+        "item": "Damp Rock",
+        "ability": "Drizzle",
+        "nature": "Relaxed"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Torkoal": {
+    "sets": {
+      "Sun Setter (OU)": {
+        "moves": [
+          "Lava Plume",
+          "Rapid Spin",
+          "Stealth Rock",
+          "Will-O-Wisp"
+        ],
+        "item": "Heat Rock",
+        "ability": "Drought",
+        "nature": [
+          "Bold",
+          "Calm"
+        ]
+      },
+      "Sun Setter (NatDex)": {
+        "moves": [
+          "Lava Plume",
+          "Body Press",
+          "Stealth Rock",
+          "Toxic",
+          "Rapid Spin"
+        ],
+        "item": "Heat Rock",
+        "ability": "Drought",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Latias": {
+    "sets": {
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Stored Power",
+          "Aura Sphere",
+          "Draining Kiss",
+          "Recover",
+          "Agility"
+        ],
+        "item": "Weakness Policy",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Utility (NatDex)": {
+        "moves": [
+          "Thunder Wave",
+          "Mystical Fire",
+          "Psyshock",
+          "Ice Beam",
+          "Roost"
+        ],
+        "item": "Latiasite",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Latios": {
+    "sets": {
+      "Soul Dew (OU)": {
+        "moves": [
+          "Draco Meteor",
+          "Psychic Noise",
+          "Calm Mind",
+          "Aura Sphere",
+          "Recover"
+        ],
+        "item": "Soul Dew",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Specs (OU)": {
+        "moves": [
+          "Draco Meteor",
+          "Luster Purge",
+          "Aura Sphere",
+          "Trick",
+          "Flip Turn"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Draco Meteor",
+          "Psychic Noise",
+          "Luster Purge",
+          "Aura Sphere",
+          "Trick"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Specs (UU)": {
+        "moves": [
+          "Draco Meteor",
+          "Luster Purge",
+          "Surf",
+          "Aura Sphere",
+          "Trick",
+          "Flip Turn"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Soul Dew 3a (UU)": {
+        "moves": [
+          "Draco Meteor",
+          "Luster Purge",
+          "Surf",
+          "Thunderbolt",
+          "Flip Turn",
+          "Recover"
+        ],
+        "item": [
+          "Soul Dew",
+          "Life Orb"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Calm Mind (UU)": {
+        "moves": [
+          "Calm Mind",
+          "Draco Meteor",
+          "Psychic Noise",
+          "Luster Purge",
+          "Thunderbolt",
+          "Recover"
+        ],
+        "item": [
+          "Soul Dew",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Wallbreaker (NatDex)": {
+        "moves": [
+          "Luster Purge",
+          "Aura Sphere",
+          "Mystical Fire",
+          "Draco Meteor",
+          "Ice Beam",
+          "Roost"
+        ],
+        "item": "Latiosite",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Deoxys-Speed": {
+    "sets": {
+      "Mixed Attacker (OU)": {
+        "moves": [
+          "Psycho Boost",
+          "Superpower",
+          "Knock Off",
+          "Ice Beam",
+          "Stealth Rock"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Eject Pack"
+        ],
+        "ability": "None",
+        "nature": "Naive"
+      },
+      "Offensive Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Psycho Boost",
+          "Focus Blast",
+          "Shadow Ball"
+        ],
+        "item": "Life Orb",
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Hazard Lead (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Spikes",
+          "Psychic Noise",
+          "Knock Off",
+          "Superpower",
+          "Taunt"
+        ],
+        "item": [
+          "Colbur Berry",
+          "Red Card",
+          "Rocky Helmet"
+        ],
+        "ability": "None",
+        "nature": [
+          "Naive",
+          "Timid"
+        ]
+      },
+      "Dual Screens (OU)": {
+        "moves": [
+          "Reflect",
+          "Light Screen",
+          "Taunt",
+          "Psycho Boost",
+          "Stealth Rock"
+        ],
+        "item": "Light Clay",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Garchomp": {
+    "sets": {
+      "TankChomp (OU)": {
+        "moves": [
+          "Earthquake",
+          "Dragon Tail",
+          "Stealth Rock",
+          "Spikes"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "Rough Skin",
+        "nature": "Impish"
+      },
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Scale Shot",
+          "Earthquake",
+          "Fire Fang",
+          "Dragon Tail"
+        ],
+        "item": "Loaded Dice",
+        "ability": "Rough Skin",
+        "nature": "Jolly"
+      },
+      "Offensive Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Earthquake",
+          "Outrage",
+          "Stone Edge",
+          "Stealth Rock",
+          "Spikes"
+        ],
+        "item": [
+          "Dragonium Z",
+          "Rockium Z"
+        ],
+        "ability": "Rough Skin",
+        "nature": "Jolly"
+      },
+      "TankChomp (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Toxic",
+          "Protect",
+          "Stealth Rock",
+          "Spikes",
+          "Dragon Tail"
+        ],
+        "item": "Leftovers",
+        "ability": "Rough Skin",
+        "nature": "Careful"
+      },
+      "Swords Dance + Loaded Dice (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Earthquake",
+          "Scale Shot",
+          "Fire Fang"
+        ],
+        "item": "Loaded Dice",
+        "ability": "Rough Skin",
+        "nature": "Jolly"
+      },
+      "Mixed Attacker (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Draco Meteor",
+          "Fire Blast",
+          "Stealth Rock",
+          "Hidden Power Ice"
+        ],
+        "item": "Garchompite",
+        "ability": "Rough Skin",
+        "nature": "Naive"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Toxicroak": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Drain Punch",
+          "Knock Off",
+          "Toxic",
+          "Encore"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "Dry Skin",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Weavile": {
+    "sets": {
+      "Boots Attacker (OU)": {
+        "moves": [
+          "Triple Axel",
+          "Knock Off",
+          "Ice Shard",
+          "Swords Dance",
+          "Low Kick"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Band (OU)": {
+        "moves": [
+          "Triple Axel",
+          "Knock Off",
+          "Ice Shard",
+          "Low Kick"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Band (NatDex)": {
+        "moves": [
+          "Triple Axel",
+          "Knock Off",
+          "Ice Shard",
+          "Pursuit"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Triple Axel",
+          "Knock Off",
+          "Swords Dance",
+          "Ice Shard"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Magnezone": {
+    "sets": {
+      "Choice Specs (OU)": {
+        "moves": [
+          "Thunderbolt",
+          "Flash Cannon",
+          "Volt Switch",
+          "Tera Blast"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Gliscor": {
+    "sets": {
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Facade",
+          "Knock Off",
+          "Earthquake",
+          "Protect"
+        ],
+        "item": "Toxic Orb",
+        "ability": "Poison Heal",
+        "nature": "Careful"
+      },
+      "Utility (OU)": {
+        "moves": [
+          "Spikes",
+          "Stealth Rock",
+          "Knock Off",
+          "Earthquake",
+          "Toxic",
+          "Knock Off",
+          "U-turn",
+          "Protect"
+        ],
+        "item": "Toxic Orb",
+        "ability": "Poison Heal",
+        "nature": [
+          "Careful",
+          "Impish"
+        ]
+      },
+      "Utility (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Toxic",
+          "U-turn",
+          "Knock Off",
+          "Spikes",
+          "Stealth Rock",
+          "Defog",
+          "Protect",
+          "Roost"
+        ],
+        "item": "Toxic Orb",
+        "ability": "Poison Heal",
+        "nature": "Careful"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Swords Dance",
+          "Roost",
+          "Facade",
+          "Knock Off"
+        ],
+        "item": "Toxic Orb",
+        "ability": "Poison Heal",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Mamoswine": {
+    "sets": {
+      "Choice Band (OU)": {
+        "moves": [
+          "Icicle Crash",
+          "Earthquake",
+          "Ice Shard",
+          "Knock Off"
+        ],
+        "item": "Choice Band",
+        "ability": "Thick Fat",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      },
+      "Substitute (UU)": {
+        "moves": [
+          "Substitute",
+          "Earthquake",
+          "Icicle Crash",
+          "Trailblaze"
+        ],
+        "item": "Leftovers",
+        "ability": "Thick Fat",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Rotom-Wash": {
+    "sets": {
+      "Defensive Pivot (OU)": {
+        "moves": [
+          "Volt Switch",
+          "Hydro Pump",
+          "Pain Split",
+          "Will-O-Wisp"
+        ],
+        "item": [
+          "Leftovers",
+          "Rocky Helmet"
+        ],
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Physically Defensive (UU)": {
+        "moves": [
+          "Will-O-Wisp",
+          "Thunder Wave",
+          "Hydro Pump",
+          "Pain Split",
+          "Volt Switch"
+        ],
+        "item": [
+          "Leftovers",
+          "Ability Shield"
+        ],
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Specially Defensive (UU)": {
+        "moves": [
+          "Thunder Wave",
+          "Will-O-Wisp",
+          "Hydro Pump",
+          "Pain Split",
+          "Volt Switch"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Calm"
+      },
+      "Defensive Pivot (NatDex)": {
+        "moves": [
+          "Volt Switch",
+          "Hydro Pump",
+          "Will-O-Wisp",
+          "Thunder Wave",
+          "Pain Split"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "Hydro Pump",
+          "Volt Switch",
+          "Trick",
+          "Will-O-Wisp",
+          "Thunder Wave"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Heatran": {
+    "sets": {
+      "Offensive (OU)": {
+        "moves": [
+          "Magma Storm",
+          "Earth Power",
+          "Taunt",
+          "Stealth Rock",
+          "Will-O-Wisp"
+        ],
+        "item": [
+          "Leftovers",
+          "Air Balloon"
+        ],
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      },
+      "Specially Defensive (OU)": {
+        "moves": [
+          "Magma Storm",
+          "Lava Plume",
+          "Earth Power",
+          "Taunt",
+          "Will-O-Wisp",
+          "Stealth Rock",
+          "Will-O-Wisp"
+        ],
+        "item": [
+          "Leftovers",
+          "Air Balloon"
+        ],
+        "ability": [
+          "Flash Fire",
+          "Flame Body"
+        ],
+        "nature": "Calm"
+      },
+      "Specially Defensive (NatDex)": {
+        "moves": [
+          "Magma Storm",
+          "Earth Power",
+          "Toxic",
+          "Taunt",
+          "Stealth Rock",
+          "Protect",
+          "Taunt"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Calm"
+      },
+      "Offensive (NatDex)": {
+        "moves": [
+          "Magma Storm",
+          "Earth Power",
+          "Solar Beam",
+          "Toxic",
+          "Hidden Power Ice",
+          "Stealth Rock",
+          "Toxic",
+          "Taunt"
+        ],
+        "item": [
+          "Grassium Z",
+          "Firium Z",
+          "Air Balloon"
+        ],
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Cresselia": {
+    "sets": {
+      "Utility (OU)": {
+        "moves": [
+          "Lunar Dance",
+          "Ice Beam",
+          "Thunder Wave",
+          "Moonlight"
+        ],
+        "item": [
+          "Eject Button",
+          "Rocky Helmet"
+        ],
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Trick Room Setter (OU)": {
+        "moves": [
+          "Trick Room",
+          "Lunar Dance",
+          "Moonlight",
+          "Ice Beam",
+          "Moonblast"
+        ],
+        "item": "Mental Herb",
+        "ability": "None",
+        "nature": "Relaxed"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Manaphy": {
+    "sets": {
+      "Tail Glow (OU)": {
+        "moves": [
+          "Tail Glow",
+          "Surf",
+          "Scald",
+          "Alluring Voice",
+          "Substitute",
+          "Energy Ball"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Take Heart (OU)": {
+        "moves": [
+          "Take Heart",
+          "Acid Armor",
+          "Scald",
+          "Stored Power"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Tail Glow (UU)": {
+        "moves": [
+          "Tail Glow",
+          "Surf",
+          "Ice Beam",
+          "Alluring Voice",
+          "Energy Ball"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Tail Glow + 3 Attacks (NatDex)": {
+        "moves": [
+          "Tail Glow",
+          "Surf",
+          "Ice Beam",
+          "Psychic",
+          "Energy Ball"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Rain Wallbreaker (NatDex)": {
+        "moves": [
+          "Tail Glow",
+          "Surf",
+          "Psychic",
+          "Ice Beam",
+          "Rest"
+        ],
+        "item": "Waterium Z",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Darkrai": {
+    "sets": {
+      "Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Dark Pulse",
+          "Sludge Bomb",
+          "Ice Beam",
+          "Focus Blast"
+        ],
+        "item": [
+          "Leftovers",
+          "Heavy-Duty Boots",
+          "Life Orb"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Dark Pulse",
+          "Sludge Bomb",
+          "Ice Beam",
+          "Focus Blast",
+          "Trick"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Boots Attacker (OU)": {
+        "moves": [
+          "Dark Pulse",
+          "Ice Beam",
+          "Sludge Bomb",
+          "Knock Off",
+          "Nasty Plot",
+          "Will-O-Wisp",
+          "Knock Off"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Specs (OU)": {
+        "moves": [
+          "Dark Pulse",
+          "Sludge Bomb",
+          "Focus Blast",
+          "Trick",
+          "Ice Beam",
+          "Trick"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "All-Out Attacker (OU)": {
+        "moves": [
+          "Dark Pulse",
+          "Ice Beam",
+          "Sludge Bomb",
+          "Knock Off",
+          "Focus Blast",
+          "Sucker Punch"
+        ],
+        "item": [
+          "Life Orb",
+          "Expert Belt",
+          "Black Glasses"
+        ],
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Naive"
+        ]
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Serperior": {
+    "sets": {
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Leaf Storm",
+          "Knock Off",
+          "Giga Drain",
+          "Glare"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Contrary",
+        "nature": [
+          "Modest",
+          "Timid"
+        ]
+      },
+      "Offensive (OU)": {
+        "moves": [
+          "Leaf Storm",
+          "Tera Blast",
+          "Glare",
+          "Dragon Pulse",
+          "Substitute"
+        ],
+        "item": "Leftovers",
+        "ability": "Contrary",
+        "nature": "Timid"
+      },
+      "Glare (UU)": {
+        "moves": [
+          "Leaf Storm",
+          "Tera Blast",
+          "Reflect",
+          "Glare",
+          "Synthesis",
+          "Light Screen"
+        ],
+        "item": [
+          "Leftovers",
+          "Light Clay"
+        ],
+        "ability": "Contrary",
+        "nature": "Timid"
+      },
+      "Substitute + Glare (NatDex)": {
+        "moves": [
+          "Leaf Storm",
+          "Hidden Power Fire",
+          "Substitute",
+          "Glare"
+        ],
+        "item": "Leftovers",
+        "ability": "Contrary",
+        "nature": "Timid"
+      },
+      "Glare + 3 Attacks (NatDex)": {
+        "moves": [
+          "Leaf Storm",
+          "Hidden Power Fire",
+          "Dragon Pulse",
+          "Glare"
+        ],
+        "item": "Leftovers",
+        "ability": "Contrary",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Samurott-Hisui": {
+    "sets": {
+      "Assault Vest (OU)": {
+        "moves": [
+          "Ceaseless Edge",
+          "Razor Shell",
+          "Aqua Cutter",
+          "Sucker Punch",
+          "Aqua Jet",
+          "Knock Off",
+          "Flip Turn"
+        ],
+        "item": "Assault Vest",
+        "ability": "Sharpness",
+        "nature": "Adamant"
+      },
+      "Lead (OU)": {
+        "moves": [
+          "Ceaseless Edge",
+          "Razor Shell",
+          "Aqua Cutter",
+          "Aqua Jet",
+          "Sucker Punch",
+          "Knock Off",
+          "Taunt",
+          "Encore"
+        ],
+        "item": "Focus Sash",
+        "ability": "Sharpness",
+        "nature": "Jolly"
+      },
+      "Boots Attacker (OU)": {
+        "moves": [
+          "Ceaseless Edge",
+          "Razor Shell",
+          "Aqua Cutter",
+          "Knock Off",
+          "Encore",
+          "Flip Turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Sharpness",
+        "nature": "Jolly"
+      },
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Ceaseless Edge",
+          "Razor Shell",
+          "Aqua Cutter",
+          "Knock Off",
+          "Flip Turn",
+          "Sacred Sword"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Sharpness",
+        "nature": "Jolly"
+      },
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Ceaseless Edge",
+          "Razor Shell",
+          "Aqua Cutter",
+          "Sucker Punch"
+        ],
+        "item": "Black Glasses",
+        "ability": "Sharpness",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      },
+      "Offensive (NatDex)": {
+        "moves": [
+          "Ceaseless Edge",
+          "Razor Shell",
+          "Aqua Cutter",
+          "Sucker Punch",
+          "Sacred Sword",
+          "Swords Dance",
+          "Encore"
+        ],
+        "item": [
+          "Black Glasses",
+          "Protective Pads",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "Sharpness",
+        "nature": "Jolly"
+      },
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "Razor Shell",
+          "Aqua Cutter",
+          "Ceaseless Edge",
+          "Sacred Sword",
+          "Knock Off",
+          "Flip Turn"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Sharpness",
+        "nature": "Jolly"
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Razor Shell",
+          "Ceaseless Edge",
+          "Sucker Punch",
+          "Knock Off",
+          "Flip Turn",
+          "Sacred Sword"
+        ],
+        "item": "Assault Vest",
+        "ability": "Sharpness",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Excadrill": {
+    "sets": {
+      "Sand Sweeper (OU)": {
+        "moves": [
+          "Earthquake",
+          "Rapid Spin",
+          "Rock Slide",
+          "Iron Head",
+          "Swords Dance",
+          "Substitute"
+        ],
+        "item": [
+          "Air Balloon",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      },
+      "Utility (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Earthquake",
+          "Iron Head",
+          "Rapid Spin"
+        ],
+        "item": "Leftovers",
+        "ability": "Mold Breaker",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      },
+      "Swords Dance (UU)": {
+        "moves": [
+          "Swords Dance",
+          "Earthquake",
+          "Iron Head",
+          "Rapid Spin"
+        ],
+        "item": [
+          "Leftovers",
+          "Air Balloon"
+        ],
+        "ability": "Mold Breaker",
+        "nature": "Jolly"
+      },
+      "Sand Rush (UU)": {
+        "moves": [
+          "Swords Dance",
+          "Earthquake",
+          "Iron Head",
+          "Rapid Spin"
+        ],
+        "item": [
+          "Air Balloon",
+          "Chople Berry",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Lead (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Earthquake",
+          "Rock Tomb",
+          "Rapid Spin"
+        ],
+        "item": "Focus Sash",
+        "ability": "Mold Breaker",
+        "nature": "Jolly"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Earthquake",
+          "Iron Head",
+          "Rock Slide",
+          "Rapid Spin",
+          "Giga Impact"
+        ],
+        "item": [
+          "Steelium Z",
+          "Normalium Z"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Lilligant-Hisui": {
+    "sets": {
+      "Sun Sweeper (OU)": {
+        "moves": [
+          "Close Combat",
+          "Solar Blade",
+          "Triple Axel",
+          "Tera Blast"
+        ],
+        "item": "Life Orb",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Sun Sweeper (UU)": {
+        "moves": [
+          "Solar Blade",
+          "Close Combat",
+          "Triple Axel",
+          "Healing Wish",
+          "Weather Ball",
+          "Tera Blast"
+        ],
+        "item": "Life Orb",
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Reuniclus": {
+    "sets": {
+      "Stallbreaker (OU)": {
+        "moves": [
+          "Psychic Noise",
+          "Knock Off",
+          "Focus Blast",
+          "Recover"
+        ],
+        "item": "Life Orb",
+        "ability": "Magic Guard",
+        "nature": "Modest"
+      },
+      "Calm Mind (UU)": {
+        "moves": [
+          "Calm Mind",
+          "Psychic Noise",
+          "Psyshock",
+          "Knock Off",
+          "Focus Blast",
+          "Recover"
+        ],
+        "item": [
+          "Leftovers",
+          "Colbur Berry",
+          "Sticky Barb"
+        ],
+        "ability": "Magic Guard",
+        "nature": "Relaxed"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Amoonguss": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Foul Play",
+          "Toxic",
+          "Synthesis",
+          "Clear Smog",
+          "Giga Drain",
+          "Sludge Bomb"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Alomomola": {
+    "sets": {
+      "WishFish (Wish Passer) (OU)": {
+        "moves": [
+          "Flip Turn",
+          "Wish",
+          "Protect",
+          "Scald",
+          "Tickle"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Rocky Helmet"
+        ],
+        "ability": "Regenerator",
+        "nature": "Relaxed"
+      },
+      "Assault Vest (OU)": {
+        "moves": [
+          "Flip Turn",
+          "Scald",
+          "Mirror Coat",
+          "Play Rough",
+          "Body Slam",
+          "Aqua Jet"
+        ],
+        "item": "Assault Vest",
+        "ability": "Regenerator",
+        "nature": "Sassy"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Flip Turn",
+          "Toxic",
+          "Wish",
+          "Protect"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": [
+          "Relaxed",
+          "Sassy"
+        ]
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Knock Off",
+          "Mirror Coat",
+          "Flip Turn",
+          "Scald",
+          "Liquidation"
+        ],
+        "item": "Assault Vest",
+        "ability": "Regenerator",
+        "nature": "Sassy"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Mandibuzz": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Foul Play",
+          "Iron Defense",
+          "Roost",
+          "Toxic",
+          "Defog"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": [
+          "Overcoat",
+          "Big Pecks"
+        ],
+        "nature": "Bold"
+      },
+      "Physically Defensive (UU)": {
+        "moves": [
+          "Foul Play",
+          "Toxic",
+          "Defog",
+          "Knock Off",
+          "Roost",
+          "U-turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Overcoat",
+        "nature": "Impish"
+      },
+      "Specially Defensive (UU)": {
+        "moves": [
+          "Foul Play",
+          "Toxic",
+          "Defog",
+          "Knock Off",
+          "Roost",
+          "U-turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Overcoat",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Hydreigon": {
+    "sets": {
+      "Choice Specs (OU)": {
+        "moves": [
+          "Dark Pulse",
+          "Draco Meteor",
+          "Flash Cannon",
+          "Earth Power"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Draco Meteor",
+          "Flash Cannon",
+          "Substitute"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Nasty Plot (UU)": {
+        "moves": [
+          "Nasty Plot",
+          "Draco Meteor",
+          "Dark Pulse",
+          "Flamethrower",
+          "Flash Cannon",
+          "Thunder Wave",
+          "Substitute"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Scarf (UU)": {
+        "moves": [
+          "Draco Meteor",
+          "Dark Pulse",
+          "Fire Blast",
+          "U-turn"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Tornadus-Therian": {
+    "sets": {
+      "Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Bleakwind Storm",
+          "Heat Wave",
+          "Grass Knot",
+          "Focus Blast",
+          "Knock Off"
+        ],
+        "item": [
+          "Life Orb",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Boots Pivot (OU)": {
+        "moves": [
+          "Bleakwind Storm",
+          "U-turn",
+          "Knock Off",
+          "Heat Wave",
+          "Taunt"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Assault Vest (OU)": {
+        "moves": [
+          "Bleakwind Storm",
+          "U-turn",
+          "Knock Off",
+          "Heat Wave"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Pivot (NatDex)": {
+        "moves": [
+          "Bleakwind Storm",
+          "Hurricane",
+          "U-turn",
+          "Knock Off",
+          "Heat Wave",
+          "Defog"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Flyinium Z"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Nasty Plot (NatDex)": {
+        "moves": [
+          "Nasty Plot",
+          "Hurricane",
+          "Bleakwind Storm",
+          "Heat Wave",
+          "Focus Blast",
+          "Taunt"
+        ],
+        "item": "Flyinium Z",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Bleakwind Storm",
+          "Hurricane",
+          "U-turn",
+          "Heat Wave",
+          "Knock Off"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Thundurus-Therian": {
+    "sets": {
+      "Choice Specs (OU)": {
+        "moves": [
+          "Thunderbolt",
+          "Volt Switch",
+          "Tera Blast",
+          "Grass Knot",
+          "Knock Off",
+          "Focus Blast"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Thunderbolt",
+          "Tera Blast",
+          "Grass Knot",
+          "Focus Blast"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Pivot (UU)": {
+        "moves": [
+          "Sludge Bomb",
+          "Focus Blast",
+          "Thunderbolt",
+          "Knock Off",
+          "Grass Knot",
+          "Volt Switch"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Nasty Plot (UU)": {
+        "moves": [
+          "Thunderbolt",
+          "Nasty Plot",
+          "Agility",
+          "Tera Blast",
+          "Focus Blast"
+        ],
+        "item": "Sitrus Berry",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Landorus-Therian": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Earth Power",
+          "Earthquake",
+          "U-turn",
+          "Taunt"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Jolly"
+        ]
+      },
+      "Offensive (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Earthquake",
+          "Stone Edge",
+          "U-turn",
+          "Taunt"
+        ],
+        "item": [
+          "Rocky Helmet",
+          "Soft Sand"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Earthquake",
+          "Stone Edge",
+          "U-turn",
+          "Grass Knot",
+          "Stealth Rock",
+          "Tera Blast"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": [
+          "Naive",
+          "Jolly"
+        ]
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "U-turn",
+          "Taunt",
+          "Toxic",
+          "Stealth Rock",
+          "Earthquake",
+          "Earth Power"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "None",
+        "nature": [
+          "Jolly",
+          "Timid"
+        ]
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Earthquake",
+          "Stone Edge",
+          "Fly",
+          "Stealth Rock",
+          "Fly"
+        ],
+        "item": [
+          "Rockium Z",
+          "Flyinium Z"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "U-turn",
+          "Stone Edge",
+          "Defog",
+          "Explosion"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Lead (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Stealth Rock",
+          "Taunt",
+          "Explosion"
+        ],
+        "item": "Focus Sash",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Kyurem": {
+    "sets": {
+      "Choice Specs (OU)": {
+        "moves": [
+          "Ice Beam",
+          "Freeze-Dry",
+          "Draco Meteor",
+          "Earth Power"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      },
+      "Physical Dragon Dance (OU)": {
+        "moves": [
+          "Dragon Dance",
+          "Icicle Spear",
+          "Tera Blast",
+          "Scale Shot",
+          "Substitute"
+        ],
+        "item": "Loaded Dice",
+        "ability": "None",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      },
+      "Mixed Dragon Dance (OU)": {
+        "moves": [
+          "Dragon Dance",
+          "Icicle Spear",
+          "Freeze-Dry",
+          "Earth Power"
+        ],
+        "item": [
+          "Never-Melt Ice",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Hasty"
+      },
+      "Substitute + Protect (OU)": {
+        "moves": [
+          "Substitute",
+          "Protect",
+          "Freeze-Dry",
+          "Earth Power"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Assault Vest (OU)": {
+        "moves": [
+          "Ice Beam",
+          "Freeze-Dry",
+          "Earth Power",
+          "Draco Meteor",
+          "Dragon Tail",
+          "Body Press"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "SubRoost (NatDex)": {
+        "moves": [
+          "Freeze-Dry",
+          "Earth Power",
+          "Substitute",
+          "Roost",
+          "Protect"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Offensive (NatDex)": {
+        "moves": [
+          "Ice Beam",
+          "Freeze-Dry",
+          "Hidden Power Fire",
+          "Earth Power",
+          "Draco Meteor",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Specs (NatDex)": {
+        "moves": [
+          "Freeze-Dry",
+          "Ice Beam",
+          "Draco Meteor",
+          "Earth Power"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Keldeo": {
+    "sets": {
+      "Boots Attacker (OU)": {
+        "moves": [
+          "Surf",
+          "Aura Sphere",
+          "Secret Sword",
+          "Vacuum Wave",
+          "Flip Turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Specs (OU)": {
+        "moves": [
+          "Surf",
+          "Hydro Pump",
+          "Secret Sword",
+          "Aura Sphere",
+          "Vacuum Wave",
+          "Flip Turn",
+          "Icy Wind"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Pivot (UU)": {
+        "moves": [
+          "Surf",
+          "Focus Blast",
+          "Vacuum Wave",
+          "Flip Turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Calm Mind (UU)": {
+        "moves": [
+          "Calm Mind",
+          "Surf",
+          "Icy Wind",
+          "Secret Sword",
+          "Aura Sphere",
+          "Substitute",
+          "Vacuum Wave"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      },
+      "Choice Specs (UU)": {
+        "moves": [
+          "Surf",
+          "Secret Sword",
+          "Icy Wind",
+          "Tera Blast",
+          "Vacuum Wave",
+          "Tera Blast"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Substitute + Calm Mind (NatDex)": {
+        "moves": [
+          "Substitute",
+          "Calm Mind",
+          "Scald",
+          "Hydro Pump",
+          "Secret Sword"
+        ],
+        "item": [
+          "Leftovers",
+          "Waterium Z"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Chesnaught": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Body Press",
+          "Knock Off",
+          "Synthesis",
+          "Spikes",
+          "Iron Defense"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "Bulletproof",
+        "nature": "Impish"
+      },
+      "Physically Defensive (UU)": {
+        "moves": [
+          "Body Press",
+          "Knock Off",
+          "Synthesis",
+          "Spikes",
+          "Iron Defense"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Bulletproof",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Greninja": {
+    "sets": {
+      "Battle Bond (OU)": {
+        "moves": [
+          "Hydro Pump",
+          "Surf",
+          "Dark Pulse",
+          "Water Shuriken",
+          "Ice Beam"
+        ],
+        "item": "Life Orb",
+        "ability": "Battle Bond",
+        "nature": "Timid"
+      },
+      "Choice Specs (UU)": {
+        "moves": [
+          "Surf",
+          "Dark Pulse",
+          "Ice Beam",
+          "Water Shuriken",
+          "Sludge Wave"
+        ],
+        "item": "Choice Specs",
+        "ability": "Protean",
+        "nature": "Timid"
+      },
+      "Battle Bond (UU)": {
+        "moves": [
+          "Surf",
+          "Dark Pulse",
+          "Ice Beam",
+          "Sludge Wave",
+          "Protect",
+          "Grass Knot"
+        ],
+        "item": [
+          "Life Orb",
+          "Expert Belt"
+        ],
+        "ability": "Battle Bond",
+        "nature": "Timid"
+      },
+      "Battle Bond (NatDex)": {
+        "moves": [
+          "Hydro Pump",
+          "Surf",
+          "Dark Pulse",
+          "Water Shuriken",
+          "Ice Beam"
+        ],
+        "item": "Life Orb",
+        "ability": "Battle Bond",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Talonflame": {
+    "sets": {
+      "Defog (OU)": {
+        "moves": [
+          "Flamethrower",
+          "Defog",
+          "Will-O-Wisp",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Hawlucha": {
+    "sets": {
+      "Unburden Sweeper (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Close Combat",
+          "Acrobatics",
+          "Encore"
+        ],
+        "item": "Grassy Seed",
+        "ability": "Unburden",
+        "nature": "Adamant"
+      },
+      "Sweeper (UU)": {
+        "moves": [
+          "Swords Dance",
+          "Close Combat",
+          "Acrobatics",
+          "Taunt"
+        ],
+        "item": "Psychic Seed",
+        "ability": "Unburden",
+        "nature": "Adamant"
+      },
+      "Unburden Sweeper (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Acrobatics",
+          "Close Combat",
+          "Substitute"
+        ],
+        "item": [
+          "Electric Seed",
+          "Psychic Seed",
+          "Grassy Seed"
+        ],
+        "ability": "Unburden",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Goodra-Hisui": {
+    "sets": {
+      "Assault Vest (OU)": {
+        "moves": [
+          "Flash Cannon",
+          "Dragon Tail",
+          "Draco Meteor",
+          "Flamethrower",
+          "Knock Off",
+          "Ice Beam",
+          "Knock Off"
+        ],
+        "item": "Assault Vest",
+        "ability": [
+          "Sap Sipper",
+          "Gooey"
+        ],
+        "nature": "Modest"
+      },
+      "Offensive Tank (UU)": {
+        "moves": [
+          "Draco Meteor",
+          "Flash Cannon",
+          "Thunderbolt",
+          "Surf"
+        ],
+        "item": "Leftovers",
+        "ability": "Gooey",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Hoopa-Unbound": {
+    "sets": {
+      "Assault Vest (OU)": {
+        "moves": [
+          "Knock Off",
+          "Psychic Noise",
+          "Drain Punch",
+          "Gunk Shot",
+          "Thunderbolt",
+          "Gunk Shot"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Quiet"
+      },
+      "Trick Room (OU)": {
+        "moves": [
+          "Trick Room",
+          "Psychic Noise",
+          "Expanding Force",
+          "Hyperspace Fury",
+          "Focus Blast"
+        ],
+        "item": [
+          "Eject Pack",
+          "Psychic Seed"
+        ],
+        "ability": "None",
+        "nature": "Quiet"
+      },
+      "Choice Band (NatDex)": {
+        "moves": [
+          "Hyperspace Fury",
+          "Drain Punch",
+          "Zen Headbutt",
+          "Gunk Shot"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Knock Off",
+          "Psychic Noise",
+          "Drain Punch",
+          "Thunderbolt",
+          "Hyperspace Fury"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Lonely"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Volcanion": {
+    "sets": {
+      "Choice Specs (OU)": {
+        "moves": [
+          "Steam Eruption",
+          "Flamethrower",
+          "Sludge Bomb",
+          "Earth Power"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Utility Attacker (OU)": {
+        "moves": [
+          "Steam Eruption",
+          "Flamethrower",
+          "Sludge Bomb",
+          "Taunt",
+          "Will-O-Wisp"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Leftovers",
+          "Shuca Berry"
+        ],
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Offensive / Trapper (UU)": {
+        "moves": [
+          "Steam Eruption",
+          "Flamethrower",
+          "Sludge Bomb",
+          "Fire Spin",
+          "Taunt",
+          "Substitute"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Wallbreaker (NatDex)": {
+        "moves": [
+          "Steam Eruption",
+          "Fire Blast",
+          "Flamethrower",
+          "Earth Power",
+          "Fire Spin",
+          "Taunt",
+          "Substitute"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Incineroar": {
+    "sets": {
+      "Defensive Pivot (OU)": {
+        "moves": [
+          "Knock Off",
+          "Parting Shot",
+          "Will-O-Wisp",
+          "Flare Blitz",
+          "Taunt"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Intimidate",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Primarina": {
+    "sets": {
+      "Assault Vest (OU)": {
+        "moves": [
+          "Moonblast",
+          "Psychic Noise",
+          "Surf",
+          "Whirlpool",
+          "Flip Turn",
+          "Whirlpool"
+        ],
+        "item": "Assault Vest",
+        "ability": [
+          "Torrent",
+          "Liquid Voice"
+        ],
+        "nature": "Modest"
+      },
+      "Offensive Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Surf",
+          "Hydro Pump",
+          "Moonblast",
+          "Substitute",
+          "Psychic Noise"
+        ],
+        "item": [
+          "Leftovers",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Bulky Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Psychic Noise",
+          "Surf",
+          "Draining Kiss",
+          "Substitute"
+        ],
+        "item": "Leftovers",
+        "ability": [
+          "Liquid Voice",
+          "Torrent"
+        ],
+        "nature": "Bold"
+      },
+      "Bulky Calm Mind (NatDex)": {
+        "moves": [
+          "Calm Mind",
+          "Scald",
+          "Psychic Noise",
+          "Draining Kiss",
+          "Moonblast",
+          "Substitute"
+        ],
+        "item": "Leftovers",
+        "ability": [
+          "Torrent",
+          "Liquid Voice"
+        ],
+        "nature": "Bold"
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Scald",
+          "Moonblast",
+          "Flip Turn",
+          "Psychic Noise"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Ribombee": {
+    "sets": {
+      "Sticky Web (OU)": {
+        "moves": [
+          "Sticky Web",
+          "Moonblast",
+          "Stun Spore",
+          "Skill Swap",
+          "Psychic Noise"
+        ],
+        "item": "Focus Sash",
+        "ability": "Shield Dust",
+        "nature": "Timid"
+      },
+      "Setter (UU)": {
+        "moves": [
+          "Sticky Web",
+          "Reflect",
+          "Light Screen",
+          "Moonblast"
+        ],
+        "item": "Light Clay",
+        "ability": "Shield Dust",
+        "nature": "Timid"
+      },
+      "Sticky Web (NatDex)": {
+        "moves": [
+          "Sticky Web",
+          "Moonblast",
+          "Skill Swap",
+          "Stun Spore"
+        ],
+        "item": "Focus Sash",
+        "ability": "Shield Dust",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Toxapex": {
+    "sets": {
+      "The Pex (Defensive) (OU)": {
+        "moves": [
+          "Toxic",
+          "Recover",
+          "Haze",
+          "Toxic Spikes",
+          "Infestation"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": [
+          "Calm",
+          "Bold"
+        ]
+      },
+      "Assault Vest (OU)": {
+        "moves": [
+          "Sludge Bomb",
+          "Surf",
+          "Ice Beam",
+          "Infestation"
+        ],
+        "item": "Assault Vest",
+        "ability": "Regenerator",
+        "nature": [
+          "Modest",
+          "Bold"
+        ]
+      },
+      "Mixed Defense (UU)": {
+        "moves": [
+          "Surf",
+          "Liquidation",
+          "Toxic",
+          "Haze",
+          "Recover"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": [
+          "Bold",
+          "Impish"
+        ]
+      },
+      "The Pex (NatDex)": {
+        "moves": [
+          "Scald",
+          "Knock Off",
+          "Toxic",
+          "Toxic Spikes",
+          "Haze",
+          "Recover"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Rocky Helmet",
+          "Black Sludge"
+        ],
+        "ability": "Regenerator",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Araquanid": {
+    "sets": {
+      "Sticky Web (OU)": {
+        "moves": [
+          "Sticky Web",
+          "Surf",
+          "Endeavor",
+          "Endure",
+          "Lunge"
+        ],
+        "item": [
+          "Custap Berry",
+          "Mental Herb"
+        ],
+        "ability": "None",
+        "nature": [
+          "Modest",
+          "Sassy"
+        ]
+      },
+      "Sticky Web (NatDex)": {
+        "moves": [
+          "Sticky Web",
+          "Surf",
+          "Liquidation",
+          "Endure",
+          "Magic Coat",
+          "Endeavor"
+        ],
+        "item": "Custap Berry",
+        "ability": "None",
+        "nature": [
+          "Modest",
+          "Adamant"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Comfey": {
+    "sets": {
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Draining Kiss",
+          "Tera Blast",
+          "Synthesis",
+          "Stored Power",
+          "Synthesis"
+        ],
+        "item": "Life Orb",
+        "ability": "Triage",
+        "nature": "Modest"
+      },
+      "Calm Mind (UU)": {
+        "moves": [
+          "Calm Mind",
+          "Draining Kiss",
+          "Tera Blast",
+          "Taunt",
+          "Giga Drain"
+        ],
+        "item": "Life Orb",
+        "ability": "Triage",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Mimikyu": {
+    "sets": {
+      "Trick Room (OU)": {
+        "moves": [
+          "Trick Room",
+          "Play Rough",
+          "Curse",
+          "Destiny Bond"
+        ],
+        "item": "Red Card",
+        "ability": "None",
+        "nature": "Impish"
+      },
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Play Rough",
+          "Shadow Claw",
+          "Shadow Sneak"
+        ],
+        "item": "Life Orb",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Swords Dance (UU)": {
+        "moves": [
+          "Swords Dance",
+          "Shadow Sneak",
+          "Play Rough",
+          "Shadow Claw"
+        ],
+        "item": [
+          "Life Orb",
+          "Red Card"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Kommo-o": {
+    "sets": {
+      "Clangorous Soul (OU)": {
+        "moves": [
+          "Clangorous Soul",
+          "Boomburst",
+          "Flamethrower",
+          "Clanging Scales",
+          "Drain Punch"
+        ],
+        "item": "Throat Spray",
+        "ability": "Soundproof",
+        "nature": [
+          "Timid",
+          "Naive"
+        ]
+      },
+      "Offensive Z-Move (NatDex)": {
+        "moves": [
+          "Clanging Scales",
+          "Close Combat",
+          "Drain Punch",
+          "Flamethrower",
+          "Stealth Rock",
+          "Taunt",
+          "Clangorous Soul"
+        ],
+        "item": "Kommonium Z",
+        "ability": "None",
+        "nature": "Hasty"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Body Press",
+          "Toxic",
+          "Stealth Rock",
+          "Protect",
+          "Earthquake"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Rillaboom": {
+    "sets": {
+      "Choice Band (OU)": {
+        "moves": [
+          "Grassy Glide",
+          "Wood Hammer",
+          "U-turn",
+          "Knock Off"
+        ],
+        "item": "Choice Band",
+        "ability": "Grassy Surge",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      },
+      "Utility (OU)": {
+        "moves": [
+          "Grassy Glide",
+          "Knock Off",
+          "U-turn",
+          "Low Kick",
+          "Wood Hammer"
+        ],
+        "item": [
+          "Terrain Extender",
+          "Assault Vest"
+        ],
+        "ability": "Grassy Surge",
+        "nature": "Adamant"
+      },
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Grassy Glide",
+          "Wood Hammer",
+          "Knock Off"
+        ],
+        "item": "Life Orb",
+        "ability": "Grassy Surge",
+        "nature": "Adamant"
+      },
+      "Choice Band (NatDex)": {
+        "moves": [
+          "Wood Hammer",
+          "Grassy Glide",
+          "U-turn",
+          "Superpower",
+          "Knock Off"
+        ],
+        "item": "Choice Band",
+        "ability": "Grassy Surge",
+        "nature": "Adamant"
+      },
+      "Bulky Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Grassy Glide",
+          "Drain Punch",
+          "Superpower",
+          "Knock Off"
+        ],
+        "item": "Leftovers",
+        "ability": "Grassy Surge",
+        "nature": "Adamant"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Grassy Glide",
+          "Knock Off",
+          "Superpower",
+          "Drain Punch"
+        ],
+        "item": "Life Orb",
+        "ability": "Grassy Surge",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Cinderace": {
+    "sets": {
+      "Offensive Pivot (OU)": {
+        "moves": [
+          "Pyro Ball",
+          "U-turn",
+          "Court Change",
+          "Sucker Punch",
+          "High Jump Kick",
+          "Gunk Shot"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Libero",
+        "nature": "Jolly"
+      },
+      "Bulky Pivot (OU)": {
+        "moves": [
+          "Pyro Ball",
+          "U-turn",
+          "Court Change",
+          "Will-O-Wisp"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Pivot (NatDex)": {
+        "moves": [
+          "Pyro Ball",
+          "U-turn",
+          "Court Change",
+          "Will-O-Wisp",
+          "Sucker Punch",
+          "Gunk Shot"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": [
+          "Blaze",
+          "Libero"
+        ],
+        "nature": "Jolly"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Pyro Ball",
+          "Double-Edge",
+          "High Jump Kick",
+          "Sucker Punch"
+        ],
+        "item": [
+          "Normalium Z",
+          "Fightinium Z"
+        ],
+        "ability": "Libero",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Corviknight": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Brave Bird",
+          "Body Press",
+          "Defog",
+          "Iron Defense",
+          "U-turn",
+          "Iron Defense",
+          "Roost"
+        ],
+        "item": [
+          "Rocky Helmet",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Impish"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Brave Bird",
+          "Iron Defense",
+          "U-turn",
+          "Body Press",
+          "Roost"
+        ],
+        "item": [
+          "Rocky Helmet",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": [
+          "Impish",
+          "Careful"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Barraskewda": {
+    "sets": {
+      "Rain Sweeper (OU)": {
+        "moves": [
+          "Liquidation",
+          "Flip Turn",
+          "Aqua Jet",
+          "Close Combat",
+          "Poison Jab"
+        ],
+        "item": [
+          "Choice Band",
+          "Mystic Water"
+        ],
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Rain Menace (UU)": {
+        "moves": [
+          "Liquidation",
+          "Close Combat",
+          "Aqua Jet",
+          "Flip Turn"
+        ],
+        "item": [
+          "Choice Band",
+          "Mystic Water"
+        ],
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Rain Wallbreaker (NatDex)": {
+        "moves": [
+          "Liquidation",
+          "Close Combat",
+          "Flip Turn",
+          "Aqua Jet"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Polteageist": {
+    "sets": {
+      "Offensive Shell Smash (OU)": {
+        "moves": [
+          "Shell Smash",
+          "Shadow Ball",
+          "Stored Power",
+          "Tera Blast"
+        ],
+        "item": "Focus Sash",
+        "ability": "None",
+        "nature": [
+          "Modest",
+          "Timid"
+        ]
+      },
+      "Bulky Shell Smash (OU)": {
+        "moves": [
+          "Shell Smash",
+          "Shadow Ball",
+          "Tera Blast",
+          "Strength Sap"
+        ],
+        "item": "White Herb",
+        "ability": "Cursed Body",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Hatterene": {
+    "sets": {
+      "Pain Split (OU)": {
+        "moves": [
+          "Psychic Noise",
+          "Draining Kiss",
+          "Pain Split",
+          "Nuzzle"
+        ],
+        "item": [
+          "Rocky Helmet",
+          "Leftovers"
+        ],
+        "ability": "Magic Bounce",
+        "nature": "Bold"
+      },
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Draining Kiss",
+          "Psychic Noise",
+          "Psyshock",
+          "Mystical Fire",
+          "Nuzzle"
+        ],
+        "item": "Leftovers",
+        "ability": "Magic Bounce",
+        "nature": "Bold"
+      },
+      "Healing Wish (OU)": {
+        "moves": [
+          "Healing Wish",
+          "Psychic Noise",
+          "Dazzling Gleam",
+          "Nuzzle",
+          "Mystical Fire"
+        ],
+        "item": "Eject Button",
+        "ability": "Magic Bounce",
+        "nature": "Bold"
+      },
+      "Assault Vest (OU)": {
+        "moves": [
+          "Psyshock",
+          "Draining Kiss",
+          "Mystical Fire",
+          "Nuzzle",
+          "Future Sight",
+          "Psychic Noise"
+        ],
+        "item": "Assault Vest",
+        "ability": "Magic Bounce",
+        "nature": "Modest"
+      },
+      "Trick Room (OU)": {
+        "moves": [
+          "Trick Room",
+          "Psychic Noise",
+          "Dazzling Gleam",
+          "Healing Wish"
+        ],
+        "item": "Focus Sash",
+        "ability": "Magic Bounce",
+        "nature": "Quiet"
+      },
+      "Calm Mind (NatDex)": {
+        "moves": [
+          "Calm Mind",
+          "Psychic Noise",
+          "Draining Kiss",
+          "Mystical Fire"
+        ],
+        "item": "Leftovers",
+        "ability": "Magic Bounce",
+        "nature": "Bold"
+      },
+      "Healing Wish (NatDex)": {
+        "moves": [
+          "Psychic Noise",
+          "Mystical Fire",
+          "Nuzzle",
+          "Healing Wish"
+        ],
+        "item": "Eject Button",
+        "ability": "Magic Bounce",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Grimmsnarl": {
+    "sets": {
+      "Dual Screens (OU)": {
+        "moves": [
+          "Reflect",
+          "Light Screen",
+          "Spirit Break",
+          "Parting Shot"
+        ],
+        "item": "Light Clay",
+        "ability": "None",
+        "nature": [
+          "Careful",
+          "Impish"
+        ]
+      },
+      "Screens Setter (UU)": {
+        "moves": [
+          "Reflect",
+          "Light Screen",
+          "Spirit Break",
+          "Taunt",
+          "Parting Shot",
+          "Taunt"
+        ],
+        "item": "Light Clay",
+        "ability": "None",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Alcremie": {
+    "sets": {
+      "Double Dance (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Acid Armor",
+          "Alluring Voice",
+          "Recover"
+        ],
+        "item": "Leftovers",
+        "ability": "Aroma Veil",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Indeedee": {
+    "sets": {
+      "Terrain Setter (OU)": {
+        "moves": [
+          "Expanding Force",
+          "Encore",
+          "Healing Wish",
+          "Trick Room",
+          "Dazzling Gleam"
+        ],
+        "item": "Terrain Extender",
+        "ability": "Psychic Surge",
+        "nature": [
+          "Bold",
+          "Timid"
+        ]
+      },
+      "Terrain Setter (UU)": {
+        "moves": [
+          "Expanding Force",
+          "Dazzling Gleam",
+          "Healing Wish",
+          "Encore"
+        ],
+        "item": "Terrain Extender",
+        "ability": "Psychic Surge",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Dragapult": {
+    "sets": {
+      "Boots Pivot (OU)": {
+        "moves": [
+          "Dragon Darts",
+          "Draco Meteor",
+          "Hex",
+          "Will-O-Wisp",
+          "Thunder Wave",
+          "U-turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Infiltrator",
+        "nature": [
+          "Naive",
+          "Timid"
+        ]
+      },
+      "Choice Specs (OU)": {
+        "moves": [
+          "Draco Meteor",
+          "Shadow Ball",
+          "Flamethrower",
+          "U-turn"
+        ],
+        "item": "Choice Specs",
+        "ability": [
+          "Infiltrator",
+          "Clear Body"
+        ],
+        "nature": "Timid"
+      },
+      "Choice Band (OU)": {
+        "moves": [
+          "Dragon Darts",
+          "Tera Blast",
+          "U-turn",
+          "Sucker Punch",
+          "Will-O-Wisp",
+          "Phantom Force"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Mixed Offensive (OU)": {
+        "moves": [
+          "Dragon Darts",
+          "Draco Meteor",
+          "Shadow Ball",
+          "Fire Blast",
+          "Will-O-Wisp"
+        ],
+        "item": "Life Orb",
+        "ability": [
+          "Clear Body",
+          "Infiltrator"
+        ],
+        "nature": "Naive"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Zamazenta": {
+    "sets": {
+      "IronPress (OU)": {
+        "moves": [
+          "Iron Defense",
+          "Body Press",
+          "Crunch",
+          "Roar",
+          "Rest",
+          "Substitute",
+          "Heavy Slam"
+        ],
+        "item": [
+          "Leftovers",
+          "Chesto Berry"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Boots Attacker (OU)": {
+        "moves": [
+          "Close Combat",
+          "Crunch",
+          "Stone Edge",
+          "Heavy Slam",
+          "Ice Fang",
+          "Roar"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Offensive Attacker (OU)": {
+        "moves": [
+          "Close Combat",
+          "Crunch",
+          "Heavy Slam",
+          "Stone Edge",
+          "Ice Fang"
+        ],
+        "item": [
+          "Life Orb",
+          "Choice Band"
+        ],
+        "ability": "None",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      },
+      "All-Out Attacker (NatDex)": {
+        "moves": [
+          "Close Combat",
+          "Crunch",
+          "Stone Edge",
+          "Ice Fang",
+          "Heavy Slam"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Iron Defense + Body Press (NatDex)": {
+        "moves": [
+          "Iron Defense",
+          "Body Press",
+          "Crunch",
+          "Stone Edge",
+          "Substitute",
+          "Roar",
+          "Rest"
+        ],
+        "item": [
+          "Leftovers",
+          "Chesto Berry"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Dual Screens (NatDex)": {
+        "moves": [
+          "Reflect",
+          "Light Screen",
+          "Roar",
+          "Body Press"
+        ],
+        "item": "Light Clay",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Zarude": {
+    "sets": {
+      "Setup Sweeper (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Bulk Up",
+          "Knock Off",
+          "Power Whip",
+          "Synthesis"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Ursaluna": {
+    "sets": {
+      "Guts Wallbreaker (OU)": {
+        "moves": [
+          "Facade",
+          "Headlong Rush",
+          "Fire Punch",
+          "Ice Punch",
+          "Swords Dance",
+          "Protect"
+        ],
+        "item": "Flame Orb",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Facade",
+          "Headlong Rush",
+          "Earthquake",
+          "Fire Punch"
+        ],
+        "item": "Flame Orb",
+        "ability": "None",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Overqwil": {
+    "sets": {
+      "Rain Sweeper (OU)": {
+        "moves": [
+          "Gunk Shot",
+          "Crunch",
+          "Liquidation",
+          "Swords Dance",
+          "Taunt",
+          "Spikes"
+        ],
+        "item": "Life Orb",
+        "ability": "Swift Swim",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      },
+      "Rain Sweeper (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Gunk Shot",
+          "Crunch",
+          "Liquidation"
+        ],
+        "item": [
+          "Waterium Z",
+          "Darkinium Z"
+        ],
+        "ability": "Swift Swim",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Enamorus": {
+    "sets": {
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Moonblast",
+          "Earth Power",
+          "Mystical Fire",
+          "Tera Blast",
+          "Healing Wish"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Contrary",
+        "nature": [
+          "Modest",
+          "Timid"
+        ]
+      },
+      "Choice Specs (OU)": {
+        "moves": [
+          "Moonblast",
+          "Earth Power",
+          "Mystical Fire",
+          "Healing Wish",
+          "Healing Wish",
+          "Tera Blast"
+        ],
+        "item": "Choice Specs",
+        "ability": "Contrary",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      },
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "Moonblast",
+          "Earth Power",
+          "Mystical Fire",
+          "Healing Wish"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Contrary",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Enamorus-Therian": {
+    "sets": {
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Moonblast",
+          "Draining Kiss",
+          "Earth Power",
+          "Mystical Fire",
+          "Taunt"
+        ],
+        "item": [
+          "Leftovers",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Choice Specs (OU)": {
+        "moves": [
+          "Moonblast",
+          "Earth Power",
+          "Mystical Fire",
+          "Draining Kiss"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Quiet"
+      },
+      "3 Attacks (UU)": {
+        "moves": [
+          "Moonblast",
+          "Earth Power",
+          "Mystical Fire",
+          "Taunt",
+          "Agility",
+          "Healing Wish"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Choice Specs (UU)": {
+        "moves": [
+          "Moonblast",
+          "Earth Power",
+          "Mystical Fire",
+          "Draining Kiss"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Calm Mind (UU)": {
+        "moves": [
+          "Calm Mind",
+          "Moonblast",
+          "Earth Power",
+          "Draining Kiss"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Meowscarada": {
+    "sets": {
+      "Boots Pivot (OU)": {
+        "moves": [
+          "Knock Off",
+          "Flower Trick",
+          "Triple Axel",
+          "U-turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Protean",
+        "nature": "Jolly"
+      },
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Knock Off",
+          "U-turn",
+          "Triple Axel",
+          "Flower Trick",
+          "Trick"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Protean",
+        "nature": "Jolly"
+      },
+      "Choice Band (OU)": {
+        "moves": [
+          "Flower Trick",
+          "Knock Off",
+          "U-turn",
+          "Triple Axel"
+        ],
+        "item": "Choice Band",
+        "ability": "Protean",
+        "nature": "Jolly"
+      },
+      "Offensive Pivot (NatDex)": {
+        "moves": [
+          "Flower Trick",
+          "Knock Off",
+          "U-turn",
+          "Triple Axel"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Protective Pads"
+        ],
+        "ability": "Protean",
+        "nature": "Jolly"
+      },
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "Flower Trick",
+          "Knock Off",
+          "U-turn",
+          "Triple Axel"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Protean",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Skeledirge": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Torch Song",
+          "Hex",
+          "Will-O-Wisp",
+          "Slack Off"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Unaware",
+        "nature": [
+          "Calm",
+          "Bold"
+        ]
+      },
+      "Defensive (UU)": {
+        "moves": [
+          "Torch Song",
+          "Hex",
+          "Shadow Ball",
+          "Will-O-Wisp",
+          "Earth Power",
+          "Slack Off"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Unaware",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Quaquaval": {
+    "sets": {
+      "Assault Vest (OU)": {
+        "moves": [
+          "Close Combat",
+          "Aqua Step",
+          "Knock Off",
+          "Rapid Spin"
+        ],
+        "item": "Assault Vest",
+        "ability": "Moxie",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Lokix": {
+    "sets": {
+      "Choice Band (OU)": {
+        "moves": [
+          "First Impression",
+          "U-turn",
+          "Knock Off",
+          "Leech Life"
+        ],
+        "item": "Choice Band",
+        "ability": "Tinted Lens",
+        "nature": "Adamant"
+      },
+      "Boots Attacker (OU)": {
+        "moves": [
+          "First Impression",
+          "Knock Off",
+          "U-turn",
+          "Sucker Punch"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Tinted Lens",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      },
+      "Swords Dance (UU)": {
+        "moves": [
+          "Swords Dance",
+          "Knock Off",
+          "Sucker Punch",
+          "Protect"
+        ],
+        "item": "Black Glasses",
+        "ability": "Tinted Lens",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      },
+      "Boots Pivot (UU)": {
+        "moves": [
+          "First Impression",
+          "Knock Off",
+          "Sucker Punch",
+          "U-turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Tinted Lens",
+        "nature": "Adamant"
+      },
+      "Choice Band (UU)": {
+        "moves": [
+          "First Impression",
+          "Knock Off",
+          "Leech Life",
+          "U-turn"
+        ],
+        "item": "Choice Band",
+        "ability": "Tinted Lens",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Garganacl": {
+    "sets": {
+      "Stealth Rock (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Salt Cure",
+          "Recover",
+          "Protect"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Careful"
+      },
+      "Curse (OU)": {
+        "moves": [
+          "Curse",
+          "Salt Cure",
+          "Recover",
+          "Earthquake"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Careful"
+      },
+      "Iron Defense (OU)": {
+        "moves": [
+          "Iron Defense",
+          "Body Press",
+          "Salt Cure",
+          "Recover"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Careful"
+      },
+      "Stealth Rock (NatDex)": {
+        "moves": [
+          "Salt Cure",
+          "Stealth Rock",
+          "Protect",
+          "Ice Punch",
+          "Recover"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Ceruledge": {
+    "sets": {
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Bitter Blade",
+          "Shadow Sneak",
+          "Poltergeist",
+          "Close Combat"
+        ],
+        "item": [
+          "Life Orb",
+          "Focus Sash"
+        ],
+        "ability": "Weak Armor",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      },
+      "Bulk Up (OU)": {
+        "moves": [
+          "Bulk Up",
+          "Bitter Blade",
+          "Shadow Sneak",
+          "Taunt"
+        ],
+        "item": "Covert Cloak",
+        "ability": "None",
+        "nature": "Careful"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Bitter Blade",
+          "Poltergeist",
+          "Endure"
+        ],
+        "item": "Ghostium Z",
+        "ability": "Weak Armor",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Tinkaton": {
+    "sets": {
+      "Utility (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Gigaton Hammer",
+          "Encore",
+          "Thunder Wave",
+          "Knock Off"
+        ],
+        "item": "Air Balloon",
+        "ability": [
+          "Pickpocket",
+          "Mold Breaker"
+        ],
+        "nature": "Jolly"
+      },
+      "Bulky Wall (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Thunder Wave",
+          "Gigaton Hammer",
+          "Knock Off",
+          "Encore",
+          "Thunder Wave"
+        ],
+        "item": [
+          "Leftovers",
+          "Air Balloon"
+        ],
+        "ability": "Pickpocket",
+        "nature": "Careful"
+      },
+      "Utility (NatDex)": {
+        "moves": [
+          "Gigaton Hammer",
+          "Encore",
+          "Knock Off",
+          "Stealth Rock",
+          "Thunder Wave",
+          "Knock Off"
+        ],
+        "item": [
+          "Leftovers",
+          "Air Balloon"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Glimmora": {
+    "sets": {
+      "Lead (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Mortal Spin",
+          "Power Gem",
+          "Earth Power"
+        ],
+        "item": [
+          "Focus Sash",
+          "Red Card"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Offensive (OU)": {
+        "moves": [
+          "Meteor Beam",
+          "Earth Power",
+          "Mortal Spin",
+          "Stealth Rock",
+          "Spikes"
+        ],
+        "item": "Power Herb",
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      },
+      "Lead (NatDex)": {
+        "moves": [
+          "Stealth Rock",
+          "Mortal Spin",
+          "Power Gem",
+          "Earth Power"
+        ],
+        "item": [
+          "Focus Sash",
+          "Red Card"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Dondozo": {
+    "sets": {
+      "Wall (OU)": {
+        "moves": [
+          "Waterfall",
+          "Body Press",
+          "Curse",
+          "Avalanche",
+          "Rest",
+          "Sleep Talk"
+        ],
+        "item": [
+          "Leftovers",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Impish"
+      },
+      "Wall (NatDex)": {
+        "moves": [
+          "Waterfall",
+          "Avalanche",
+          "Body Press",
+          "Rest",
+          "Sleep Talk",
+          "Curse"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Clodsire": {
+    "sets": {
+      "Defensive (OU)": {
+        "moves": [
+          "Earthquake",
+          "Recover",
+          "Toxic",
+          "Amnesia",
+          "Stealth Rock",
+          "Spikes"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Unaware",
+        "nature": "Careful"
+      },
+      "Unaware (UU)": {
+        "moves": [
+          "Earthquake",
+          "Recover",
+          "Poison Jab",
+          "Toxic",
+          "Stealth Rock",
+          "Spikes"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Unaware",
+        "nature": "Careful"
+      },
+      "Water Absorb (UU)": {
+        "moves": [
+          "Earthquake",
+          "Poison Jab",
+          "Toxic",
+          "Recover",
+          "Stealth Rock",
+          "Spikes"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Water Absorb",
+        "nature": "Careful"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Toxic",
+          "Amnesia",
+          "Stealth Rock",
+          "Spikes",
+          "Recover"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Unaware",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Kingambit": {
+    "sets": {
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Sucker Punch",
+          "Kowtow Cleave",
+          "Low Kick",
+          "Iron Head",
+          "Low Kick",
+          "Tera Blast"
+        ],
+        "item": [
+          "Leftovers",
+          "Lum Berry",
+          "Black Glasses",
+          "Air Balloon"
+        ],
+        "ability": "Supreme Overlord",
+        "nature": "Adamant"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Knock Off",
+          "Sucker Punch",
+          "Low Kick",
+          "Iron Head"
+        ],
+        "item": [
+          "Black Glasses",
+          "Air Balloon",
+          "Leftovers"
+        ],
+        "ability": "Supreme Overlord",
+        "nature": [
+          "Adamant",
+          "Jolly"
+        ]
+      },
+      "Offensive Utility (NatDex)": {
+        "moves": [
+          "Knock Off",
+          "Pursuit",
+          "Sucker Punch",
+          "Low Kick",
+          "Iron Head"
+        ],
+        "item": "Leftovers",
+        "ability": [
+          "Supreme Overlord",
+          "Defiant"
+        ],
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Great Tusk": {
+    "sets": {
+      "Offensive Utility (OU)": {
+        "moves": [
+          "Headlong Rush",
+          "Ice Spinner",
+          "Rapid Spin",
+          "Stealth Rock",
+          "Knock Off",
+          "Close Combat"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Rocky Helmet",
+          "Booster Energy"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Defensive (OU)": {
+        "moves": [
+          "Headlong Rush",
+          "Ice Spinner",
+          "Rapid Spin",
+          "Stealth Rock",
+          "Knock Off"
+        ],
+        "item": [
+          "Rocky Helmet",
+          "Leftovers",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Bulk Up (OU)": {
+        "moves": [
+          "Bulk Up",
+          "Headlong Rush",
+          "Ice Spinner",
+          "Rapid Spin",
+          "Close Combat",
+          "Knock Off"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Offensive Utility (NatDex)": {
+        "moves": [
+          "Headlong Rush",
+          "Rapid Spin",
+          "Ice Spinner",
+          "Stealth Rock",
+          "Close Combat",
+          "Knock Off"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Leftovers",
+          "Booster Energy",
+          "Icium Z",
+          "Rocky Helmet"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Headlong Rush",
+          "Ice Spinner",
+          "Rapid Spin",
+          "Stealth Rock",
+          "Knock Off",
+          "Body Press"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Rocky Helmet",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Impish"
+      },
+      "Bulk Up (NatDex)": {
+        "moves": [
+          "Headlong Rush",
+          "Ice Spinner",
+          "Rapid Spin",
+          "Bulk Up"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Slither Wing": {
+    "sets": {
+      "Assault Vest (OU)": {
+        "moves": [
+          "First Impression",
+          "Close Combat",
+          "U-turn",
+          "Earthquake",
+          "Flare Blitz",
+          "Temper Flare"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Defensive (OU)": {
+        "moves": [
+          "First Impression",
+          "U-turn",
+          "Morning Sun",
+          "Will-O-Wisp"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Impish"
+      },
+      "Pivot (UU)": {
+        "moves": [
+          "First Impression",
+          "Close Combat",
+          "Flare Blitz",
+          "Wild Charge",
+          "U-turn"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Choice Band"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Booster Energy (UU)": {
+        "moves": [
+          "Leech Life",
+          "Earthquake",
+          "Flame Charge",
+          "Bulk Up"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Sandy Shocks": {
+    "sets": {
+      "Offensive Pivot (OU)": {
+        "moves": [
+          "Volt Switch",
+          "Earth Power",
+          "Tera Blast",
+          "Spikes",
+          "Stealth Rock"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Pivot (UU)": {
+        "moves": [
+          "Earth Power",
+          "Volt Switch",
+          "Power Gem",
+          "Tera Blast",
+          "Spikes",
+          "Stealth Rock"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Shuca Berry"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Lead (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Spikes",
+          "Earth Power",
+          "Thunderbolt"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Iron Treads": {
+    "sets": {
+      "Utility (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Earthquake",
+          "Knock Off",
+          "Ice Spinner",
+          "Rapid Spin"
+        ],
+        "item": [
+          "Leftovers",
+          "Air Balloon"
+        ],
+        "ability": "None",
+        "nature": [
+          "Jolly",
+          "Careful"
+        ]
+      },
+      "Lead (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Rapid Spin",
+          "Earthquake",
+          "Earth Power",
+          "Ice Spinner",
+          "Steel Beam"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": [
+          "Jolly",
+          "Timid"
+        ]
+      },
+      "Lead (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Earth Power",
+          "Ice Spinner",
+          "Steel Beam",
+          "Stealth Rock",
+          "Rapid Spin"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": [
+          "Jolly",
+          "Timid"
+        ]
+      },
+      "Specially Defensive (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Rapid Spin",
+          "Knock Off",
+          "Volt Switch",
+          "Stealth Rock",
+          "Ice Spinner"
+        ],
+        "item": [
+          "Leftovers",
+          "Assault Vest"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Offensive Utility (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Ice Spinner",
+          "Supercell Slam",
+          "Stealth Rock",
+          "Knock Off",
+          "Rapid Spin"
+        ],
+        "item": [
+          "Icium Z",
+          "Electrium Z"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Iron Hands": {
+    "sets": {
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Drain Punch",
+          "Close Combat",
+          "Thunder Punch",
+          "Supercell Slam",
+          "Ice Punch"
+        ],
+        "item": [
+          "Booster Energy",
+          "Shuca Berry",
+          "Grassy Seed"
+        ],
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Supercell Slam",
+          "Thunder Punch",
+          "Drain Punch",
+          "Ice Punch"
+        ],
+        "item": [
+          "Leftovers",
+          "Punching Glove",
+          "Booster Energy"
+        ],
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Iron Jugulis": {
+    "sets": {
+      "Offensive (OU)": {
+        "moves": [
+          "Hurricane",
+          "Dark Pulse",
+          "Knock Off",
+          "Earth Power",
+          "Taunt"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Naive"
+        ]
+      },
+      "Booster Energy (UU)": {
+        "moves": [
+          "Hurricane",
+          "Dark Pulse",
+          "Earth Power",
+          "Taunt",
+          "Charge Beam"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Iron Moth": {
+    "sets": {
+      "Booster Energy (OU)": {
+        "moves": [
+          "Fiery Dance",
+          "Sludge Wave",
+          "Dazzling Gleam",
+          "Tera Blast",
+          "Energy Ball",
+          "Psychic",
+          "Substitute",
+          "Dazzling Gleam",
+          "Toxic Spikes"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Booster Energy (NatDex)": {
+        "moves": [
+          "Fiery Dance",
+          "Sludge Wave",
+          "Energy Ball",
+          "Psychic",
+          "Dazzling Gleam",
+          "Substitute"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Offensive Pivot (NatDex)": {
+        "moves": [
+          "Fiery Dance",
+          "Sludge Wave",
+          "U-turn",
+          "Morning Sun",
+          "Toxic Spikes"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Gholdengo": {
+    "sets": {
+      "Offensive Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Shadow Ball",
+          "Make It Rain",
+          "Make It Rain",
+          "Thunderbolt",
+          "Dazzling Gleam",
+          "Focus Blast",
+          "Recover",
+          "Psyshock"
+        ],
+        "item": [
+          "Air Balloon",
+          "Metal Coat",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Bulky Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Shadow Ball",
+          "Recover",
+          "Make It Rain",
+          "Dazzling Gleam"
+        ],
+        "item": [
+          "Air Balloon",
+          "Heavy-Duty Boots",
+          "Rocky Helmet"
+        ],
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Thunder Wave + Hex (OU)": {
+        "moves": [
+          "Hex",
+          "Thunder Wave",
+          "Recover",
+          "Make It Rain",
+          "Dazzling Gleam",
+          "Focus Blast"
+        ],
+        "item": [
+          "Air Balloon",
+          "Leftovers",
+          "Rocky Helmet"
+        ],
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Choice Scarf (OU)": {
+        "moves": [
+          "Shadow Ball",
+          "Make It Rain",
+          "Trick",
+          "Focus Blast",
+          "Nasty Plot",
+          "Recover"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Offensive Nasty Plot (NatDex)": {
+        "moves": [
+          "Nasty Plot",
+          "Shadow Ball",
+          "Make It Rain",
+          "Recover",
+          "Focus Blast"
+        ],
+        "item": [
+          "Air Balloon",
+          "Ghostium Z",
+          "Fightinium Z"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Bulky Nasty Plot (NatDex)": {
+        "moves": [
+          "Nasty Plot",
+          "Shadow Ball",
+          "Focus Blast",
+          "Recover"
+        ],
+        "item": [
+          "Ghostium Z",
+          "Leftovers",
+          "Fightinium Z",
+          "Air Balloon"
+        ],
+        "ability": "None",
+        "nature": "Bold"
+      },
+      "Thunder Wave + Hex (NatDex)": {
+        "moves": [
+          "Hex",
+          "Focus Blast",
+          "Thunder Wave",
+          "Recover"
+        ],
+        "item": [
+          "Ghostium Z",
+          "Leftovers",
+          "Fightinium Z",
+          "Air Balloon"
+        ],
+        "ability": "None",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Ting-Lu": {
+    "sets": {
+      "Defensive Utility (OU)": {
+        "moves": [
+          "Stealth Rock",
+          "Spikes",
+          "Earthquake",
+          "Ruination",
+          "Whirlwind"
+        ],
+        "item": [
+          "Leftovers",
+          "Rocky Helmet",
+          "Red Card"
+        ],
+        "ability": "None",
+        "nature": "Careful"
+      },
+      "Resting-Lu (OU)": {
+        "moves": [
+          "Earthquake",
+          "Rest",
+          "Ruination",
+          "Payback",
+          "Sleep Talk",
+          "Stealth Rock"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Careful"
+      },
+      "Defensive Hazard Setter (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Ruination",
+          "Rock Slide",
+          "Payback",
+          "Stealth Rock",
+          "Spikes",
+          "Whirlwind"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Iron Valiant": {
+    "sets": {
+      "Mixed (OU)": {
+        "moves": [
+          "Moonblast",
+          "Close Combat",
+          "Encore",
+          "Knock Off",
+          "Encore",
+          "Encore",
+          "Destiny Bond"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Naive"
+      },
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Moonblast",
+          "Shadow Ball",
+          "Psyshock",
+          "Encore",
+          "Thunderbolt",
+          "Vacuum Wave"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Close Combat",
+          "Knock Off",
+          "Encore",
+          "Spirit Break"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Specs (OU)": {
+        "moves": [
+          "Moonblast",
+          "Shadow Ball",
+          "Thunderbolt",
+          "Focus Blast",
+          "Trick",
+          "Vacuum Wave",
+          "Psyshock"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Specs (NatDex)": {
+        "moves": [
+          "Moonblast",
+          "Focus Blast",
+          "Thunderbolt",
+          "Vacuum Wave",
+          "Trick",
+          "Shadow Ball"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Mixed (NatDex)": {
+        "moves": [
+          "Moonblast",
+          "Close Combat",
+          "Knock Off",
+          "Encore",
+          "Destiny Bond",
+          "Thunderbolt"
+        ],
+        "item": [
+          "Booster Energy",
+          "Life Orb"
+        ],
+        "ability": "None",
+        "nature": "Naive"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Close Combat",
+          "Knock Off",
+          "Ice Punch",
+          "Encore",
+          "Spirit Break"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Walking Wake": {
+    "sets": {
+      "Sun Wallbreaker (OU)": {
+        "moves": [
+          "Hydro Steam",
+          "Draco Meteor",
+          "Flamethrower",
+          "Weather Ball",
+          "Dragon Pulse",
+          "Flip Turn"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      },
+      "Boots Attacker (OU)": {
+        "moves": [
+          "Draco Meteor",
+          "Surf",
+          "Scald",
+          "Knock Off",
+          "Flip Turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Sinistcha": {
+    "sets": {
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Matcha Gotcha",
+          "Shadow Ball",
+          "Strength Sap"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Heatproof",
+        "nature": "Bold"
+      },
+      "Calm Mind (UU)": {
+        "moves": [
+          "Calm Mind",
+          "Hex",
+          "Stun Spore",
+          "Strength Sap"
+        ],
+        "item": "Leftovers",
+        "ability": "Heatproof",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Okidogi": {
+    "sets": {
+      "Assault Vest (OU)": {
+        "moves": [
+          "Drain Punch",
+          "Gunk Shot",
+          "Knock Off",
+          "Ice Punch"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Bulk Up (OU)": {
+        "moves": [
+          "Bulk Up",
+          "Drain Punch",
+          "Knock Off",
+          "Ice Punch"
+        ],
+        "item": "Leftovers",
+        "ability": "Guard Dog",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Fezandipiti": {
+    "sets": {
+      "Bulky Pivot (OU)": {
+        "moves": [
+          "Play Rough",
+          "U-turn",
+          "Roost",
+          "Beat Up"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Careful"
+      },
+      "Pivot (UU)": {
+        "moves": [
+          "Beat Up",
+          "Moonblast",
+          "Heat Wave",
+          "Heat Wave",
+          "Moonblast",
+          "Taunt",
+          "Roost",
+          "U-turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Ogerpon": {
+    "sets": {
+      "Boots Attacker (OU)": {
+        "moves": [
+          "Ivy Cudgel",
+          "Knock Off",
+          "U-turn",
+          "Encore"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Band (OU)": {
+        "moves": [
+          "Ivy Cudgel",
+          "Knock Off",
+          "U-turn",
+          "Low Kick",
+          "Rock Tomb"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Pivot (UU)": {
+        "moves": [
+          "Ivy Cudgel",
+          "Knock Off",
+          "Encore",
+          "Spikes",
+          "U-turn"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Band (UU)": {
+        "moves": [
+          "Ivy Cudgel",
+          "Knock Off",
+          "Superpower",
+          "Stomping Tantrum",
+          "U-turn"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU"
+    ]
+  },
+  "Ogerpon-Wellspring": {
+    "sets": {
+      "Utility (OU)": {
+        "moves": [
+          "Ivy Cudgel",
+          "U-turn",
+          "Knock Off",
+          "Knock Off",
+          "Synthesis",
+          "Spikes",
+          "Synthesis",
+          "Encore",
+          "Taunt"
+        ],
+        "item": "Wellspring Mask",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Ivy Cudgel",
+          "Power Whip",
+          "Play Rough",
+          "Trailblaze",
+          "Play Rough",
+          "Synthesis",
+          "Knock Off"
+        ],
+        "item": "Wellspring Mask",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "All-Out Attacker (OU)": {
+        "moves": [
+          "Ivy Cudgel",
+          "Power Whip",
+          "Play Rough",
+          "Knock Off",
+          "Knock Off",
+          "Trailblaze",
+          "U-turn"
+        ],
+        "item": "Wellspring Mask",
+        "ability": "None",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Ivy Cudgel",
+          "Power Whip",
+          "Horn Leech",
+          "Superpower",
+          "Play Rough"
+        ],
+        "item": "Wellspring Mask",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Offensive Pivot (NatDex)": {
+        "moves": [
+          "Ivy Cudgel",
+          "Power Whip",
+          "Horn Leech",
+          "U-turn",
+          "Knock Off",
+          "Encore",
+          "Taunt",
+          "Spikes"
+        ],
+        "item": "Wellspring Mask",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Ogerpon-Cornerstone": {
+    "sets": {
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Ivy Cudgel",
+          "Power Whip",
+          "Horn Leech",
+          "Low Kick",
+          "Knock Off"
+        ],
+        "item": "Cornerstone Mask",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Ivy Cudgel",
+          "Power Whip",
+          "Swords Dance",
+          "Superpower",
+          "Knock Off"
+        ],
+        "item": "Cornerstone Mask",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Hydrapple": {
+    "sets": {
+      "Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Fickle Beam",
+          "Giga Drain",
+          "Earth Power"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Rocky Helmet"
+        ],
+        "ability": "Regenerator",
+        "nature": "Bold"
+      },
+      "Offensive Nasty Plot (UU)": {
+        "moves": [
+          "Nasty Plot",
+          "Draco Meteor",
+          "Giga Drain",
+          "Earth Power"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": "Modest"
+      },
+      "ThatBoldApple: Defensive Nasty Plot (UU)": {
+        "moves": [
+          "Nasty Plot",
+          "Draco Meteor",
+          "Giga Drain",
+          "Earth Power"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Regenerator",
+        "nature": "Bold"
+      },
+      "Choice Specs (UU)": {
+        "moves": [
+          "Draco Meteor",
+          "Leaf Storm",
+          "Earth Power",
+          "Fickle Beam"
+        ],
+        "item": "Choice Specs",
+        "ability": "Regenerator",
+        "nature": "Modest"
+      },
+      "Nasty Plot (NatDex)": {
+        "moves": [
+          "Nasty Plot",
+          "Giga Drain",
+          "Fickle Beam",
+          "Draco Meteor",
+          "Earth Power"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Dragonium Z"
+        ],
+        "ability": "Regenerator",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU",
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Raging Bolt": {
+    "sets": {
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Thunderclap",
+          "Dragon Pulse",
+          "Draco Meteor",
+          "Thunderbolt"
+        ],
+        "item": [
+          "Booster Energy",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Choice Specs (OU)": {
+        "moves": [
+          "Thunderbolt",
+          "Draco Meteor",
+          "Thunderclap",
+          "Volt Switch"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Boots Pivot (OU)": {
+        "moves": [
+          "Thunderbolt",
+          "Thunderclap",
+          "Volt Switch",
+          "Dragon Pulse"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Modest"
+      },
+      "Calm Mind (NatDex)": {
+        "moves": [
+          "Calm Mind",
+          "Weather Ball",
+          "Thunderbolt",
+          "Weather Ball",
+          "Draco Meteor",
+          "Dragon Pulse",
+          "Thunderclap"
+        ],
+        "item": [
+          "Dragonium Z",
+          "Booster Energy",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      },
+      "Pivot (NatDex)": {
+        "moves": [
+          "Thunderclap",
+          "Draco Meteor",
+          "Volt Switch",
+          "Thunderbolt",
+          "Taunt"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Dragonium Z",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": [
+          "Timid",
+          "Modest"
+        ]
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Iron Boulder": {
+    "sets": {
+      "Swords Dance (OU)": {
+        "moves": [
+          "Swords Dance",
+          "Mighty Cleave",
+          "Earthquake",
+          "Zen Headbutt",
+          "Close Combat",
+          "Earthquake"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "OU"
+    ]
+  },
+  "Iron Crown": {
+    "sets": {
+      "Choice Specs (OU)": {
+        "moves": [
+          "Tachyon Cutter",
+          "Psyshock",
+          "Psychic Noise",
+          "Volt Switch",
+          "Focus Blast"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Assault Vest (OU)": {
+        "moves": [
+          "Tachyon Cutter",
+          "Future Sight",
+          "Psychic Noise",
+          "Focus Blast",
+          "Volt Switch"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Calm Mind (OU)": {
+        "moves": [
+          "Calm Mind",
+          "Tachyon Cutter",
+          "Psyshock",
+          "Psychic Noise",
+          "Focus Blast"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Setup Sweeper (NatDex)": {
+        "moves": [
+          "Calm Mind",
+          "Psychic Noise",
+          "Stored Power",
+          "Focus Blast",
+          "Tachyon Cutter",
+          "Iron Defense"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Tachyon Cutter",
+          "Psychic Noise",
+          "Volt Switch",
+          "Focus Blast"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Pecharunt": {
+    "sets": {
+      "Pivot (OU)": {
+        "moves": [
+          "Malignant Chain",
+          "Foul Play",
+          "Shadow Ball",
+          "Hex",
+          "Parting Shot",
+          "Recover"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Rocky Helmet",
+          "Air Balloon"
+        ],
+        "ability": "None",
+        "nature": [
+          "Bold",
+          "Timid"
+        ]
+      },
+      "Nasty Plot (OU)": {
+        "moves": [
+          "Nasty Plot",
+          "Malignant Chain",
+          "Shadow Ball",
+          "Recover"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Air Balloon"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Defensive Pivot (NatDex)": {
+        "moves": [
+          "Malignant Chain",
+          "Hex",
+          "Parting Shot",
+          "Recover"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Air Balloon",
+          "Black Sludge"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Nasty Plot (NatDex)": {
+        "moves": [
+          "Malignant Chain",
+          "Nasty Plot",
+          "Recover",
+          "Shadow Ball"
+        ],
+        "item": "Ghostium Z",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "OU",
+      "NatDex"
+    ]
+  },
+  "Blastoise": {
+    "sets": {
+      "Shell Smash (UU)": {
+        "moves": [
+          "Shell Smash",
+          "Surf",
+          "Ice Beam",
+          "Tera Blast"
+        ],
+        "item": "White Herb",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Slowbro": {
+    "sets": {
+      "Calm Mind (UU)": {
+        "moves": [
+          "Calm Mind",
+          "Psychic Noise",
+          "Scald",
+          "Slack Off"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Colbur Berry"
+        ],
+        "ability": "Regenerator",
+        "nature": "Bold"
+      },
+      "Defensive Pivot (NatDex)": {
+        "moves": [
+          "Scald",
+          "Body Press",
+          "Future Sight",
+          "Teleport",
+          "Slack Off",
+          "Thunder Wave"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Rocky Helmet",
+          "Colbur Berry"
+        ],
+        "ability": "Regenerator",
+        "nature": "Relaxed"
+      }
+    },
+    "formats": [
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Gyarados": {
+    "sets": {
+      "Dragon Dance (UU)": {
+        "moves": [
+          "Dragon Dance",
+          "Waterfall",
+          "Scale Shot",
+          "Substitute",
+          "Taunt"
+        ],
+        "item": [
+          "Leftovers",
+          "Loaded Dice",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "Moxie",
+        "nature": "Adamant"
+      },
+      "Dragon Dance (NatDex)": {
+        "moves": [
+          "Dragon Dance",
+          "Waterfall",
+          "Crunch",
+          "Substitute",
+          "Earthquake",
+          "Taunt"
+        ],
+        "item": "Gyaradosite",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Zapdos-Galar": {
+    "sets": {
+      "Pivot (UU)": {
+        "moves": [
+          "Brave Bird",
+          "Close Combat",
+          "Knock Off",
+          "U-turn"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Mew": {
+    "sets": {
+      "Suicide Lead (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Spikes",
+          "Thunder Wave",
+          "Taunt",
+          "Misty Explosion",
+          "Flare Blitz"
+        ],
+        "item": [
+          "Red Card",
+          "Colbur Berry",
+          "Mental Herb"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Azumarill": {
+    "sets": {
+      "Belly Drum (UU)": {
+        "moves": [
+          "Belly Drum",
+          "Play Rough",
+          "Liquidation",
+          "Knock Off",
+          "Aqua Jet"
+        ],
+        "item": "Sitrus Berry",
+        "ability": "Huge Power",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Politoed": {
+    "sets": {
+      "Rain Setter (UU)": {
+        "moves": [
+          "Surf",
+          "Ice Beam",
+          "Tera Blast",
+          "Encore"
+        ],
+        "item": "Damp Rock",
+        "ability": "Drizzle",
+        "nature": "Calm"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Gligar": {
+    "sets": {
+      "Physically Defensive (UU)": {
+        "moves": [
+          "Spikes",
+          "Stealth Rock",
+          "Earthquake",
+          "U-turn",
+          "Toxic"
+        ],
+        "item": "Eviolite",
+        "ability": "Immunity",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Donphan": {
+    "sets": {
+      "Defensive (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Earthquake",
+          "Knock Off",
+          "Ice Spinner",
+          "Rapid Spin"
+        ],
+        "item": [
+          "Leftovers",
+          "Rocky Helmet",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Gardevoir": {
+    "sets": {
+      "Choice Scarf (UU)": {
+        "moves": [
+          "Moonblast",
+          "Psychic Noise",
+          "Focus Blast",
+          "Thunder Wave",
+          "Healing Wish",
+          "Trick"
+        ],
+        "item": "Choice Scarf",
+        "ability": "Trace",
+        "nature": "Modest"
+      },
+      "Offensive (NatDex)": {
+        "moves": [
+          "Hyper Voice",
+          "Psyshock",
+          "Mystical Fire",
+          "Taunt",
+          "Focus Blast"
+        ],
+        "item": "Gardevoirite",
+        "ability": "Trace",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Crawdaunt": {
+    "sets": {
+      "Choice Band (UU)": {
+        "moves": [
+          "Crabhammer",
+          "Knock Off",
+          "Close Combat",
+          "Aqua Jet"
+        ],
+        "item": "Choice Band",
+        "ability": "Adaptability",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Salamence": {
+    "sets": {
+      "Offensive (UU)": {
+        "moves": [
+          "Draco Meteor",
+          "Hurricane",
+          "Earthquake",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Metagross": {
+    "sets": {
+      "Choice Band (UU)": {
+        "moves": [
+          "Heavy Slam",
+          "Earthquake",
+          "Knock Off",
+          "Thunder Punch",
+          "Bullet Punch"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Bulky Attacker (UU)": {
+        "moves": [
+          "Heavy Slam",
+          "Psychic Fangs",
+          "Knock Off",
+          "Earthquake",
+          "Stealth Rock",
+          "Bullet Punch"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Suicide Lead (UU)": {
+        "moves": [
+          "Heavy Slam",
+          "Earthquake",
+          "Explosion",
+          "Stealth Rock"
+        ],
+        "item": "Focus Sash",
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Jirachi": {
+    "sets": {
+      "Specially Defensive (UU)": {
+        "moves": [
+          "Wish",
+          "Stealth Rock",
+          "Body Slam",
+          "Encore",
+          "Healing Wish",
+          "Iron Head",
+          "U-turn"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Gastrodon": {
+    "sets": {
+      "Mixed Defense (UU)": {
+        "moves": [
+          "Spikes",
+          "Stealth Rock",
+          "Earth Power",
+          "Surf",
+          "Sludge Bomb",
+          "Recover"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Leftovers"
+        ],
+        "ability": "Storm Drain",
+        "nature": "Calm"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Hippowdon": {
+    "sets": {
+      "Tank (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Whirlwind",
+          "Ice Fang",
+          "Whirlwind",
+          "Earthquake",
+          "Slack Off"
+        ],
+        "item": [
+          "Leftovers",
+          "Smooth Rock"
+        ],
+        "ability": "None",
+        "nature": "Impish"
+      },
+      "Defensive (NatDex)": {
+        "moves": [
+          "Earthquake",
+          "Toxic",
+          "Stealth Rock",
+          "Slack Off"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "UU",
+      "NatDex"
+    ]
+  },
+  "Rhyperior": {
+    "sets": {
+      "Offensive (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Earthquake",
+          "Stone Edge",
+          "Swords Dance",
+          "Dragon Tail"
+        ],
+        "item": "Leftovers",
+        "ability": "Solid Rock",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Conkeldurr": {
+    "sets": {
+      "Flame Orb Guts (UU)": {
+        "moves": [
+          "Drain Punch",
+          "Facade",
+          "Knock Off",
+          "Mach Punch"
+        ],
+        "item": "Flame Orb",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Bulk Up (UU)": {
+        "moves": [
+          "Bulk Up",
+          "Drain Punch",
+          "Knock Off",
+          "Mach Punch"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Krookodile": {
+    "sets": {
+      "Stealth Rock (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Knock Off",
+          "Earthquake",
+          "Gunk Shot"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Zoroark-Hisui": {
+    "sets": {
+      "Nasty Plot (UU)": {
+        "moves": [
+          "Shadow Ball",
+          "Focus Blast",
+          "Hyper Voice",
+          "U-turn",
+          "Nasty Plot"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Focus Sash"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Haxorus": {
+    "sets": {
+      "Choice Band (UU)": {
+        "moves": [
+          "First Impression",
+          "Outrage",
+          "Earthquake",
+          "Close Combat",
+          "Poison Jab"
+        ],
+        "item": "Choice Band",
+        "ability": "Mold Breaker",
+        "nature": [
+          "Jolly",
+          "Adamant"
+        ]
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Golurk": {
+    "sets": {
+      "Choice Band (UU)": {
+        "moves": [
+          "Poltergeist",
+          "Earthquake",
+          "Dynamic Punch",
+          "Heat Crash",
+          "Ice Punch"
+        ],
+        "item": "Choice Band",
+        "ability": "No Guard",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Cobalion": {
+    "sets": {
+      "Setter (UU)": {
+        "moves": [
+          "Stealth Rock",
+          "Body Press",
+          "Thunder Wave",
+          "Volt Switch"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Avalugg": {
+    "sets": {
+      "Rapid Spin (UU)": {
+        "moves": [
+          "Iron Defense",
+          "Body Press",
+          "Rapid Spin",
+          "Recover"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Sturdy",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Oricorio-Pom-Pom": {
+    "sets": {
+      "Quiver Dance (UU)": {
+        "moves": [
+          "Quiver Dance",
+          "Revelation Dance",
+          "Taunt",
+          "Air Slash",
+          "Roost"
+        ],
+        "item": [
+          "Kee Berry",
+          "Leftovers"
+        ],
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Necrozma": {
+    "sets": {
+      "Calm Mind (UU)": {
+        "moves": [
+          "Photon Geyser",
+          "Heat Wave",
+          "Morning Sun",
+          "Calm Mind"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Thwackey": {
+    "sets": {
+      "Terrain Setter (UU)": {
+        "moves": [
+          "Grassy Glide",
+          "Knock Off",
+          "Taunt",
+          "U-turn"
+        ],
+        "item": "Terrain Extender",
+        "ability": "Grassy Surge",
+        "nature": "Careful"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Zarude-Dada": {
+    "sets": {
+      "Swords Dance (UU)": {
+        "moves": [
+          "Swords Dance",
+          "Knock Off",
+          "Power Whip",
+          "Trailblaze",
+          "Jungle Healing"
+        ],
+        "item": [
+          "Leftovers",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Scarf (UU)": {
+        "moves": [
+          "Knock Off",
+          "Power Whip",
+          "U-turn",
+          "Close Combat",
+          "Jungle Healing"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Bellibolt": {
+    "sets": {
+      "Physically Defensive (UU)": {
+        "moves": [
+          "Toxic",
+          "Muddy Water",
+          "Volt Switch",
+          "Slack Off"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Static",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Revavroom": {
+    "sets": {
+      "The Car: Shift Gear (UU)": {
+        "moves": [
+          "Shift Gear",
+          "Gunk Shot",
+          "High Horsepower",
+          "Temper Flare"
+        ],
+        "item": "Air Balloon",
+        "ability": "Filter",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Houndstone": {
+    "sets": {
+      "Sand Sweeper (UU)": {
+        "moves": [
+          "Poltergeist",
+          "Play Rough",
+          "Shadow Sneak",
+          "Body Press",
+          "Memento",
+          "Trick"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Iron Leaves": {
+    "sets": {
+      "Swords Dance (UU)": {
+        "moves": [
+          "Swords Dance",
+          "Leaf Blade",
+          "Wild Charge",
+          "Psyblade",
+          "Close Combat"
+        ],
+        "item": "Booster Energy",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Sinistcha-Masterpiece": {
+    "sets": {
+      "Calm Mind (UU)": {
+        "moves": [
+          "Calm Mind",
+          "Matcha Gotcha",
+          "Shadow Ball",
+          "Strength Sap"
+        ],
+        "item": [
+          "Leftovers",
+          "Heavy-Duty Boots"
+        ],
+        "ability": "Heatproof",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "UU"
+    ]
+  },
+  "Charizard": {
+    "sets": {
+      "Drought Wallbreaker (NatDex)": {
+        "moves": [
+          "Weather Ball",
+          "Fire Blast",
+          "Solar Beam",
+          "Scorching Sands",
+          "Focus Blast",
+          "Roost"
+        ],
+        "item": "Charizardite Y",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Setup Sweeper (NatDex)": {
+        "moves": [
+          "Dragon Dance",
+          "Swords Dance",
+          "Flare Blitz",
+          "Earthquake",
+          "Roost",
+          "Dragon Claw",
+          "Roost"
+        ],
+        "item": "Charizardite X",
+        "ability": "Tough Claws",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Nidoking": {
+    "sets": {
+      "Wallbreaker (NatDex)": {
+        "moves": [
+          "Sludge Wave",
+          "Earth Power",
+          "Ice Beam",
+          "Flamethrower"
+        ],
+        "item": "Life Orb",
+        "ability": "Sheer Force",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Swampert": {
+    "sets": {
+      "Rain Sweeper (NatDex)": {
+        "moves": [
+          "Waterfall",
+          "Earthquake",
+          "Flip Turn",
+          "Stealth Rock",
+          "Superpower",
+          "Ice Punch"
+        ],
+        "item": "Swampertite",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Sableye": {
+    "sets": {
+      "Defensive (NatDex)": {
+        "moves": [
+          "Knock Off",
+          "Will-O-Wisp",
+          "Protect",
+          "Hex",
+          "Recover"
+        ],
+        "item": "Sablenite",
+        "ability": "Prankster",
+        "nature": [
+          "Impish",
+          "Relaxed"
+        ]
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Mawile": {
+    "sets": {
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Play Rough",
+          "Knock Off",
+          "Sucker Punch"
+        ],
+        "item": "Mawilite",
+        "ability": "Intimidate",
+        "nature": "Adamant"
+      },
+      "All-Out Attacker (NatDex)": {
+        "moves": [
+          "Play Rough",
+          "Ice Punch",
+          "Thunder Punch",
+          "Fire Fang",
+          "Knock Off",
+          "Brick Break"
+        ],
+        "item": "Mawilite",
+        "ability": "Huge Power",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Medicham": {
+    "sets": {
+      "All-Out Attacker (NatDex)": {
+        "moves": [
+          "Fake Out",
+          "Close Combat",
+          "Zen Headbutt",
+          "Ice Punch",
+          "Bullet Punch",
+          "Fire Punch"
+        ],
+        "item": "Medichamite",
+        "ability": "Telepathy",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Lopunny": {
+    "sets": {
+      "Offensive (NatDex)": {
+        "moves": [
+          "Frustration",
+          "Close Combat",
+          "Fake Out",
+          "U-turn",
+          "Quick Attack",
+          "Triple Axel"
+        ],
+        "item": "Lopunnite",
+        "ability": "Limber",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Tangrowth": {
+    "sets": {
+      "Physically Defensive (NatDex)": {
+        "moves": [
+          "Giga Drain",
+          "Knock Off",
+          "Focus Blast",
+          "Sleep Powder",
+          "Stun Spore"
+        ],
+        "item": "Rocky Helmet",
+        "ability": "Regenerator",
+        "nature": "Relaxed"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Victini": {
+    "sets": {
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "V-create",
+          "U-turn",
+          "Bolt Strike",
+          "Final Gambit",
+          "Trick"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Pivot (NatDex)": {
+        "moves": [
+          "V-create",
+          "Bolt Strike",
+          "U-turn",
+          "Encore",
+          "Toxic",
+          "Glaciate"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Z Celebrate (NatDex)": {
+        "moves": [
+          "Celebrate",
+          "Searing Shot",
+          "Stored Power",
+          "Focus Blast"
+        ],
+        "item": "Normalium Z",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Ferrothorn": {
+    "sets": {
+      "Defensive (NatDex)": {
+        "moves": [
+          "Leech Seed",
+          "Knock Off",
+          "Body Press",
+          "Power Whip",
+          "Gyro Ball",
+          "Stealth Rock",
+          "Spikes"
+        ],
+        "item": [
+          "Leftovers",
+          "Rocky Helmet"
+        ],
+        "ability": "None",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Volcarona": {
+    "sets": {
+      "Offensive Quiver Dance (NatDex)": {
+        "moves": [
+          "Quiver Dance",
+          "Flamethrower",
+          "Bug Buzz",
+          "Hidden Power Ground"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Bulky Quiver Dance (NatDex)": {
+        "moves": [
+          "Quiver Dance",
+          "Flamethrower",
+          "Bug Buzz",
+          "Hidden Power Ground",
+          "Roost"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Substitute + Swarm (NatDex)": {
+        "moves": [
+          "Quiver Dance",
+          "Flamethrower",
+          "Bug Buzz",
+          "Substitute"
+        ],
+        "item": [
+          "Buginium Z",
+          "Leftovers"
+        ],
+        "ability": "Swarm",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Diancie": {
+    "sets": {
+      "Wallbreaker (NatDex)": {
+        "moves": [
+          "Moonblast",
+          "Earth Power",
+          "Mystical Fire",
+          "Diamond Storm",
+          "Power Gem",
+          "Stealth Rock",
+          "Spikes"
+        ],
+        "item": "Diancite",
+        "ability": "Magic Bounce",
+        "nature": [
+          "Hasty",
+          "Timid"
+        ]
+      },
+      "Lead (NatDex)": {
+        "moves": [
+          "Stealth Rock",
+          "Moonblast",
+          "Substitute",
+          "Endeavor"
+        ],
+        "item": "Diancite",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Tapu Koko": {
+    "sets": {
+      "Offensive Pivot (NatDex)": {
+        "moves": [
+          "Thunderbolt",
+          "Roost",
+          "Hidden Power Ice",
+          "Dazzling Gleam",
+          "U-turn",
+          "Volt Switch"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Electrium Z",
+          "Fairium Z"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Specs (NatDex)": {
+        "moves": [
+          "Thunderbolt",
+          "Dazzling Gleam",
+          "Hidden Power Ice",
+          "Volt Switch",
+          "U-turn"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Calm Mind (NatDex)": {
+        "moves": [
+          "Calm Mind",
+          "Thunderbolt",
+          "Dazzling Gleam",
+          "Roost"
+        ],
+        "item": "Fairium Z",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Dual Screens (NatDex)": {
+        "moves": [
+          "Reflect",
+          "Light Screen",
+          "U-turn",
+          "Taunt"
+        ],
+        "item": "Light Clay",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Tapu Lele": {
+    "sets": {
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "Psychic",
+          "Moonblast",
+          "Focus Blast",
+          "Hidden Power Fire",
+          "Psyshock",
+          "Future Sight"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Choice Specs (NatDex)": {
+        "moves": [
+          "Moonblast",
+          "Psyshock",
+          "Psychic",
+          "Focus Blast",
+          "Hidden Power Fire"
+        ],
+        "item": "Choice Specs",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Offensive Z-Move (NatDex)": {
+        "moves": [
+          "Moonblast",
+          "Focus Blast",
+          "Psychic",
+          "Psyshock",
+          "Calm Mind",
+          "Hidden Power Fire",
+          "Future Sight"
+        ],
+        "item": [
+          "Psychium Z",
+          "Fightinium Z"
+        ],
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Psychic",
+          "Psyshock",
+          "Moonblast",
+          "Focus Blast",
+          "Hidden Power Fire"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Tapu Fini": {
+    "sets": {
+      "Calm Mind (NatDex)": {
+        "moves": [
+          "Calm Mind",
+          "Scald",
+          "Draining Kiss",
+          "Taunt"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Bold"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Buzzwole": {
+    "sets": {
+      "Physical Wall (NatDex)": {
+        "moves": [
+          "Close Combat",
+          "Drain Punch",
+          "Ice Punch",
+          "Toxic",
+          "Earthquake",
+          "Roost"
+        ],
+        "item": [
+          "Heavy-Duty Boots",
+          "Rocky Helmet"
+        ],
+        "ability": "None",
+        "nature": "Impish"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Celesteela": {
+    "sets": {
+      "Defensive (NatDex)": {
+        "moves": [
+          "Heavy Slam",
+          "Flamethrower",
+          "Leech Seed",
+          "Protect"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Relaxed"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Kartana": {
+    "sets": {
+      "Paper Cut (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Leaf Blade",
+          "Sacred Sword",
+          "Giga Impact",
+          "Knock Off"
+        ],
+        "item": [
+          "Normalium Z",
+          "Fightinium Z"
+        ],
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Paper Plane (NatDex)": {
+        "moves": [
+          "Leaf Blade",
+          "Knock Off",
+          "Sacred Sword",
+          "Smart Strike",
+          "Defog"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Paper Fan (NatDex)": {
+        "moves": [
+          "Leaf Blade",
+          "Knock Off",
+          "Sacred Sword",
+          "Defog",
+          "Synthesis"
+        ],
+        "item": "Grassium Z",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Blacephalon": {
+    "sets": {
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "Fire Blast",
+          "Overheat",
+          "Shadow Ball",
+          "Flamethrower",
+          "Trick"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Timid"
+      },
+      "Calm Mind (NatDex)": {
+        "moves": [
+          "Flamethrower",
+          "Shadow Ball",
+          "Substitute",
+          "Calm Mind"
+        ],
+        "item": "Ghostium Z",
+        "ability": "None",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Melmetal": {
+    "sets": {
+      "Toxic + Protect (NatDex)": {
+        "moves": [
+          "Double Iron Bash",
+          "Earthquake",
+          "Toxic",
+          "Protect"
+        ],
+        "item": "Leftovers",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Assault Vest (NatDex)": {
+        "moves": [
+          "Double Iron Bash",
+          "Ice Punch",
+          "Thunder Punch",
+          "Earthquake",
+          "Superpower"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Adamant"
+      },
+      "Thunder Wave (NatDex)": {
+        "moves": [
+          "Double Iron Bash",
+          "Thunder Wave",
+          "Thunder Punch",
+          "Superpower",
+          "Earthquake"
+        ],
+        "item": [
+          "Protective Pads",
+          "Punching Glove"
+        ],
+        "ability": "None",
+        "nature": "Adamant"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Urshifu-Rapid-Strike": {
+    "sets": {
+      "Choice Scarf (NatDex)": {
+        "moves": [
+          "Surging Strikes",
+          "Close Combat",
+          "U-turn",
+          "Ice Spinner",
+          "Aqua Jet"
+        ],
+        "item": "Choice Scarf",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Swords Dance (NatDex)": {
+        "moves": [
+          "Swords Dance",
+          "Surging Strikes",
+          "Close Combat",
+          "Trailblaze",
+          "Aqua Jet"
+        ],
+        "item": "Protective Pads",
+        "ability": "None",
+        "nature": "Jolly"
+      },
+      "Choice Band (NatDex)": {
+        "moves": [
+          "Surging Strikes",
+          "Close Combat",
+          "U-turn",
+          "Aqua Jet",
+          "Ice Spinner",
+          "Thunder Punch"
+        ],
+        "item": "Choice Band",
+        "ability": "None",
+        "nature": "Jolly"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Archaludon": {
+    "sets": {
+      "Rain Wallbreaker (NatDex)": {
+        "moves": [
+          "Draco Meteor",
+          "Flash Cannon",
+          "Electro Shot",
+          "Aura Sphere",
+          "Body Press"
+        ],
+        "item": "Assault Vest",
+        "ability": "None",
+        "nature": "Modest"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  },
+  "Terapagos": {
+    "sets": {
+      "Offensive Utility (NatDex)": {
+        "moves": [
+          "Tera Starstorm",
+          "Ice Beam",
+          "Calm Mind",
+          "Flamethrower",
+          "Earth Power",
+          "Rapid Spin"
+        ],
+        "item": "Heavy-Duty Boots",
+        "ability": "Tera Shell",
+        "nature": "Timid"
+      }
+    },
+    "formats": [
+      "NatDex"
+    ]
+  }
+}
