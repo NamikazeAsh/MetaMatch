@@ -1,16 +1,12 @@
-from openai import OpenAI
-import os
-import json
-from dotenv import load_dotenv
+from .client import get_agent_client
 from metamatch import auditor, recommender
 from metamatch.rag import store
 
 class AuditorAgent:
-    def __init__(self, model_name="llama3.2:3b-instruct-q4_K_M"):
-        load_dotenv()
-        base_url = os.getenv('OLLAMA_HOST', 'http://localhost:11434') + '/v1'
-        self.client = OpenAI(base_url=base_url, api_key='ollama')
-        self.model = model_name
+    def __init__(self, model_name=None):
+        self.client, self.model = get_agent_client()
+        if model_name:
+            self.model = model_name
 
     def run(self, query: str, team_context: dict) -> str:
         """
