@@ -1,33 +1,28 @@
 [
   {
-    "label": "Scarf Wugtrio",
-    "speed": 558,
-    "owner": "Wugtrio"
-  },
-  {
-    "label": "Scarf Ambipom",
-    "speed": 541,
-    "owner": "Ambipom"
-  },
-  {
-    "label": "Scarf Dugtrio-Alola",
+    "label": "Scarf Froslass",
     "speed": 525,
-    "owner": "Dugtrio-Alola"
+    "owner": "Froslass"
   },
   {
-    "label": "Scarf Pyroar",
-    "speed": 513,
-    "owner": "Pyroar"
+    "label": "Scarf Mismagius",
+    "speed": 508,
+    "owner": "Mismagius"
   },
   {
-    "label": "Scarf Manaphy",
-    "speed": 492,
-    "owner": "Manaphy"
+    "label": "Scarf Gliscor",
+    "speed": 475,
+    "owner": "Gliscor"
   },
   {
-    "label": "Scarf Frogadier",
-    "speed": 483,
-    "owner": "Frogadier"
+    "label": "Scarf Pikachu",
+    "speed": 459,
+    "owner": "Pikachu"
+  },
+  {
+    "label": "Scarf Dubwool",
+    "speed": 453,
+    "owner": "Dubwool"
   },
   {
     "label": "Choice Scarf Gholdengo",
@@ -35,14 +30,9 @@
     "owner": "Gholdengo"
   },
   {
-    "label": "Scarf Rotom-Fan",
-    "speed": 447,
-    "owner": "Rotom-Fan"
-  },
-  {
-    "label": "Scarf Altaria",
-    "speed": 426,
-    "owner": "Altaria"
+    "label": "Scarf Heracross",
+    "speed": 442,
+    "owner": "Heracross"
   },
   {
     "label": "Max Speed Dragapult",
@@ -50,59 +40,69 @@
     "owner": "Dragapult"
   },
   {
-    "label": "Max Wugtrio",
-    "speed": 372,
-    "owner": "Wugtrio"
-  },
-  {
-    "label": "Max Ambipom",
-    "speed": 361,
-    "owner": "Ambipom"
-  },
-  {
-    "label": "Max Dugtrio-Alola",
+    "label": "Max Froslass",
     "speed": 350,
-    "owner": "Dugtrio-Alola"
+    "owner": "Froslass"
   },
   {
-    "label": "Max Pyroar",
-    "speed": 342,
-    "owner": "Pyroar"
+    "label": "Max Mismagius",
+    "speed": 339,
+    "owner": "Mismagius"
   },
   {
-    "label": "Max Manaphy",
-    "speed": 328,
-    "owner": "Manaphy"
+    "label": "Max Gliscor",
+    "speed": 317,
+    "owner": "Gliscor"
   },
   {
-    "label": "Max Frogadier",
-    "speed": 322,
-    "owner": "Frogadier"
+    "label": "Max Pikachu",
+    "speed": 306,
+    "owner": "Pikachu"
   },
   {
-    "label": "Max Rotom-Fan",
-    "speed": 298,
-    "owner": "Rotom-Fan"
+    "label": "Max Dubwool",
+    "speed": 302,
+    "owner": "Dubwool"
   },
   {
-    "label": "Max Altaria",
-    "speed": 284,
-    "owner": "Altaria"
+    "label": "Max Heracross",
+    "speed": 295,
+    "owner": "Heracross"
   },
   {
-    "label": "Max Slurpuff",
-    "speed": 267,
-    "owner": "Slurpuff"
+    "label": "Max Blastoise",
+    "speed": 280,
+    "owner": "Blastoise"
   },
   {
-    "label": "Max Vulpix",
+    "label": "Max Kingler",
+    "speed": 273,
+    "owner": "Kingler"
+  },
+  {
+    "label": "Max Bibarel",
+    "speed": 265,
+    "owner": "Bibarel"
+  },
+  {
+    "label": "Max Vibrava",
+    "speed": 262,
+    "owner": "Vibrava"
+  },
+  {
+    "label": "Max Mothim",
+    "speed": 254,
+    "owner": "Mothim"
+  },
+  {
+    "label": "Max Heatmor",
     "speed": 251,
-    "owner": "Vulpix"
+    "owner": "Heatmor"
   },
   {
-    "label": "Max Weezing-Galar",
+    "label": "Max Whiscash",
     "speed": 240,
-    "owner": "Weezing-Galar"
+    "owner": "Whiscash"
   },
   {
     "label": "Max Rampardos",
@@ -110,23 +110,38 @@
     "owner": "Rampardos"
   },
   {
-    "label": "Max Axew",
-    "speed": 234,
-    "owner": "Axew"
-  },
-  {
-    "label": "Max Arctozolt",
+    "label": "Max Dwebble",
     "speed": 229,
-    "owner": "Arctozolt"
+    "owner": "Dwebble"
   },
   {
-    "label": "Max Blipbug",
+    "label": "Max Gourgeist-Super",
+    "speed": 227,
+    "owner": "Gourgeist-Super"
+  },
+  {
+    "label": "Max Dartrix",
+    "speed": 223,
+    "owner": "Dartrix"
+  },
+  {
+    "label": "Max Mawile-Mega",
+    "speed": 218,
+    "owner": "Mawile-Mega"
+  },
+  {
+    "label": "Max Crocalor",
+    "speed": 216,
+    "owner": "Crocalor"
+  },
+  {
+    "label": "Max Amaura",
+    "speed": 210,
+    "owner": "Amaura"
+  },
+  {
+    "label": "Max Conkeldurr",
     "speed": 207,
-    "owner": "Blipbug"
-  },
-  {
-    "label": "Max Hydrapple",
-    "speed": 205,
-    "owner": "Hydrapple"
+    "owner": "Conkeldurr"
   }
 ]
