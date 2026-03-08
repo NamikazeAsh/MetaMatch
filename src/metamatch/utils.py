@@ -2,6 +2,7 @@ import requests
 import re
 import json
 import os
+import atexit
 from . import config
 
 CACHE_FILE = config.JSON_DIR / "api_cache.json"
@@ -23,6 +24,26 @@ def save_cache(cache):
 
 # Global in-memory cache to reduce reads
 API_CACHE = load_cache()
+_CACHE_DIRTY_WRITES = 0
+_CACHE_FLUSH_EVERY = 10
+
+
+def _mark_cache_dirty():
+    global _CACHE_DIRTY_WRITES
+    _CACHE_DIRTY_WRITES += 1
+    if _CACHE_DIRTY_WRITES >= _CACHE_FLUSH_EVERY:
+        save_cache(API_CACHE)
+        _CACHE_DIRTY_WRITES = 0
+
+
+def flush_cache():
+    global _CACHE_DIRTY_WRITES
+    if _CACHE_DIRTY_WRITES > 0:
+        save_cache(API_CACHE)
+        _CACHE_DIRTY_WRITES = 0
+
+
+atexit.register(flush_cache)
 
 def pokeSlugify(name):
     """
@@ -118,12 +139,44 @@ def fetch_pokemon_data(name):
             
             # Update Cache
             API_CACHE[slug] = processed_data
-            save_cache(API_CACHE)
+            _mark_cache_dirty()
             return processed_data
     except Exception as e:
         print(f"Error fetching {name}: {e}")
         
     return None
+
+
+def fetch_move_data(move_name):
+    """
+    Fetches move metadata (type, power, accuracy, category) with caching.
+    """
+    slug = move_name.lower().replace(" ", "-").replace("'", "")
+    cache_key = f"move::{slug}"
+
+    if cache_key in API_CACHE:
+        return API_CACHE[cache_key]
+
+    url = f"https://pokeapi.co/api/v2/move/{slug}"
+    default = {"type": None, "power": None, "accuracy": None, "category": None}
+
+    try:
+        res = requests.get(url, timeout=3)
+        if res.status_code != 200:
+            return default
+
+        data = res.json()
+        processed_data = {
+            "type": data["type"]["name"].capitalize(),
+            "power": data["power"],
+            "accuracy": data["accuracy"],
+            "category": data["damage_class"]["name"].capitalize(),
+        }
+        API_CACHE[cache_key] = processed_data
+        _mark_cache_dirty()
+        return processed_data
+    except Exception:
+        return default
 
 def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item=""):
     """

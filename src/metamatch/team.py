@@ -1,27 +1,10 @@
-import requests
-from pprint import pprint
 import json
-from .utils import fetch_pokemon_data, calculate_speed, pokeSlugify
+from .utils import fetch_pokemon_data, calculate_speed, fetch_move_data
+from .type_chart import TYPE_CHART
 from . import config
 
 def get_move_metadata(move_name):
-    # Keep this local for now or move to helper if needed later
-    slug = move_name.lower().replace(' ', '-').replace("'", "")
-    url = f"https://pokeapi.co/api/v2/move/{slug}"
-    try:
-        res = requests.get(url, timeout=2)
-        if res.status_code != 200:
-            return {'type': None, 'power': None, 'accuracy': None, 'category': None}
-        
-        data = res.json()
-        return {
-            'type': data['type']['name'].capitalize(),
-            'power': data['power'],
-            'accuracy': data['accuracy'],
-            'category': data['damage_class']['name'].capitalize()
-        }
-    except:
-        return {'type': None, 'power': None, 'accuracy': None, 'category': None}
+    return fetch_move_data(move_name)
 
 
 def readTeam(teamRaw):
@@ -161,26 +144,32 @@ def detectRole(team):
     status_moves = {"Will-O-Wisp", "Toxic", "Thunder Wave", "Sleep Powder", "Spore", "Glare", "Nuzzle"}
     priority_moves = {"Aqua Jet", "Bullet Punch", "Ice Shard", "Mach Punch", "Shadow Sneak", "Sucker Punch", "Extreme Speed", "First Impression"}
     revenge_moves = {"Sucker Punch", "Ice Shard", "Bullet Punch", "Mach Punch", "Aqua Jet"}
-    contact_punish = {"Rough Skin", "Iron Barbs", "Rocky Helmet", "Flame Body", "Static", "Poison Point"}
     trapping_moves = {"Block", "Mean Look", "Spider Web", "Shadow Tag", "Arena Trap", "Magnet Pull"}
-    entry_hazard_immune = {"Magic Guard", "Heavy-Duty Boots"}
     ko_moves = {"Destiny Bond", "Explosion", "Self-Destruct", "Final Gambit", "Memento"}
     cleric_moves = {"Heal Bell", "Aromatherapy", "Refresh", "Natural Cure"}
     screen_moves = {"Light Screen", "Reflect", "Aurora Veil"}
     trickroom_moves = {"Trick Room"}
-    spinblock_types = {"Ghost"}
     weather_setter_abilities = {"drizzle", "drought", "sand stream", "snow warning", "orichalcum pulse", "hadron engine"}
     weather_abilities = {"swift swim": "rain", "chlorophyll": "sun", "sand rush": "sand", "sand force": "sand", "sand veil": "sand", "slush rush": "hail", "snow cloak": "hail", "solar power": "sun", "slush rush": "snow", "quark drive": "electric", "protosynthesis": "sun"}
     choice_items = {"choice scarf": "Speed Control","choice band": "Physical Breaker","choice specs": "Special Breaker"}
-    defensive_items = {"leftovers", "rocky helmet", "assault vest", "eviolite", "heavy-duty boots"}
     offensive_items = {"life orb", "expert belt", "muscle band", "wise glasses"}
     utility_items = {"mental herb", "lum berry", "sitrus berry", "wiki berry", "mago berry", "aguav berry", "figy berry", "iapapa berry"}
 
     for poke in team:
-        moves = team[poke]["Moves"]
+        raw_moves = team[poke].get("Moves", [])
+        move_names = []
+        for move in raw_moves:
+            if isinstance(move, dict):
+                name = move.get("name")
+                if name:
+                    move_names.append(name)
+            elif isinstance(move, str):
+                move_names.append(move)
+        moves = set(move_names)
+
         item = team[poke]["Item"].lower()
         ability = team[poke].get("Ability", "").lower()
-        nature = team[poke].get("Nature", "")
+        ptypes = {t.lower() for t in team[poke].get("Type", [])}
         evs = team[poke]["EVs"]
         
         # Core roles
@@ -234,15 +223,15 @@ def detectRole(team):
             team[poke]["Roles"].append(choice_items[item])
         if item == "life orb" or item in offensive_items:
             team[poke]["Roles"].append("Wallbreaker")
-        if "Prankster" in ability and any(move in moves for move in support_moves):
+        if "prankster" in ability and any(move in moves for move in support_moves):
             team[poke]["Roles"].append("Prankster Support")
         if item == "focus sash" and evs.get("Spe", 0) >= 200:
             team[poke]["Roles"].append("Lead")
-        if "Intimidate" in ability:
+        if "intimidate" in ability:
             team[poke]["Roles"].append("Intimidate Support")
         if item == "rocky helmet" or ability in ["rough skin", "iron barbs"]:
             team[poke]["Roles"].append("Contact Punisher")
-        if "Magic Bounce" in ability or "Mirror Armor" in ability:
+        if "magic bounce" in ability or "mirror armor" in ability:
             team[poke]["Roles"].append("Status Absorber")
         if evs.get("HP", 0) >= 252 and (evs.get("Atk", 0) >= 100 or evs.get("SpA", 0) >= 100):
             team[poke]["Roles"].append("Bulky Attacker")
@@ -257,11 +246,11 @@ def detectRole(team):
             team[poke]["Roles"].append("Terrain Setter")
             
         # Advanced utility roles
-        if any(move in moves for move in trapping_moves) or "Shadow Tag" in ability or "Arena Trap" in ability or "Magnet Pull" in ability:
+        if any(move in moves for move in trapping_moves) or "shadow tag" in ability or "arena trap" in ability or "magnet pull" in ability:
             team[poke]["Roles"].append("Trapper")
         if any(move in moves for move in ko_moves):
             team[poke]["Roles"].append("Sacrificial")
-        if any(move in moves for move in cleric_moves) or "Natural Cure" in ability:
+        if any(move in moves for move in cleric_moves) or "natural cure" in ability:
             team[poke]["Roles"].append("Cleric")
         if any(move in moves for move in screen_moves):
             team[poke]["Roles"].append("Screen Setter")
@@ -275,31 +264,27 @@ def detectRole(team):
         # Weather abusers
         if ability in weather_abilities:
             team[poke]["Roles"].append("Weather Abuser")
-        if "Ghost" in team[poke].get("Types", []):
+        if "ghost" in ptypes:
             team[poke]["Roles"].append("Spin Blocker")
-        if item == "heavy-duty boots" or "Magic Guard" in ability:
+        if item == "heavy-duty boots" or "magic guard" in ability:
             team[poke]["Roles"].append("Hazard Immune")
-        if "Regenerator" in ability:
+        if "regenerator" in ability:
             team[poke]["Roles"].append("Pivot")  # Natural pivoting ability
-        if "Guts" in ability or "Quick Feet" in ability:
+        if "guts" in ability or "quick feet" in ability:
             team[poke]["Roles"].append("Status Absorber")
         if evs.get("HP", 0) <= 4 and evs.get("Def", 0) <= 4 and evs.get("SpD", 0) <= 4:
             team[poke]["Roles"].append("Glass Cannon")
-            
-        # Mixed attackers
-        if evs.get("Atk", 0) >= 100 and evs.get("SpA", 0) >= 100:
-            team[poke]["Roles"].append("Mixed Attacker")
             
         # Utility items
         if item in utility_items:
             team[poke]["Roles"].append("Utility")
             
         # Z-Move/Tera
-        if "Z-" in item:
+        if item.startswith("z-"):
             team[poke]["Roles"].append("Z-Move User")
             
         # Speed control
-        if evs.get("Spe", 0) >= 252 and any(move in ["Sticky Web", "Thunder Wave", "Icy Wind"] for move in moves):
+        if evs.get("Spe", 0) >= 252 and any(move in moves for move in {"Sticky Web", "Thunder Wave", "Icy Wind"}):
             team[poke]["Roles"].append("Speed Control")
             
         # Baton Pass chains
@@ -329,56 +314,32 @@ def addComments(team):
 
 
 def damageRelations(ptypes):
-    
-    # print(ptypes)
     damage_d = {}
     attack_d = {}
-    for ptype in ptypes:
-        url = f"https://pokeapi.co/api/v2/type/{ptype.lower()}"
-        res = requests.get(url)
+    all_types = list(TYPE_CHART.keys())
+    lower_to_title = {t.lower(): t for t in all_types}
 
-        if res.status_code != 200:
-            return []
+    for raw_ptype in ptypes:
+        ptype_lower = raw_ptype.lower()
+        ptype = lower_to_title.get(ptype_lower)
+        if not ptype:
+            continue
 
-        data = res.json()
-        # print(data['damage_relations'].keys())
-        
-        dvals = data['damage_relations']['double_damage_from'] #weakness
-        hdvals = data['damage_relations']['half_damage_from'] #resists
-        ndvals = data['damage_relations']['no_damage_from'] #immunity
-        
-        rvals = data['damage_relations']['double_damage_to']
-        hrdata = data['damage_relations']['half_damage_to']
-        ndrvals = data['damage_relations']['no_damage_to']
-        
-        for d in dvals:
-            if d['name'] not in damage_d:
-                damage_d[d['name']] = 2
-            else:
-                damage_d[d['name']] *= 2
-        for d in hdvals:
-            if d['name'] not in damage_d:
-                damage_d[d['name']] = 0.5
-            else:
-                damage_d[d['name']] *= 0.5
-        for d in ndvals:
-            damage_d[d['name']] = 0.0
-            
-        
-        for d in rvals: #supereff dmg to
-            if d['name'] not in attack_d:
-                attack_d[d['name']] = 2
-            else:
-                attack_d[d['name']] *= 2
-        for d in hrdata: #half dmg to
-            if d['name'] not in attack_d:
-                attack_d[d['name']] = 0.5
-            else:
-                attack_d[d['name']] *= 0.5
-        for d in ndrvals: #no dmg to
-            attack_d[d['name']] = 0.0
-    
-    return damage_d,attack_d
+        # Incoming damage against this defending type
+        for atk_type in all_types:
+            mult = TYPE_CHART.get(atk_type, {}).get(ptype, 1.0)
+            if mult != 1.0:
+                atk_key = atk_type.lower()
+                damage_d[atk_key] = damage_d.get(atk_key, 1.0) * mult
+
+        # Outgoing STAB pressure of this type into all defending types
+        for def_type in all_types:
+            mult = TYPE_CHART.get(ptype, {}).get(def_type, 1.0)
+            if mult != 1.0:
+                def_key = def_type.lower()
+                attack_d[def_key] = attack_d.get(def_key, 1.0) * mult
+
+    return damage_d, attack_d
 
 
 def coverageCheck(team):
@@ -390,8 +351,9 @@ def coverageCheck(team):
     for poke in team:
         moves = team[poke]['Moves']
         for move in moves:
-            if (move['category'] != 'Status') & (coverage[move['type']] == False):
-                coverage[move['type']] = True
+            m_type = move.get('type')
+            if move.get('category') != 'Status' and m_type in coverage and not coverage[m_type]:
+                coverage[m_type] = True
         
     return coverage
 
