@@ -20859,5 +20859,628 @@
       "sniper",
       "moody"
     ]
+  },
+  "move::swords-dance": {
+    "type": "Normal",
+    "power": null,
+    "accuracy": null,
+    "category": "Status"
+  },
+  "move::scale-shot": {
+    "type": "Dragon",
+    "power": 25,
+    "accuracy": 90,
+    "category": "Physical"
+  },
+  "move::earthquake": {
+    "type": "Ground",
+    "power": 100,
+    "accuracy": 100,
+    "category": "Physical"
+  },
+  "move::fire-fang": {
+    "type": "Fire",
+    "power": 65,
+    "accuracy": 95,
+    "category": "Physical"
+  },
+  "move::stealth-rock": {
+    "type": "Rock",
+    "power": null,
+    "accuracy": null,
+    "category": "Status"
+  },
+  "move::knock-off": {
+    "type": "Dark",
+    "power": 65,
+    "accuracy": 100,
+    "category": "Physical"
+  },
+  "move::ice-beam": {
+    "type": "Ice",
+    "power": 90,
+    "accuracy": 100,
+    "category": "Special"
+  },
+  "move::stone-edge": {
+    "type": "Rock",
+    "power": 100,
+    "accuracy": 80,
+    "category": "Physical"
+  },
+  "move::rock-slide": {
+    "type": "Rock",
+    "power": 75,
+    "accuracy": 90,
+    "category": "Physical"
+  },
+  "move::iron-head": {
+    "type": "Steel",
+    "power": 80,
+    "accuracy": 100,
+    "category": "Physical"
+  },
+  "move::rapid-spin": {
+    "type": "Normal",
+    "power": 50,
+    "accuracy": 100,
+    "category": "Physical"
+  },
+  "move::flip-turn": {
+    "type": "Water",
+    "power": 60,
+    "accuracy": 100,
+    "category": "Physical"
+  },
+  "move::scald": {
+    "type": "Water",
+    "power": 80,
+    "accuracy": 100,
+    "category": "Special"
+  },
+  "move::mirror-coat": {
+    "type": "Psychic",
+    "power": null,
+    "accuracy": 100,
+    "category": "Special"
+  },
+  "move::body-slam": {
+    "type": "Normal",
+    "power": 85,
+    "accuracy": 100,
+    "category": "Physical"
+  },
+  "move::brave-bird": {
+    "type": "Flying",
+    "power": 120,
+    "accuracy": 100,
+    "category": "Physical"
+  },
+  "move::defog": {
+    "type": "Flying",
+    "power": null,
+    "accuracy": null,
+    "category": "Status"
+  },
+  "move::u-turn": {
+    "type": "Bug",
+    "power": 70,
+    "accuracy": 100,
+    "category": "Physical"
+  },
+  "move::roost": {
+    "type": "Flying",
+    "power": null,
+    "accuracy": null,
+    "category": "Status"
+  },
+  "move::flamethrower": {
+    "type": "Fire",
+    "power": 90,
+    "accuracy": 100,
+    "category": "Special"
+  },
+  "move::draco-meteor": {
+    "type": "Dragon",
+    "power": 130,
+    "accuracy": 90,
+    "category": "Special"
+  },
+  "move::shadow-ball": {
+    "type": "Ghost",
+    "power": 80,
+    "accuracy": 100,
+    "category": "Special"
+  },
+  "move::kowtow-cleave": {
+    "data": {
+      "type": "Dark",
+      "power": 85,
+      "accuracy": null,
+      "category": "Physical"
+    },
+    "ts": 1774452260.9084718
+  },
+  "move::sucker-punch": {
+    "data": {
+      "type": "Dark",
+      "power": 70,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774452261.2529676
+  },
+  "move::thunder-wave": {
+    "data": {
+      "type": "Electric",
+      "power": null,
+      "accuracy": 90,
+      "category": "Status"
+    },
+    "ts": 1774452261.3985727
+  },
+  "move::ice-spinner": {
+    "data": {
+      "type": "Ice",
+      "power": 80,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774452261.6061854
+  },
+  "move::fiery-dance": {
+    "data": {
+      "type": "Fire",
+      "power": 80,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774452261.8580174
+  },
+  "move::sludge-wave": {
+    "data": {
+      "type": "Poison",
+      "power": 95,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774452262.1113374
+  },
+  "move::energy-ball": {
+    "data": {
+      "type": "Grass",
+      "power": 90,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774452262.3930986
+  },
+  "move::volt-switch": {
+    "data": {
+      "type": "Electric",
+      "power": 70,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774452262.6764128
+  },
+  "move::toxic": {
+    "data": {
+      "type": "Poison",
+      "power": null,
+      "accuracy": 90,
+      "category": "Status"
+    },
+    "ts": 1774452262.8749707
+  },
+  "move::recover": {
+    "data": {
+      "type": "Normal",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774452263.1558394
+  },
+  "move::haze": {
+    "data": {
+      "type": "Ice",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774452263.4338894
+  },
+  "move::acrobatics": {
+    "data": {
+      "type": "Flying",
+      "power": 55,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774452263.691231
+  },
+  "move::crunch": {
+    "data": {
+      "type": "Dark",
+      "power": 80,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774452263.8948324
+  },
+  "roaring-moon": {
+    "data": {
+      "types": [
+        "Dragon",
+        "Dark"
+      ],
+      "stats": {
+        "hp": 105,
+        "attack": 139,
+        "defense": 71,
+        "special-attack": 55,
+        "special-defense": 101,
+        "speed": 119
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1005.png",
+      "abilities": [
+        "protosynthesis"
+      ]
+    },
+    "ts": 1774452264.132113
+  },
+  "move::lava-plume": {
+    "data": {
+      "type": "Fire",
+      "power": 80,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774453847.3498454
+  },
+  "move::will-o-wisp": {
+    "data": {
+      "type": "Fire",
+      "power": null,
+      "accuracy": 85,
+      "category": "Status"
+    },
+    "ts": 1774453847.4831707
+  },
+  "move::growth": {
+    "data": {
+      "type": "Normal",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774453847.6214294
+  },
+  "move::giga-drain": {
+    "data": {
+      "type": "Grass",
+      "power": 75,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774453847.7513804
+  },
+  "move::weather-ball": {
+    "data": {
+      "type": "Normal",
+      "power": 50,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774453847.8941557
+  },
+  "move::sludge-bomb": {
+    "data": {
+      "type": "Poison",
+      "power": 90,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774453848.0310588
+  },
+  "move::body-press": {
+    "data": {
+      "type": "Fighting",
+      "power": 80,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774453848.1820357
+  },
+  "move::iron-defense": {
+    "data": {
+      "type": "Steel",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774453848.3207927
+  },
+  "move::fire-blast": {
+    "data": {
+      "type": "Fire",
+      "power": 110,
+      "accuracy": 85,
+      "category": "Special"
+    },
+    "ts": 1774485914.3963215
+  },
+  "move::yawn": {
+    "data": {
+      "type": "Normal",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774485914.5125036
+  },
+  "move::sleep-powder": {
+    "data": {
+      "type": "Grass",
+      "power": null,
+      "accuracy": 75,
+      "category": "Status"
+    },
+    "ts": 1774485914.6443796
+  },
+  "move::dragon-tail": {
+    "data": {
+      "type": "Dragon",
+      "power": 60,
+      "accuracy": 90,
+      "category": "Physical"
+    },
+    "ts": 1774485914.7903497
+  },
+  "move::dragon-dance": {
+    "data": {
+      "type": "Dragon",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774485914.9173045
+  },
+  "ability::drought": {
+    "data": "Summons strong sunlight that lasts indefinitely upon entering battle.",
+    "ts": 1774485915.0795298
+  },
+  "ability::chlorophyll": {
+    "data": "Doubles Speed during strong sunlight.",
+    "ts": 1774485915.2260444
+  },
+  "ability::rough-skin": {
+    "data": "Damages attacking Pok\u00e9mon for 1/8 their max HP on contact.",
+    "ts": 1774485915.3720782
+  },
+  "ability::pressure": {
+    "data": "Increases the PP cost of moves targetting the Pok\u00e9mon by one.",
+    "ts": 1774485915.5981138
+  },
+  "ability::quark-drive": {
+    "data": "Raises highest stat on Electric Terrain, or if holding Booster Energy.",
+    "ts": 1774485915.7202318
+  },
+  "ability::protosynthesis": {
+    "data": "Raises highest stat in harsh sunlight, or if holding Booster Energy.",
+    "ts": 1774485915.8432558
+  },
+  "move::headlong-rush": {
+    "data": {
+      "type": "Ground",
+      "power": 120,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774485937.2207775
+  },
+  "move::close-combat": {
+    "data": {
+      "type": "Fighting",
+      "power": 120,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774485937.370685
+  },
+  "move::make-it-rain": {
+    "data": {
+      "type": "Steel",
+      "power": 120,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774485937.5569892
+  },
+  "move::nasty-plot": {
+    "data": {
+      "type": "Dark",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774485937.703909
+  },
+  "move::spikes": {
+    "data": {
+      "type": "Ground",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774485937.838888
+  },
+  "move::power-gem": {
+    "data": {
+      "type": "Rock",
+      "power": 80,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774485937.9785838
+  },
+  "move::spirit-break": {
+    "data": {
+      "type": "Fairy",
+      "power": 75,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774485938.0981526
+  },
+  "move::shadow-sneak": {
+    "data": {
+      "type": "Ghost",
+      "power": 40,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774485938.2561955
+  },
+  "ability::good-as-gold": {
+    "data": "Gives immunity to status moves.",
+    "ts": 1774485938.3915415
+  },
+  "ability::supreme-overlord": {
+    "data": "Attack and Special Attack are boosted for each party Pok\u00e9mon that has been defeated.",
+    "ts": 1774485938.548416
+  },
+  "ability::infiltrator": {
+    "data": "Bypasses light screen, reflect, and safeguard.",
+    "ts": 1774485938.709208
+  },
+  "ability::toxic-debris": {
+    "data": "Scatters poison spikes at the feet of the opposing team when the Pok\u00e9mon takes damage from physical moves.",
+    "ts": 1774485938.8910105
+  },
+  "move::trick-room": {
+    "data": {
+      "type": "Psychic",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774486237.8387907
+  },
+  "move::psychic": {
+    "data": {
+      "type": "Psychic",
+      "power": 90,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774486237.9877682
+  },
+  "move::mystical-fire": {
+    "data": {
+      "type": "Fire",
+      "power": 75,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774486238.118124
+  },
+  "move::dazzling-gleam": {
+    "data": {
+      "type": "Fairy",
+      "power": 80,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774486238.2355816
+  },
+  "move::facade": {
+    "data": {
+      "type": "Normal",
+      "power": 70,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774486238.3562539
+  },
+  "move::protect": {
+    "data": {
+      "type": "Normal",
+      "power": null,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774486238.4828978
+  },
+  "move::future-sight": {
+    "data": {
+      "type": "Psychic",
+      "power": 120,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774486238.6001093
+  },
+  "move::chilly-reception": {
+    "data": {
+      "type": "Ice",
+      "power": 0,
+      "accuracy": null,
+      "category": "Status"
+    },
+    "ts": 1774486238.7090533
+  },
+  "move::spore": {
+    "data": {
+      "type": "Grass",
+      "power": null,
+      "accuracy": 100,
+      "category": "Status"
+    },
+    "ts": 1774486238.8296313
+  },
+  "move::pollen-puff": {
+    "data": {
+      "type": "Bug",
+      "power": 90,
+      "accuracy": 100,
+      "category": "Special"
+    },
+    "ts": 1774486238.9671772
+  },
+  "move::clear-smog": {
+    "data": {
+      "type": "Poison",
+      "power": 50,
+      "accuracy": null,
+      "category": "Special"
+    },
+    "ts": 1774486239.1045923
+  },
+  "move::foul-play": {
+    "data": {
+      "type": "Dark",
+      "power": 95,
+      "accuracy": 100,
+      "category": "Physical"
+    },
+    "ts": 1774486239.2879112
+  },
+  "ability::magic-bounce": {
+    "data": "Reflects most non-damaging moves back at their user.",
+    "ts": 1774486239.4393497
+  },
+  "ability::guts": {
+    "data": "Increases Attack to 1.5\u00d7 with a major status ailment.",
+    "ts": 1774486239.5771232
+  },
+  "ability::water-absorb": {
+    "data": "Absorbs water moves, healing for 1/4 max HP.",
+    "ts": 1774486239.716052
+  },
+  "ability::regenerator": {
+    "data": "Heals for 1/3 max HP upon switching out.",
+    "ts": 1774486239.8457873
   }
 }

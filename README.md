@@ -5,7 +5,7 @@
 [![Ollama](https://img.shields.io/badge/AI-Ollama-000000?logo=ollama&logoColor=white)](https://ollama.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**MetaMatch** is a hybrid AI/ML system designed for high-precision competitive Pokémon team analysis. It integrates deterministic mathematical engines with probabilistic Large Language Model (LLM) reasoning, utilizing Retrieval-Augmented Generation (RAG) to ground strategic advice in domain-specific metadata.
+**MetaMatch** is a hybrid AI/ML system for high-precision competitive Pokémon team analysis. It combines deterministic mathematical engines with LLM-powered coaching, applying the principle of *code discovers, LLM narrates* — offloading all factual checks (type math, usage stats, item-ability synergies, threat scoring) to Python and reserving the LLM for open-ended strategic reasoning where language generation actually adds value.
 
 ![MetaMatch Dashboard](assets/images/dark_logo_transp.png)
 
@@ -16,13 +16,27 @@
 *   **Archetype Engine:** Classifies team strategy (*Hyper Offense, Bulky Offense, Stall, Volt-Turn, Weather, Trick Room*) using detected role distributions.
 *   **Deep Logic:** Calculates type weaknesses while respecting **Abilities** and **Items** (e.g., ignores Ground damage for *Levitate* or *Air Balloon* users).
 *   **Meta Auditor:** Validates movesets against high-ladder usage stats, flagging statistically suboptimal choices (e.g., using *Shell Bell* when 98% of players use *Rocky Helmet*).
-*   **Performance Optimized:** Implements intelligent caching for file I/O and API calls to ensure low-latency responsiveness.
+*   **Performance Optimized:** Implements intelligent caching for file I/O and API calls with a **30-day TTL** and a 2,000-entry size cap (oldest 200 evicted on overflow) to ensure low-latency responsiveness without unbounded growth.
+
+### 🔍 Team Audit (Fully Deterministic)
+The Audit tab runs instant, zero-LLM checks on every submitted team:
+*   **Item-Ability Synergy Flags:** Detects canonical mismatches (e.g., *Drought* without *Heat Rock*, *Guts* without *Flame Orb/Toxic Orb*, *Magic Guard* without *Life Orb*) with a plain-English explanation of why the pairing matters.
+*   **Role Gap Detection:** Identifies missing core roles (*Hazard Setter, Hazard Remover, Pivot, Speed Control, Cleric*) so you know what structural gaps to address.
+*   **Type Coverage Holes:** Flags types the team has zero offensive coverage against.
+*   **Per-Pokémon Usage Warnings:** Surfaces moves and items running below 5% ladder usage, citing the most common alternatives by percentage.
+
+### ⚠️ Meta Threats (Deterministic Threat Scoring)
+Identifies the top 5 meta threats to your specific team using Smogon Chaos data — no LLM involved:
+*   **STAB Coverage Scoring:** Each meta Pokémon is scored by `members_hit² × ladder_usage%`, prioritising breadth of coverage over raw popularity.
+*   **Offensive Counter-Play:** Cross-references `Damage To` on your team to identify which of your Pokémon can hit back super-effectively.
+*   **Defensive Checks:** Flags which team members resist all of the threat's STAB types.
+*   **Key Moves:** Surfaces the threat's top moves by usage percentage (e.g., *Thunderclap 24%, Dragon Pulse 18%*) so you know exactly what to play around.
 
 ### 🤝 Teammate Recommender & Composer
 *   **Statistical Synergy:** Suggests optimal teammates based on Smogon "Chaos" correlation matrices from millions of competitive battles.
 *   **Multi-Format Mastery:** Seamlessly toggle between **OU, UU, and National Dex** to find partners across different metagames.
 *   **Quick Match (New):** Don't have a team? Pick 1-5 Pokémon to instantly identify the best "meta glue" and structural partners for your core.
-*   **Structural Intelligence:** The engine goes beyond popularity—it understands **role redundancy**. Testing shows that removing a pivot like *Landorus-T* causes the system to immediately prioritize *Great Tusk* or *Corviknight* to maintain team infrastructure (hazards/removal) before suggesting offensive threats.
+*   **Role-Weighted Boosting:** Detects missing roles (Hazard Setter, Hazard Remover, Pivot, Speed Control, Cleric) and applies a ×1.2 score boost to candidates that fill them. Each recommendation card displays a **reason badge** (e.g., *"Fills missing: Hazard Setter, Pivot"*) in gold when a role gap is addressed.
 *   **Real-time Analysis:** Generates data-driven recommendations instantly without relying on LLM processing.
 
 ### 🔎 Set Finder & Move Search
@@ -58,8 +72,9 @@ MetaMatch processes raw "Chaos" data from Smogon (detailed usage statistics) to 
 ### 🤖 Multi-Agent System (MAS)
 MetaMatch deploys three specialized agents to handle distinct query types, ensuring expert-level accuracy without hallucinations.
 *   **Clemont 🧪 (Tactician):** A strict, deterministic engine (Temp 0.0) that calculates hard facts. Solves mechanics questions like "Is Rotom-Wash weak to Ground?" by cross-referencing Abilities and Type Charts.
-*   **Professor Oak 📜 (Coach):** A creative strategist (Temp 0.4) that uses RAG to explain win conditions and high-level game plans.
+*   **Professor Oak 📜 (Coach):** A creative strategist (Temp 0.4) that uses RAG to explain win conditions and high-level game plans. Receives full set context per Pokémon: Item, Ability, **Tera Type**, Nature, EVs, Speed, and Roles.
 *   **Brock 🍳 (Builder):** A data-driven analyst (Temp 0.2) that audits teams against real-time usage stats, citing exact percentages for items and moves.
+*   **Semantic Router (Confidence-Gated):** Routes queries to the correct agent using cosine similarity against anchor phrases. Queries scoring below a **0.45 confidence threshold** are intercepted before dispatch and return a clarification prompt instead of a potentially wrong agent response.
 
 ### 🤖 AI-Powered Coaching (RAG-Enhanced)
 MetaMatch implements a sophisticated RAG pipeline to ground LLM reasoning in verified data.
@@ -67,7 +82,8 @@ MetaMatch implements a sophisticated RAG pipeline to ground LLM reasoning in ver
     *   **Model Upgrade:** Now powered by `BAAI/bge-small-en-v1.5` for high-precision semantic search.
     *   **Granular Chunking:** splits analysis into focused "Checks & Counters", "Moveset Mechanics", and "Team Options" chunks.
 *   **Concept Awareness:** Ingests high-level strategy guides (e.g., "How to Beat Stall", "Hyper Offense 101") to answer broad archetypal questions.
-*   **Context-Aware Chat:** Retrieves relevant competitive guides and cross-references them with **exact team data** (Moves, EVs, Nature) to provide grounded advice.
+*   **Context-Aware Chat:** Retrieves relevant competitive guides and cross-references them with **full set data** (Moves, EVs, Nature, Tera Type, Roles, Speed) to provide grounded advice.
+*   **RAG Distance Filtering:** ChromaDB results are filtered by L2 distance (threshold: 1.0). Near-orthogonal chunks (irrelevant retrievals) are dropped before being passed to the LLM.
 *   **Deterministic Anchoring:** Injects pre-calculated Python-derived "Hard Facts" into the prompt context to eliminate logic hallucinations regarding game mechanics.
 *   **Strategic Pilot Guide:** Generates a comprehensive gameplay guide:
     *   **Win Conditions:** Identifies the primary path to victory.
@@ -82,8 +98,8 @@ Generic LLMs "guess" — MetaMatch **calculates**.
 | :--- | :--- | :--- |
 | **Accuracy** | **Hallucinations:** Often fails simple type math (e.g. ignoring *Levitate*). | **Fact-Anchored:** LLM is provided with hard-coded logic "Ground Truths". |
 | **Data Freshness**| **Knowledge Cutoff:** Lacks access to real-time meta shifts. | **Dynamic Retrieval:** Scrapes and embeds the latest Smogon strategies. |
-| **Logic Engine** | **Probabilistic:** Estimates matchup advantages. | **Deterministic:** Calculates exact multipliers before AI generation. |
-| **Model Efficiency** | **Resource Intensive:** Requires massive frontier models to minimize errors. | **Lightweight:** Optimized for local ~3B models (`llama3.2:3b`) by offloading logic to code. |
+| **Logic Engine** | **Probabilistic:** Estimates matchup advantages. | **Deterministic:** Calculates exact multipliers, threat scores, and audit findings in Python — LLM only handles open-ended strategy. |
+| **Model Efficiency** | **Resource Intensive:** Requires massive frontier models to minimize errors. | **Lightweight:** Optimized for local ~3B models (`llama3.2:3b`) by offloading all factual checks to code. |
 | **Workflow** | **Manual Prompting:** Requires constant copy-pasting of team data. | **Seamless Integration:** One-click re-analysis on team changes. |
 
 ### 🧪 Real World Examples
@@ -233,7 +249,7 @@ python -m unittest src/metamatch/tests/test_mechanics.py
 *   **`src/metamatch/app.py`**: Streamlit frontend and dashboard orchestration.
 *   **`src/metamatch/agents/`**: Multi-Agent System (Router, Manager, Clemont, Oak, Brock).
 *   **`src/metamatch/team.py`**: Core parsing and deterministic calculation engine.
-*   **`src/metamatch/suggestions.py`**: LLM orchestration, RAG Context injection, and prompt engineering.
+*   **`src/metamatch/suggestions.py`**: Deterministic team audit engine (item-ability synergies, role gaps, coverage holes, usage warnings) and meta threat scoring. Also orchestrates the LLM-powered Team Guide.
 *   **`src/metamatch/logic_engine.py`**: Deterministic logic engine for chat (matchups, immunities, speed tiers).
 *   **`src/metamatch/rag/`**: Vector database management:
     *   **`scraper.py`**: ETL pipeline for strategy documentation (granular chunking).

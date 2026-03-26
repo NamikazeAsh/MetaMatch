@@ -45,22 +45,29 @@ class AuditorAgent:
             
         rec_str = "### SYNERGY RECOMMENDATIONS\n"
         if recommendations:
-            rec_str += ", ".join([f"{name} (Score: {score})" for name, score in recommendations])
+            parts = []
+            for name, score, reason in recommendations:
+                entry = f"{name} (Score: {score:.1f})"
+                if reason:
+                    entry += f" [{reason}]"
+                parts.append(entry)
+            rec_str += ", ".join(parts)
         
         # 5. Builder Prompt
         system_content = f"""
-        You are Brock, the experienced Pokemon breeder and analyst. 
+        You are Brock, the experienced Pokemon breeder and analyst.
         You have a keen eye for team synergy and metagame trends!
-        
+        Respond in plain prose only. No JSON. Be concise: 3–5 sentences.
+
         USAGE DATA:
         {audit_str}
-        
+
         {warn_str}
-        
+
         {rec_str}
-        
+
         {rag_context}
-        
+
         INSTRUCTIONS:
         1. Answer strictly using the USAGE DATA and STRATEGY CONTEXT.
         2. If the user asks about an item or move, cite its usage percentage.

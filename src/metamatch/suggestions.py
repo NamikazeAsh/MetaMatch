@@ -1,142 +1,254 @@
-import streamlit as st
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import json
-from pprint import pprint
 import re
-import openai
+from . import auditor as auditor_module
+from .team import coverageCheck
 from . import config
 
+
+ITEM_ABILITY_SYNERGIES = {
+    "Drought":      {"must": ["Heat Rock"],              "reason": "Heat Rock extends sun from 5 to 8 turns"},
+    "Drizzle":      {"must": ["Damp Rock"],              "reason": "Damp Rock extends rain from 5 to 8 turns"},
+    "Sand Stream":  {"must": ["Smooth Rock"],            "reason": "Smooth Rock extends sand from 5 to 8 turns"},
+    "Snow Warning": {"must": ["Icy Rock"],               "reason": "Icy Rock extends snow from 5 to 8 turns"},
+    "Guts":         {"must": ["Flame Orb", "Toxic Orb"], "reason": "Guts requires a status condition to activate the Atk boost"},
+    "Poison Heal":  {"must": ["Toxic Orb"],              "reason": "Toxic Orb is required to trigger Poison Heal recovery"},
+    "Magic Guard":  {"prefer": ["Life Orb"],             "reason": "Life Orb recoil is negated by Magic Guard — free 1.3x power"},
+}
+
+CORE_ROLES = {"Hazard Setter", "Hazard Remover", "Pivot", "Speed Control", "Cleric"}
+
+# Chaos file stores move names as lowercase slugs with no spaces — map common ones
+MOVE_DISPLAY = {
+    "rapidspin": "Rapid Spin", "headlongrush": "Headlong Rush", "icespinner": "Ice Spinner",
+    "psychicnoise": "Psychic Noise", "drainingkiss": "Draining Kiss", "dragondance": "Dragon Dance",
+    "calmmind": "Calm Mind", "dracometeor": "Draco Meteor", "hydrosteam": "Hydro Steam",
+    "flipturn": "Flip Turn", "dragonpulse": "Dragon Pulse", "thunderclap": "Thunderclap",
+    "swordsdance": "Swords Dance", "nastyplot": "Nasty Plot", "stealthrock": "Stealth Rock",
+    "knockoff": "Knock Off", "kowtowcleave": "Kowtow Cleave", "ironhead": "Iron Head",
+    "bodypress": "Body Press", "makeitrain": "Make It Rain", "shadowball": "Shadow Ball",
+    "fireblast": "Fire Blast", "fierydance": "Fiery Dance", "sludgewave": "Sludge Wave",
+    "energyball": "Energy Ball", "voltswitch": "Volt Switch", "closecombat": "Close Combat",
+    "spiritbreak": "Spirit Break", "shadowsneak": "Shadow Sneak", "moonblast": "Moonblast",
+    "gigadrain": "Giga Drain", "sludgebomb": "Sludge Bomb", "sleeppowder": "Sleep Powder",
+    "futuresight": "Future Sight", "chillyreception": "Chilly Reception", "foulplay": "Foul Play",
+    "clearsmog": "Clear Smog", "pollenpuff": "Pollen Puff", "willowisp": "Will-O-Wisp",
+    "thunderwave": "Thunder Wave", "dazzlinggleam": "Dazzling Gleam", "mysticalfire": "Mystical Fire",
+    "highhorsepower": "High Horsepower", "bravebird": "Brave Bird", "woodhammer": "Wood Hammer",
+    "grassyglide": "Grassy Glide", "partingshot": "Parting Shot", "healingwish": "Healing Wish",
+    "trickroom": "Trick Room", "tailwind": "Tailwind", "uturn": "U-turn",
+    "heavyslam": "Heavy Slam", "stoneedge": "Stone Edge", "iciclecrash": "Icicle Crash",
+    "aquajet": "Aqua Jet", "bulletpunch": "Bullet Punch", "extremespeed": "Extreme Speed",
+    "leechseed": "Leech Seed", "shellsmash": "Shell Smash", "quiverdance": "Quiver Dance",
+    "rockblast": "Rock Blast", "rockslide": "Rock Slide", "icywind": "Icy Wind",
+    "aurasphere": "Aura Sphere", "airslash": "Air Slash", "poisonjab": "Poison Jab",
+    "thunderbolt": "Thunderbolt", "zapcannon": "Zap Cannon", "triattack": "Tri Attack",
+    "scaldingcoffee": "Scalding Coffee", "gunkshot": "Gunk Shot", "suckerpunch": "Sucker Punch",
+    "powerwhip": "Power Whip", "leafstorm": "Leaf Storm", "focusblast": "Focus Blast",
+    "shadowforce": "Shadow Force", "phantomforce": "Phantom Force", "darkpulse": "Dark Pulse",
+    "flashcannon": "Flash Cannon", "irondefense": "Iron Defense", "calmmind": "Calm Mind",
+    "wickedblow": "Wicked Blow", "surgingstrikes": "Surging Strikes", "populationbomb": "Population Bomb",
+    "boosterenergy": "Booster Energy", "supremeoverlord": "Supreme Overlord",
+}
+
+STATS_FILE_MAP = {
+    "gen9ou":          "gen9ou-1825.json",
+    "gen9uu":          "gen9uu-1760.json",
+    "gen9nationaldex": "gen9nationaldex-1760.json",
+}
+
+
+def compute_threats(team: dict, format_id: str = "gen9ou", top_n: int = 5) -> list[dict]:
+    """
+    Identifies top meta threats using STAB type coverage vs the team.
+    Scoring: members_hit^2 * usage_pct (prioritises breadth of coverage over mere usage).
+    Returns list of dicts matching the existing threats render format.
+    """
+    # Load stats
+    stats_path = config.STATS_DIR / STATS_FILE_MAP.get(format_id, "gen9ou-1825.json")
+    try:
+        with open(stats_path) as f:
+            raw = json.load(f)
+        poke_stats = raw.get("data", {})
+    except Exception:
+        return []
+
+    # Load types
+    try:
+        with open(config.JSON_DIR / "topPoke.json") as f:
+            type_map = json.load(f)
+    except Exception:
+        return []
+
+    team_names = {p["Pokemon"] for p in team.values()}
+    total_raw = sum(v.get("Raw count", 0) for v in poke_stats.values())
+    if total_raw == 0:
+        return []
+
+    scores = []
+
+    for meta_name, data in poke_stats.items():
+        if meta_name in team_names:
+            continue
+
+        usage_pct = data.get("Raw count", 0) / total_raw * 100
+        if usage_pct < 1.0:
+            continue
+
+        types = type_map.get(meta_name, [])
+        if not types:
+            continue
+
+        # Which team members are hit super-effectively by this Pokemon's STAB types?
+        threatened = []
+        for p in team.values():
+            damage_from = p.get("Damage From", {})
+            for t in types:
+                if damage_from.get(t.lower(), 1.0) >= 2.0:
+                    threatened.append(p["Pokemon"])
+                    break
+
+        if not threatened:
+            continue
+
+        # Improvement 2: weight members_hit heavily so breadth beats usage
+        score = (len(threatened) ** 2) * usage_pct
+
+        # Improvement 1: which team members can hit back super-effectively?
+        offensive_answers = []
+        for p in team.values():
+            damage_to = p.get("Damage To", {})
+            for t in types:
+                if damage_to.get(t.lower(), 1.0) >= 2.0:
+                    offensive_answers.append(p["Pokemon"])
+                    break
+
+        # Defensive checks: resist all STAB types
+        defensive_checks = []
+        for p in team.values():
+            damage_from = p.get("Damage From", {})
+            if all(damage_from.get(t.lower(), 1.0) <= 0.5 for t in types):
+                defensive_checks.append(p["Pokemon"])
+
+        # Improvement 4: top moves from chaos data (>10% usage, prettified)
+        raw_moves = data.get("Moves", {})
+        total_move_weight = sum(raw_moves.values()) or 1
+        top_moves = sorted(raw_moves.items(), key=lambda x: x[1], reverse=True)[:3]
+        move_strs = []
+        for m, v in top_moves:
+            pct = v / total_move_weight * 100
+            if pct < 10:
+                continue
+            pretty = MOVE_DISPLAY.get(m.lower(), m.replace("-", " ").title())
+            move_strs.append(f"{pretty} ({pct:.0f}%)")
+
+        stab_str = "/".join(types)
+        threatens_str = ", ".join(threatened)
+
+        # Build explanation
+        explanation = f"{stab_str} STAB coverage hits {len(threatened)}/6 team members ({threatens_str}). Present on {usage_pct:.1f}% of ladder teams."
+        if move_strs:
+            explanation += f" Key moves: {', '.join(move_strs)}."
+
+        # Build counter_play combining offensive + defensive answers
+        counter_parts = []
+        if offensive_answers:
+            counter_parts.append(f"{', '.join(offensive_answers)} can hit back super-effectively.")
+        if defensive_checks:
+            counter_parts.append(f"{', '.join(defensive_checks)} resists its STAB." if len(defensive_checks) == 1 else f"{', '.join(defensive_checks)} resist its STAB.")
+        if not counter_parts:
+            counter_parts.append("No team member resists or threatens back — consider adding a counter.")
+        counter_str = " ".join(counter_parts)
+
+        scores.append({
+            "pokemon": meta_name,
+            "explanation": explanation,
+            "counter_play": counter_str,
+            "_score": score,
+        })
+
+    scores.sort(key=lambda x: x["_score"], reverse=True)
+    for s in scores:
+        del s["_score"]
+
+    return scores[:top_n]
+
+
 def get_client():
-    """
-    Returns a configured OpenAI-compatible client.
-    Prioritizes Hugging Face Inference API if HF_TOKEN is present.
-    """
-    # 1. Try Hugging Face (Free Inference API)
-    hf_token = st.secrets.get("HF_TOKEN") or os.getenv("HF_TOKEN")
-    if hf_token:
-        # Using Hugging Face as an OpenAI-compatible provider
-        return OpenAI(
-            base_url="https://api-inference.huggingface.co/v1/",
-            api_key=hf_token
-        ), "mistralai/Mistral-7B-Instruct-v0.2"
-
-    # 2. Try OpenAI (Paid)
-    openai_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
-    if openai_key:
-        return OpenAI(api_key=openai_key), "gpt-3.5-turbo"
-
-    # 3. Fallback to Local Ollama
+    load_dotenv()
     base_url = os.getenv('OLLAMA_HOST', 'http://localhost:11434') + '/v1'
     return OpenAI(base_url=base_url, api_key='ollama'), "llama3.2:3b-instruct-q4_K_M"
 
+
 def get_chat_response(user_query, team_context=None, team_weakness=None, model_name=None):
-    """
-    RAG-enabled chat function using Multi-Agent Architecture.
-    Delegates to AgentManager for routing and specialized execution.
-    """
-    # Lazy import to avoid circular dependency
     from .agents.manager import AgentManager
     manager = AgentManager()
-    
-    # Delegate to the autonomous agent system
-    stream = manager.get_response(user_query, team_context, team_weakness)
-    
-    return stream
+    return manager.get_response(user_query, team_context, team_weakness)
+
 
 def get_suggestions(team):
-    load_dotenv()
-    
-    # Load topPoke.json locally to avoid global state issues on import
+    """
+    Fully deterministic team analysis. No LLM.
+    Checks item-ability synergies, role gaps, type coverage, and Smogon usage warnings.
+    """
+    audit_res = auditor_module.audit_team(team)
+    audit_reports = audit_res.get("reports", {})
+
+    # --- Team-level analysis ---
+    team_analysis = []
+
+    team_roles = {r for p in team.values() for r in p.get("Roles", [])}
+    missing_roles = CORE_ROLES - team_roles
+    if missing_roles:
+        team_analysis.append(f"Missing core roles: {', '.join(sorted(missing_roles))}. Consider adding a Pokemon that can fill these.")
+
     try:
-        with open(config.JSON_DIR / "topPoke.json", "r") as f:
-            topPoke = json.load(f)
-    except FileNotFoundError:
-        topPoke = {}
+        coverage = coverageCheck(team)
+        uncovered = [t for t, covered in coverage.items() if not covered]
+        if uncovered:
+            team_analysis.append(f"No offensive coverage against: {', '.join(sorted(uncovered))} types.")
+    except Exception:
+        pass
 
-    max_retries = 3
-    attempt = 0
-    
-    # Prepare Clean Data with Stats
-    clean_team = []
+    if not team_analysis:
+        team_analysis.append("Team has solid role distribution and type coverage.")
+
+    # --- Per-Pokemon analysis ---
+    pokemon_specific = {}
+
     for p in team.values():
-        clean_team.append({
-            "Pokemon": p["Pokemon"],
-            "Item": p["Item"],
-            "Ability": p["Ability"],
-            "Moves": [m["name"] for m in p["Moves"]],
-            "EVs": p["EVs"],
-            "Nature": p["Nature"],
-            "Base Stats": p.get("Base Stats", {}), # Crucial for context
-            "Real Speed": p.get("Speed", 0),       # Crucial for context
-            "Roles": p.get("Roles", [])
-        })
+        name = p["Pokemon"]
+        issues = []
 
-    client, model = get_client()
+        # Item-ability synergy check
+        rule = ITEM_ABILITY_SYNERGIES.get(p.get("Ability", ""))
+        if rule:
+            allowed = rule.get("must") or rule.get("prefer", [])
+            if p.get("Item") not in allowed:
+                preferred = " or ".join(allowed)
+                issues.append(f"Item mismatch: {p['Ability']} works best with {preferred} — {rule['reason']}.")
 
-    while attempt < max_retries:
-        attempt += 1
-        
-        try:
-            # Prepare meta list (top 60 for context)
-            meta_list = list(topPoke.keys())[:60]
-            
-            completion = client.chat.completions.create(
-                model=model,
-                messages=[{
-                    "role": "user",
-                    "content": f"""
-                    You are a competitive Pokemon expert. Analyze this team deeply.
-                    
-                    Return a JSON object with this EXACT structure:
-                    {{
-                        "team_analysis": ["Detailed point about team synergy", "Point about major weakness"],
-                        "pokemon_specific": {{
-                            "PokemonName1": "Specific advice (e.g., change item, move, or EVs)",
-                            "PokemonName2": "Specific advice"
-                        }},
-                        "threats": [
-                            {{
-                                "pokemon": "ThreatName", 
-                                "explanation": "Why it beats this team",
-                                "counter_play": "How to handle it"
-                            }}
-                        ]
-                    }}
+        # Smogon usage warnings (low-usage item or moves)
+        for w in audit_res.get("warnings", []):
+            if w["pokemon"] == name:
+                issues.append(f"Low-usage {w['category'].lower()}: '{w['current']}' ({w['usage']:.1f}% on ladder). {w['suggestion']}.")
 
-                    Meta Context: {meta_list}
-                    Team Data (with Stats): {json.dumps(clean_team, indent=2)}
-                    """
-                }],
-                # Response format only supported by some models, adding safety
-                response_format={"type": "json_object"} if "gpt" in model else None,
-                temperature=0.2,
-                max_tokens=4000,
-                stream=False,
-            )
-            
-            result_text = completion.choices[0].message.content
-            
-            # If not a JSON object model, try to extract JSON from text
-            if "{" in result_text and "}" in result_text:
-                json_match = re.search(r"\{.*\}", result_text, re.DOTALL)
-                if json_match:
-                    result_text = json_match.group()
+        pokemon_specific[name] = " ".join(issues) if issues else "No issues detected."
 
-            result_json = json.loads(result_text)
-            return result_json
+    threats = compute_threats(team)
 
-        except Exception as e:
-            print(f"An error occurred on attempt {attempt}: {e}")
-            continue
-    
-    return None
+    return {
+        "team_analysis": team_analysis,
+        "pokemon_specific": pokemon_specific,
+        "threats": threats
+    }
+
 
 def get_team_guide(team):
     load_dotenv()
-    
-    # Reuse the clean team logic
+
     clean_team = []
     for p in team.values():
         clean_team.append({
@@ -154,14 +266,14 @@ def get_team_guide(team):
     max_retries = 3
     attempt = 0
     client, model = get_client()
-    
+
     while attempt < max_retries:
         attempt += 1
-        
+
         try:
             prompt_content = f"""
             You are a competitive Pokemon coach teaching a player how to pilot this specific team.
-            
+
             **Team Data:**
             {json.dumps(clean_team, indent=2)}
 
@@ -185,6 +297,24 @@ def get_team_guide(team):
                 ],
                 "tera_strategy": "Who is the best Tera Captain?"
             }}
+
+            Example output:
+            {{
+                "win_condition": "Set up Stealth Rock early with Great Tusk and sweep late-game with Kingambit once checks are worn down.",
+                "lead_options": [
+                    {{
+                        "pokemon": "Great Tusk",
+                        "scenario": "Lead when opponent has no clear spinner; guarantees rocks."
+                    }}
+                ],
+                "key_combos": [
+                    {{
+                        "name": "Tusk + Kingambit",
+                        "description": "Tusk removes hazards and chips walls; Kingambit cleans with boosted Kowtow Cleave."
+                    }}
+                ],
+                "tera_strategy": "Kingambit Teras Dark for a powerful unresisted STAB sweep."
+            }}
             """
 
             completion = client.chat.completions.create(
@@ -195,20 +325,18 @@ def get_team_guide(team):
                 max_tokens=2000,
                 stream=False,
             )
-            
+
             result_text = completion.choices[0].message.content
-            
-            # JSON Extraction safety
+
             if "{" in result_text and "}" in result_text:
                 json_match = re.search(r"\{.*\}", result_text, re.DOTALL)
                 if json_match:
                     result_text = json_match.group()
 
-            result_json = json.loads(result_text)
-            return result_json
+            return json.loads(result_text)
 
         except Exception as e:
             print(f"Guide generation error on attempt {attempt}: {e}")
             continue
-    
+
     return None

@@ -7,15 +7,13 @@ class AgentManager:
     _instance = None
 
     def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(AgentManager, cls).__new__(cls)
-            # Initialize Router (Lazy load singleton)
-            cls._instance.router = get_router()
-            
-            # Initialize Workers
-            cls._instance.tactician = TacticianAgent()
-            cls._instance.coach = CoachAgent()
-            cls._instance.auditor = AuditorAgent()
+        if cls._instance is None or not hasattr(cls._instance, 'router'):
+            instance = super(AgentManager, cls).__new__(cls)
+            instance.router = get_router()
+            instance.tactician = TacticianAgent()
+            instance.coach = CoachAgent()
+            instance.auditor = AuditorAgent()
+            cls._instance = instance
         return cls._instance
 
     def get_response(self, query: str, team_context: dict, team_weakness: dict = None):
@@ -27,12 +25,21 @@ class AgentManager:
         route, confidence = self.router.route_query(query)
         
         # 2. Dispatch
+        if route == "fallback":
+            client, model = self.tactician.client, self.tactician.model
+            return client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": "Could you be more specific? Are you asking about mechanics, strategy, or team building?"}],
+                temperature=0.0,
+                stream=True
+            )
+
         if route == "mechanics":
             return self.tactician.run(query, team_context, team_weakness)
-            
+
         elif route == "builder":
             return self.auditor.run(query, team_context)
-            
+
         else: # Default to Strategy/Coach
             return self.coach.run(query, team_context)
 
@@ -43,6 +50,7 @@ class AgentManager:
         personas = {
             "mechanics": "Clemont 🧪",
             "strategy": "Professor Oak 📜",
-            "builder": "Brock 🍳"
+            "builder": "Brock 🍳",
+            "fallback": "MetaMatch 🤖"
         }
         return personas.get(route, "Unknown Agent")

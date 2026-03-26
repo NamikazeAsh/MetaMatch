@@ -78,28 +78,31 @@ def rebuild_index(chunks):
     )
     print("Index successfully rebuilt.")
 
-def query_strategies(query, n_results=3):
+def query_strategies(query, n_results=3, max_distance=1.0):
     """
     Queries the database for relevant strategies.
+    Filters out hits with L2 distance > max_distance (near-orthogonal = irrelevant).
     """
     model = get_model()
     collection = get_collection()
-    
+
     query_embedding = model.encode([query]).tolist()
-    
+
     results = collection.query(
         query_embeddings=query_embedding,
         n_results=n_results
     )
-    
-    # Flatten results
+
+    # Flatten results, filtering by distance threshold
     hits = []
     if results['documents']:
         for i in range(len(results['documents'][0])):
-            hits.append({
-                "text": results['documents'][0][i],
-                "metadata": results['metadatas'][0][i],
-                "distance": results['distances'][0][i]
-            })
-            
+            distance = results['distances'][0][i]
+            if distance <= max_distance:
+                hits.append({
+                    "text": results['documents'][0][i],
+                    "metadata": results['metadatas'][0][i],
+                    "distance": distance
+                })
+
     return hits

@@ -354,13 +354,13 @@ if not st.session_state.submitted:
             
             if recs:
                 st.markdown(f"**Top recommended partners for your squad:**")
-                # recs is list of (name, score)
+                # recs is list of (name, score, reason)
                 max_score = recs[0][1]
-                
+
                 for i in range(0, len(recs), 4):
                     cols = st.columns(4)
                     batch = recs[i:i+4]
-                    for j, (name, score) in enumerate(batch):
+                    for j, (name, score, reason) in enumerate(batch):
                         match_pct = int((score / max_score) * 100) if max_score > 0 else 0
                         glow_color = "#00ff88" if match_pct > 80 else "#00d4ff"
                         
@@ -1045,7 +1045,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     # --- Detailed Analysis Tabs ---
     st.header("Detailed Analysis")
     tab_overview, tab3, tab4, tab8, tab_rec, tab_matrix, tab7, tab_chat = st.tabs([
-        "Team Overview", "Suggestions", "Meta Threats", "Coach Guide", "Recommendations", "Matchup Matrices", "Speed Tiers", "Coach Chat"
+        "Team Overview", "Audit", "Meta Threats", "Coach Guide", "Recommendations", "Matchup Matrices", "Speed Tiers", "Coach Chat"
     ])
 
     with tab_chat:
@@ -1181,7 +1181,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             sugg = st.session_state.analysis['suggestions']
             
             # --- Team Analysis Section ---
-            st.subheader("🛡️ Strategic Overview")
+            st.subheader("🛡️ Team Audit")
             if 'team_analysis' in sugg and isinstance(sugg['team_analysis'], list):
                 for p in sugg['team_analysis']:
                     st.markdown(f"""
@@ -1194,7 +1194,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             st.markdown("---")
             
             # --- Pokemon Specific Section ---
-            st.subheader("🔍 Optimization Tips")
+            st.subheader("🔍 Per-Pokemon Findings")
             if 'pokemon_specific' in sugg and isinstance(sugg['pokemon_specific'], dict):
                 for pk, adv in sugg['pokemon_specific'].items():
                     # Format advice text
@@ -1216,7 +1216,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                     </div>
                     """, unsafe_allow_html=True)
 
-        else: st.info("Run analysis to see suggestions.")
+        else: st.info("Run analysis to see the audit.")
 
     with tab4:
         sugg = st.session_state.analysis.get('suggestions')
@@ -1303,16 +1303,18 @@ if st.session_state.submitted and st.session_state.pokemon_names:
         fmt_map = {"OU": "gen9ou", "UU": "gen9uu", "NatDex": "gen9natdex"}
 
         selected_fmts_rec = [fmt_map.get(f) for f in tgt_format_rec] if tgt_format_rec else ["gen9ou"]
+        team_roles_rec = [p.get("Roles", []) for p in st.session_state.analysis['team'].values()]
         recs = recommender.get_recommendations(
-            st.session_state.pokemon_names, 
-            format_id=selected_fmts_rec
+            st.session_state.pokemon_names,
+            format_id=selected_fmts_rec,
+            team_roles=team_roles_rec
         )
-        
+
         if recs:
             rec_cols = st.columns(3)
             max_score = recs[0][1]
-            
-            for i, (name, score) in enumerate(recs):
+
+            for i, (name, score, reason) in enumerate(recs):
                 col = rec_cols[i % 3]
                 match_pct = int((score / max_score) * 100)
                 
@@ -1322,6 +1324,12 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                 elif match_pct < 50: glow_color = "#ffaa00" # Orange
                 
                 with col:
+                    reason_html = (
+                        f'<div style="margin-top: 8px; font-size: 0.7rem; color: #ffd700; '
+                        f'background: rgba(255,215,0,0.1); border: 1px solid #ffd70044; '
+                        f'border-radius: 10px; padding: 3px 8px; display: inline-block;">'
+                        f'{reason}</div>'
+                    ) if reason else '<div style="height:0;"></div>'
                     rec_html = f"""
                     <div class="pokemon-card" style="border: 1px solid {glow_color}44; box-shadow: 0 0 15px -5px {glow_color}, inset 0 0 20px -15px {glow_color}; min-height: 180px;">
                         <div style="text-align: center;">
@@ -1333,6 +1341,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                             <div style="margin-top: 10px; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 20px; display: inline-block; border: 1px solid {glow_color}66;">
                                 <span style="color: {glow_color}; font-weight: 800; font-size: 1.1rem;">{match_pct}%</span> <span style="font-size: 0.8rem; opacity: 0.8;">Synergy</span>
                             </div>
+                            {reason_html}
                         </div>
                     </div>
                     """

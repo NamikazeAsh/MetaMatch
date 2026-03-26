@@ -27,18 +27,29 @@ class CoachAgent:
         team_str = "### USER TEAM\n"
         for p in team_context.values():
             moves = ", ".join([m['name'] for m in p.get('Moves', [])])
-            team_str += f"- {p['Pokemon']} ({p.get('Item')}) | Moves: {moves}\n"
+            roles = ", ".join(p.get('Roles', [])) or "Unknown"
+            raw_evs = p.get('EVs', {})
+            if isinstance(raw_evs, dict):
+                evs = " / ".join(f"{v} {k}" for k, v in raw_evs.items() if v > 0) or "Unknown"
+            else:
+                evs = str(raw_evs)
+            team_str += (
+                f"- {p['Pokemon']} @ {p.get('Item')} | Ability: {p.get('Ability')} | "
+                f"Tera: {p.get('Tera Type', '?')} | Nature: {p.get('Nature', '?')} | "
+                f"EVs: {evs} | Roles: {roles} | Speed: {p.get('Speed', '?')} | Moves: {moves}\n"
+            )
 
         # 3. Strategy Prompt
         system_content = f"""
-        You are Professor Oak, the legendary Pokemon researcher and mentor. 
+        You are Professor Oak, the legendary Pokemon researcher and mentor.
         It's time to help this trainer understand the big picture!
-        
+        Respond in plain prose only. No JSON. Be concise: 3–5 sentences.
+
         CONTEXT:
         {rag_context}
-        
+
         {team_str}
-        
+
         INSTRUCTIONS:
         1. Use the 'SMOGON STRATEGY DATABASE' to explain HOW to use the Pokemon/Team.
         2. Focus on "Win Conditions", "Checks", and "Counters".

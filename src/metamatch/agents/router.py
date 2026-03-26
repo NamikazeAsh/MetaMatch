@@ -72,21 +72,26 @@ class SemanticRouter:
         """
         query_embedding = self.model.encode(query)
         
+        CONFIDENCE_THRESHOLD = 0.45
+
         best_route = "strategy" # Default fallback
         max_score = -1.0
-        
+
         for route, anchors in self.route_embeddings.items():
             # Calculate Cosine Similarity with all anchors in this route
             # (Dot product of normalized vectors)
             scores = np.dot(anchors, query_embedding)
-            
+
             # We take the max similarity found in this route's anchors
             route_score = np.max(scores)
-            
+
             if route_score > max_score:
                 max_score = route_score
                 best_route = route
-                
+
+        if max_score < CONFIDENCE_THRESHOLD:
+            return "fallback", float(max_score)
+
         return best_route, float(max_score)
 
 # Singleton instance for import

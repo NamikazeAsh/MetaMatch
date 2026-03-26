@@ -2,48 +2,63 @@ import requests
 import re
 import json
 import os
-import atexit
+import time
 from . import config
 
 CACHE_FILE = config.JSON_DIR / "api_cache.json"
+CACHE_MAX_ENTRIES = 2000
+CACHE_EVICT_COUNT = 200
+CACHE_TTL_SECONDS = 30 * 24 * 60 * 60  # 30 days
+
+
+def _entry_ts(entry) -> float:
+    """Return timestamp of a cache entry, or 0 for legacy flat entries."""
+    if isinstance(entry, dict) and "ts" in entry:
+        return entry["ts"]
+    return 0.0
+
+
+def _entry_data(entry):
+    """Unwrap a cache entry, handling both new {data, ts} and legacy flat formats."""
+    if isinstance(entry, dict) and "ts" in entry and "data" in entry:
+        return entry["data"]
+    return entry  # legacy flat entry
+
+
+def _wrap(data) -> dict:
+    return {"data": data, "ts": time.time()}
+
 
 def load_cache():
     if CACHE_FILE.exists():
         try:
             with open(CACHE_FILE, "r") as f:
-                return json.load(f)
+                raw = json.load(f)
+            # Evict stale entries (TTL check) on load
+            now = time.time()
+            return {
+                k: v for k, v in raw.items()
+                if now - _entry_ts(v) < CACHE_TTL_SECONDS or _entry_ts(v) == 0.0
+            }
         except:
             return {}
     return {}
 
+
 def save_cache(cache):
-    # Ensure directory exists
+    # Size cap: if over limit, drop the oldest entries
+    if len(cache) > CACHE_MAX_ENTRIES:
+        sorted_keys = sorted(cache, key=lambda k: _entry_ts(cache[k]))
+        for k in sorted_keys[:CACHE_EVICT_COUNT]:
+            del cache[k]
+
     CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(CACHE_FILE, "w") as f:
         json.dump(cache, f, indent=2)
 
+
 # Global in-memory cache to reduce reads
 API_CACHE = load_cache()
-_CACHE_DIRTY_WRITES = 0
-_CACHE_FLUSH_EVERY = 10
-
-
-def _mark_cache_dirty():
-    global _CACHE_DIRTY_WRITES
-    _CACHE_DIRTY_WRITES += 1
-    if _CACHE_DIRTY_WRITES >= _CACHE_FLUSH_EVERY:
-        save_cache(API_CACHE)
-        _CACHE_DIRTY_WRITES = 0
-
-
-def flush_cache():
-    global _CACHE_DIRTY_WRITES
-    if _CACHE_DIRTY_WRITES > 0:
-        save_cache(API_CACHE)
-        _CACHE_DIRTY_WRITES = 0
-
-
-atexit.register(flush_cache)
 
 def pokeSlugify(name):
     """
@@ -118,65 +133,33 @@ def fetch_pokemon_data(name):
     Fetches full Pokemon data (types, stats, sprites) with caching.
     """
     slug = pokeSlugify(name)
-    
-    # Check Cache
-    if slug in API_CACHE and 'stats' in API_CACHE[slug]:
-        return API_CACHE[slug]
-    
+
+    # Check cache — support both new {data, ts} and legacy flat entries
+    if slug in API_CACHE:
+        cached = _entry_data(API_CACHE[slug])
+        if isinstance(cached, dict) and 'stats' in cached:
+            return cached
+
     url = f"https://pokeapi.co/api/v2/pokemon/{slug}"
     try:
         res = requests.get(url, timeout=5)
         if res.status_code == 200:
             data = res.json()
-            
-            # Extract only what we need to save space
+
             processed_data = {
                 'types': [t["type"]["name"].capitalize() for t in data["types"]],
                 'stats': {s["stat"]["name"]: s["base_stat"] for s in data["stats"]},
                 'sprite': data['sprites']['front_default'],
                 'abilities': [a['ability']['name'] for a in data['abilities']]
             }
-            
-            # Update Cache
-            API_CACHE[slug] = processed_data
-            _mark_cache_dirty()
+
+            API_CACHE[slug] = _wrap(processed_data)
+            save_cache(API_CACHE)
             return processed_data
     except Exception as e:
         print(f"Error fetching {name}: {e}")
-        
+
     return None
-
-
-def fetch_move_data(move_name):
-    """
-    Fetches move metadata (type, power, accuracy, category) with caching.
-    """
-    slug = move_name.lower().replace(" ", "-").replace("'", "")
-    cache_key = f"move::{slug}"
-
-    if cache_key in API_CACHE:
-        return API_CACHE[cache_key]
-
-    url = f"https://pokeapi.co/api/v2/move/{slug}"
-    default = {"type": None, "power": None, "accuracy": None, "category": None}
-
-    try:
-        res = requests.get(url, timeout=3)
-        if res.status_code != 200:
-            return default
-
-        data = res.json()
-        processed_data = {
-            "type": data["type"]["name"].capitalize(),
-            "power": data["power"],
-            "accuracy": data["accuracy"],
-            "category": data["damage_class"]["name"].capitalize(),
-        }
-        API_CACHE[cache_key] = processed_data
-        _mark_cache_dirty()
-        return processed_data
-    except Exception:
-        return default
 
 def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item=""):
     """
@@ -194,6 +177,71 @@ def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item=""):
         stat = int(stat * 0.5)
         
     return stat
+
+
+def fetch_ability_data(ability_name: str) -> str:
+    """
+    Fetches the short effect description of an ability from PokeAPI.
+    Returns a plain-English string like 'Doubles Speed in harsh sunlight.'
+    Returns empty string on failure.
+    """
+    slug = ability_name.lower().strip().replace(" ", "-").replace("'", "")
+    cache_key = f"ability::{slug}"
+
+    if cache_key in API_CACHE:
+        cached = _entry_data(API_CACHE[cache_key])
+        if isinstance(cached, str):
+            return cached
+
+    url = f"https://pokeapi.co/api/v2/ability/{slug}"
+    try:
+        res = requests.get(url, timeout=5)
+        if res.status_code == 200:
+            data = res.json()
+            # Prefer English short_effect; fall back to effect
+            for entry in data.get("effect_entries", []):
+                if entry.get("language", {}).get("name") == "en":
+                    desc = entry.get("short_effect", entry.get("effect", "")).strip()
+                    API_CACHE[cache_key] = _wrap(desc)
+                    save_cache(API_CACHE)
+                    return desc
+    except Exception as e:
+        print(f"Error fetching ability {ability_name}: {e}")
+
+    return ""
+
+
+def fetch_move_data(move_name):
+    """
+    Fetches move metadata from PokeAPI.
+    """
+    slug = move_name.lower().replace(" ", "-").replace("'", "")
+    cache_key = f"move::{slug}"
+    default = {'type': None, 'power': None, 'accuracy': None, 'category': None}
+
+    if cache_key in API_CACHE:
+        cached = _entry_data(API_CACHE[cache_key])
+        if isinstance(cached, dict) and 'type' in cached:
+            return cached
+
+    url = f"https://pokeapi.co/api/v2/move/{slug}"
+    try:
+        res = requests.get(url, timeout=3)
+        if res.status_code != 200:
+            return default
+
+        data = res.json()
+        processed = {
+            'type': data['type']['name'].capitalize(),
+            'power': data['power'],
+            'accuracy': data['accuracy'],
+            'category': data['damage_class']['name'].capitalize()
+        }
+        API_CACHE[cache_key] = _wrap(processed)
+        save_cache(API_CACHE)
+        return processed
+    except Exception:
+        return default
 
 
 # --- Pokepaste Integration ---
