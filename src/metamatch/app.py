@@ -10,13 +10,6 @@ warnings.filterwarnings('ignore', category=FutureWarning, module='google.api_cor
 logging.getLogger('tensorflow').setLevel(logging.ERROR)
 
 import streamlit as st
-import re
-import requests
-import json
-import pandas as pd
-import altair as alt
-from PIL import Image
-from io import BytesIO
 import sys
 from pathlib import Path
 
@@ -24,17 +17,20 @@ from pathlib import Path
 # Adds the 'src' directory to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from metamatch.utils import pokeSlugify, is_pokepaste_url, fetch_pokepaste
+from metamatch.utils import pokeSlugify, is_pokepaste_url, fetch_pokepaste, extract_pokemon_names, get_pokemon_sprite
 from metamatch.team import readTeam, detectRole, addComments, coverageCheck
-from metamatch.suggestions import get_suggestions, get_team_guide, get_chat_response
+from metamatch.suggestions import get_suggestions, get_team_guide
 from metamatch.scrapers import generate_speed_tiers
-from metamatch.type_chart import get_multiplier
 from metamatch import config
 from metamatch import storage
-from metamatch import recommender
 from metamatch import auditor
 from metamatch import strategy_data
-from metamatch import replay
+from metamatch.tabs import (
+    tab_quick_match, tab_move_search, tab_replay,
+    tab_overview as tab_overview_mod, tab_audit, tab_threats,
+    tab_coach_guide, tab_recommender as tab_recommender_mod, tab_matrix as tab_matrix_mod,
+    tab_speed_tiers, tab_chat as tab_chat_mod,
+)
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
@@ -46,7 +42,7 @@ st.markdown(r'''
     /* Global Base */
     .main .block-container { padding-top: 2rem; padding-bottom: 0rem; }
     .stApp { background: radial-gradient(circle at 50% 50%, #1a1f2e 0%, #0f1219 100%); color: #e0e0e0; font-family: 'Inter', sans-serif; }
-    
+
     /* Transparent Header */
     .stApp > header { background-color: transparent; }
 
@@ -77,7 +73,7 @@ st.markdown(r'''
     .pokemon-card:hover { transform: translateY(-5px); }
     .poke-name { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; color: #fff; }
     .role-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; margin-right: 4px; border: 1px solid rgba(255,255,255,0.1); color: #ddd; }
-    
+
     /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
@@ -86,52 +82,36 @@ st.markdown(r'''
 
     /* Animations */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    
+
     @keyframes pulseGlow { 0% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); } 50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); } 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); } }
 
     .pokemon-card { animation: fadeInUp 0.6s ease-out forwards; }
 
     /* Progress Bar Overhaul */
     div[data-testid="stProgress"] > div > div > div > div { background-image: linear-gradient(90deg, #00d4ff, #00ffcc) !important; box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
-    
+
     /* Neon Dividers */
     hr { border: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent); margin: 2rem 0; }
 
     /* Background Atmospheric Particles */
-    .stApp::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: 
+    .stApp::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background:
             radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.05) 0%, transparent 20%),
             radial-gradient(circle at 80% 70%, rgba(0, 255, 204, 0.05) 0%, transparent 20%);
             pointer-events: none; z-index: -1; }
 </style>
 ''', unsafe_allow_html=True)
 
-# --- Helper Functions ---
-def extract_pokemon_names(raw_data):
-    names = []
-    lines = raw_data.split('\n')
-    for line in lines:
-        line = line.strip()
-        if not line: continue
-        if '@' in line:
-            raw_name = line.split('@')[0].strip()
-            # Remove gender like (M), (F), (m), (f)
-            clean_name = re.sub(r'\s*\([MFmf]\)$', '', raw_name)
-            if clean_name and clean_name not in names:
-                names.append(clean_name)
-    return names
-
-def get_pokemon_sprite(name):
-    try:
-        slugified_name = pokeSlugify(name)
-        url = f"https://pokeapi.co/api/v2/pokemon/{slugified_name}"
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            sprite_url = data['sprites']['front_default']
-            if sprite_url: return sprite_url
-    except:
-        pass
-    return None
+TYPE_MAP = {
+    'Fire': {'color': '#FF4422', 'icon': '🔥'}, 'Water': {'color': '#3399FF', 'icon': '💧'},
+    'Grass': {'color': '#77CC55', 'icon': '🌿'}, 'Electric': {'color': '#FFCC33', 'icon': '⚡'},
+    'Psychic': {'color': '#FF5599', 'icon': '🔮'}, 'Ice': {'color': '#66CCFF', 'icon': '❄️'},
+    'Fighting': {'color': '#BB5544', 'icon': '🥊'}, 'Poison': {'color': '#AA5599', 'icon': '☠️'},
+    'Ground': {'color': '#DDBB55', 'icon': '🏜️'}, 'Flying': {'color': '#8899FF', 'icon': '🕊️'},
+    'Bug': {'color': '#AABB22', 'icon': '🐞'}, 'Rock': {'color': '#BBAA66', 'icon': '🪨'},
+    'Ghost': {'color': '#6666BB', 'icon': '👻'}, 'Dragon': {'color': '#7766EE', 'icon': '🐲'},
+    'Dark': {'color': '#775544', 'icon': '🌑'}, 'Steel': {'color': '#AAAABB', 'icon': '⚙️'},
+    'Fairy': {'color': '#EE99AA', 'icon': '✨'}, 'Normal': {'color': '#AAAA99', 'icon': '⚪'}
+}
 
 @st.cache_data(ttl=300)
 def get_cached_teams():
@@ -154,10 +134,10 @@ with st.sidebar:
     if saved_teams_data:
         team_names = [t['name'] for t in saved_teams_data]
         selected_name = st.selectbox("Load a saved team:", ["Select..."] + team_names)
-        
+
         if selected_name != "Select...":
             selected_team = next((t for t in saved_teams_data if t['name'] == selected_name), None)
-            
+
             if selected_team:
                 # Render Preview
                 pk_list = selected_team.get('pokemon_names', [])
@@ -169,7 +149,7 @@ with st.sidebar:
                         preview_html += f'<span style="background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.2); color: #00d4ff; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">{pk}</span>'
                     preview_html += '</div></div>'
                     st.markdown(preview_html, unsafe_allow_html=True)
-                
+
                 c1, c2 = st.columns(2)
                 if c1.button("📂 Load", use_container_width=True):
                     st.session_state.default_input = selected_team['raw_text']
@@ -188,7 +168,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.header("📋 Team Input")
-    
+
     with st.form("pokemon_form"):
         pokemon_data = st.text_area(
             "Paste Showdown Export or pokepast.es link:",
@@ -197,9 +177,9 @@ with st.sidebar:
             height=400,
             help="Paste your team from Pokemon Showdown or a pokepast.es URL."
         )
-        
+
         submit_button = st.form_submit_button("Analyze Team", type="primary")
-        
+
         if submit_button and pokemon_data:
             # Auto-detect pokepast.es URLs and fetch
             if is_pokepaste_url(pokemon_data):
@@ -211,10 +191,10 @@ with st.sidebar:
                     else:
                         st.error("Failed to fetch from pokepast.es. Check the URL.")
                         st.stop()
-            
+
             st.session_state.pokemon_data = pokemon_data
             st.session_state.pokemon_names = extract_pokemon_names(pokemon_data)
-            
+
             with st.spinner("Analyzing team dynamics..."):
                 team, team_weakness = readTeam(pokemon_data)
                 detectRole(team)
@@ -222,7 +202,7 @@ with st.sidebar:
                 coverage = coverageCheck(team)
                 suggestions = get_suggestions(team)
                 guide = get_team_guide(team)
-                
+
                 st.session_state.analysis = {
                     'team': team,
                     'weakness': team_weakness,
@@ -266,9 +246,9 @@ with st.sidebar:
 
     with st.expander("ℹ️ Supported Formats"):
         st.markdown("""
-        MetaMatch supports the standard **Pokémon Showdown Export** format. 
+        MetaMatch supports the standard **Pokémon Showdown Export** format.
         You can copy your team directly from the 'Export' button in the Showdown Teambuilder.
-        
+
         **Recognized Fields:**
         - `Pokemon @ Item` (Optional item)
         - `Ability: Name`
@@ -276,7 +256,7 @@ with st.sidebar:
         - `EVs: 252 HP / 252 Def`
         - `Nature Name Nature` (e.g., *Adamant Nature*)
         - `- Move Name` (Starting with a hyphen)
-        
+
         *Note: Nicknames are currently not supported. Please use the species name directly.*
         """)
         st.code("""
@@ -309,646 +289,36 @@ with col2:
         st.title("MetaMatch")
 
 if not st.session_state.submitted:
-    
-    # Create Tabs for Pre-Analysis Tools
     tool_tab1, tool_tab2, tool_tab3 = st.tabs(["🤝 Quick Match", "🔎 Move Search", "📼 Replay Auditor"])
 
     with tool_tab1:
-        st.markdown("### 🤝 Quick Match")
-        st.caption("Don't have a full team? Pick 1-5 Pokémon to find their best partners.")
-        
-        # Format Selection Pills
-        tgt_format = st.pills(
-            "Competitive Format",
-            options=["OU", "UU", "NatDex"],
-            default=["OU"],
-            selection_mode="multi",
-            label_visibility="collapsed"
-        )
-        fmt_map = {"OU": "gen9ou", "UU": "gen9uu", "NatDex": "gen9natdex"}
-
-        # Load meta mons for selection
-        try:
-            with open(config.JSON_DIR / "topPoke.json", "r") as f:
-                meta_pokes = list(json.load(f).keys())
-        except:
-            meta_pokes = []
-
-        qm_selection = st.multiselect(
-            "Select your core (Max 5):", 
-            options=meta_pokes,
-            max_selections=5,
-            placeholder="Search for a Pokémon...",
-            key="quick_match_select"
-        )
-        
-        if qm_selection:
-            # Convert selected labels (e.g. "OU") to internal IDs (e.g. "gen9ou")
-            selected_fmts = [fmt_map.get(f) for f in tgt_format] if tgt_format else ["gen9ou"]
-            recs = recommender.get_recommendations(qm_selection, top_n=16, format_id=selected_fmts)
-            
-            # Load strategy data for set recommendations
-            strat_data = get_master_strategy_data()
-            # Map format labels for filtering sets (e.g., "OU", "UU", "NatDex")
-            selected_format_labels = tgt_format if tgt_format else ["OU"]
-            
-            if recs:
-                st.markdown(f"**Top recommended partners for your squad:**")
-                # recs is list of (name, score, reason)
-                max_score = recs[0][1]
-
-                for i in range(0, len(recs), 4):
-                    cols = st.columns(4)
-                    batch = recs[i:i+4]
-                    for j, (name, score, reason) in enumerate(batch):
-                        match_pct = int((score / max_score) * 100) if max_score > 0 else 0
-                        glow_color = "#00ff88" if match_pct > 80 else "#00d4ff"
-                        
-                        # Get sets for this Pokemon filtered by selected formats
-                        pokemon_sets = []
-                        if name in strat_data:
-                            all_sets = strat_data[name].get("sets", {})
-                            for set_name, set_info in all_sets.items():
-                                # Check if set matches any selected format (e.g., "Sun Sweeper (OU)" contains "OU")
-                                for fmt_label in selected_format_labels:
-                                    if f"({fmt_label})" in set_name:
-                                        pokemon_sets.append((set_name, set_info))
-                                        break
-                        
-                        with cols[j]:
-                            sprite_url = get_pokemon_sprite(name) or ""
-                            
-                            # Build sets HTML
-                            sets_html = ""
-                            if pokemon_sets:
-                                sets_html = '<div style="margin-top: 8px; text-align: left;">'
-                                for set_name, set_info in pokemon_sets[:3]:  # Show max 3 sets
-                                    # Extract key info
-                                    item = set_info.get("item", "")
-                                    if isinstance(item, list):
-                                        item = item[0] if item else ""
-                                    ability = set_info.get("ability", "")
-                                    if isinstance(ability, list):
-                                        ability = ability[0] if ability else ""
-                                    
-                                    # Handle "None" ability (Pokémon with only one ability)
-                                    if not ability or ability == "None":
-                                        ability = ""
-                                    
-                                    # Clean set name (remove format suffix)
-                                    display_name = set_name.rsplit(" (", 1)[0]
-                                    
-                                    # Build info line (item only if no ability)
-                                    if ability:
-                                        info_line = f"{item} · {ability}"
-                                    else:
-                                        info_line = item
-                                    
-                                    sets_html += f'''
-                                    <div style="background: rgba(0,0,0,0.25); border-radius: 6px; padding: 6px 10px; margin-top: 6px; border-left: 3px solid {glow_color};">
-                                        <div style="font-size: 0.8rem; font-weight: 600; color: #fff;">{display_name}</div>
-                                        <div style="font-size: 0.7rem; color: #aaa; margin-top: 3px;">{info_line}</div>
-                                    </div>'''
-                                sets_html += '</div>'
-                            else:
-                                sets_html = '<div class="qm-sets-container" style="font-size: 0.65rem; color: #666; margin-top: 8px;">No verified sets</div>'
-                            
-                            # Wrap sets in a hover-reveal container
-                            sets_wrapper = f'<div class="qm-sets-container">{sets_html}</div>' if pokemon_sets else sets_html
-                            
-                            st.markdown(f"""
-                            <style>
-                                .qm-card .qm-sets-container {{
-                                    max-height: 0;
-                                    overflow: hidden;
-                                    opacity: 0;
-                                    transition: max-height 0.3s ease, opacity 0.3s ease;
-                                }}
-                                .qm-card:hover .qm-sets-container {{
-                                    max-height: 300px;
-                                    opacity: 1;
-                                }}
-                            </style>
-                            <div class="qm-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid {glow_color}44; border-radius: 12px; padding: 10px; text-align: center; transition: transform 0.2s; margin-bottom: 15px; cursor: pointer;">
-                                <img src="{sprite_url}" width="70" style="filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
-                                <div style="font-weight: 700; font-size: 0.9rem; margin-top: 5px; color: #fff;">{name}</div>
-                                <div title="Based on high-ladder weighted usage statistics from Smogon." style="cursor: help; margin-top: 5px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 15px; display: inline-block; border: 1px solid {glow_color}66;">
-                                    <span style="color: {glow_color}; font-weight: bold; font-size: 0.8rem;">{match_pct}% Synergy</span>
-                                </div>
-                                {sets_wrapper}
-                            </div>
-                            """, unsafe_allow_html=True)
-            else:
-                st.caption("No specific recommendations found for this combination.")
+        tab_quick_match.render(get_master_strategy_data)
 
     with tool_tab2:
-        st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
-        
-        # --- Search Control Panel ---
-        with st.container():
-            c1, c2 = st.columns([3, 1])
-            with c1:
-                st.markdown("### 🔎 Find Sets by Moves")
-                st.caption("Locate verified Smogon sets or experimental ladder combos.")
-            with c2:
-                # Spacer to align toggle with title
-                st.markdown("<div style='height: 15px'></div>", unsafe_allow_html=True)
-                include_loose = st.toggle("🧪 Include Loose Matches", value=False, help="Search usage stats for 'homemade' combos not yet in the Strategy Dex.")
-
-        # Load cached strategy data
-        master_strat_data = get_master_strategy_data()
-        usage_data = get_usage_data()
-        
-        # Initialize moves if not loaded
-        if 'all_moves' not in st.session_state:
-            with st.spinner("Loading move list..."):
-                st.session_state.all_moves = strategy_data.get_all_known_moves(master_strat_data, usage_data)
-        
-        # Search Bar styled
-        move_selection = st.multiselect(
-            "Select Moves:",
-            options=st.session_state.all_moves,
-            placeholder="Type moves to search (e.g. 'Scald', 'Thunder Wave')...",
-            key="move_search_select",
-            label_visibility="collapsed"
-        )
-        
-        # Action Bar
-        col_btn, col_info = st.columns([1, 4])
-        with col_btn:
-            search_clicked = st.button("🚀 Find Sets", key="find_sets_btn", use_container_width=True)
-        with col_info:
-            if not search_clicked and not move_selection:
-                st.caption("👈 Select moves to start searching.")
-
-        st.markdown("---")
-
-        if search_clicked:
-            if move_selection:
-                # 1. Exact Strategy Matches
-                strat_results = strategy_data.find_sets_with_moves(move_selection, data=master_strat_data)
-                
-                # 2. Loose Usage Matches (if enabled)
-                usage_results = []
-                if include_loose:
-                    usage_results = strategy_data.find_usage_matches(move_selection, usage_data=usage_data)
-                
-                # Deduplicate
-                exact_mons = {r['pokemon'] for r in strat_results}
-                filtered_usage = [r for r in usage_results if r['pokemon'] not in exact_mons]
-                
-                total_found = len(strat_results) + len(filtered_usage)
-                
-                if total_found > 0:
-                    # --- Header Stats ---
-                    st.markdown(f"""
-                    <div style="display:flex; gap:15px; margin-bottom: 20px; align-items: center;">
-                        <span style="font-size: 1.2rem; font-weight: bold; color: #fff;">Found {total_found} Matches</span>
-                        <span style="background: rgba(0, 212, 255, 0.1); color: #00d4ff; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(0, 212, 255, 0.2); font-size: 0.8rem;">{len(strat_results)} Verified</span>
-                        {'<span style="background: rgba(255, 170, 0, 0.1); color: #ffaa00; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(255, 170, 0, 0.2); font-size: 0.8rem;">' + str(len(filtered_usage)) + ' Experimental</span>' if filtered_usage else ''}
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # --- Exact Matches ---
-                    if strat_results:
-                        st.markdown("#### 📘 Verified Strategy Sets")
-                        for res in strat_results:
-                            poke_name = res['pokemon']
-                            sprite_url = get_pokemon_sprite(poke_name) or ""
-                            
-                            # Format Badges
-                            fmt_badges = ""
-                            for fmt in res.get('formats', []):
-                                color = "#888"
-                                if "OU" in fmt: color = "#e74c3c"
-                                elif "UU" in fmt: color = "#3498db"
-                                elif "NatDex" in fmt: color = "#9b59b6"
-                                fmt_badges += f'<span style="background:{color}; color:white; padding: 1px 6px; border-radius: 3px; font-size: 0.6rem; margin-right: 4px;">{fmt}</span>'
-
-                            # Build move list HTML
-                            moves_html = ""
-                            for m in res['moves']:
-                                m_norm = m.lower().replace("-", "").replace(" ", "")
-                                sel_norms = [s.lower().replace("-", "").replace(" ", "") for s in move_selection]
-                                
-                                if m_norm in sel_norms:
-                                    moves_html += f'<div style="background: rgba(0, 255, 136, 0.15); border: 1px solid rgba(0, 255, 136, 0.4); color: #00ff88; padding: 4px 8px; border-radius: 4px; font-weight: 600;">✅ {m}</div>'
-                                else:
-                                    moves_html += f'<div style="background: rgba(255, 255, 255, 0.05); color: #aaa; padding: 4px 8px; border-radius: 4px;">{m}</div>'
-                                    
-                            st.markdown(f"""
-<div class="pokemon-card" style="border: 1px solid rgba(0, 212, 255, 0.15); background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%); margin-bottom: 15px; padding: 0; overflow: hidden;">
-<div style="display: flex;">
-<div style="width: 120px; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; border-right: 1px solid rgba(255,255,255,0.05);">
-<img src="{sprite_url}" width="80" style="filter: drop-shadow(0 0 8px rgba(0,0,0,0.6));">
-<div style="font-weight: 700; margin-top: 10px; color: #fff; text-align: center; line-height: 1.2;">{poke_name}</div>
-<div style="margin-top: 8px;">{fmt_badges}</div>
-</div>
-<div style="flex-grow: 1; padding: 15px;">
-<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-<div>
-<div style="font-size: 0.7rem; color: #00d4ff; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">Strategy Name</div>
-<div style="font-size: 1.1rem; font-weight: 600; color: #e0e0e0;">{res['set_name'].split('(')[0]}</div>
-</div>
-<div style="text-align: right; font-size: 0.8rem; color: #aaa;">
-<div>✨ {res['ability']}</div>
-<div>🎒 {res['item']}</div>
-<div>🧬 {res['nature']}</div>
-</div>
-</div>
-<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; font-size: 0.85rem;">
-{moves_html}
-</div>
-</div>
-</div>
-</div>
-""", unsafe_allow_html=True)
-
-                    # --- Loose Matches ---
-                    if filtered_usage:
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        st.markdown("""
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <h4 style="margin:0; padding:0;">🧪 Experimental Matches</h4>
-                            <span style="background: rgba(255, 170, 0, 0.15); border: 1px solid rgba(255, 170, 0, 0.3); color: #ffaa00; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;">USAGE > 1%</span>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        st.caption("These Pokémon use all selected moves in the meta, but not necessarily on the same set.")
-                        
-                        cols = st.columns(2)
-                        for i, res in enumerate(filtered_usage):
-                            with cols[i % 2]:
-                                poke_name = res['pokemon']
-                                sprite_url = get_pokemon_sprite(poke_name) or ""
-                                fmt = res['format']
-                                
-                                color = "#444"
-                                if "OU" in fmt: color = "#e74c3c"
-                                elif "UU" in fmt: color = "#3498db"
-                                elif "NatDex" in fmt: color = "#9b59b6"
-                                
-                                moves_html = ""
-                                for m_name, usage in res['moves'].items():
-                                    # Usage bar visualization
-                                    bar_width = min(usage, 100)
-                                    usage_color = "#00ff88" if usage > 50 else "#ffcc00" if usage > 10 else "#888"
-                                    
-                                    moves_html += f"""
-<div style="margin-bottom: 8px;">
-<div style="display:flex; justify-content:space-between; font-size: 0.85rem; color: #ddd; margin-bottom: 2px;">
-<span style="font-weight: 500;">{m_name}</span>
-<span style="color:{usage_color}; font-family:monospace; font-weight: bold;">{usage:.1f}%</span>
-</div>
-<div style="width: 100%; height: 5px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
-<div style="width: {bar_width}%; height: 100%; background: {usage_color}; box-shadow: 0 0 5px {usage_color};"></div>
-</div>
-</div>"""
-                                
-                                st.markdown(f"""
-<div style="background: linear-gradient(180deg, rgba(30,30,30,0.9) 0%, rgba(20,20,20,0.9) 100%); border: 1px solid rgba(255, 170, 0, 0.25); border-left: 4px solid {color}; border-radius: 8px; padding: 16px; display: flex; gap: 16px; transition: transform 0.2s; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-<div style="text-align: center; width: 70px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5px;">
-<img src="{sprite_url}" width="60" style="opacity: 1.0; filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));">
-<div style="background:{color}; color:white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-top: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">{fmt}</div>
-</div>
-<div style="flex-grow: 1;">
-<div style="font-weight: 800; color: #fff; font-size: 1.1rem; margin-bottom: 12px; text-shadow: 0 0 10px rgba(255, 170, 0, 0.2);">{poke_name}</div>
-{moves_html}
-</div>
-</div>
-""", unsafe_allow_html=True)
-                else:
-                    st.warning("No matches found. Try enabling 'Include Loose Matches' or checking your move selection.")
-            else:
-                st.error("Please select at least one move.")
+        tab_move_search.render(get_master_strategy_data, get_usage_data)
 
     with tool_tab3:
-        st.markdown("### 📼 Replay Auditor")
-        st.caption("Paste a Pokémon Showdown replay link to receive a tactical breakdown of your battle.")
-        
-        # Input section
-        replay_url = st.text_input(
-            "Replay Link:",
-            placeholder="https://replay.pokemonshowdown.com/gen9ou-...",
-            key="replay_url_input",
-            label_visibility="collapsed"
-        )
-        
-        col_player, col_analyze = st.columns([2, 1])
-        with col_player:
-            user_perspective = st.radio(
-                "Which player are you?",
-                options=["Player 1 (left side)", "Player 2 (right side)"],
-                horizontal=True,
-                key="replay_perspective"
-            )
-        with col_analyze:
-            analyze_btn = st.button("🔍 Analyze Replay", use_container_width=True, type="primary")
-        
-        st.markdown("---")
-        
-        if analyze_btn and replay_url:
-            user_player = 'p1' if 'Player 1' in user_perspective else 'p2'
-            
-            with st.spinner("Fetching and analyzing replay..."):
-                replay_data = replay.fetch_replay(replay_url)
-                
-                if replay_data:
-                    summary = replay.generate_summary(replay_data, user_player)
-                    
-                    if 'error' not in summary:
-                        # Store in session for persistence
-                        st.session_state.replay_summary = summary
-                    else:
-                        st.error(summary['error'])
-                else:
-                    st.error("Could not fetch replay. Check the URL and try again.")
-        
-        # Display results if available
-        if 'replay_summary' in st.session_state:
-            summary = st.session_state.replay_summary
-            user_player = summary['user_player']
-            opponent = 'p2' if user_player == 'p1' else 'p1'
-            
-            # Header with result
-            p1_name = summary['players']['p1']
-            p2_name = summary['players']['p2']
-            user_name = p1_name if user_player == 'p1' else p2_name
-            opp_name = p2_name if user_player == 'p1' else p1_name
-            
-            winner = summary.get('winner')
-            result_text = "WIN" if winner == user_player else "LOSS" if winner else "TIE"
-            result_color = "#00ff88" if winner == user_player else "#ff4444" if winner else "#ffaa00"
-            
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba({result_color[1:3]},{result_color[3:5]},{result_color[5:7]},0.1) 100%); 
-                        border: 1px solid {result_color}44; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px;">{summary['format']}</div>
-                        <div style="font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 5px;">
-                            {user_name} <span style="color: #666;">vs</span> {opp_name}
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 2rem; font-weight: 800; color: {result_color}; text-shadow: 0 0 20px {result_color};">{result_text}</div>
-                        <div style="font-size: 0.9rem; color: #aaa;">{summary['total_turns']} turns</div>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Score breakdown
-            user_alive = summary['final_score'][user_player]
-            opp_alive = summary['final_score'][opponent]
-            
-            sc1, sc2 = st.columns(2)
-            with sc1:
-                st.metric("Your Pokémon Remaining", f"{user_alive}/6")
-            with sc2:
-                st.metric("Opponent's Remaining", f"{opp_alive}/6")
-            
-            # Momentum Chart
-            momentum_data = summary.get('momentum', [])
-            if momentum_data and len(momentum_data) > 2:
-                st.markdown("---")
-                
-                st.markdown("""
-                <style>
-                    [data-testid="column"]:last-child {
-                        display: flex;
-                        justify-content: flex-end;
-                    }
-                </style>
-                """, unsafe_allow_html=True)
-                
-                mom_header = st.columns([8, 1])
-                with mom_header[0]:
-                    st.markdown("### 📈 Battle Momentum")
-                with mom_header[1]:
-                    with st.popover("ℹ️"):
-                        st.markdown("""
-                        **How momentum is calculated:**
-                        - **+20** when you KO an opponent
-                        - **-10** when you lose a Pokémon
-                        - **+1** per 10% damage dealt
-                        
-                        Higher = winning. Watch for swings where lines cross!
-                        """)
-                
-                import pandas as pd
-                # Convert momentum to DataFrame
-                df = pd.DataFrame(momentum_data)
-                df = df[df['turn'] > 0]  # Skip turn 0
-                if not df.empty:
-                    df = df.rename(columns={'p1': f"🔵 {user_name}", 'p2': f"🔴 {opp_name}"})
-                    df = df.set_index('turn')
-                    st.line_chart(df, use_container_width=True, color=["#00d4ff", "#ff6b6b"])
-            
-            # Hazard Damage Summary
-            hazard_dmg = summary.get('hazard_damage', {}).get(user_player, {})
-            if hazard_dmg:
-                total_hazard_dmg = sum(hazard_dmg.values())
-                st.markdown("---")
-                st.markdown("### 🪨 Hazard Damage Taken")
-                
-                haz_cols = st.columns(min(len(hazard_dmg), 4))
-                for i, (poke, dmg) in enumerate(sorted(hazard_dmg.items(), key=lambda x: -x[1])):
-                    with haz_cols[i % len(haz_cols)]:
-                        dmg_color = "#ff4444" if dmg >= 25 else "#ffaa00" if dmg >= 12 else "#00d4ff"
-                        st.markdown(f"""
-                        <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 8px;">
-                            <div style="font-weight: 600; color: #fff; font-size: 0.9rem;">{poke}</div>
-                            <div style="font-size: 1.5rem; font-weight: 800; color: {dmg_color}; margin-top: 4px;">{dmg}%</div>
-                            <div style="font-size: 0.7rem; color: #888;">hazard chip</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                st.caption(f"Total hazard damage: **{total_hazard_dmg}%** — Consider Heavy-Duty Boots or prioritizing hazard removal.")
-            
-            st.markdown("---")
-            
-            # Blunders Section
-            blunders = summary.get('blunders', [])
-            if blunders:
-                st.markdown("### ⚠️ Potential Misplays Detected")
-                
-                for blunder in blunders:
-                    severity_colors = {
-                        'critical': '#ff4444',
-                        'moderate': '#ffaa00',
-                        'minor': '#00d4ff'
-                    }
-                    sev_color = severity_colors.get(blunder.severity, '#888')
-                    
-                    st.markdown(f"""
-                    <div style="background: rgba(0,0,0,0.2); border-left: 4px solid {sev_color}; 
-                                padding: 15px; margin-bottom: 12px; border-radius: 0 8px 8px 0;">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <span style="background: {sev_color}22; color: {sev_color}; padding: 2px 8px; 
-                                             border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">
-                                    Turn {blunder.turn} • {blunder.severity}
-                                </span>
-                                <div style="font-size: 1rem; color: #fff; margin-top: 8px; font-weight: 600;">
-                                    {blunder.description}
-                                </div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 10px; padding: 10px; background: rgba(0,255,136,0.05); 
-                                    border: 1px solid rgba(0,255,136,0.2); border-radius: 6px;">
-                            <span style="color: #00ff88; font-weight: 600;">💡 Suggestion:</span>
-                            <span style="color: #ccc;"> {blunder.suggestion}</span>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.success("✅ No obvious misplays detected! Well played.")
-            
-            st.markdown("---")
-            
-            # Team Final States
-            st.markdown("### 📊 Final Team States")
-            
-            tcol1, tcol2 = st.columns(2)
-            
-            with tcol1:
-                st.markdown(f"**Your Team ({user_name})**")
-                user_team = summary['teams'][user_player]
-                for species, data in user_team.items():
-                    hp = data['hp']
-                    fainted = data['fainted']
-                    status = data.get('status', '')
-                    
-                    hp_color = "#00ff88" if hp > 50 else "#ffaa00" if hp > 0 else "#ff4444"
-                    status_badge = f" <span style='color:#ffaa00;'>({status})</span>" if status else ""
-                    faint_style = "opacity: 0.4; text-decoration: line-through;" if fainted else ""
-                    
-                    st.markdown(f"""
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; {faint_style}">
-                        <span style="font-weight: 600; color: #fff; min-width: 120px;">{species}</span>
-                        <div style="flex-grow: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                            <div style="width: {hp}%; height: 100%; background: {hp_color};"></div>
-                        </div>
-                        <span style="color: {hp_color}; font-family: monospace; min-width: 40px;">{hp}%</span>
-                        {status_badge}
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            with tcol2:
-                st.markdown(f"**Opponent's Team ({opp_name})**")
-                opp_team = summary['teams'][opponent]
-                for species, data in opp_team.items():
-                    hp = data['hp']
-                    fainted = data['fainted']
-                    status = data.get('status', '')
-                    
-                    hp_color = "#00ff88" if hp > 50 else "#ffaa00" if hp > 0 else "#ff4444"
-                    status_badge = f" <span style='color:#ffaa00;'>({status})</span>" if status else ""
-                    faint_style = "opacity: 0.4; text-decoration: line-through;" if fainted else ""
-                    
-                    st.markdown(f"""
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; {faint_style}">
-                        <span style="font-weight: 600; color: #fff; min-width: 120px;">{species}</span>
-                        <div style="flex-grow: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                            <div style="width: {hp}%; height: 100%; background: {hp_color};"></div>
-                        </div>
-                        <span style="color: {hp_color}; font-family: monospace; min-width: 40px;">{hp}%</span>
-                        {status_badge}
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            # Faint Timeline
-            st.markdown("---")
-            st.markdown("### Faint Timeline")
-            
-            all_faints = []
-            for f in summary['faints'].get(user_player, []):
-                all_faints.append({
-                    'turn': f['turn'], 
-                    'species': f['species'], 
-                    'side': 'you',
-                    'killed_by': f.get('killed_by'),
-                    'move': f.get('move'),
-                    'damage': f.get('damage', 0),
-                    'self_ko': f.get('self_ko', False)
-                })
-            for f in summary['faints'].get(opponent, []):
-                all_faints.append({
-                    'turn': f['turn'], 
-                    'species': f['species'], 
-                    'side': 'opponent',
-                    'killed_by': f.get('killed_by'),
-                    'move': f.get('move'),
-                    'damage': f.get('damage', 0),
-                    'self_ko': f.get('self_ko', False)
-                })
-            
-            all_faints.sort(key=lambda x: x['turn'])
-            
-            if all_faints:
-                # Use Streamlit columns for reliable layout
-                num_cols = min(len(all_faints), 4)
-                for i in range(0, len(all_faints), num_cols):
-                    batch = all_faints[i:i+num_cols]
-                    cols = st.columns(num_cols)
-                    for j, f in enumerate(batch):
-                        with cols[j]:
-                            side_color = "#ff4444" if f['side'] == 'you' else "#00ff88"
-                            side_label = "Your" if f['side'] == 'you' else "Opp"
-                            
-                            # Build killer info line
-                            killer_info = ""
-                            if f.get('self_ko') and f.get('move'):
-                                # Self-KO (Explosion, etc.)
-                                killer_info = f"<div style='font-size: 0.7rem; color: #ffaa00; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;'><span style='font-style: italic;'>{f['move']}</span><br/><span style='color: #ffaa00;'>(self-KO)</span></div>"
-                            elif f.get('killed_by') and f.get('move'):
-                                damage_text = f" ({f['damage']}%)" if f.get('damage') else ""
-                                killer_info = f"<div style='font-size: 0.7rem; color: #aaa; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;'>by <span style='color: #fff;'>{f['killed_by']}</span><br/><span style='font-style: italic;'>{f['move']}</span><span style='color: #ff6b6b;'>{damage_text}</span></div>"
-                            elif f.get('killed_by'):
-                                killer_info = f"<div style='font-size: 0.7rem; color: #aaa; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;'>by <span style='color: #fff;'>{f['killed_by']}</span></div>"
-                            
-                            st.markdown(f"""
-                            <div style="background: rgba(0,0,0,0.3); border: 1px solid {side_color}; 
-                                        padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 8px;">
-                                <div style="font-size: 0.75rem; color: #888; margin-bottom: 4px;">Turn {f['turn']}</div>
-                                <div style="font-weight: 600; color: {side_color}; font-size: 0.9rem;">{side_label} {f['species']}</div>
-                                {killer_info}
-                            </div>
-                            """, unsafe_allow_html=True)
-            else:
-                st.info("No Pokémon fainted during this battle.")
+        tab_replay.render()
 
 if st.session_state.submitted and st.session_state.pokemon_names:
-    
-    type_map = {
-        'Fire': {'color': '#FF4422', 'icon': '🔥'}, 'Water': {'color': '#3399FF', 'icon': '💧'},
-        'Grass': {'color': '#77CC55', 'icon': '🌿'}, 'Electric': {'color': '#FFCC33', 'icon': '⚡'},
-        'Psychic': {'color': '#FF5599', 'icon': '🔮'}, 'Ice': {'color': '#66CCFF', 'icon': '❄️'},
-        'Fighting': {'color': '#BB5544', 'icon': '🥊'}, 'Poison': {'color': '#AA5599', 'icon': '☠️'},
-        'Ground': {'color': '#DDBB55', 'icon': '🏜️'}, 'Flying': {'color': '#8899FF', 'icon': '🕊️'},
-        'Bug': {'color': '#AABB22', 'icon': '🐞'}, 'Rock': {'color': '#BBAA66', 'icon': '🪨'},
-        'Ghost': {'color': '#6666BB', 'icon': '👻'}, 'Dragon': {'color': '#7766EE', 'icon': '🐲'},
-        'Dark': {'color': '#775544', 'icon': '🌑'}, 'Steel': {'color': '#AAAABB', 'icon': '⚙️'},
-        'Fairy': {'color': '#EE99AA', 'icon': '✨'}, 'Normal': {'color': '#AAAA99', 'icon': '⚪'}
-    }
 
     # --- Metrics Dashboard ---
     st.markdown("## 📊 Team Dashboard")
-    
+
     coverage = st.session_state.analysis['coverage']
     weakness = st.session_state.analysis['weakness']
     team_data = st.session_state.analysis['team']
-    
+
     covered_count = sum(1 for v in coverage.values() if v)
     most_weak_type = max(weakness.items(), key=lambda x: x[1]['weak'])
-    
+
     roles = []
     for p in team_data.values():
         roles.extend(p['Roles'])
-    
+
     archetype = "Balanced"
     arch_icon = "⚖️"
-    
+
     wall_tank_count = roles.count("Wall") + roles.count("Tank")
     sweeper_count = sum(1 for r in roles if "Sweeper" in r or "Breaker" in r)
     weather_count = roles.count("Weather Setter") + roles.count("Weather Abuser")
@@ -968,23 +338,23 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     elif wall_tank_count >= 4: # Increased threshold for pure stall
         archetype = "Stall"
         arch_icon = "🐢"
-    elif sweeper_count >= 4: 
+    elif sweeper_count >= 4:
         archetype = "Hyper Offense"
         arch_icon = "⚔️"
     elif bulky_offense_count >= 3:
         archetype = "Bulky Offense"
         arch_icon = "🛡️⚔️"
-    
+
     m1, m2, m3 = st.columns(3)
     m1.metric("Archetype", f"{arch_icon} {archetype}")
     with m2:
         st.metric("Type Coverage", f"{covered_count}/18")
         st.progress(covered_count / 18)
-    
+
     weak_type_name = most_weak_type[0].capitalize()
-    t_info_m = type_map.get(weak_type_name, {'color': '#777', 'icon': '❓'})
+    t_info_m = TYPE_MAP.get(weak_type_name, {'color': '#777', 'icon': '❓'})
     weak_label = f"{t_info_m['icon']} {weak_type_name}"
-    
+
     if most_weak_type[1]['weak'] >= 3:
         m3.metric("Critical Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="inverse")
     else:
@@ -994,7 +364,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     st.markdown("## 🦸 Your Squad")
     st.markdown("<br>", unsafe_allow_html=True) # Spacer
     names = st.session_state.pokemon_names
-    
+
     for i in range(0, len(names), 3):
         cols = st.columns(3)
         batch = names[i:i+3]
@@ -1002,12 +372,12 @@ if st.session_state.submitted and st.session_state.pokemon_names:
             idx = i + j
             # Handle potential key mismatch (int vs string) from JSON loading
             poke = team_data.get(idx) or team_data.get(str(idx))
-            if not poke: continue 
-            
+            if not poke: continue
+
             # Get Type Color for Glow
             primary_type = poke['Type'][0] if poke['Type'] else 'Normal'
-            type_color = type_map.get(primary_type, {'color': '#777'})['color']
-            
+            type_color = TYPE_MAP.get(primary_type, {'color': '#777'})['color']
+
             # Construct Glassmorphism Card HTML
             card_html = f"""
             <div class="pokemon-card" style="border: 1px solid {type_color}44; box-shadow: 0 0 15px -5px {type_color}, inset 0 0 20px -15px {type_color};">
@@ -1019,7 +389,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                     <div style="flex-grow: 1;">
                         <div class="poke-name">{name}</div>
                         <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px;">
-                            {''.join([f'<span style="background:{type_map.get(t, {}).get("color", "#555")}; color:white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">{type_map.get(t, {}).get("icon", "")} {t}</span>' for t in poke['Type']])}
+                            {''.join([f'<span style="background:{TYPE_MAP.get(t, {}).get("color", "#555")}; color:white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">{TYPE_MAP.get(t, {}).get("icon", "")} {t}</span>' for t in poke['Type']])}
                         </div>
                     </div>
                 </div>
@@ -1037,11 +407,11 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                 </div>
             </div>
             """
-            
+
             with cols[j]:
                 st.markdown(card_html, unsafe_allow_html=True)
     st.markdown("---")
-    
+
     # --- Detailed Analysis Tabs ---
     st.header("Detailed Analysis")
     tab_overview, tab3, tab4, tab8, tab_rec, tab_matrix, tab7, tab_chat = st.tabs([
@@ -1049,359 +419,25 @@ if st.session_state.submitted and st.session_state.pokemon_names:
     ])
 
     with tab_chat:
-        st.subheader("💬 Ask the Coach (Powered by RAG)")
-        st.caption("Ask specific questions about counters, mechanics, or strategy. The AI uses Smogon data to answer.")
-        
-        # Chat History Container
-        chat_container = st.container()
-        
-        # Render History
-        with chat_container:
-            if "chat_messages" not in st.session_state:
-                st.session_state.chat_messages = []
-                
-            for msg in st.session_state.chat_messages:
-                # Use name and avatar if stored, fallback to role defaults
-                display_name = msg.get("name", msg["role"])
-                with st.chat_message(display_name, avatar=msg.get("avatar")):
-                    if msg["role"] == "assistant" and "name" in msg:
-                         st.markdown(f"**{msg['name']}**")
-                    st.markdown(msg["content"])
-        
-        # RAG Guide
-        with st.expander("💡 How to use the AI Coach efficiently", expanded=False):
-            st.markdown("""
-            **Meet your Coaching Staff:**
-            
-            🧪 **Clemont** (Mechanics Engine)
-            *Ask him about math, specific interactions, and speed tiers.*
-            *   "Is Rotom-Wash weak to Ground?"
-            *   "Who is faster: Dragapult or Zamazenta?"
-            
-            📜 **Professor Oak** (Strategy Mentor)
-            *Ask him about win conditions, game plans, and high-level concepts.*
-            *   "How do I beat Stall teams?"
-            *   "What is the best lead for this team?"
-            
-            🍳 **Brock** (Team Builder)
-            *Ask him about sets, items, and meta usage stats.*
-            *   "What is the most popular item for Great Tusk?"
-            *   "Is this moveset good?"
-            """)
-
-        # Input
-        if prompt := st.chat_input("How do I beat Kingambit?"):
-            # 1. User Message
-            st.session_state.chat_messages.append({"role": "user", "content": prompt})
-            with chat_container:
-                with st.chat_message("user"):
-                    st.markdown(prompt)
-            
-            # 2. AI Response
-            with chat_container:
-                from metamatch.agents import AgentManager
-                manager = AgentManager()
-                agent_name = manager.get_active_agent_name(prompt)
-                
-                # Extract emoji for avatar
-                avatar = "🤖"
-                if "🧪" in agent_name: avatar = "🧪"
-                elif "📜" in agent_name: avatar = "📜"
-                elif "🍳" in agent_name: avatar = "🍳"
-
-                with st.chat_message(agent_name, avatar=avatar):
-                    st.markdown(f"**{agent_name}**")
-                    response_placeholder = st.empty()
-                    full_response = ""
-                    
-                    # Call RAG Chat Stream
-                    stream = get_chat_response(
-                        prompt, 
-                        st.session_state.analysis['team'],
-                        st.session_state.analysis['weakness']
-                    )
-                    
-                    for chunk in stream:
-                        content = chunk.choices[0].delta.content or ""
-                        full_response += content
-                        response_placeholder.markdown(full_response + "▌")
-                    
-                    response_placeholder.markdown(full_response)
-            
-            # 3. Save to History with persona details
-            st.session_state.chat_messages.append({
-                "role": "assistant", 
-                "name": agent_name,
-                "avatar": avatar,
-                "content": full_response
-            })
+        tab_chat_mod.render()
 
     with tab_overview:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.subheader("Offensive Coverage")
-            st.metric("Type Coverage", f"{covered_count}/18 types")
-            covered_html = ""
-            for t, is_covered in coverage.items():
-                if is_covered:
-                    t_i = type_map.get(t.capitalize(), {'color': '#777', 'icon': '❓'})
-                    covered_html += f'<span style="background-color:{t_i["color"]};color:white;padding:4px 8px;border-radius:4px;font-size:14px;margin:4px;display:inline-block">{t_i["icon"]} {t.capitalize()}</span>'
-            st.markdown(covered_html, unsafe_allow_html=True)
-            if [t for t, v in coverage.items() if not v]: st.warning("⚠️ Missing offensive coverage for several types.")
-
-        with c2:
-            st.subheader("Defensive Vulnerabilities")
-            for t_n, counts in weakness.items():
-                cap_t = t_n.capitalize()
-                if counts['weak'] >= 2:
-                    t_i = type_map.get(cap_t, {'color': '#777', 'icon': '❓'})
-                    bg = "rgba(255, 75, 75, 0.2)" if counts['weak'] >= 3 else "rgba(255, 165, 0, 0.1)"
-                    bc = "#ff4b4b" if counts['weak'] >= 3 else "#ffa500"
-                    tag = "— ⚠️ CRITICAL" if counts['weak'] >= 3 else ""
-                    
-                    # On-the-fly lookup for weak Pokémon
-                    weak_mons = []
-                    for p in team_data.values():
-                        # Check multiplier from 'Damage From' dict
-                        if p.get('Damage From', {}).get(t_n.lower(), 1.0) > 1:
-                            weak_mons.append(p['Pokemon'])
-                    
-                    tooltip = f"Weak: {', '.join(weak_mons)}"
-                    
-                    alert = f'''
-                    <div title="{tooltip}" style="background-color:{bg}; padding:10px; border-radius:5px; border-left: 5px solid {bc}; margin-bottom:10px; cursor: help;">
-                        <span style="background-color:{t_i["color"]}; color:white; padding:2px 8px; border-radius:4px; font-size:14px; margin-right:10px;">{t_i["icon"]} {cap_t}</span>
-                        <b>{counts["weak"]} Weaknesses</b> {tag}
-                    </div>
-                    '''
-                    st.markdown(alert, unsafe_allow_html=True)
+        tab_overview_mod.render(coverage, weakness, team_data, TYPE_MAP)
 
     with tab3:
-        if st.session_state.analysis.get('suggestions'):
-            sugg = st.session_state.analysis['suggestions']
-            
-            # --- Team Analysis Section ---
-            st.subheader("🛡️ Team Audit")
-            if 'team_analysis' in sugg and isinstance(sugg['team_analysis'], list):
-                for p in sugg['team_analysis']:
-                    st.markdown(f"""
-                    <div style="background: rgba(0, 212, 255, 0.05); border-left: 4px solid #00d4ff; padding: 12px 16px; margin-bottom: 12px; border-radius: 0 8px 8px 0;">
-                        <span style="font-size: 1.1rem; margin-right: 8px;">💡</span>
-                        <span style="color: #e0e0e0; font-size: 0.95rem;">{p}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            st.markdown("---")
-            
-            # --- Pokemon Specific Section ---
-            st.subheader("🔍 Per-Pokemon Findings")
-            if 'pokemon_specific' in sugg and isinstance(sugg['pokemon_specific'], dict):
-                for pk, adv in sugg['pokemon_specific'].items():
-                    # Format advice text
-                    advice_text = str(adv)
-                    if isinstance(adv, dict):
-                        advice_text = ", ".join([str(v) for v in adv.values()])
-                    
-                    sprite_url = get_pokemon_sprite(pk) or ""
-                    
-                    st.markdown(f"""
-                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; align-items: start; gap: 15px; transition: all 0.2s;">
-                        <div style="flex-shrink: 0; background: rgba(255, 255, 255, 0.05); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                            <img src="{sprite_url}" width="50" style="filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));">
-                        </div>
-                        <div>
-                            <div style="font-weight: 700; font-size: 1.1rem; color: #00d4ff; margin-bottom: 4px;">{pk}</div>
-                            <div style="color: #ccc; font-size: 0.9rem; line-height: 1.5;">{advice_text}</div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-        else: st.info("Run analysis to see the audit.")
+        tab_audit.render()
 
     with tab4:
-        sugg = st.session_state.analysis.get('suggestions')
-        if sugg and 'threats' in sugg:
-            threats = sugg['threats']
-            if threats:
-                st.caption("⚠️ High-priority threats identified by AI analysis based on your team composition.")
-                for threat in threats:
-                    name = threat.get('pokemon', 'Unknown')
-                    explanation = threat.get('explanation', 'No explanation provided.')
-                    counter = threat.get('counter_play', 'No specific counter play provided.')
-                    sprite_url = get_pokemon_sprite(name) or ""
-                    
-                    threat_html = f"""
-                    <div style="background: rgba(255, 50, 50, 0.05); border: 1px solid rgba(255, 75, 75, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-                        <div style="flex-shrink: 0; text-align: center; width: 80px;">
-                            <div style="background: rgba(255, 0, 0, 0.1); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px auto;">
-                                <img src="{sprite_url}" width="60" style="filter: drop-shadow(0 0 5px rgba(255,0,0,0.4));">
-                            </div>
-                        </div>
-                        <div style="flex-grow: 1;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="font-size: 1.2rem; font-weight: 700; color: #ff6b6b; letter-spacing: 0.5px;">{name}</span>
-                                <span style="font-size: 0.7rem; background: rgba(255, 75, 75, 0.2); color: #ff9999; padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(255, 75, 75, 0.3);">MAJOR THREAT</span>
-                            </div>
-                            <div style="font-size: 0.9rem; color: #e0e0e0; margin-bottom: 12px; line-height: 1.5;">
-                                {explanation}
-                            </div>
-                            <div style="background: rgba(0, 0, 0, 0.2); border-left: 3px solid #ff6b6b; padding: 10px; border-radius: 0 6px 6px 0;">
-                                <div style="font-size: 0.75rem; color: #ff6b6b; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">🛡️ Counter Strategy</div>
-                                <div style="font-size: 0.85rem; color: #ccc;">{counter}</div>
-                            </div>
-                        </div>
-                    </div>
-                    """
-                    st.markdown(threat_html, unsafe_allow_html=True)
-            else:
-                st.success("✅ No major meta threats identified based on current context!")
-        elif st.session_state.submitted:
-             st.warning("⚠️ No threat data returned from analysis.")
-        else:
-             st.info("Run analysis to see meta threats.")
+        tab_threats.render()
 
     with tab8:
-        if st.session_state.analysis.get('guide'):
-            g = st.session_state.analysis['guide']
-            st.subheader("🎓 Team Pilot Guide")
-            
-            st.info(f"**🏆 Win Condition:** {g.get('win_condition', 'N/A')}")
-            
-            c1, c2 = st.columns(2)
-            with c1:
-                st.markdown("### 🏁 Lead Options")
-                for l in g.get('lead_options', []):
-                    st.success(f"**{l.get('pokemon')}**: {l.get('scenario')}")
-            
-            with c2:
-                st.markdown("### 💎 Tera Strategy")
-                tera = g.get('tera_strategy')
-                if isinstance(tera, dict):
-                     st.warning(f"**{tera.get('pokemon')}**: {tera.get('when_to_use')}")
-                else:
-                    st.write(str(tera))
-
-            st.markdown("### 🤝 Key Combinations")
-            for c in g.get('key_combos', []):
-                with st.expander(f"🔗 {c.get('name')}", expanded=True):
-                    st.write(c.get('description'))
-        else:
-            st.warning("Guide generation failed or is unavailable.")
+        tab_coach_guide.render()
 
     with tab_rec:
-        st.subheader("🤖 Statistical Teammate Recommendations")
-        st.caption("Based on real Smogon usage data and teammate correlation matrices.")
-        
-        # Format Selection Pills
-        tgt_format_rec = st.pills(
-            "Target Format",
-            options=["OU", "UU", "NatDex"],
-            default=["OU"],
-            selection_mode="multi",
-            key="rec_format_pills"
-        )
-        fmt_map = {"OU": "gen9ou", "UU": "gen9uu", "NatDex": "gen9natdex"}
+        tab_recommender_mod.render(team_data, st.session_state.pokemon_names)
 
-        selected_fmts_rec = [fmt_map.get(f) for f in tgt_format_rec] if tgt_format_rec else ["gen9ou"]
-        team_roles_rec = [p.get("Roles", []) for p in st.session_state.analysis['team'].values()]
-        recs = recommender.get_recommendations(
-            st.session_state.pokemon_names,
-            format_id=selected_fmts_rec,
-            team_roles=team_roles_rec
-        )
-
-        if recs:
-            rec_cols = st.columns(3)
-            max_score = recs[0][1]
-
-            for i, (name, score, reason) in enumerate(recs):
-                col = rec_cols[i % 3]
-                match_pct = int((score / max_score) * 100)
-                
-                # Determine color based on match %
-                glow_color = "#00d4ff" # Default Cyan
-                if match_pct > 80: glow_color = "#00ff88" # Green
-                elif match_pct < 50: glow_color = "#ffaa00" # Orange
-                
-                with col:
-                    reason_html = (
-                        f'<div style="margin-top: 8px; font-size: 0.7rem; color: #ffd700; '
-                        f'background: rgba(255,215,0,0.1); border: 1px solid #ffd70044; '
-                        f'border-radius: 10px; padding: 3px 8px; display: inline-block;">'
-                        f'{reason}</div>'
-                    ) if reason else '<div style="height:0;"></div>'
-                    rec_html = f"""
-                    <div class="pokemon-card" style="border: 1px solid {glow_color}44; box-shadow: 0 0 15px -5px {glow_color}, inset 0 0 20px -15px {glow_color}; min-height: 180px;">
-                        <div style="text-align: center;">
-                            <div style="position: relative; display: inline-block;">
-                                <div style="position: absolute; width: 60px; height: 60px; background: {glow_color}; filter: blur(30px); opacity: 0.4; z-index: 0; top: 10px; left: 10px;"></div>
-                                <img src="{get_pokemon_sprite(name) or ''}" width="100" style="position: relative; z-index: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); transition: transform 0.3s;">
-                            </div>
-                            <div class="poke-name" style="font-size: 1.2rem; margin-top: 10px;">{name}</div>
-                            <div style="margin-top: 10px; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 20px; display: inline-block; border: 1px solid {glow_color}66;">
-                                <span style="color: {glow_color}; font-weight: 800; font-size: 1.1rem;">{match_pct}%</span> <span style="font-size: 0.8rem; opacity: 0.8;">Synergy</span>
-                            </div>
-                            {reason_html}
-                        </div>
-                    </div>
-                    """
-                    st.markdown(rec_html, unsafe_allow_html=True)
-        else:
-            st.info("No recommendations available. Try analyzing a different team or update meta data.")
-            
     with tab_matrix:
-        st.subheader("🛡️ Defensive Matchup Matrix", help="Damage taken from each type. Red = Weak.")
-        st.markdown(r'''<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #7b1e1e; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 4x Weak</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟧 2x Weak</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 0.5x Resist</span><span style="background-color: #1e8449; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🌲 0.25x Resist</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>''', unsafe_allow_html=True)
-        all_types = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
-        rows = []
-        for p in team_data.values():
-            r = {"Pokemon": p['Pokemon']}
-            for t in all_types: r[t] = p['Damage From'].get(t.lower(), 1.0)
-            rows.append(r)
-        df = pd.DataFrame(rows).set_index("Pokemon")
-        def c_c(v):
-            if v == 0: return 'background-color: #2c3e50; color: #ecf0f1'
-            if v >= 4: return 'background-color: #7b1e1e; color: white'
-            if v >= 2: return 'background-color: #c0392b; color: white'
-            if v <= 0.25: return 'background-color: #1e8449; color: white'
-            if v <= 0.5: return 'background-color: #27ae60; color: white'
-            return ''
-        st.dataframe(df.style.map(c_c).format("{:.1f}"), width='stretch', height=250)
-
-        st.markdown("---")
-        st.subheader("⚔️ Offensive Coverage Matrix", help="Best damage you deal to each type. Green = Super Effective.")
-        st.markdown(r'''<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"><span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟩 2x SE</span><span style="border: 1px solid #ccc; color: #888; padding: 4px 8px; border-radius: 4px; font-size: 12px;">⬜ 1x Neutral</span><span style="background-color: #c0392b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟥 0.5x Resisted</span><span style="background-color: #2c3e50; color: #ecf0f1; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">🟦 0x Immune</span></div>''', unsafe_allow_html=True)
-        o_rows = []
-        for p in team_data.values():
-            r = {"Pokemon": p['Pokemon']}
-            for t_d in all_types:
-                m_m = 0.0
-                for m in p['Moves']:
-                    if m['category'] != 'Status':
-                        mult = get_multiplier(m['type'], t_d)
-                        if mult > m_m: m_m = mult
-                if not p['Moves'] and m_m == 0.0: m_m = 1.0
-                r[t_d] = m_m
-            o_rows.append(r)
-        o_df = pd.DataFrame(o_rows).set_index("Pokemon")
-        def c_c_o(v):
-            if v >= 2: return 'background-color: #27ae60; color: white'
-            if v == 0: return 'background-color: #2c3e50; color: #ecf0f1'
-            if v <= 0.5: return 'background-color: #c0392b; color: white'
-            return ''
-        st.dataframe(o_df.style.map(c_c_o).format("{:.1f}"), width='stretch', height=250)
+        tab_matrix_mod.render(team_data)
 
     with tab7:
-        st.subheader("⚡ Speed Tiers", help="Compare team speed against meta threats.")
-        try:
-            with open(config.JSON_DIR / "meta_speeds.json", "r") as f:
-                m_s = json.load(f)
-        except:
-            m_s = []
-        u_s = [{'Name': p['Pokemon'], 'Speed': p.get('Speed', 0), 'Type': 'Your Team'} for p in team_data.values()]
-        c_d = u_s + [{'Name': m['label'], 'Speed': m['speed'], 'Type': 'Meta'} for m in m_s[:40]]
-        df_c = pd.DataFrame(c_d).sort_values(by="Speed", ascending=False)
-        base = alt.Chart(df_c).encode(y=alt.Y('Name', sort='-x', axis=alt.Axis(title=None)), x=alt.X('Speed', axis=alt.Axis(title='Speed Stat')), tooltip=['Name', 'Speed', 'Type'])
-        dots = base.mark_circle(size=100).encode(color=alt.Color('Type', scale=alt.Scale(domain=['Your Team', 'Meta'], range=['#3399FF', '#888888'])), opacity=alt.condition(alt.datum.Type == 'Your Team', alt.value(1.0), alt.value(0.5)))
-        text = base.mark_text(align='left', dx=10, color='#3399FF', fontWeight='bold').encode(text=alt.Text('Speed'), opacity=alt.condition(alt.datum.Type == 'Your Team', alt.value(1.0), alt.value(0.0)))
-        st.altair_chart((dots + text).properties(height=600), use_container_width=True)
+        tab_speed_tiers.render(team_data)

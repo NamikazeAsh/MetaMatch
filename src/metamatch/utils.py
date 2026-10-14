@@ -5,6 +5,36 @@ import os
 import time
 from . import config
 
+
+def extract_pokemon_names(raw_data: str) -> list[str]:
+    names = []
+    lines = raw_data.split('\n')
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        if '@' in line:
+            raw_name = line.split('@')[0].strip()
+            clean_name = re.sub(r'\s*\([MFmf]\)$', '', raw_name)
+            if clean_name and clean_name not in names:
+                names.append(clean_name)
+    return names
+
+
+def get_pokemon_sprite(name: str) -> str | None:
+    try:
+        slugified_name = pokeSlugify(name)
+        url = f"https://pokeapi.co/api/v2/pokemon/{slugified_name}"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            sprite_url = data['sprites']['front_default']
+            if sprite_url:
+                return sprite_url
+    except:
+        pass
+    return None
+
 CACHE_FILE = config.JSON_DIR / "api_cache.json"
 CACHE_MAX_ENTRIES = 2000
 CACHE_EVICT_COUNT = 200
