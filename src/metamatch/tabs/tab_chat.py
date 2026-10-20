@@ -60,16 +60,21 @@ def render():
                 response_placeholder = st.empty()
                 full_response = ""
 
-                stream = get_chat_response(
-                    prompt,
-                    st.session_state.analysis['team'],
-                    st.session_state.analysis['weakness']
-                )
+                try:
+                    stream = get_chat_response(
+                        prompt,
+                        st.session_state.analysis['team'],
+                        st.session_state.analysis['weakness']
+                    )
 
-                for chunk in stream:
-                    content = chunk.choices[0].delta.content or ""
-                    full_response += content
-                    response_placeholder.markdown(full_response + "▌")
+                    for chunk in stream:
+                        if not chunk.choices:
+                            continue
+                        content = chunk.choices[0].delta.content or ""
+                        full_response += content
+                        response_placeholder.markdown(full_response + "▌")
+                except Exception as e:
+                    full_response += f"\n\n⚠️ LLM request failed: {e}"
 
                 response_placeholder.markdown(full_response)
 

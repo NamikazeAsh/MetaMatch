@@ -1,5 +1,3 @@
-from openai import OpenAI
-import os
 from dotenv import load_dotenv
 import json
 import re
@@ -177,9 +175,8 @@ def compute_threats(team: dict, format_id: str = "gen9ou", top_n: int = 5) -> li
 
 
 def get_client():
-    load_dotenv()
-    base_url = os.getenv('OLLAMA_HOST', 'http://localhost:11434') + '/v1'
-    return OpenAI(base_url=base_url, api_key='ollama'), "llama3.2:3b-instruct-q4_K_M"
+    from .agents.client import get_agent_client
+    return get_agent_client()
 
 
 def get_chat_response(user_query, team_context=None, team_weakness=None, model_name=None):

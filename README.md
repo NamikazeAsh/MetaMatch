@@ -182,6 +182,7 @@ graph TD
     *   Install Ollama from [ollama.com](https://ollama.com/).
     *   Pull the model: `ollama pull llama3.2:3b-instruct-q4_K_M`
     *   Start the server: `ollama serve`
+    *   To try another pulled model, set `LLM_MODEL` in `.env` (e.g. `LLM_MODEL=gemma3:4b`).
 
 ### Local Setup
 
