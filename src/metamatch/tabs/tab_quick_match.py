@@ -8,14 +8,14 @@ def render(get_strat_data_fn):
     st.markdown("### 🤝 Quick Match")
     st.caption("Don't have a full team? Pick 1-5 Pokémon to find their best partners.")
 
+    default_label = config.format_info(st.session_state.get("format_id"))["label"]
     tgt_format = st.pills(
         "Competitive Format",
-        options=["OU", "UU", "NatDex"],
-        default=["OU"],
+        options=[f["label"] for f in config.FORMATS.values()],
+        default=[default_label],
         selection_mode="multi",
         label_visibility="collapsed"
     )
-    fmt_map = {"OU": "gen9ou", "UU": "gen9uu", "NatDex": "gen9natdex"}
 
     try:
         with open(config.JSON_DIR / "topPoke.json", "r") as f:
@@ -32,11 +32,11 @@ def render(get_strat_data_fn):
     )
 
     if qm_selection:
-        selected_fmts = [fmt_map.get(f) for f in tgt_format] if tgt_format else ["gen9ou"]
+        selected_fmts = [config.format_by_label(f) for f in tgt_format] if tgt_format else [config.format_by_label(default_label)]
         recs = recommender.get_recommendations(qm_selection, top_n=16, format_id=selected_fmts)
 
         strat_data = get_strat_data_fn()
-        selected_format_labels = tgt_format if tgt_format else ["OU"]
+        selected_format_labels = tgt_format if tgt_format else [default_label]
 
         if recs:
             st.markdown(f"**Top recommended partners for your squad:**")

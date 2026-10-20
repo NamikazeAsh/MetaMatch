@@ -1,0 +1,152 @@
+[
+  {
+    "label": "Scarf Dragapult",
+    "speed": 319,
+    "owner": "Dragapult"
+  },
+  {
+    "label": "Scarf Sneasler",
+    "speed": 283,
+    "owner": "Sneasler"
+  },
+  {
+    "label": "Scarf Cinderace",
+    "speed": 282,
+    "owner": "Cinderace"
+  },
+  {
+    "label": "Scarf Pawmot",
+    "speed": 258,
+    "owner": "Pawmot"
+  },
+  {
+    "label": "Scarf Garchomp",
+    "speed": 253,
+    "owner": "Garchomp"
+  },
+  {
+    "label": "Scarf Volcarona",
+    "speed": 250,
+    "owner": "Volcarona"
+  },
+  {
+    "label": "Scarf Hydreigon",
+    "speed": 247,
+    "owner": "Hydreigon"
+  },
+  {
+    "label": "Scarf Annihilape",
+    "speed": 234,
+    "owner": "Annihilape"
+  },
+  {
+    "label": "Scarf Excadrill",
+    "speed": 231,
+    "owner": "Excadrill"
+  },
+  {
+    "label": "Scarf Glimmora",
+    "speed": 226,
+    "owner": "Glimmora"
+  },
+  {
+    "label": "Scarf Samurott-Hisui",
+    "speed": 225,
+    "owner": "Samurott-Hisui"
+  },
+  {
+    "label": "Max Absol-Mega-Z",
+    "speed": 223,
+    "owner": "Absol-Mega-Z"
+  },
+  {
+    "label": "Scarf Blaziken",
+    "speed": 217,
+    "owner": "Blaziken"
+  },
+  {
+    "label": "Max Dragapult",
+    "speed": 213,
+    "owner": "Dragapult"
+  },
+  {
+    "label": "Max Raichu-Mega-Y",
+    "speed": 200,
+    "owner": "Raichu-Mega-Y"
+  },
+  {
+    "label": "Max Sneasler",
+    "speed": 189,
+    "owner": "Sneasler"
+  },
+  {
+    "label": "Max Cinderace",
+    "speed": 188,
+    "owner": "Cinderace"
+  },
+  {
+    "label": "Max Pawmot",
+    "speed": 172,
+    "owner": "Pawmot"
+  },
+  {
+    "label": "Max Garchomp",
+    "speed": 169,
+    "owner": "Garchomp"
+  },
+  {
+    "label": "Max Volcarona",
+    "speed": 167,
+    "owner": "Volcarona"
+  },
+  {
+    "label": "Max Hydreigon",
+    "speed": 165,
+    "owner": "Hydreigon"
+  },
+  {
+    "label": "Max Annihilape",
+    "speed": 156,
+    "owner": "Annihilape"
+  },
+  {
+    "label": "Max Excadrill",
+    "speed": 154,
+    "owner": "Excadrill"
+  },
+  {
+    "label": "Max Glimmora",
+    "speed": 151,
+    "owner": "Glimmora"
+  },
+  {
+    "label": "Max Samurott-Hisui",
+    "speed": 150,
+    "owner": "Samurott-Hisui"
+  },
+  {
+    "label": "Max Blaziken",
+    "speed": 145,
+    "owner": "Blaziken"
+  },
+  {
+    "label": "Max Corviknight",
+    "speed": 130,
+    "owner": "Corviknight"
+  },
+  {
+    "label": "Max Aegislash",
+    "speed": 123,
+    "owner": "Aegislash"
+  },
+  {
+    "label": "Max Kingambit",
+    "speed": 112,
+    "owner": "Kingambit"
+  },
+  {
+    "label": "Max Golisopod-Mega",
+    "speed": 101,
+    "owner": "Golisopod-Mega"
+  }
+]

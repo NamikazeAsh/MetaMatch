@@ -15,12 +15,14 @@ def render():
                 st.success(f"**{l.get('pokemon')}**: {l.get('scenario')}")
 
         with c2:
-            st.markdown("### 💎 Tera Strategy")
-            tera = g.get('tera_strategy')
-            if isinstance(tera, dict):
-                st.warning(f"**{tera.get('pokemon')}**: {tera.get('when_to_use')}")
+            # Champions guides cover Mega Evolution, SV guides cover Tera
+            is_mega = 'mega_strategy' in g
+            st.markdown("### 🧬 Mega Strategy" if is_mega else "### 💎 Tera Strategy")
+            gimmick = g.get('mega_strategy' if is_mega else 'tera_strategy')
+            if isinstance(gimmick, dict):
+                st.warning(f"**{gimmick.get('pokemon')}**: {gimmick.get('when_to_use')}")
             else:
-                st.write(str(tera))
+                st.write(str(gimmick))
 
         st.markdown("### 🤝 Key Combinations")
         for c in g.get('key_combos', []):

@@ -3,12 +3,13 @@ import pandas as pd
 import altair as alt
 import streamlit as st
 from metamatch import config
+from metamatch.scrapers import speed_tiers_path
 
 
 def render(team_data: dict):
     st.subheader("⚡ Speed Tiers", help="Compare team speed against meta threats.")
     try:
-        with open(config.JSON_DIR / "meta_speeds.json", "r") as f:
+        with open(speed_tiers_path(config.format_game(config.team_format(team_data))), "r") as f:
             m_s = json.load(f)
     except:
         m_s = []

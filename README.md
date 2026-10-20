@@ -34,7 +34,8 @@ Identifies the top 5 meta threats to your specific team using Smogon Chaos data 
 
 ### 🤝 Teammate Recommender & Composer
 *   **Statistical Synergy:** Suggests optimal teammates based on Smogon "Chaos" correlation matrices from millions of competitive battles.
-*   **Multi-Format Mastery:** Seamlessly toggle between **OU, UU, and National Dex** to find partners across different metagames.
+*   **Multi-Format Mastery:** Seamlessly toggle between **OU, UU, National Dex, Champions OU and Champions UU** to find partners across different metagames.
+*   **Pokémon Champions Support:** Pick a Champions format in the sidebar and MetaMatch reads stat points (66 total, 32 per stat) instead of EVs, calculates Level 50 Speed, skips Tera checks, and maps Mega Stone holders to their Mega forme's usage data. Champions has no published Smogon sets or analyses yet, so Move Search verified sets and the RAG chat stay SV only.
 *   **Quick Match (New):** Don't have a team? Pick 1-5 Pokémon to instantly identify the best "meta glue" and structural partners for your core.
 *   **Role-Weighted Boosting:** Detects missing roles (Hazard Setter, Hazard Remover, Pivot, Speed Control, Cleric) and applies a ×1.2 score boost to candidates that fill them. Each recommendation card displays a **reason badge** (e.g., *"Fills missing: Hazard Setter, Pivot"*) in gold when a role gap is addressed.
 *   **Real-time Analysis:** Generates data-driven recommendations instantly without relying on LLM processing.
@@ -218,7 +219,7 @@ graph TD
 
 MetaMatch includes a **self-updating pipeline** (`scripts/update_meta.py`) configured via GitHub Actions.
 *   **Schedule:** Checks for new Smogon stats on the 3rd of every month.
-*   **Action:** Automatically downloads the latest `chaos.json` and commits it to the repository, ensuring your Recommender engine is always synced with the meta.
+*   **Action:** Automatically downloads the latest usage and chaos stats for every format in `config.FORMATS` and commits them to the repository, ensuring your Recommender engine is always synced with the meta.
 
 ### 🐳 Docker Deployment
 

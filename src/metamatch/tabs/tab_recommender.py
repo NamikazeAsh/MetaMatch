@@ -1,5 +1,5 @@
 import streamlit as st
-from metamatch import recommender
+from metamatch import recommender, config
 from metamatch.utils import get_pokemon_sprite
 
 
@@ -7,16 +7,16 @@ def render(team_data: dict, pokemon_names: list):
     st.subheader("🤖 Statistical Teammate Recommendations")
     st.caption("Based on real Smogon usage data and teammate correlation matrices.")
 
+    team_fmt = config.team_format(team_data)
     tgt_format_rec = st.pills(
         "Target Format",
-        options=["OU", "UU", "NatDex"],
-        default=["OU"],
+        options=[f["label"] for f in config.FORMATS.values()],
+        default=[config.FORMATS[team_fmt]["label"]],
         selection_mode="multi",
         key="rec_format_pills"
     )
-    fmt_map = {"OU": "gen9ou", "UU": "gen9uu", "NatDex": "gen9natdex"}
 
-    selected_fmts_rec = [fmt_map.get(f) for f in tgt_format_rec] if tgt_format_rec else ["gen9ou"]
+    selected_fmts_rec = [config.format_by_label(f) for f in tgt_format_rec] if tgt_format_rec else [team_fmt]
     team_roles_rec = [p.get("Roles", []) for p in team_data.values()]
     recs = recommender.get_recommendations(
         pokemon_names,

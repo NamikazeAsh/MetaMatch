@@ -1,23 +1,53 @@
 [
   {
-    "label": "Scarf Accelgor",
-    "speed": 640,
-    "owner": "Accelgor"
+    "label": "Scarf Deoxys-Speed",
+    "speed": 756,
+    "owner": "Deoxys-Speed"
   },
   {
-    "label": "Scarf Greninja",
-    "speed": 565,
-    "owner": "Greninja"
+    "label": "Scarf Dragapult",
+    "speed": 631,
+    "owner": "Dragapult"
   },
   {
-    "label": "Scarf Iron Jugulis",
-    "speed": 519,
-    "owner": "Iron Jugulis"
+    "label": "Scarf Zamazenta",
+    "speed": 618,
+    "owner": "Zamazenta"
   },
   {
-    "label": "Scarf Shaymin",
-    "speed": 492,
-    "owner": "Shaymin"
+    "label": "Scarf Darkrai",
+    "speed": 574,
+    "owner": "Darkrai"
+  },
+  {
+    "label": "Scarf Cinderace",
+    "speed": 555,
+    "owner": "Cinderace"
+  },
+  {
+    "label": "Scarf Iron Valiant",
+    "speed": 546,
+    "owner": "Iron Valiant"
+  },
+  {
+    "label": "Scarf Ogerpon-Wellspring",
+    "speed": 525,
+    "owner": "Ogerpon-Wellspring"
+  },
+  {
+    "label": "Scarf Iron Treads",
+    "speed": 513,
+    "owner": "Iron Treads"
+  },
+  {
+    "label": "Max Deoxys-Speed",
+    "speed": 504,
+    "owner": "Deoxys-Speed"
+  },
+  {
+    "label": "Scarf Kyurem",
+    "speed": 475,
+    "owner": "Kyurem"
   },
   {
     "label": "Scarf Landorus-Therian",
@@ -25,24 +55,39 @@
     "owner": "Landorus-Therian"
   },
   {
+    "label": "Scarf Pecharunt",
+    "speed": 453,
+    "owner": "Pecharunt"
+  },
+  {
+    "label": "Scarf Great Tusk",
+    "speed": 450,
+    "owner": "Great Tusk"
+  },
+  {
     "label": "Choice Scarf Gholdengo",
     "speed": 447,
     "owner": "Gholdengo"
   },
   {
-    "label": "Scarf Cherrim",
+    "label": "Scarf Glimmora",
+    "speed": 447,
+    "owner": "Glimmora"
+  },
+  {
+    "label": "Scarf Samurott-Hisui",
     "speed": 442,
-    "owner": "Cherrim"
+    "owner": "Samurott-Hisui"
   },
   {
-    "label": "Max Accelgor",
-    "speed": 427,
-    "owner": "Accelgor"
+    "label": "Scarf Gholdengo",
+    "speed": 439,
+    "owner": "Gholdengo"
   },
   {
-    "label": "Scarf Feebas",
+    "label": "Scarf Dragonite",
     "speed": 426,
-    "owner": "Feebas"
+    "owner": "Dragonite"
   },
   {
     "label": "Max Speed Dragapult",
@@ -50,19 +95,44 @@
     "owner": "Dragapult"
   },
   {
-    "label": "Max Greninja",
-    "speed": 377,
-    "owner": "Greninja"
+    "label": "Max Dragapult",
+    "speed": 421,
+    "owner": "Dragapult"
   },
   {
-    "label": "Max Iron Jugulis",
-    "speed": 346,
-    "owner": "Iron Jugulis"
+    "label": "Max Zamazenta",
+    "speed": 412,
+    "owner": "Zamazenta"
   },
   {
-    "label": "Max Shaymin",
-    "speed": 328,
-    "owner": "Shaymin"
+    "label": "Max Darkrai",
+    "speed": 383,
+    "owner": "Darkrai"
+  },
+  {
+    "label": "Max Cinderace",
+    "speed": 370,
+    "owner": "Cinderace"
+  },
+  {
+    "label": "Max Iron Valiant",
+    "speed": 364,
+    "owner": "Iron Valiant"
+  },
+  {
+    "label": "Max Ogerpon-Wellspring",
+    "speed": 350,
+    "owner": "Ogerpon-Wellspring"
+  },
+  {
+    "label": "Max Iron Treads",
+    "speed": 342,
+    "owner": "Iron Treads"
+  },
+  {
+    "label": "Max Kyurem",
+    "speed": 317,
+    "owner": "Kyurem"
   },
   {
     "label": "Max Landorus-Therian",
@@ -70,63 +140,58 @@
     "owner": "Landorus-Therian"
   },
   {
-    "label": "Max Cherrim",
+    "label": "Max Pecharunt",
+    "speed": 302,
+    "owner": "Pecharunt"
+  },
+  {
+    "label": "Max Great Tusk",
+    "speed": 300,
+    "owner": "Great Tusk"
+  },
+  {
+    "label": "Max Glimmora",
+    "speed": 298,
+    "owner": "Glimmora"
+  },
+  {
+    "label": "Max Samurott-Hisui",
     "speed": 295,
-    "owner": "Cherrim"
+    "owner": "Samurott-Hisui"
   },
   {
-    "label": "Max Feebas",
+    "label": "Max Gholdengo",
+    "speed": 293,
+    "owner": "Gholdengo"
+  },
+  {
+    "label": "Max Dragonite",
     "speed": 284,
-    "owner": "Feebas"
+    "owner": "Dragonite"
   },
   {
-    "label": "Max Noctowl",
-    "speed": 262,
-    "owner": "Noctowl"
+    "label": "Max Raging Bolt",
+    "speed": 273,
+    "owner": "Raging Bolt"
   },
   {
-    "label": "Max Espurr",
-    "speed": 258,
-    "owner": "Espurr"
+    "label": "Max Corviknight",
+    "speed": 256,
+    "owner": "Corviknight"
   },
   {
-    "label": "Max Cyndaquil",
-    "speed": 251,
-    "owner": "Cyndaquil"
-  },
-  {
-    "label": "Max Chesnaught",
-    "speed": 249,
-    "owner": "Chesnaught"
-  },
-  {
-    "label": "Max Riolu",
+    "label": "Max Clefable",
     "speed": 240,
-    "owner": "Riolu"
+    "owner": "Clefable"
   },
   {
-    "label": "Max Skiddo",
-    "speed": 223,
-    "owner": "Skiddo"
-  },
-  {
-    "label": "Max Brionne",
+    "label": "Max Kingambit",
     "speed": 218,
-    "owner": "Brionne"
+    "owner": "Kingambit"
   },
   {
-    "label": "Max Swirlix",
-    "speed": 216,
-    "owner": "Swirlix"
-  },
-  {
-    "label": "Max Enamorus-Therian",
-    "speed": 210,
-    "owner": "Enamorus-Therian"
-  },
-  {
-    "label": "Max Rabsca",
+    "label": "Max Ting-Lu",
     "speed": 207,
-    "owner": "Rabsca"
+    "owner": "Ting-Lu"
   }
 ]

@@ -191,13 +191,23 @@ def fetch_pokemon_data(name):
 
     return None
 
-def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item=""):
+def sp_to_ev(sp):
+    """Converts a Champions stat point value to its rough EV equivalent (1 SP ~ 8 EVs)."""
+    return min(sp * 8, 252)
+
+
+def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item="", game="sv"):
     """
-    Calculates the actual Speed stat at Level 100.
+    Calculates the actual Speed stat.
+    SV: Level 100, `ev` is EVs. Champions: Level 50, `ev` is stat points (IVs fixed at 31).
     """
-    # Stat Formula: floor(((2 * Base + IV + (EV/4)) * Level / 100) + 5) * Nature
-    level = 100
-    stat = int(((2 * base_speed + iv + (ev / 4)) * level / 100) + 5)
+    if game == "champions":
+        # Showdown champions mod: floor(Base + SP + 20) * Nature
+        stat = base_speed + ev + 20
+    else:
+        # Stat Formula: floor(((2 * Base + IV + (EV/4)) * Level / 100) + 5) * Nature
+        level = 100
+        stat = int(((2 * base_speed + iv + (ev / 4)) * level / 100) + 5)
     stat = int(stat * nature_mod)
     
     # Apply Items

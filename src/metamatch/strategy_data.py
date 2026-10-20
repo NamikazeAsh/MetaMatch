@@ -6,11 +6,10 @@ from . import config
 from .utils import pokeSlugify
 
 # Define sources for the Master Strategy Database
-# We switch to the 'sets' endpoint for structured data
+# We switch to the 'sets' endpoint for structured data. Champions formats have no published sets yet.
 STRATEGY_SOURCES = {
-    "OU": "https://pkmn.github.io/smogon/data/sets/gen9ou.json",
-    "UU": "https://pkmn.github.io/smogon/data/sets/gen9uu.json",
-    "NatDex": "https://pkmn.github.io/smogon/data/sets/gen9nationaldex.json"
+    f["label"]: f"https://pkmn.github.io/smogon/data/sets/{f['sets']}.json"
+    for f in config.FORMATS.values() if f["sets"]
 }
 
 LOCAL_STRATEGY_FILE = config.JSON_DIR / "strategies_combined.json"
@@ -136,13 +135,9 @@ def find_usage_matches(target_moves, usage_data=None, threshold=1.0):
     
     for fmt, p_data in usage_data.items():
         # Clean format name
-        fmt_lower = fmt.lower()
-        if "nationaldex" in fmt_lower or "natdex" in fmt_lower: 
-            fmt_label = "NatDex"
-        elif "gen9ou" in fmt_lower: 
-            fmt_label = "OU"
-        elif "gen9uu" in fmt_lower: 
-            fmt_label = "UU"
+        fmt_id = config.format_from_stats_stem(fmt)
+        if fmt_id:
+            fmt_label = config.FORMATS[fmt_id]["label"]
         else: 
             # Fallback: remove version numbers and weights
             fmt_label = fmt.split("-")[0].replace("gen9", "").upper()

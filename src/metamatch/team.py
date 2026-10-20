@@ -1,5 +1,5 @@
 import json
-from .utils import fetch_pokemon_data, calculate_speed, fetch_move_data
+from .utils import fetch_pokemon_data, calculate_speed, fetch_move_data, sp_to_ev
 from .type_chart import TYPE_CHART
 from . import config
 
@@ -7,8 +7,22 @@ def get_move_metadata(move_name):
     return fetch_move_data(move_name)
 
 
-def readTeam(teamRaw):
+def looks_like_champions(teamRaw):
+    """Heuristic: Champions exports have no Tera Type and every EVs line sums to at most 66 stat points."""
+    if 'Tera Type:' in teamRaw:
+        return False
+    totals = []
+    for line in teamRaw.split('\n'):
+        line = line.strip()
+        if line.startswith('EVs:'):
+            vals = [p.strip().split(' ')[0] for p in line.split('EVs:')[1].split('/')]
+            totals.append(sum(int(v) for v in vals if v.isdigit()))
+    return bool(totals) and max(totals) <= config.CHAMPIONS_SP_TOTAL
+
+
+def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
     team = {}
+    game = config.format_game(format_id)
     teamRaw = teamRaw.strip().split('\n\n')
     
     types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
@@ -29,7 +43,9 @@ def readTeam(teamRaw):
             'Ability': '',
             'Shiny': False,
             'Tera Type': '',
-            'EVs': {},
+            'EVs': {},        # Champions: EV equivalents of SP, so role thresholds still apply
+            'SP': {},         # Champions stat points as exported
+            'Format': format_id,
             'Nature': '',
             'Moves': [],
             'Roles': [],
@@ -57,7 +73,12 @@ def readTeam(teamRaw):
                     if len(parts) >= 2:
                         val = int(parts[0])
                         stat = parts[1]
-                        poke_data['EVs'][stat] = val
+                        if game == "champions":
+                            # Champions exports keep the 'EVs:' label but the values are stat points
+                            poke_data['SP'][stat] = val
+                            poke_data['EVs'][stat] = sp_to_ev(val)
+                        else:
+                            poke_data['EVs'][stat] = val
             elif line.endswith('Nature'):
                 poke_data['Nature'] = line.replace('Nature', '').strip()
             elif line.startswith('-'):
@@ -76,12 +97,12 @@ def readTeam(teamRaw):
             
             # 3. Calculate Real Speed
             base_spe = api_data['stats'].get('speed', 100)
-            ev_spe = poke_data['EVs'].get('Spe', 0)
+            ev_spe = poke_data['SP' if game == "champions" else 'EVs'].get('Spe', 0)
             nature_mod = 1.0
             if poke_data['Nature'] in speed_plus: nature_mod = 1.1
             elif poke_data['Nature'] in speed_minus: nature_mod = 0.9
             
-            poke_data['Speed'] = calculate_speed(base_spe, ev_spe, 31, nature_mod, poke_data['Item'])
+            poke_data['Speed'] = calculate_speed(base_spe, ev_spe, 31, nature_mod, poke_data['Item'], game)
         else:
             # Fallback if API fails
             poke_data['Type'] = [] 
@@ -305,12 +326,21 @@ def addComments(team):
         
         if len(team[poke]["Moves"]) != 4:
             team[poke]["Comments"].append("Missing moves")
-        if sum(team[poke]["EVs"].values()) != 508:
-            team[poke]["Comments"].append("Missing EV values")
+        if config.format_game(team[poke].get("Format")) == "champions":
+            sp = team[poke].get("SP", {})
+            if sum(sp.values()) > config.CHAMPIONS_SP_TOTAL:
+                team[poke]["Comments"].append(f"Over {config.CHAMPIONS_SP_TOTAL} stat points")
+            elif sum(sp.values()) < config.CHAMPIONS_SP_TOTAL:
+                team[poke]["Comments"].append("Missing stat points")
+            if any(v > config.CHAMPIONS_SP_MAX for v in sp.values()):
+                team[poke]["Comments"].append(f"Stat above {config.CHAMPIONS_SP_MAX} points")
+        else:
+            if sum(team[poke]["EVs"].values()) != 508:
+                team[poke]["Comments"].append("Missing EV values")
+            if team[poke]["Tera Type"].lower() not in tera_types:
+                team[poke]["Comments"].append("Has improper tera type")
         if team[poke]["Item"] == "":
             team[poke]["Comments"].append("Has no item")
-        if team[poke]["Tera Type"].lower() not in tera_types:
-            team[poke]["Comments"].append("Has improper tera type")
 
 
 def damageRelations(ptypes):

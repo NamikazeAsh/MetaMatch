@@ -1,11 +1,12 @@
 import json
+import re
 from metamatch import config
 
-def load_chaos_data():
+def load_chaos_data(format_id=config.DEFAULT_FORMAT):
     """
-    Loads the Chaos JSON data.
+    Loads the Chaos JSON data for a format.
     """
-    chaos_path = config.STATS_DIR / "gen9ou-1825.json"
+    chaos_path = config.STATS_DIR / (config.format_info(format_id)["stats"] + ".json")
     if not chaos_path.exists():
         return None
     try:
@@ -20,7 +21,7 @@ def audit_team(team_data):
     Audits the team against Smogon usage stats.
     Returns a dictionary with full usage reports and a list of warnings.
     """
-    chaos_data = load_chaos_data()
+    chaos_data = load_chaos_data(config.team_format(team_data))
     if not chaos_data:
         return {"reports": {}, "warnings": []}
 
@@ -36,7 +37,14 @@ def audit_team(team_data):
                 if key.lower() == name.lower():
                     p_data = chaos_data[key]
                     break
-        
+
+        # Champions stats key Mega holders by their Mega forme (e.g. Golisopod @ Golisopodite -> Golisopod-Mega)
+        item = pokemon.get('Item', '')
+        if re.search(r"ite( [XYZ])?$", item) and item != "Eviolite":
+            suffix = item.split(' ')[1] if ' ' in item else ''
+            mega_key = f"{name}-Mega" + (f"-{suffix}" if suffix else "")
+            p_data = chaos_data.get(mega_key) or p_data
+
         if not p_data:
             continue
 

@@ -50,12 +50,6 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_ro
         "Fills missing: Hazard Setter, Pivot" or "" if no role boost applied.
     """
 
-    file_map = {
-        "gen9ou": "gen9ou-1825.json",
-        "gen9uu": "gen9uu-1760.json",
-        "gen9natdex": "gen9nationaldex-1760.json"
-    }
-
     # Ensure format_id is a list
     if isinstance(format_id, str):
         format_ids = [format_id]
@@ -80,9 +74,9 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_ro
     team_set = {name.lower() for name in current_team_names}
 
     for fmt in format_ids:
-        filename = file_map.get(fmt)
-        if not filename:
+        if fmt not in config.FORMATS:
             continue
+        filename = config.FORMATS[fmt]["stats"] + ".json"
 
         chaos_path = config.STATS_DIR / filename
         if not chaos_path.exists():

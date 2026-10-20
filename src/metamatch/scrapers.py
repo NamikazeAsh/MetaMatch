@@ -54,7 +54,7 @@ def parse_smogon_usage(path, top_n=100):
     if not path:
         return []
     # Matches the Pokémon name column in Smogon's table format: | Rank | Name | ...
-    pat = re.compile(r'^ \| \d+\s+\| ([^|]+?) \|')
+    pat = re.compile(r'^\s*\| \d+\s+\| ([^|]+?) \|')
     names = []
     try:
         with open(path, 'r', encoding='utf-8') as f:
@@ -68,17 +68,22 @@ def parse_smogon_usage(path, top_n=100):
         print(f"Error: Could not find file {path} to parse.")
         return []
 
-def generate_speed_tiers(pokemon_names):
+def generate_speed_tiers(pokemon_names, game="sv"):
     """
     Generates speed benchmarks for the top meta Pokemon.
     Returns a sorted list of tiers.
     """
-    print("Generating Speed Tiers...")
+    print(f"Generating Speed Tiers ({game})...")
     tiers = []
     
-    # Common fixed benchmarks
-    tiers.append({'label': 'Choice Scarf Gholdengo', 'speed': 447, 'owner': 'Gholdengo'})
-    tiers.append({'label': 'Max Speed Dragapult', 'speed': 421, 'owner': 'Dragapult'})
+    if game == "champions":
+        # Level 50, max investment is 32 stat points
+        max_invest, min_speed = config.CHAMPIONS_SP_MAX, 100
+    else:
+        max_invest, min_speed = 252, 200
+        # Common fixed benchmarks
+        tiers.append({'label': 'Choice Scarf Gholdengo', 'speed': 447, 'owner': 'Gholdengo'})
+        tiers.append({'label': 'Max Speed Dragapult', 'speed': 421, 'owner': 'Dragapult'})
     
     seen_speeds = set()
     
@@ -88,14 +93,14 @@ def generate_speed_tiers(pokemon_names):
         
         base_spe = data['stats']['speed']
         
-        # 1. Max Speed (+Nature, 252 EVs)
-        max_spe = calculate_speed(base_spe, ev=252, nature_mod=1.1)
-        if max_spe > 200 and max_spe not in seen_speeds:
+        # 1. Max Speed (+Nature, full investment)
+        max_spe = calculate_speed(base_spe, ev=max_invest, nature_mod=1.1, game=game)
+        if max_spe > min_speed and max_spe not in seen_speeds:
             tiers.append({'label': f"Max {name}", 'speed': max_spe, 'owner': name})
             seen_speeds.add(max_spe)
             
-        # 2. Scarf User (if base speed is decent > 80)
-        if base_spe >= 80:
+        # 2. Scarf User (if base speed is decent > 80). Megas hold their stone, so never Scarf
+        if base_spe >= 80 and "-Mega" not in name:
             scarf_spe = int(max_spe * 1.5)
             if scarf_spe not in seen_speeds:
                 tiers.append({'label': f"Scarf {name}", 'speed': scarf_spe, 'owner': name})
@@ -104,49 +109,43 @@ def generate_speed_tiers(pokemon_names):
     # Sort by speed descending
     return sorted(tiers, key=lambda x: x['speed'], reverse=True)
 
+def speed_tiers_path(game):
+    """Speed tiers are stored per game since SV (Lv100) and Champions (Lv50) numbers don't mix."""
+    return config.JSON_DIR / ("meta_speeds_champions.json" if game == "champions" else "meta_speeds.json")
+
 def main():
     """
     Main function to automate downloading and processing of Smogon stats.
     """
     print("Starting Smogon stats update...")
     stats_base_url = get_latest_stats_url()
-    
-    # --- Define target formats ---
-    TARGET_FORMATS = {
-        "OU": {"txt": "gen9ou-1825.txt", "json": "gen9ou-1825.json"},
-        "UU": {"txt": "gen9uu-1760.txt", "json": "gen9uu-1760.json"},
-        "NatDex": {"txt": "gen9nationaldex-1760.txt", "json": "gen9nationaldex-1760.json"}
-    }
-    
-    # --- Download files ---
-    downloaded_paths = []
     chaos_url_base = stats_base_url + "chaos/"
     
-    for fmt, files in TARGET_FORMATS.items():
-        print(f"\nProcessing {fmt}...")
+    # --- Download files (usage .txt and chaos .json for every registered format) ---
+    names_by_game = {}
+    for fmt_id, fmt in config.FORMATS.items():
+        print(f"\nProcessing {fmt['label']}...")
         
         # Text file (Usage)
-        txt_path = download_stat_file(stats_base_url, files["txt"])
-        if txt_path:
-            downloaded_paths.append(txt_path)
+        txt_path = download_stat_file(stats_base_url, fmt["stats"] + ".txt")
             
         # JSON file (Chaos/Partners)
-        print(f"Downloading Chaos data for {fmt}...")
-        download_stat_file(chaos_url_base, files["json"])
+        print(f"Downloading Chaos data for {fmt['label']}...")
+        download_stat_file(chaos_url_base, fmt["stats"] + ".json")
 
-    if not downloaded_paths:
-        print("No stats files were downloaded. Aborting update.")
+        if txt_path:
+            # Get top 1000 from each format to populate the search bar
+            names = parse_smogon_usage(txt_path, top_n=1000)
+            if not names:
+                continue
+            ordered = names_by_game.setdefault(fmt["game"], [])
+            ordered.extend(n for n in names if n not in ordered)
+
+    if not names_by_game:
+        print("No usage stats were downloaded or parsed. Aborting update.")
         return
 
-    # --- Parse files and combine lists ---
-    print("\nParsing downloaded files...")
-    combined_names = set()
-    for path in downloaded_paths:
-        # Get top 1000 from each format to populate the search bar
-        names = parse_smogon_usage(path, top_n=1000)
-        combined_names.update(names)
-    
-    sorted_names = list(combined_names)
+    sorted_names = list({n for names in names_by_game.values() for n in names})
 
     # --- Fetch types and save final JSON ---
     print(f"Found {len(sorted_names)} unique Pokémon across all formats. Fetching data...")
@@ -159,13 +158,10 @@ def main():
     with open(config.JSON_DIR / "topPoke.json", "w") as f:
         json.dump(top_poke_data, f, indent=2)
         
-    # --- Generate Speed Tiers ---
-    # We use the combined list so users see speed tiers for everything relevant
-    speed_tiers = generate_speed_tiers(sorted_names)
-    with open(config.JSON_DIR / "meta_speeds.json", "w") as f:
-        json.dump(speed_tiers, f, indent=2)
+    # --- Generate Speed Tiers (one file per game, from that game's usage order) ---
+    for game, names in names_by_game.items():
+        speed_tiers = generate_speed_tiers(names, game)
+        with open(speed_tiers_path(game), "w") as f:
+            json.dump(speed_tiers, f, indent=2)
 
     print(f"\nSuccessfully updated meta data and speed tiers.")
-
-if __name__ == "__main__":
-    main()

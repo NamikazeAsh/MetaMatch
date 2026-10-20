@@ -1,5 +1,5 @@
 from .client import get_agent_client
-from metamatch import auditor, recommender
+from metamatch import auditor, recommender, config
 from metamatch.rag import store
 
 class AuditorAgent:
@@ -22,7 +22,7 @@ class AuditorAgent:
         
         # 2. Run Recommender (Real Code)
         team_names = [p['Pokemon'] for p in team_context.values()]
-        recommendations = recommender.get_recommendations(team_names, top_n=3)
+        recommendations = recommender.get_recommendations(team_names, top_n=3, format_id=config.team_format(team_context))
 
         # 3. Retrieve RAG Context for 'Why' (Grounded Reasoning)
         rag_hits = store.query_strategies(query, n_results=1)

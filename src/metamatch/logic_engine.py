@@ -1,5 +1,6 @@
 import re
 from .utils import fetch_pokemon_data, calculate_speed
+from . import config
 from .type_chart import TYPE_CHART
 
 # --- INTENT ROUTER ---
@@ -68,8 +69,10 @@ def analyze_matchup(user_pokemon, opponent_name):
     opp_types = opp_data['types']
     # Assume standard opponent build
     opp_base_speed = opp_stats.get('speed', 100)
-    opp_est_speed = calculate_speed(opp_base_speed, ev=252, iv=31, nature_mod=1.0) # Neutral
-    opp_est_speed_plus = calculate_speed(opp_base_speed, ev=252, iv=31, nature_mod=1.1) # Positive
+    game = config.format_game(user_pokemon.get('Format'))
+    max_invest = config.CHAMPIONS_SP_MAX if game == "champions" else 252
+    opp_est_speed = calculate_speed(opp_base_speed, ev=max_invest, iv=31, nature_mod=1.0, game=game) # Neutral
+    opp_est_speed_plus = calculate_speed(opp_base_speed, ev=max_invest, iv=31, nature_mod=1.1, game=game) # Positive
 
     # 2. Speed Check
     user_speed = user_pokemon.get('Speed', 0)

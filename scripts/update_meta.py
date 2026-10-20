@@ -47,26 +47,20 @@ def main():
 
     logging.info("Stats URL found! Starting download pipeline...")
 
-    # 2. Download the Chaos Data (JSON) & Usage Text
-    # We target Gen 9 OU (1695 or 1825 rating is standard for 'high ladder' logic)
-    # Using 1825 for higher precision validation
-    file_map = {
-        "gen9ou-1825.json": "chaos.json",
-        "gen9ou-1825.txt": "usage.txt"
-    }
-
+    # 2. Download the Usage Text & Chaos Data (JSON) for every registered format
+    # Usage .txt lives at the month root, chaos .json under chaos/
     success_count = 0
-    for remote_file, local_alias in file_map.items():
-        # scrapers.download_stat_file saves to config.STATS_DIR
-        # We might need to rename it after download if we want a fixed name like 'chaos.json' 
-        # or just keep the dated name. For now, let's stick to the raw download.
-        local_path = scrapers.download_stat_file(target_url, remote_file)
-        
-        if local_path:
-            success_count += 1
-            logging.info(f"Downloaded: {remote_file}")
-        else:
-            logging.error(f"Failed to download: {remote_file}")
+    for fmt in config.FORMATS.values():
+        for base_url, remote_file in [(target_url, fmt["stats"] + ".txt"),
+                                      (target_url + "chaos/", fmt["stats"] + ".json")]:
+            # scrapers.download_stat_file saves to config.STATS_DIR
+            local_path = scrapers.download_stat_file(base_url, remote_file)
+
+            if local_path:
+                success_count += 1
+                logging.info(f"Downloaded: {remote_file}")
+            else:
+                logging.error(f"Failed to download: {remote_file}")
 
     if success_count > 0:
         logging.info("Update complete.")

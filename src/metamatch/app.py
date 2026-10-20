@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from metamatch.utils import pokeSlugify, is_pokepaste_url, fetch_pokepaste, extract_pokemon_names, get_pokemon_sprite
-from metamatch.team import readTeam, detectRole, addComments, coverageCheck
+from metamatch.team import readTeam, detectRole, addComments, coverageCheck, looks_like_champions
 from metamatch.suggestions import get_suggestions, get_team_guide
 from metamatch.scrapers import generate_speed_tiers
 from metamatch import config
@@ -126,6 +126,8 @@ if 'default_input' not in st.session_state:
     st.session_state.default_input = ""
 if 'chat_messages' not in st.session_state:
     st.session_state.chat_messages = []
+if 'format_id' not in st.session_state:
+    st.session_state.format_id = config.DEFAULT_FORMAT
 
 # --- Sidebar: Input & Controls ---
 with st.sidebar:
@@ -169,6 +171,15 @@ with st.sidebar:
     st.markdown("---")
     st.header("📋 Team Input")
 
+    # Format drives which usage stats and mechanics (SV EVs/Tera vs Champions stat points/Megas) are used
+    format_ids = list(config.FORMATS.keys())
+    st.session_state.format_id = st.selectbox(
+        "Format:",
+        format_ids,
+        index=format_ids.index(st.session_state.format_id),
+        format_func=lambda f: config.FORMATS[f]["label"],
+    )
+
     with st.form("pokemon_form"):
         pokemon_data = st.text_area(
             "Paste Showdown Export or pokepast.es link:",
@@ -196,7 +207,10 @@ with st.sidebar:
             st.session_state.pokemon_names = extract_pokemon_names(pokemon_data)
 
             with st.spinner("Analyzing team dynamics..."):
-                team, team_weakness = readTeam(pokemon_data)
+                fmt_id = st.session_state.format_id
+                if looks_like_champions(pokemon_data) != (config.format_game(fmt_id) == "champions"):
+                    st.toast(f"⚠️ This team doesn't look like a {config.FORMATS[fmt_id]['label']} team. Check the Format picker.")
+                team, team_weakness = readTeam(pokemon_data, fmt_id)
                 detectRole(team)
                 addComments(team)
                 coverage = coverageCheck(team)
@@ -252,8 +266,8 @@ with st.sidebar:
         **Recognized Fields:**
         - `Pokemon @ Item` (Optional item)
         - `Ability: Name`
-        - `Tera Type: Type`
-        - `EVs: 252 HP / 252 Def`
+        - `Tera Type: Type` (SV only)
+        - `EVs: 252 HP / 252 Def` (in Champions this line holds stat points, e.g. `EVs: 32 HP / 32 Def / 2 SpD`)
         - `Nature Name Nature` (e.g., *Adamant Nature*)
         - `- Move Name` (Starting with a hyphen)
 
@@ -402,7 +416,7 @@ if st.session_state.submitted and st.session_state.pokemon_names:
                         <span style="opacity: 0.8;">✨ {poke['Ability']}</span>
                     </div>
                      <div class="stat-text" style="font-size: 0.75rem; margin-top:8px; color: {type_color}; opacity: 0.9; font-family: monospace;">
-                        {poke['Nature']} Nature • {', '.join([f'{v} {k}' for k, v in sorted(poke['EVs'].items(), key=lambda x: x[1], reverse=True)[:2]])}
+                        {poke['Nature']} Nature • {', '.join([f'{v} {k}' for k, v in sorted((poke.get('SP') or poke['EVs']).items(), key=lambda x: x[1], reverse=True)[:2]])}
                      </div>
                 </div>
             </div>

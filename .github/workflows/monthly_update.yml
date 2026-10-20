@@ -32,6 +32,7 @@ jobs:
       run: |
         git config user.name "MetaMatch Bot"
         git config user.email "bot@metamatch.ai"
-        git add data/stats/
+        # data/stats/ is gitignored, so force add to pick up newly registered formats
+        git add -f data/stats/
         git commit -m "chore(data): auto-update smogon stats [skip ci]" || exit 0
         git push

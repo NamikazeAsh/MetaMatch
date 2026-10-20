@@ -20992,320 +20992,1280 @@
     "accuracy": 100,
     "category": "Special"
   },
-  "move::kowtow-cleave": {
-    "data": {
-      "type": "Dark",
-      "power": 85,
-      "accuracy": null,
-      "category": "Physical"
-    },
-    "ts": 1774452260.9084718
-  },
-  "move::sucker-punch": {
-    "data": {
-      "type": "Dark",
-      "power": 70,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774452261.2529676
-  },
-  "move::thunder-wave": {
-    "data": {
-      "type": "Electric",
-      "power": null,
-      "accuracy": 90,
-      "category": "Status"
-    },
-    "ts": 1774452261.3985727
-  },
-  "move::ice-spinner": {
-    "data": {
-      "type": "Ice",
-      "power": 80,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774452261.6061854
-  },
-  "move::fiery-dance": {
-    "data": {
-      "type": "Fire",
-      "power": 80,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774452261.8580174
-  },
-  "move::sludge-wave": {
-    "data": {
-      "type": "Poison",
-      "power": 95,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774452262.1113374
-  },
-  "move::energy-ball": {
-    "data": {
-      "type": "Grass",
-      "power": 90,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774452262.3930986
-  },
-  "move::volt-switch": {
-    "data": {
-      "type": "Electric",
-      "power": 70,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774452262.6764128
-  },
-  "move::toxic": {
-    "data": {
-      "type": "Poison",
-      "power": null,
-      "accuracy": 90,
-      "category": "Status"
-    },
-    "ts": 1774452262.8749707
-  },
-  "move::recover": {
-    "data": {
-      "type": "Normal",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774452263.1558394
-  },
-  "move::haze": {
-    "data": {
-      "type": "Ice",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774452263.4338894
-  },
-  "move::acrobatics": {
-    "data": {
-      "type": "Flying",
-      "power": 55,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774452263.691231
-  },
-  "move::crunch": {
-    "data": {
-      "type": "Dark",
-      "power": 80,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774452263.8948324
-  },
-  "roaring-moon": {
+  "raichu-mega-x": {
     "data": {
       "types": [
-        "Dragon",
+        "Electric"
+      ],
+      "stats": {
+        "hp": 60,
+        "attack": 135,
+        "defense": 95,
+        "special-attack": 90,
+        "special-defense": 95,
+        "speed": 110
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10304.png",
+      "abilities": [
+        "electric-surge"
+      ]
+    },
+    "ts": 1792462322.6564152
+  },
+  "dragalge-mega": {
+    "data": {
+      "types": [
+        "Poison",
+        "Dragon"
+      ],
+      "stats": {
+        "hp": 65,
+        "attack": 85,
+        "defense": 105,
+        "special-attack": 132,
+        "special-defense": 163,
+        "speed": 44
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10299.png",
+      "abilities": [
+        "regenerator"
+      ]
+    },
+    "ts": 1792462323.011708
+  },
+  "metagross-mega": {
+    "data": {
+      "types": [
+        "Steel",
+        "Psychic"
+      ],
+      "stats": {
+        "hp": 80,
+        "attack": 145,
+        "defense": 150,
+        "special-attack": 105,
+        "special-defense": 110,
+        "speed": 110
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10076.png",
+      "abilities": [
+        "tough-claws"
+      ]
+    },
+    "ts": 1792462323.4038632
+  },
+  "malamar-mega": {
+    "data": {
+      "types": [
+        "Dark",
+        "Psychic"
+      ],
+      "stats": {
+        "hp": 86,
+        "attack": 102,
+        "defense": 88,
+        "special-attack": 98,
+        "special-defense": 120,
+        "speed": 88
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10297.png",
+      "abilities": [
+        "contrary"
+      ]
+    },
+    "ts": 1792462323.5779812
+  },
+  "victreebel-mega": {
+    "data": {
+      "types": [
+        "Grass",
+        "Poison"
+      ],
+      "stats": {
+        "hp": 80,
+        "attack": 125,
+        "defense": 85,
+        "special-attack": 135,
+        "special-defense": 95,
+        "speed": 70
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10279.png",
+      "abilities": [
+        "innards-out"
+      ]
+    },
+    "ts": 1792462323.9179504
+  },
+  "cherubi": {
+    "data": {
+      "types": [
+        "Grass"
+      ],
+      "stats": {
+        "hp": 45,
+        "attack": 35,
+        "defense": 45,
+        "special-attack": 62,
+        "special-defense": 53,
+        "speed": 35
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/420.png",
+      "abilities": [
+        "chlorophyll"
+      ]
+    },
+    "ts": 1792462324.4380393
+  },
+  "tranquill": {
+    "data": {
+      "types": [
+        "Normal",
+        "Flying"
+      ],
+      "stats": {
+        "hp": 62,
+        "attack": 77,
+        "defense": 62,
+        "special-attack": 50,
+        "special-defense": 42,
+        "speed": 65
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/520.png",
+      "abilities": [
+        "big-pecks",
+        "super-luck",
+        "rivalry"
+      ]
+    },
+    "ts": 1792462324.7478688
+  },
+  "froslass-mega": {
+    "data": {
+      "types": [
+        "Ice",
+        "Ghost"
+      ],
+      "stats": {
+        "hp": 70,
+        "attack": 80,
+        "defense": 70,
+        "special-attack": 140,
+        "special-defense": 100,
+        "speed": 120
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10285.png",
+      "abilities": [
+        "snow-warning"
+      ]
+    },
+    "ts": 1792462324.9879477
+  },
+  "munna": {
+    "data": {
+      "types": [
+        "Psychic"
+      ],
+      "stats": {
+        "hp": 76,
+        "attack": 25,
+        "defense": 45,
+        "special-attack": 67,
+        "special-defense": 55,
+        "speed": 24
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/517.png",
+      "abilities": [
+        "forewarn",
+        "synchronize",
+        "telepathy"
+      ]
+    },
+    "ts": 1792462325.160207
+  },
+  "staraptor-mega": {
+    "data": {
+      "types": [
+        "Fighting",
+        "Flying"
+      ],
+      "stats": {
+        "hp": 85,
+        "attack": 140,
+        "defense": 100,
+        "special-attack": 60,
+        "special-defense": 90,
+        "speed": 110
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10308.png",
+      "abilities": [
+        "contrary"
+      ]
+    },
+    "ts": 1792462325.3708436
+  },
+  "meganium-mega": {
+    "data": {
+      "types": [
+        "Grass",
+        "Fairy"
+      ],
+      "stats": {
+        "hp": 80,
+        "attack": 92,
+        "defense": 115,
+        "special-attack": 143,
+        "special-defense": 115,
+        "speed": 80
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10282.png",
+      "abilities": [
+        "mega-sol"
+      ]
+    },
+    "ts": 1792462325.5631244
+  },
+  "skorupi": {
+    "data": {
+      "types": [
+        "Poison",
+        "Bug"
+      ],
+      "stats": {
+        "hp": 40,
+        "attack": 50,
+        "defense": 90,
+        "special-attack": 30,
+        "special-defense": 55,
+        "speed": 65
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/451.png",
+      "abilities": [
+        "battle-armor",
+        "sniper",
+        "keen-eye"
+      ]
+    },
+    "ts": 1792462325.8376913
+  },
+  "whismur": {
+    "data": {
+      "types": [
+        "Normal"
+      ],
+      "stats": {
+        "hp": 64,
+        "attack": 51,
+        "defense": 23,
+        "special-attack": 51,
+        "special-defense": 23,
+        "speed": 28
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/293.png",
+      "abilities": [
+        "soundproof",
+        "rattled"
+      ]
+    },
+    "ts": 1792462326.0257807
+  },
+  "delphox-mega": {
+    "data": {
+      "types": [
+        "Fire",
+        "Psychic"
+      ],
+      "stats": {
+        "hp": 75,
+        "attack": 69,
+        "defense": 72,
+        "special-attack": 159,
+        "special-defense": 125,
+        "speed": 134
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10293.png",
+      "abilities": [
+        "levitate"
+      ]
+    },
+    "ts": 1792462326.19147
+  },
+  "skarmory-mega": {
+    "data": {
+      "types": [
+        "Steel",
+        "Flying"
+      ],
+      "stats": {
+        "hp": 65,
+        "attack": 140,
+        "defense": 110,
+        "special-attack": 40,
+        "special-defense": 100,
+        "speed": 110
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10284.png",
+      "abilities": [
+        "stalwart"
+      ]
+    },
+    "ts": 1792462326.3720448
+  },
+  "scolipede-mega": {
+    "data": {
+      "types": [
+        "Bug",
+        "Poison"
+      ],
+      "stats": {
+        "hp": 60,
+        "attack": 140,
+        "defense": 149,
+        "special-attack": 75,
+        "special-defense": 99,
+        "speed": 62
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10288.png",
+      "abilities": [
+        "shell-armor"
+      ]
+    },
+    "ts": 1792462326.7474744
+  },
+  "greninja-mega": {
+    "data": {
+      "types": [
+        "Water",
         "Dark"
       ],
       "stats": {
-        "hp": 105,
-        "attack": 139,
-        "defense": 71,
-        "special-attack": 55,
-        "special-defense": 101,
-        "speed": 119
+        "hp": 72,
+        "attack": 125,
+        "defense": 77,
+        "special-attack": 133,
+        "special-defense": 81,
+        "speed": 142
       },
-      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1005.png",
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10294.png",
       "abilities": [
-        "protosynthesis"
+        "protean"
       ]
     },
-    "ts": 1774452264.132113
+    "ts": 1792462326.9122794
   },
-  "move::lava-plume": {
+  "glimmora-mega": {
     "data": {
-      "type": "Fire",
+      "types": [
+        "Rock",
+        "Poison"
+      ],
+      "stats": {
+        "hp": 83,
+        "attack": 90,
+        "defense": 105,
+        "special-attack": 150,
+        "special-defense": 96,
+        "speed": 101
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10321.png",
+      "abilities": [
+        "adaptability"
+      ]
+    },
+    "ts": 1792462327.1205297
+  },
+  "chimecho-mega": {
+    "data": {
+      "types": [
+        "Psychic",
+        "Steel"
+      ],
+      "stats": {
+        "hp": 75,
+        "attack": 50,
+        "defense": 110,
+        "special-attack": 135,
+        "special-defense": 120,
+        "speed": 65
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10306.png",
+      "abilities": [
+        "levitate"
+      ]
+    },
+    "ts": 1792462327.5506477
+  },
+  "clefable-mega": {
+    "data": {
+      "types": [
+        "Fairy",
+        "Flying"
+      ],
+      "stats": {
+        "hp": 95,
+        "attack": 80,
+        "defense": 93,
+        "special-attack": 135,
+        "special-defense": 110,
+        "speed": 70
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10278.png",
+      "abilities": [
+        "magic-bounce"
+      ]
+    },
+    "ts": 1792462327.768253
+  },
+  "garchomp-mega-z": {
+    "data": {
+      "types": [
+        "Dragon"
+      ],
+      "stats": {
+        "hp": 108,
+        "attack": 130,
+        "defense": 85,
+        "special-attack": 141,
+        "special-defense": 85,
+        "speed": 151
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10309.png",
+      "abilities": [
+        "levitate"
+      ]
+    },
+    "ts": 1792462328.0505257
+  },
+  "drampa-mega": {
+    "data": {
+      "types": [
+        "Normal",
+        "Dragon"
+      ],
+      "stats": {
+        "hp": 78,
+        "attack": 85,
+        "defense": 110,
+        "special-attack": 160,
+        "special-defense": 116,
+        "speed": 36
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10302.png",
+      "abilities": [
+        "berserk"
+      ]
+    },
+    "ts": 1792462328.2313313
+  },
+  "emboar-mega": {
+    "data": {
+      "types": [
+        "Fire",
+        "Fighting"
+      ],
+      "stats": {
+        "hp": 110,
+        "attack": 148,
+        "defense": 75,
+        "special-attack": 110,
+        "special-defense": 110,
+        "speed": 75
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10286.png",
+      "abilities": [
+        "mold-breaker"
+      ]
+    },
+    "ts": 1792462328.4975674
+  },
+  "feraligatr-mega": {
+    "data": {
+      "types": [
+        "Water",
+        "Dragon"
+      ],
+      "stats": {
+        "hp": 85,
+        "attack": 160,
+        "defense": 125,
+        "special-attack": 89,
+        "special-defense": 93,
+        "speed": 78
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10283.png",
+      "abilities": [
+        "dragonize"
+      ]
+    },
+    "ts": 1792462328.7684686
+  },
+  "chesnaught-mega": {
+    "data": {
+      "types": [
+        "Grass",
+        "Fighting"
+      ],
+      "stats": {
+        "hp": 88,
+        "attack": 137,
+        "defense": 172,
+        "special-attack": 74,
+        "special-defense": 115,
+        "speed": 44
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10292.png",
+      "abilities": [
+        "bulletproof"
+      ]
+    },
+    "ts": 1792462329.0057228
+  },
+  "chandelure-mega": {
+    "data": {
+      "types": [
+        "Ghost",
+        "Fire"
+      ],
+      "stats": {
+        "hp": 60,
+        "attack": 75,
+        "defense": 110,
+        "special-attack": 175,
+        "special-defense": 110,
+        "speed": 90
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10291.png",
+      "abilities": [
+        "infiltrator"
+      ]
+    },
+    "ts": 1792462329.2093563
+  },
+  "golisopod-mega": {
+    "data": {
+      "types": [
+        "Bug",
+        "Steel"
+      ],
+      "stats": {
+        "hp": 75,
+        "attack": 150,
+        "defense": 175,
+        "special-attack": 70,
+        "special-defense": 120,
+        "speed": 40
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10316.png",
+      "abilities": [
+        "tough-claws"
+      ]
+    },
+    "ts": 1792462329.3585706
+  },
+  "alakazam-mega": {
+    "data": {
+      "types": [
+        "Psychic"
+      ],
+      "stats": {
+        "hp": 55,
+        "attack": 50,
+        "defense": 65,
+        "special-attack": 175,
+        "special-defense": 105,
+        "speed": 150
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10037.png",
+      "abilities": [
+        "trace"
+      ]
+    },
+    "ts": 1792462329.5177968
+  },
+  "lileep": {
+    "data": {
+      "types": [
+        "Rock",
+        "Grass"
+      ],
+      "stats": {
+        "hp": 66,
+        "attack": 41,
+        "defense": 77,
+        "special-attack": 61,
+        "special-defense": 87,
+        "speed": 23
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/345.png",
+      "abilities": [
+        "suction-cups",
+        "storm-drain"
+      ]
+    },
+    "ts": 1792462329.707352
+  },
+  "baxcalibur-mega": {
+    "data": {
+      "types": [
+        "Dragon",
+        "Ice"
+      ],
+      "stats": {
+        "hp": 115,
+        "attack": 175,
+        "defense": 117,
+        "special-attack": 105,
+        "special-defense": 101,
+        "speed": 87
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10325.png",
+      "abilities": [
+        "thermal-exchange"
+      ]
+    },
+    "ts": 1792462330.1198742
+  },
+  "absol-mega-z": {
+    "data": {
+      "types": [
+        "Dark",
+        "Ghost"
+      ],
+      "stats": {
+        "hp": 65,
+        "attack": 154,
+        "defense": 60,
+        "special-attack": 75,
+        "special-defense": 60,
+        "speed": 151
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10307.png",
+      "abilities": [
+        "sharpness"
+      ]
+    },
+    "ts": 1792462330.2960696
+  },
+  "dragonite-mega": {
+    "data": {
+      "types": [
+        "Dragon",
+        "Flying"
+      ],
+      "stats": {
+        "hp": 91,
+        "attack": 124,
+        "defense": 115,
+        "special-attack": 145,
+        "special-defense": 125,
+        "speed": 100
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10281.png",
+      "abilities": [
+        "multiscale"
+      ]
+    },
+    "ts": 1792462330.600853
+  },
+  "espathra": {
+    "data": {
+      "types": [
+        "Psychic"
+      ],
+      "stats": {
+        "hp": 95,
+        "attack": 60,
+        "defense": 60,
+        "special-attack": 101,
+        "special-defense": 60,
+        "speed": 105
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/956.png",
+      "abilities": [
+        "opportunist",
+        "frisk",
+        "speed-boost"
+      ]
+    },
+    "ts": 1792462330.7840793
+  },
+  "scovillain-mega": {
+    "data": {
+      "types": [
+        "Grass",
+        "Fire"
+      ],
+      "stats": {
+        "hp": 65,
+        "attack": 138,
+        "defense": 85,
+        "special-attack": 138,
+        "special-defense": 85,
+        "speed": 75
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10320.png",
+      "abilities": [
+        "spicy-spray"
+      ]
+    },
+    "ts": 1792462330.9530654
+  },
+  "golurk-mega": {
+    "data": {
+      "types": [
+        "Ground",
+        "Ghost"
+      ],
+      "stats": {
+        "hp": 89,
+        "attack": 159,
+        "defense": 105,
+        "special-attack": 70,
+        "special-defense": 105,
+        "speed": 55
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10313.png",
+      "abilities": [
+        "unseen-fist"
+      ]
+    },
+    "ts": 1792462331.1117053
+  },
+  "crabominable-mega": {
+    "data": {
+      "types": [
+        "Fighting",
+        "Ice"
+      ],
+      "stats": {
+        "hp": 97,
+        "attack": 157,
+        "defense": 122,
+        "special-attack": 62,
+        "special-defense": 107,
+        "speed": 33
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10315.png",
+      "abilities": [
+        "iron-fist"
+      ]
+    },
+    "ts": 1792462331.3402803
+  },
+  "loudred": {
+    "data": {
+      "types": [
+        "Normal"
+      ],
+      "stats": {
+        "hp": 84,
+        "attack": 71,
+        "defense": 43,
+        "special-attack": 71,
+        "special-defense": 43,
+        "speed": 48
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/294.png",
+      "abilities": [
+        "soundproof",
+        "scrappy"
+      ]
+    },
+    "ts": 1792462331.518595
+  },
+  "sneasler": {
+    "data": {
+      "types": [
+        "Fighting",
+        "Poison"
+      ],
+      "stats": {
+        "hp": 80,
+        "attack": 130,
+        "defense": 60,
+        "special-attack": 40,
+        "special-defense": 80,
+        "speed": 120
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/903.png",
+      "abilities": [
+        "pressure",
+        "unburden",
+        "poison-touch"
+      ]
+    },
+    "ts": 1792462331.6542609
+  },
+  "falinks-mega": {
+    "data": {
+      "types": [
+        "Fighting"
+      ],
+      "stats": {
+        "hp": 65,
+        "attack": 135,
+        "defense": 135,
+        "special-attack": 70,
+        "special-defense": 65,
+        "speed": 100
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10303.png",
+      "abilities": [
+        "defiant"
+      ]
+    },
+    "ts": 1792462332.0982926
+  },
+  "floette-eternal": {
+    "data": {
+      "types": [
+        "Fairy"
+      ],
+      "stats": {
+        "hp": 74,
+        "attack": 65,
+        "defense": 67,
+        "special-attack": 125,
+        "special-defense": 128,
+        "speed": 92
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10061.png",
+      "abilities": [
+        "flower-veil",
+        "symbiosis"
+      ]
+    },
+    "ts": 1792462332.4639947
+  },
+  "raichu-mega-y": {
+    "data": {
+      "types": [
+        "Electric"
+      ],
+      "stats": {
+        "hp": 60,
+        "attack": 100,
+        "defense": 55,
+        "special-attack": 160,
+        "special-defense": 80,
+        "speed": 130
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10305.png",
+      "abilities": [
+        "no-guard"
+      ]
+    },
+    "ts": 1792462332.6333625
+  },
+  "floette-mega": {
+    "data": {
+      "types": [
+        "Fairy"
+      ],
+      "stats": {
+        "hp": 74,
+        "attack": 85,
+        "defense": 87,
+        "special-attack": 155,
+        "special-defense": 148,
+        "speed": 102
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10296.png",
+      "abilities": [
+        "fairy-aura"
+      ]
+    },
+    "ts": 1792462332.802746
+  },
+  "glameow": {
+    "data": {
+      "types": [
+        "Normal"
+      ],
+      "stats": {
+        "hp": 49,
+        "attack": 55,
+        "defense": 42,
+        "special-attack": 42,
+        "special-defense": 37,
+        "speed": 85
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/431.png",
+      "abilities": [
+        "limber",
+        "own-tempo",
+        "keen-eye"
+      ]
+    },
+    "ts": 1792462333.303062
+  },
+  "kangaskhan-mega": {
+    "data": {
+      "types": [
+        "Normal"
+      ],
+      "stats": {
+        "hp": 105,
+        "attack": 125,
+        "defense": 100,
+        "special-attack": 60,
+        "special-defense": 100,
+        "speed": 100
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10039.png",
+      "abilities": [
+        "parental-bond"
+      ]
+    },
+    "ts": 1792462333.5298984
+  },
+  "paras": {
+    "data": {
+      "types": [
+        "Bug",
+        "Grass"
+      ],
+      "stats": {
+        "hp": 35,
+        "attack": 70,
+        "defense": 55,
+        "special-attack": 45,
+        "special-defense": 55,
+        "speed": 25
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/46.png",
+      "abilities": [
+        "effect-spore",
+        "dry-skin",
+        "damp"
+      ]
+    },
+    "ts": 1792462333.7896783
+  },
+  "pansear": {
+    "data": {
+      "types": [
+        "Fire"
+      ],
+      "stats": {
+        "hp": 50,
+        "attack": 53,
+        "defense": 48,
+        "special-attack": 53,
+        "special-defense": 48,
+        "speed": 64
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/513.png",
+      "abilities": [
+        "gluttony",
+        "blaze"
+      ]
+    },
+    "ts": 1792462333.9843812
+  },
+  "spearow": {
+    "data": {
+      "types": [
+        "Normal",
+        "Flying"
+      ],
+      "stats": {
+        "hp": 40,
+        "attack": 60,
+        "defense": 30,
+        "special-attack": 31,
+        "special-defense": 31,
+        "speed": 70
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/21.png",
+      "abilities": [
+        "keen-eye",
+        "sniper"
+      ]
+    },
+    "ts": 1792462334.2654552
+  },
+  "salamence-mega": {
+    "data": {
+      "types": [
+        "Dragon",
+        "Flying"
+      ],
+      "stats": {
+        "hp": 95,
+        "attack": 145,
+        "defense": 130,
+        "special-attack": 120,
+        "special-defense": 90,
+        "speed": 120
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10089.png",
+      "abilities": [
+        "aerilate"
+      ]
+    },
+    "ts": 1792462334.4469743
+  },
+  "nidorino": {
+    "data": {
+      "types": [
+        "Poison"
+      ],
+      "stats": {
+        "hp": 61,
+        "attack": 72,
+        "defense": 57,
+        "special-attack": 55,
+        "special-defense": 55,
+        "speed": 65
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/33.png",
+      "abilities": [
+        "poison-point",
+        "rivalry",
+        "hustle"
+      ]
+    },
+    "ts": 1792462334.606569
+  },
+  "annihilape": {
+    "data": {
+      "types": [
+        "Fighting",
+        "Ghost"
+      ],
+      "stats": {
+        "hp": 110,
+        "attack": 115,
+        "defense": 80,
+        "special-attack": 50,
+        "special-defense": 90,
+        "speed": 90
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/979.png",
+      "abilities": [
+        "vital-spirit",
+        "inner-focus",
+        "defiant"
+      ]
+    },
+    "ts": 1792462334.7560444
+  },
+  "pyroar-mega": {
+    "data": {
+      "types": [
+        "Fire",
+        "Normal"
+      ],
+      "stats": {
+        "hp": 86,
+        "attack": 88,
+        "defense": 92,
+        "special-attack": 129,
+        "special-defense": 86,
+        "speed": 126
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10295.png",
+      "abilities": [
+        "fire-mane"
+      ]
+    },
+    "ts": 1792462335.3330474
+  },
+  "scrafty-mega": {
+    "data": {
+      "types": [
+        "Dark",
+        "Fighting"
+      ],
+      "stats": {
+        "hp": 65,
+        "attack": 130,
+        "defense": 135,
+        "special-attack": 55,
+        "special-defense": 135,
+        "speed": 68
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10289.png",
+      "abilities": [
+        "intimidate"
+      ]
+    },
+    "ts": 1792462335.8616788
+  },
+  "baxcalibur": {
+    "data": {
+      "types": [
+        "Dragon",
+        "Ice"
+      ],
+      "stats": {
+        "hp": 115,
+        "attack": 145,
+        "defense": 92,
+        "special-attack": 75,
+        "special-defense": 86,
+        "speed": 87
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/998.png",
+      "abilities": [
+        "thermal-exchange",
+        "ice-body"
+      ]
+    },
+    "ts": 1792462336.0954914
+  },
+  "hawlucha-mega": {
+    "data": {
+      "types": [
+        "Fighting",
+        "Flying"
+      ],
+      "stats": {
+        "hp": 78,
+        "attack": 137,
+        "defense": 100,
+        "special-attack": 74,
+        "special-defense": 93,
+        "speed": 118
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10300.png",
+      "abilities": [
+        "no-guard"
+      ]
+    },
+    "ts": 1792462336.468982
+  },
+  "barbaracle-mega": {
+    "data": {
+      "types": [
+        "Rock",
+        "Fighting"
+      ],
+      "stats": {
+        "hp": 72,
+        "attack": 140,
+        "defense": 130,
+        "special-attack": 64,
+        "special-defense": 106,
+        "speed": 88
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10298.png",
+      "abilities": [
+        "tough-claws"
+      ]
+    },
+    "ts": 1792462337.0531068
+  },
+  "tympole": {
+    "data": {
+      "types": [
+        "Water"
+      ],
+      "stats": {
+        "hp": 50,
+        "attack": 50,
+        "defense": 40,
+        "special-attack": 50,
+        "special-defense": 40,
+        "speed": 64
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/535.png",
+      "abilities": [
+        "swift-swim",
+        "hydration",
+        "water-absorb"
+      ]
+    },
+    "ts": 1792462337.2481065
+  },
+  "excadrill-mega": {
+    "data": {
+      "types": [
+        "Ground",
+        "Steel"
+      ],
+      "stats": {
+        "hp": 110,
+        "attack": 165,
+        "defense": 100,
+        "special-attack": 65,
+        "special-defense": 65,
+        "speed": 103
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10287.png",
+      "abilities": [
+        "piercing-drill"
+      ]
+    },
+    "ts": 1792462337.5726435
+  },
+  "lucario-mega-z": {
+    "data": {
+      "types": [
+        "Fighting",
+        "Steel"
+      ],
+      "stats": {
+        "hp": 70,
+        "attack": 100,
+        "defense": 70,
+        "special-attack": 164,
+        "special-defense": 70,
+        "speed": 151
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10310.png",
+      "abilities": [
+        "aura-guard"
+      ]
+    },
+    "ts": 1792462338.004749
+  },
+  "eelektross-mega": {
+    "data": {
+      "types": [
+        "Electric"
+      ],
+      "stats": {
+        "hp": 85,
+        "attack": 145,
+        "defense": 80,
+        "special-attack": 135,
+        "special-defense": 90,
+        "speed": 80
+      },
+      "sprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10290.png",
+      "abilities": [
+        "eelevate"
+      ]
+    },
+    "ts": 1792462338.3914921
+  },
+  "move::dragon-claw": {
+    "data": {
+      "type": "Dragon",
       "power": 80,
       "accuracy": 100,
-      "category": "Special"
+      "category": "Physical"
     },
-    "ts": 1774453847.3498454
+    "ts": 1792462366.2023003
   },
-  "move::will-o-wisp": {
+  "move::first-impression": {
     "data": {
-      "type": "Fire",
-      "power": null,
-      "accuracy": 85,
-      "category": "Status"
-    },
-    "ts": 1774453847.4831707
-  },
-  "move::growth": {
-    "data": {
-      "type": "Normal",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774453847.6214294
-  },
-  "move::giga-drain": {
-    "data": {
-      "type": "Grass",
-      "power": 75,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774453847.7513804
-  },
-  "move::weather-ball": {
-    "data": {
-      "type": "Normal",
-      "power": 50,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774453847.8941557
-  },
-  "move::sludge-bomb": {
-    "data": {
-      "type": "Poison",
+      "type": "Bug",
       "power": 90,
       "accuracy": 100,
-      "category": "Special"
+      "category": "Physical"
     },
-    "ts": 1774453848.0310588
+    "ts": 1792462366.3325894
   },
-  "move::body-press": {
+  "move::leech-life": {
     "data": {
-      "type": "Fighting",
+      "type": "Bug",
       "power": 80,
       "accuracy": 100,
       "category": "Physical"
     },
-    "ts": 1774453848.1820357
-  },
-  "move::iron-defense": {
-    "data": {
-      "type": "Steel",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774453848.3207927
-  },
-  "move::fire-blast": {
-    "data": {
-      "type": "Fire",
-      "power": 110,
-      "accuracy": 85,
-      "category": "Special"
-    },
-    "ts": 1774485914.3963215
-  },
-  "move::yawn": {
-    "data": {
-      "type": "Normal",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774485914.5125036
-  },
-  "move::sleep-powder": {
-    "data": {
-      "type": "Grass",
-      "power": null,
-      "accuracy": 75,
-      "category": "Status"
-    },
-    "ts": 1774485914.6443796
-  },
-  "move::dragon-tail": {
-    "data": {
-      "type": "Dragon",
-      "power": 60,
-      "accuracy": 90,
-      "category": "Physical"
-    },
-    "ts": 1774485914.7903497
-  },
-  "move::dragon-dance": {
-    "data": {
-      "type": "Dragon",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774485914.9173045
-  },
-  "ability::drought": {
-    "data": "Summons strong sunlight that lasts indefinitely upon entering battle.",
-    "ts": 1774485915.0795298
-  },
-  "ability::chlorophyll": {
-    "data": "Doubles Speed during strong sunlight.",
-    "ts": 1774485915.2260444
-  },
-  "ability::rough-skin": {
-    "data": "Damages attacking Pok\u00e9mon for 1/8 their max HP on contact.",
-    "ts": 1774485915.3720782
-  },
-  "ability::pressure": {
-    "data": "Increases the PP cost of moves targetting the Pok\u00e9mon by one.",
-    "ts": 1774485915.5981138
-  },
-  "ability::quark-drive": {
-    "data": "Raises highest stat on Electric Terrain, or if holding Booster Energy.",
-    "ts": 1774485915.7202318
-  },
-  "ability::protosynthesis": {
-    "data": "Raises highest stat in harsh sunlight, or if holding Booster Energy.",
-    "ts": 1774485915.8432558
-  },
-  "move::headlong-rush": {
-    "data": {
-      "type": "Ground",
-      "power": 120,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774485937.2207775
-  },
-  "move::close-combat": {
-    "data": {
-      "type": "Fighting",
-      "power": 120,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774485937.370685
-  },
-  "move::make-it-rain": {
-    "data": {
-      "type": "Steel",
-      "power": 120,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774485937.5569892
-  },
-  "move::nasty-plot": {
-    "data": {
-      "type": "Dark",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774485937.703909
+    "ts": 1792462366.505743
   },
   "move::spikes": {
     "data": {
@@ -21314,173 +22274,6 @@
       "accuracy": null,
       "category": "Status"
     },
-    "ts": 1774485937.838888
-  },
-  "move::power-gem": {
-    "data": {
-      "type": "Rock",
-      "power": 80,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774485937.9785838
-  },
-  "move::spirit-break": {
-    "data": {
-      "type": "Fairy",
-      "power": 75,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774485938.0981526
-  },
-  "move::shadow-sneak": {
-    "data": {
-      "type": "Ghost",
-      "power": 40,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774485938.2561955
-  },
-  "ability::good-as-gold": {
-    "data": "Gives immunity to status moves.",
-    "ts": 1774485938.3915415
-  },
-  "ability::supreme-overlord": {
-    "data": "Attack and Special Attack are boosted for each party Pok\u00e9mon that has been defeated.",
-    "ts": 1774485938.548416
-  },
-  "ability::infiltrator": {
-    "data": "Bypasses light screen, reflect, and safeguard.",
-    "ts": 1774485938.709208
-  },
-  "ability::toxic-debris": {
-    "data": "Scatters poison spikes at the feet of the opposing team when the Pok\u00e9mon takes damage from physical moves.",
-    "ts": 1774485938.8910105
-  },
-  "move::trick-room": {
-    "data": {
-      "type": "Psychic",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774486237.8387907
-  },
-  "move::psychic": {
-    "data": {
-      "type": "Psychic",
-      "power": 90,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774486237.9877682
-  },
-  "move::mystical-fire": {
-    "data": {
-      "type": "Fire",
-      "power": 75,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774486238.118124
-  },
-  "move::dazzling-gleam": {
-    "data": {
-      "type": "Fairy",
-      "power": 80,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774486238.2355816
-  },
-  "move::facade": {
-    "data": {
-      "type": "Normal",
-      "power": 70,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774486238.3562539
-  },
-  "move::protect": {
-    "data": {
-      "type": "Normal",
-      "power": null,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774486238.4828978
-  },
-  "move::future-sight": {
-    "data": {
-      "type": "Psychic",
-      "power": 120,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774486238.6001093
-  },
-  "move::chilly-reception": {
-    "data": {
-      "type": "Ice",
-      "power": 0,
-      "accuracy": null,
-      "category": "Status"
-    },
-    "ts": 1774486238.7090533
-  },
-  "move::spore": {
-    "data": {
-      "type": "Grass",
-      "power": null,
-      "accuracy": 100,
-      "category": "Status"
-    },
-    "ts": 1774486238.8296313
-  },
-  "move::pollen-puff": {
-    "data": {
-      "type": "Bug",
-      "power": 90,
-      "accuracy": 100,
-      "category": "Special"
-    },
-    "ts": 1774486238.9671772
-  },
-  "move::clear-smog": {
-    "data": {
-      "type": "Poison",
-      "power": 50,
-      "accuracy": null,
-      "category": "Special"
-    },
-    "ts": 1774486239.1045923
-  },
-  "move::foul-play": {
-    "data": {
-      "type": "Dark",
-      "power": 95,
-      "accuracy": 100,
-      "category": "Physical"
-    },
-    "ts": 1774486239.2879112
-  },
-  "ability::magic-bounce": {
-    "data": "Reflects most non-damaging moves back at their user.",
-    "ts": 1774486239.4393497
-  },
-  "ability::guts": {
-    "data": "Increases Attack to 1.5\u00d7 with a major status ailment.",
-    "ts": 1774486239.5771232
-  },
-  "ability::water-absorb": {
-    "data": "Absorbs water moves, healing for 1/4 max HP.",
-    "ts": 1774486239.716052
-  },
-  "ability::regenerator": {
-    "data": "Heals for 1/3 max HP upon switching out.",
-    "ts": 1774486239.8457873
+    "ts": 1792462366.6701186
   }
 }

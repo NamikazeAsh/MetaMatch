@@ -51,21 +51,15 @@ MOVE_DISPLAY = {
     "boosterenergy": "Booster Energy", "supremeoverlord": "Supreme Overlord",
 }
 
-STATS_FILE_MAP = {
-    "gen9ou":          "gen9ou-1825.json",
-    "gen9uu":          "gen9uu-1760.json",
-    "gen9nationaldex": "gen9nationaldex-1760.json",
-}
-
-
-def compute_threats(team: dict, format_id: str = "gen9ou", top_n: int = 5) -> list[dict]:
+def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) -> list[dict]:
     """
     Identifies top meta threats using STAB type coverage vs the team.
     Scoring: members_hit^2 * usage_pct (prioritises breadth of coverage over mere usage).
     Returns list of dicts matching the existing threats render format.
     """
     # Load stats
-    stats_path = config.STATS_DIR / STATS_FILE_MAP.get(format_id, "gen9ou-1825.json")
+    format_id = format_id or config.team_format(team)
+    stats_path = config.STATS_DIR / (config.format_info(format_id)["stats"] + ".json")
     try:
         with open(stats_path) as f:
             raw = json.load(f)
@@ -245,6 +239,14 @@ def get_suggestions(team):
 
 def get_team_guide(team):
     load_dotenv()
+    is_champions = config.format_game(config.team_format(team)) == "champions"
+    gimmick_key, gimmick_q, gimmick_example = (
+        ("mega_strategy", "Who should Mega Evolve, and when?",
+         "Garchomp Mega Evolves once its checks are removed to clean with boosted Earthquake.")
+        if is_champions else
+        ("tera_strategy", "Who is the best Tera Captain?",
+         "Kingambit Teras Dark for a powerful unresisted STAB sweep.")
+    )
 
     clean_team = []
     for p in team.values():
@@ -253,7 +255,7 @@ def get_team_guide(team):
             "Item": p["Item"],
             "Ability": p["Ability"],
             "Moves": [m["name"] for m in p["Moves"]],
-            "EVs": p["EVs"],
+            "EVs": p.get("SP") if is_champions else p["EVs"],
             "Nature": p["Nature"],
             "Base Stats": p.get("Base Stats", {}),
             "Real Speed": p.get("Speed", 0),
@@ -292,7 +294,7 @@ def get_team_guide(team):
                         "description": "Explain synergy."
                     }}
                 ],
-                "tera_strategy": "Who is the best Tera Captain?"
+                "{gimmick_key}": "{gimmick_q}"
             }}
 
             Example output:
@@ -310,7 +312,7 @@ def get_team_guide(team):
                         "description": "Tusk removes hazards and chips walls; Kingambit cleans with boosted Kowtow Cleave."
                     }}
                 ],
-                "tera_strategy": "Kingambit Teras Dark for a powerful unresisted STAB sweep."
+                "{gimmick_key}": "{gimmick_example}"
             }}
             """
 

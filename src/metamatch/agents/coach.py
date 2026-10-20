@@ -1,4 +1,5 @@
 from .client import get_agent_client
+from metamatch import config
 from metamatch.rag import store
 
 class CoachAgent:
@@ -28,15 +29,19 @@ class CoachAgent:
         for p in team_context.values():
             moves = ", ".join([m['name'] for m in p.get('Moves', [])])
             roles = ", ".join(p.get('Roles', [])) or "Unknown"
-            raw_evs = p.get('EVs', {})
+            # Champions has stat points instead of EVs and no Tera
+            is_champions = config.format_game(p.get('Format')) == "champions"
+            raw_evs = p.get('SP', {}) if is_champions else p.get('EVs', {})
             if isinstance(raw_evs, dict):
                 evs = " / ".join(f"{v} {k}" for k, v in raw_evs.items() if v > 0) or "Unknown"
             else:
                 evs = str(raw_evs)
+            gimmick = "" if is_champions else f"Tera: {p.get('Tera Type', '?')} | "
+            spread = "Stat Points" if is_champions else "EVs"
             team_str += (
                 f"- {p['Pokemon']} @ {p.get('Item')} | Ability: {p.get('Ability')} | "
-                f"Tera: {p.get('Tera Type', '?')} | Nature: {p.get('Nature', '?')} | "
-                f"EVs: {evs} | Roles: {roles} | Speed: {p.get('Speed', '?')} | Moves: {moves}\n"
+                f"{gimmick}Nature: {p.get('Nature', '?')} | "
+                f"{spread}: {evs} | Roles: {roles} | Speed: {p.get('Speed', '?')} | Moves: {moves}\n"
             )
 
         # 3. Strategy Prompt

@@ -70,7 +70,8 @@ def render(get_strat_data_fn, get_usage_data_fn):
                         fmt_badges = ""
                         for fmt in res.get('formats', []):
                             color = "#888"
-                            if "OU" in fmt: color = "#e74c3c"
+                            if "Champions" in fmt: color = "#f1c40f"
+                            elif "OU" in fmt: color = "#e74c3c"
                             elif "UU" in fmt: color = "#3498db"
                             elif "NatDex" in fmt: color = "#9b59b6"
                             fmt_badges += f'<span style="background:{color}; color:white; padding: 1px 6px; border-radius: 3px; font-size: 0.6rem; margin-right: 4px;">{fmt}</span>'
@@ -131,7 +132,8 @@ def render(get_strat_data_fn, get_usage_data_fn):
                             fmt = res['format']
 
                             color = "#444"
-                            if "OU" in fmt: color = "#e74c3c"
+                            if "Champions" in fmt: color = "#f1c40f"
+                            elif "OU" in fmt: color = "#e74c3c"
                             elif "UU" in fmt: color = "#3498db"
                             elif "NatDex" in fmt: color = "#9b59b6"
 
