@@ -28,9 +28,15 @@ MetaBench is a 120 question benchmark across speed, KO, damage, type, stat and u
 | :---------------------------------------- | :-------------------: | :--------------------------: |
 | **Development set** (120)           |          18%          |        **100%**        |
 | **Held out set 1** (reworded blind) |          25%          |        **94%**        |
-| **Held out set 2** (written blind)  |                      |       **97.5%**       |
+| **Held out set 2** (written blind)  |          26%          |       **97.5%**       |
 
-* **Overfitting check:** both held out sets were written by agents that never saw the code, so the planner could not have been tuned to their wording.
+**Evaluation explained**
+
+* **Development set:** 120 questions generated from the damage calculator and Smogon data, used while building MetaMatch.
+* **Reworded blind:** the same 120 questions rewritten in formal wording by an agent that never saw the code.
+* **Written blind:** the same 120 questions rewritten again in casual player style (lowercase, slang, swapped name order), also by an agent that never saw the code.
+
+* **Overfitting check:** a high held out score means MetaMatch understands the question rather than memorizing the dev wording.
 * **Fair grading:** free form answers are graded by a second local model (Gemma 3 4B) that was validated at 100% agreement against hand labels before use.
 * **Fully local:** no paid APIs anywhere, for answering or for grading.
 
@@ -145,7 +151,7 @@ A GitHub Action pulls new Smogon usage stats every month, rebuilds top Pokémon 
 
 ---
 
-## 🔄 System Architecture
+## 🏗️ System Architecture
 
 ```mermaid
 graph TD
@@ -270,6 +276,7 @@ python bench/report.py                     # accuracy by arm, format and categor
 ## 🔮 Limitations & Future Outlook
 
 * **Strategy is the frontier.** Facts are solved, but open ended advice from Oak and Brock is not benchmarked yet, and a 3B model's strategic reasoning is the weakest link. A rubric graded strategy benchmark is next.
+* **Held out scope.** The held out sets test new wording, not new teams or matchups; a fresh set of unseen questions is still to come.
 * **Assumed sets.** Damage numbers use the opponent's most common set unless you give one.
 * **Champions data.** Smogon has no Champions analyses yet, so its retrieval uses usage cards and community guides, and verified sets are SV only.
 
