@@ -34,7 +34,9 @@ class AuditorAgent:
         # 4. Format Data for LLM
         audit_str = "### METAGAME USAGE REPORT\n"
         for p_name, report in reports.items():
-            audit_str += f"- {p_name}: Item '{report['item']['name']}' ({report['item']['usage']:.1f}%), Ability '{report['ability']['name']}' ({report['ability']['usage']:.1f}%)\n"
+            parts = [f"{label} '{report[key]['name']}' ({report[key]['usage']:.1f}%)"
+                     for key, label in (("item", "Item"), ("ability", "Ability")) if report[key]]
+            audit_str += f"- {p_name}: {', '.join(parts) or 'No item or ability listed'}\n"
             m_list = [f"{m}({v:.1f}%)" for m,v in report['moves'].items()]
             audit_str += f"  Moves: {', '.join(m_list)}\n"
         

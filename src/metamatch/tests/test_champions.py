@@ -64,7 +64,8 @@ class TestChampionsMechanics(unittest.TestCase):
         self.assertEqual(p['Format'], "gen9championsou")
         self.assertEqual(p['SP'], {'HP': 2, 'Atk': 32, 'Spe': 32})
         self.assertEqual(p['EVs'], {'HP': 16, 'Atk': 252, 'Spe': 252})
-        self.assertEqual(p['Speed'], 167)
+        # Garchomp base 102 from the bundled dex: floor((102 + 32 + 20) * 1.1)
+        self.assertEqual(p['Speed'], 169)
 
     @patch('metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
     @patch('metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})

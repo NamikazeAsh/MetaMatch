@@ -1,7 +1,7 @@
 import json
-import re
 from functools import lru_cache
 from metamatch import config
+from metamatch.engine.dex import dex_for_format
 
 def load_chaos_data(format_id=config.DEFAULT_FORMAT):
     """
@@ -32,6 +32,12 @@ def audit_team(team_data):
 
     warnings = []
     reports = {}
+    dex = dex_for_format(config.team_format(team_data))
+
+    def display(slug, kind):
+        # Chaos keys are slugs ('heavydutyboots'); show the real name when the dex knows it
+        name = (dex.item_name(slug) if kind == 'item' else dex.move_name(slug)) if dex else None
+        return name or slug.title()
     USAGE_THRESHOLD = 5.0 # Percent
 
     for idx, pokemon in team_data.items():
@@ -44,11 +50,8 @@ def audit_team(team_data):
                     break
 
         # Champions stats key Mega holders by their Mega forme (e.g. Golisopod @ Golisopodite -> Golisopod-Mega)
-        item = pokemon.get('Item', '')
-        if re.search(r"ite( [XYZ])?$", item) and item != "Eviolite":
-            suffix = item.split(' ')[1] if ' ' in item else ''
-            mega_key = f"{name}-Mega" + (f"-{suffix}" if suffix else "")
-            p_data = chaos_data.get(mega_key) or p_data
+        if pokemon.get('Forme'):
+            p_data = chaos_data.get(pokemon['Forme']) or p_data
 
         if not p_data:
             continue
@@ -80,7 +83,7 @@ def audit_team(team_data):
                 top_name, top_val = max(item_stats.items(), key=lambda x: x[1])
                 warnings.append({
                     "pokemon": name, "category": "Item", "current": user_item, "usage": pct,
-                    "suggestion": f"{top_name.title()} ({(top_val/item_weight*100):.1f}%)"
+                    "suggestion": f"{display(top_name, 'item')} ({(top_val/item_weight*100):.1f}%)"
                 })
         
         # Audit Ability
@@ -101,7 +104,7 @@ def audit_team(team_data):
             
             if pct < USAGE_THRESHOLD:
                 top_moves = sorted(move_stats.items(), key=lambda x:x[1], reverse=True)[:2]
-                suggestion = ", ".join([f"{k} ({(v/total_weight)*100:.1f}%)" for k,v in top_moves])
+                suggestion = ", ".join([f"{display(k, 'move')} ({(v/total_weight)*100:.1f}%)" for k,v in top_moves])
                 warnings.append({
                     "pokemon": name, "category": "Move", "current": move, "usage": pct,
                     "suggestion": f"Common: {suggestion}"

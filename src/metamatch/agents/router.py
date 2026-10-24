@@ -1,6 +1,13 @@
+import re
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from typing import List, Dict, Tuple
+
+MECHANICS_PATTERN = re.compile(
+    r"\b(damage|ohko|2hko|3hko|ko|kos|survive|survives|faster|slower|outspeed|outspeeds|speed tie|immune|resist|resists)\b",
+    re.IGNORECASE,
+)
+
 
 class SemanticRouter:
     def __init__(self, model_name="all-MiniLM-L6-v2"):
@@ -73,6 +80,12 @@ class SemanticRouter:
         # The chat tab asks for the persona before the response, so reuse the last result
         if getattr(self, "_last", (None,))[0] == query:
             return self._last[1]
+
+        # Questions the damage calc or speed engine can answer always go to the Tactician
+        if MECHANICS_PATTERN.search(query):
+            result = ("mechanics", 1.0)
+            self._last = (query, result)
+            return result
 
         query_embedding = self.model.encode(query)
         

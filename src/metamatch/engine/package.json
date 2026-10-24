@@ -1,0 +1,9 @@
+{
+  "name": "metamatch-engine",
+  "private": true,
+  "description": "Damage calc sidecar for MetaMatch, wrapping the pinned @smogon/calc package",
+  "type": "commonjs",
+  "dependencies": {
+    "@smogon/calc": "0.12.0"
+  }
+}

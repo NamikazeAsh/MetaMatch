@@ -1,9 +1,8 @@
 from dotenv import load_dotenv
 import json
 import re
-from functools import lru_cache
 from . import auditor as auditor_module
-from .utils import API_CACHE
+from .engine.dex import dex_for_format
 from .team import coverageCheck
 from . import config
 
@@ -21,51 +20,6 @@ ITEM_ABILITY_SYNERGIES = {
 # Roles nearly every singles team wants. Cleric and Speed Control were dropped: Heal Bell and
 # Aromatherapy are gone in SV, and "Speed Control" had no consistent definition across modules.
 CORE_ROLES = {"Hazard Setter", "Hazard Remover", "Pivot"}
-
-# Chaos file stores move names as lowercase slugs with no spaces — map common ones
-MOVE_DISPLAY = {
-    "rapidspin": "Rapid Spin", "headlongrush": "Headlong Rush", "icespinner": "Ice Spinner",
-    "psychicnoise": "Psychic Noise", "drainingkiss": "Draining Kiss", "dragondance": "Dragon Dance",
-    "calmmind": "Calm Mind", "dracometeor": "Draco Meteor", "hydrosteam": "Hydro Steam",
-    "flipturn": "Flip Turn", "dragonpulse": "Dragon Pulse", "thunderclap": "Thunderclap",
-    "swordsdance": "Swords Dance", "nastyplot": "Nasty Plot", "stealthrock": "Stealth Rock",
-    "knockoff": "Knock Off", "kowtowcleave": "Kowtow Cleave", "ironhead": "Iron Head",
-    "bodypress": "Body Press", "makeitrain": "Make It Rain", "shadowball": "Shadow Ball",
-    "fireblast": "Fire Blast", "fierydance": "Fiery Dance", "sludgewave": "Sludge Wave",
-    "energyball": "Energy Ball", "voltswitch": "Volt Switch", "closecombat": "Close Combat",
-    "spiritbreak": "Spirit Break", "shadowsneak": "Shadow Sneak", "moonblast": "Moonblast",
-    "gigadrain": "Giga Drain", "sludgebomb": "Sludge Bomb", "sleeppowder": "Sleep Powder",
-    "futuresight": "Future Sight", "chillyreception": "Chilly Reception", "foulplay": "Foul Play",
-    "clearsmog": "Clear Smog", "pollenpuff": "Pollen Puff", "willowisp": "Will-O-Wisp",
-    "thunderwave": "Thunder Wave", "dazzlinggleam": "Dazzling Gleam", "mysticalfire": "Mystical Fire",
-    "highhorsepower": "High Horsepower", "bravebird": "Brave Bird", "woodhammer": "Wood Hammer",
-    "grassyglide": "Grassy Glide", "partingshot": "Parting Shot", "healingwish": "Healing Wish",
-    "trickroom": "Trick Room", "tailwind": "Tailwind", "uturn": "U-turn",
-    "heavyslam": "Heavy Slam", "stoneedge": "Stone Edge", "iciclecrash": "Icicle Crash",
-    "aquajet": "Aqua Jet", "bulletpunch": "Bullet Punch", "extremespeed": "Extreme Speed",
-    "leechseed": "Leech Seed", "shellsmash": "Shell Smash", "quiverdance": "Quiver Dance",
-    "rockblast": "Rock Blast", "rockslide": "Rock Slide", "icywind": "Icy Wind",
-    "aurasphere": "Aura Sphere", "airslash": "Air Slash", "poisonjab": "Poison Jab",
-    "thunderbolt": "Thunderbolt", "zapcannon": "Zap Cannon", "triattack": "Tri Attack",
-    "scaldingcoffee": "Scalding Coffee", "gunkshot": "Gunk Shot", "suckerpunch": "Sucker Punch",
-    "powerwhip": "Power Whip", "leafstorm": "Leaf Storm", "focusblast": "Focus Blast",
-    "shadowforce": "Shadow Force", "phantomforce": "Phantom Force", "darkpulse": "Dark Pulse",
-    "flashcannon": "Flash Cannon", "irondefense": "Iron Defense", "calmmind": "Calm Mind",
-    "wickedblow": "Wicked Blow", "surgingstrikes": "Surging Strikes", "populationbomb": "Population Bomb",
-    "boosterenergy": "Booster Energy", "supremeoverlord": "Supreme Overlord",
-}
-
-
-@lru_cache(maxsize=1)
-def _cached_move_names() -> dict:
-    """Display names for every move in the PokeAPI cache, keyed by chaos slug ('ceaselessedge')."""
-    names = {}
-    for key in API_CACHE:
-        for prefix in ("move::", "move_"):
-            if key.startswith(prefix):
-                slug = key[len(prefix):]
-                names[slug.replace("-", "")] = slug.replace("-", " ").title()
-    return names
 
 
 def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) -> list[dict]:
@@ -87,6 +41,7 @@ def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) ->
         return []
 
     team_names = {p["Pokemon"] for p in team.values()}
+    dex = dex_for_format(format_id)
     scores = []
 
     for meta_name, data in poke_stats.items():
@@ -143,7 +98,7 @@ def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) ->
             pct = v / total_move_weight * 100
             if pct < 10:
                 continue
-            pretty = MOVE_DISPLAY.get(m.lower()) or _cached_move_names().get(m.lower(), m.title())
+            pretty = (dex.move_name(m) if dex else None) or m.title()
             move_strs.append(f"{pretty} ({pct:.0f}%)")
 
         stab_str = "/".join(types)

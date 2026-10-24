@@ -139,6 +139,8 @@ data/json/*
 !data/json/topPoke.json
 !data/json/meta_speeds.json
 !data/json/meta_speeds_champions.json
+!data/json/dex_sv.json
+!data/json/dex_champions.json
 data/stats/
 data/user/
 
@@ -149,3 +151,4 @@ gha-creds-*.json
 PLAN.md
 ROADMAP.md
 docs/research/
+node_modules/

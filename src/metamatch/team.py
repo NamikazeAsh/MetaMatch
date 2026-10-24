@@ -2,6 +2,7 @@ import json
 from .utils import fetch_pokemon_data, calculate_speed, fetch_move_data, sp_to_ev, parse_header
 from .type_chart import TYPE_CHART
 from . import config
+from .engine.dex import dex_for_format, pokeapi_stats
 
 def get_move_metadata(move_name):
     return fetch_move_data(move_name)
@@ -23,6 +24,7 @@ def looks_like_champions(teamRaw):
 def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
     team = {}
     game = config.format_game(format_id)
+    dex = dex_for_format(format_id)
     teamRaw = teamRaw.replace('\r\n', '\n').strip().split('\n\n')
     
     types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
@@ -81,18 +83,34 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
                 poke_data['Nature'] = line.replace('Nature', '').strip()
             elif line.startswith('-'):
                 move_name = line.strip('-').strip()
-                move_data = get_move_metadata(move_name)
+                dex_move = dex.move(move_name) if dex else None
+                if dex_move:
+                    move_data = {'type': dex_move['type'], 'power': dex_move['basePower'] or None,
+                                 'accuracy': None, 'category': dex_move['category']}
+                else:
+                    move_data = get_move_metadata(move_name)
                 poke_data['Moves'].append({
                     'name': move_name,
                     **move_data
                 })
 
-        # 2. Enrich with API Data (Types, Base Stats, Sprite)
-        api_data = fetch_pokemon_data(poke_data['Pokemon'])
+        # 2. Types and Base Stats from the bundled dex (PokeAPI as fallback).
+        # A held Mega Stone means the Pokemon battles as its Mega forme, with that forme's ability.
+        species = dex.species(poke_data['Pokemon']) if dex else None
+        if species:
+            mega = dex.mega_forme(species['name'], poke_data['Item'])
+            if mega:
+                species = dex.species(mega)
+                poke_data['Forme'] = mega
+                if species['abilities']:
+                    poke_data['Mega Ability'] = species['abilities'][0]
+            api_data = {'types': species['types'], 'stats': pokeapi_stats(species['baseStats'])}
+        else:
+            api_data = fetch_pokemon_data(poke_data['Pokemon'])
         if api_data:
             poke_data['Type'] = api_data['types']
             poke_data['Base Stats'] = api_data['stats']
-            
+
             # 3. Calculate Real Speed
             base_spe = api_data['stats'].get('speed', 100)
             ev_spe = poke_data['SP' if game == "champions" else 'EVs'].get('Spe', 0)
@@ -110,7 +128,7 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
         dmg_from, dmg_to = damageRelations(poke_data['Type'])
         
         # --- Apply Ability/Item Immunities ---
-        ability = poke_data['Ability'].lower()
+        ability = (poke_data.get('Mega Ability') or poke_data['Ability']).lower()
         item = poke_data['Item'].lower()
 
         # Ground Immunities

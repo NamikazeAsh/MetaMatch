@@ -184,6 +184,7 @@ graph TD
     *   Pull the model: `ollama pull llama3.2:3b-instruct-q4_K_M`
     *   Start the server: `ollama serve`
     *   To try another pulled model, set `LLM_MODEL` in `.env` (e.g. `LLM_MODEL=gemma3:4b`).
+3.  **Node.js 18+** (for the damage calculator, which wraps the official `@smogon/calc` package).
 
 ### Local Setup
 
@@ -196,7 +197,10 @@ graph TD
 2.  **Install Dependencies:**
     ```bash
     pip install -r requirements.txt
+    cd src/metamatch/engine && npm install && cd ../../..
     ```
+    Without Node the app still runs, but answers fall back to type matchups instead of real damage numbers.
+    After upgrading `@smogon/calc`, regenerate the bundled dex with `node src/metamatch/engine/export_dex.js`.
     
 3.  **Initialize Data & RAG Index:** (First time setup)
     ```bash
