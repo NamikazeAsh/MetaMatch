@@ -204,8 +204,8 @@ graph TD
     
 3.  **Initialize Data & RAG Index:** (First time setup)
     ```bash
-    # Scrape usage stats for Recommender/Auditor
-    python src/metamatch/scrapers.py
+    # Download usage stats and rebuild topPoke.json and speed tiers
+    python scripts/update_meta.py
 
     # Build Master Strategy Database
     python scripts/build_strategy_cache.py
@@ -222,8 +222,9 @@ graph TD
 ### 🤖 Automation
 
 MetaMatch includes a **self-updating pipeline** (`scripts/update_meta.py`) configured via GitHub Actions.
-*   **Schedule:** Checks for new Smogon stats on the 3rd of every month.
-*   **Action:** Automatically downloads the latest usage and chaos stats for every format in `config.FORMATS` and commits them to the repository, ensuring your Recommender engine is always synced with the meta.
+*   **Schedule:** Checks for last month's Smogon stats on the 2nd, 5th, 9th and 15th, since Smogon publishes a few days into the month. `data/stats/manifest.json` records the month on disk, so once a run succeeds the rest exit early.
+*   **Action:** Downloads the usage and chaos stats for every format in `config.FORMATS` (all or nothing, so months never mix), rebuilds `topPoke.json` and the speed tiers, and commits them.
+*   **Locally:** run `python scripts/update_meta.py` after a new month lands. Add `--rebuild-index` to also rebuild the RAG index, which CI skips because it needs the ML dependencies.
 
 ### 🐳 Docker Deployment
 

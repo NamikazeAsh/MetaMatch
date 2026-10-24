@@ -5,6 +5,9 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from .utils import pokeSlugify, fetch_pokemon_data, calculate_speed
 from . import config
+from .engine.dex import get_dex
+
+TIMEOUT = 60  # seconds; chaos files are several MB
 
 def get_latest_stats_url():
     """
@@ -17,13 +20,13 @@ def get_latest_stats_url():
     month = last_day_of_previous_month.month
     return f"https://www.smogon.com/stats/{year:04d}-{month:02d}/"
 
-def download_stat_file(stats_url, target_filename, local_name=None):
+def download_stat_file(stats_url, target_filename, local_name=None, dest_dir=None):
     """
     Downloads a specific stat file from the Smogon stats index page.
-    Saves it to the 'stats/' directory (as local_name if given) and returns the local path.
+    Saves it to dest_dir (default the 'stats/' directory) as local_name if given, and returns the local path.
     """
     try:
-        response = requests.get(stats_url)
+        response = requests.get(stats_url, timeout=TIMEOUT)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
         
@@ -33,10 +36,10 @@ def download_stat_file(stats_url, target_filename, local_name=None):
             return None
             
         file_url = stats_url + target_filename
-        file_response = requests.get(file_url)
+        file_response = requests.get(file_url, timeout=TIMEOUT)
         file_response.raise_for_status()
         
-        local_path = config.STATS_DIR / (local_name or target_filename)
+        local_path = (dest_dir or config.STATS_DIR) / (local_name or target_filename)
         with open(local_path, 'w', encoding='utf-8') as f:
             f.write(file_response.text)
             
@@ -68,6 +71,16 @@ def parse_smogon_usage(path, top_n=100):
         print(f"Error: Could not find file {path} to parse.")
         return []
 
+def species_info(name, game="sv"):
+    """(types, base Speed) from the bundled dex, falling back to PokeAPI, or None."""
+    dex = get_dex(game) or get_dex("sv")
+    species = dex.species(name) if dex else None
+    if species:
+        return species["types"], species["baseStats"]["spe"]
+    data = fetch_pokemon_data(name)
+    return (data["types"], data["stats"]["speed"]) if data else None
+
+
 def generate_speed_tiers(pokemon_names, game="sv"):
     """
     Generates speed benchmarks for the top meta Pokemon.
@@ -88,10 +101,10 @@ def generate_speed_tiers(pokemon_names, game="sv"):
     seen_speeds = set()
     
     for name in pokemon_names[:30]: # Limit to top 30 to save time/clutter
-        data = fetch_pokemon_data(name)
-        if not data: continue
+        info = species_info(name, game)
+        if not info: continue
         
-        base_spe = data['stats']['speed']
+        base_spe = info[1]
         
         # 1. Max Speed (+Nature, full investment)
         max_spe = calculate_speed(base_spe, ev=max_invest, nature_mod=1.1, game=game)
@@ -113,55 +126,50 @@ def speed_tiers_path(game):
     """Speed tiers are stored per game since SV (Lv100) and Champions (Lv50) numbers don't mix."""
     return config.JSON_DIR / ("meta_speeds_champions.json" if game == "champions" else "meta_speeds.json")
 
+def refresh_derived():
+    """
+    Rebuilds topPoke.json and the speed tier files from the usage stats already in data/stats.
+    Returns the number of Pokemon written to topPoke.json.
+    """
+    names_by_game = {}
+    for fmt in config.FORMATS.values():
+        names = parse_smogon_usage(config.STATS_DIR / (fmt["stats"] + ".txt"), top_n=1000)
+        ordered = names_by_game.setdefault(fmt["game"], [])
+        ordered.extend(n for n in names if n not in ordered)
+
+    if not any(names_by_game.values()):
+        print("No usage stats found in data/stats. Nothing to refresh.")
+        return 0
+
+    top_poke_data = {}
+    for game, names in names_by_game.items():
+        for name in names:
+            info = None if name in top_poke_data else species_info(name, game)
+            if info:
+                top_poke_data[name] = info[0]
+
+    with open(config.JSON_DIR / "topPoke.json", "w") as f:
+        json.dump(top_poke_data, f, indent=2)
+
+    # One speed tier file per game, from that game's usage order
+    for game, names in names_by_game.items():
+        if names:
+            with open(speed_tiers_path(game), "w") as f:
+                json.dump(generate_speed_tiers(names, game), f, indent=2)
+
+    print(f"Refreshed topPoke.json ({len(top_poke_data)} Pokemon) and speed tiers.")
+    return len(top_poke_data)
+
+
 def main():
     """
-    Main function to automate downloading and processing of Smogon stats.
+    Downloads the latest month's usage .txt and chaos .json for every registered format,
+    then rebuilds the derived files. scripts/update_meta.py is the full pipeline.
     """
     print("Starting Smogon stats update...")
     stats_base_url = get_latest_stats_url()
-    chaos_url_base = stats_base_url + "chaos/"
-    
-    # --- Download files (usage .txt and chaos .json for every registered format) ---
-    names_by_game = {}
-    for fmt_id, fmt in config.FORMATS.items():
+    for fmt in config.FORMATS.values():
         print(f"\nProcessing {fmt['label']}...")
-        
-        # Text file (Usage)
-        txt_path = download_stat_file(stats_base_url, fmt["stats"] + ".txt")
-            
-        # JSON file (Chaos/Partners)
-        print(f"Downloading Chaos data for {fmt['label']}...")
-        download_stat_file(chaos_url_base, fmt["stats"] + ".json")
-
-        if txt_path:
-            # Get top 1000 from each format to populate the search bar
-            names = parse_smogon_usage(txt_path, top_n=1000)
-            if not names:
-                continue
-            ordered = names_by_game.setdefault(fmt["game"], [])
-            ordered.extend(n for n in names if n not in ordered)
-
-    if not names_by_game:
-        print("No usage stats were downloaded or parsed. Aborting update.")
-        return
-
-    sorted_names = list({n for names in names_by_game.values() for n in names})
-
-    # --- Fetch types and save final JSON ---
-    print(f"Found {len(sorted_names)} unique Pokémon across all formats. Fetching data...")
-    top_poke_data = {}
-    for name in sorted_names:
-        data = fetch_pokemon_data(name)
-        if data:
-            top_poke_data[name] = data['types']
-    
-    with open(config.JSON_DIR / "topPoke.json", "w") as f:
-        json.dump(top_poke_data, f, indent=2)
-        
-    # --- Generate Speed Tiers (one file per game, from that game's usage order) ---
-    for game, names in names_by_game.items():
-        speed_tiers = generate_speed_tiers(names, game)
-        with open(speed_tiers_path(game), "w") as f:
-            json.dump(speed_tiers, f, indent=2)
-
-    print(f"\nSuccessfully updated meta data and speed tiers.")
+        download_stat_file(stats_base_url, fmt["stats"] + ".txt")
+        download_stat_file(stats_base_url + "chaos/", fmt["stats"] + ".json")
+    refresh_derived()

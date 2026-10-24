@@ -2,8 +2,9 @@ name: Monthly Meta Update
 
 on:
   schedule:
-    # Runs at 00:00 UTC on the 3rd of every month
-    - cron: '0 0 3 * *'
+    # Smogon posts a month's stats a few days into the next one, so try several days.
+    # The script exits early once data/stats/manifest.json already has the month.
+    - cron: '0 6 2,5,9,15 * *'
   workflow_dispatch: # Allows manual triggering from GitHub UI for testing
 
 jobs:
@@ -14,10 +15,10 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: '3.10'
 
@@ -32,7 +33,8 @@ jobs:
       run: |
         git config user.name "MetaMatch Bot"
         git config user.email "bot@metamatch.ai"
-        # data/stats/ is gitignored, so force add to pick up newly registered formats
+        # data/stats/ is gitignored, so force add; topPoke and speed tiers are already tracked
         git add -f data/stats/
-        git commit -m "chore(data): auto-update smogon stats [skip ci]" || exit 0
+        git add data/json/topPoke.json data/json/meta_speeds.json data/json/meta_speeds_champions.json
+        git commit -m "Update Smogon stats [skip ci]" || exit 0
         git push
