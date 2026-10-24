@@ -11,8 +11,15 @@ from .client import get_agent_client
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
 ANSWER_LINE = re.compile(r"^\s*\**ANSWER\s*:.*$", re.I | re.M)
-# Small counts ("2 turns", "2HKO", "1.5x") are fine even when the facts don't spell them out
-FREE_NUMBERS = {"0", "1", "1.5", "2", "3", "4", "5", "6", "50", "100"}
+# Numbers that can't mislead even when the facts don't spell them out
+FREE_NUMBERS = {"0", "1", "100"}
+# For type verdicts, wording that implies a different matchup is a contradiction
+TYPE_WORDS = {
+    "immune": re.compile(r"\bimmun", re.I),
+    "resists": re.compile(r"\bresist", re.I),
+    "weak": re.compile(r"\bweak|super[\s-]effective", re.I),
+    "neutral": re.compile(r"\bneutral", re.I),
+}
 
 
 def _numbers(text):
@@ -25,6 +32,10 @@ def verify(explanation, verdict):
     unknown = _numbers(explanation) - allowed
     if unknown:
         return f"numbers not in the facts: {', '.join(sorted(unknown))}"
+    if verdict.intent == "type":
+        clashes = [a for a, pattern in TYPE_WORDS.items() if a != verdict.answer and pattern.search(explanation)]
+        if clashes:
+            return f"wording that says {clashes[0]} when the result is {verdict.answer}"
     stated = re.findall(r"ANSWER\s*:\s*(.+)", explanation, re.I)
     if stated and verdict.answer.lower() not in stated[-1].lower():
         return f"contradicts the verdict ({stated[-1].strip()})"

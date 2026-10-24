@@ -22,6 +22,7 @@ from pathlib import Path
 BENCH = Path(__file__).resolve().parent
 sys.path.insert(0, str(BENCH))
 from grade import grade  # noqa: E402
+from extract import extract, EXTRACT_MODEL  # noqa: E402
 
 RAW_SYSTEM = "You are a competitive Pokemon expert. Answer the player's question about their team accurately and concisely."
 
@@ -111,6 +112,8 @@ def main():
 
     questions = [q for q in load_questions(args.questions, args.limit, args.ids) if q["id"] not in done]
     arm = ARMS[args.arm]()
+    from metamatch.agents.client import get_agent_client
+    extractor = (get_agent_client()[0], EXTRACT_MODEL)
     print(f"{name}: {len(questions)} questions to run ({len(done)} already done)", flush=True)
 
     for i, q in enumerate(questions, 1):
@@ -120,10 +123,16 @@ def main():
         except Exception as e:  # keep going; a crash is a wrong answer for that question
             reply, error = "", f"{type(e).__name__}: {e}"
         latency = round(time.time() - start, 2)
-        parsed, correct, format_ok = grade(q, reply)
+        extracted = None
+        if "ANSWER" in q["question"]:
+            parsed, correct, format_ok = grade(q, reply)
+        else:
+            # No answer format was requested, so read the answer out of the reply the same way for every arm
+            extracted = extract(extractor[0], extractor[1], q["question"], reply, q["answer"]["kind"])
+            parsed, correct, format_ok = grade(q, extracted)
         row = {"id": q["id"], "arm": name, "format": q["format"], "category": q["category"],
                "correct": correct, "format_ok": format_ok, "parsed": parsed, "truth": q["answer"]["value"],
-               "latency": latency, "error": error, "reply": reply}
+               "latency": latency, "error": error, "reply": reply, "extracted": extracted}
         with open(out_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(row) + "\n")
         print(f"[{i}/{len(questions)}] {q['id']} {q['category']:7} {'OK ' if correct else 'BAD'} "
