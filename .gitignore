@@ -149,6 +149,9 @@ data/chroma_db/
 .gemini/
 gha-creds-*.json
 PLAN.md
+CHAMPIONS_PLAN.md
+IMPROVEMENTS.md
+PLAN_4.1_app_split.md
 ROADMAP.md
 docs/research/
 node_modules/
