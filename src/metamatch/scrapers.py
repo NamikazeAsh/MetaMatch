@@ -17,10 +17,10 @@ def get_latest_stats_url():
     month = last_day_of_previous_month.month
     return f"https://www.smogon.com/stats/{year:04d}-{month:02d}/"
 
-def download_stat_file(stats_url, target_filename):
+def download_stat_file(stats_url, target_filename, local_name=None):
     """
     Downloads a specific stat file from the Smogon stats index page.
-    Saves it to the 'stats/' directory and returns the local path.
+    Saves it to the 'stats/' directory (as local_name if given) and returns the local path.
     """
     try:
         response = requests.get(stats_url)
@@ -36,7 +36,7 @@ def download_stat_file(stats_url, target_filename):
         file_response = requests.get(file_url)
         file_response.raise_for_status()
         
-        local_path = config.STATS_DIR / target_filename
+        local_path = config.STATS_DIR / (local_name or target_filename)
         with open(local_path, 'w', encoding='utf-8') as f:
             f.write(file_response.text)
             

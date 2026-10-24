@@ -48,6 +48,11 @@ def format_from_stats_stem(stem):
     return next((fid for fid, f in FORMATS.items() if f["stats"] == stem), None)
 
 
+def moveset_path(format_id):
+    """Smogon moveset .txt shares the usage file's name, so it's stored with a .moveset suffix."""
+    return STATS_DIR / (format_info(format_id)["stats"] + ".moveset.txt")
+
+
 def team_format(team):
     """Format id stored on an analysed team (see team.readTeam). Older saved teams default to OU."""
     for p in (team or {}).values():

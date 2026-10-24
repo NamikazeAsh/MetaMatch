@@ -25,7 +25,7 @@ class AuditorAgent:
         recommendations = recommender.get_recommendations(team_names, top_n=3, format_id=config.team_format(team_context))
 
         # 3. Retrieve RAG Context for 'Why' (Grounded Reasoning)
-        rag_hits = store.query_strategies(query, n_results=1)
+        rag_hits = store.query_strategies(query, n_results=1, format_id=config.team_format(team_context))
         rag_context = ""
         if rag_hits:
             rag_context = f"### STRATEGY CONTEXT (EXPLAINER)\n{rag_hits[0]['text']}\n"

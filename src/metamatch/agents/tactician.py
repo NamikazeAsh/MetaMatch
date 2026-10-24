@@ -1,5 +1,6 @@
 from .client import get_agent_client
 from metamatch.logic_engine import generate_mechanics_report
+from metamatch import config
 from metamatch.rag import store
 
 class TacticianAgent:
@@ -16,7 +17,7 @@ class TacticianAgent:
         """
         
         # 1. Retrieve RAG hits ONLY to identify the subject (e.g. "Rotom-Wash")
-        rag_hits = store.query_strategies(query, n_results=1)
+        rag_hits = store.query_strategies(query, n_results=1, format_id=config.team_format(team_context))
         
         # 2. Generate the Hard Facts (Specific Matchups)
         mechanics_str = generate_mechanics_report(team_context, rag_hits)

@@ -16,7 +16,7 @@ class CoachAgent:
         """
         
         # 1. Retrieve Strategy Guides
-        rag_hits = store.query_strategies(query, n_results=2)
+        rag_hits = store.query_strategies(query, n_results=2, format_id=config.team_format(team_context))
         
         rag_context = ""
         if rag_hits:

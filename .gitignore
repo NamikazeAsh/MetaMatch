@@ -147,3 +147,5 @@ data/chroma_db/
 .gemini/
 gha-creds-*.json
 PLAN.md
+ROADMAP.md
+docs/research/

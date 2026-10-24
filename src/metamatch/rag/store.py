@@ -78,19 +78,22 @@ def rebuild_index(chunks):
     )
     print("Index successfully rebuilt.")
 
-def query_strategies(query, n_results=3, max_distance=1.0):
+def query_strategies(query, n_results=3, max_distance=1.0, format_id=None):
     """
     Queries the database for relevant strategies.
     Filters out hits with L2 distance > max_distance (near-orthogonal = irrelevant).
+    Only returns singles chunks for the format's game (plus game-agnostic concepts).
     """
     model = get_model()
     collection = get_collection()
 
     query_embedding = model.encode([query]).tolist()
 
+    game = config.format_game(format_id or config.DEFAULT_FORMAT)
     results = collection.query(
         query_embeddings=query_embedding,
-        n_results=n_results
+        n_results=n_results,
+        where={"$and": [{"game": {"$in": [game, "any"]}}, {"play": "singles"}]},
     )
 
     # Flatten results, filtering by distance threshold

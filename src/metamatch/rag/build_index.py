@@ -6,7 +6,7 @@ import re
 SRC_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(SRC_DIR))
 
-from metamatch.rag import scraper, store
+from metamatch.rag import scraper, store, usage_cards, pokechamp
 
 def load_concepts():
     """
@@ -47,18 +47,30 @@ def load_concepts():
 def main():
     print("Starting Knowledge Base construction...")
     
-    # 1. Scrape Strategies
+    # 1. Scrape Strategies (Smogon SV OU analyses)
     chunks = scraper.fetch_smogon_strategies()
+    for c in chunks:
+        c["metadata"].update({"game": "sv", "play": "singles"})
     
-    # 2. Load Manual Concepts
+    # 2. Load Manual Concepts (general singles knowledge, valid for every game)
     concept_chunks = load_concepts()
+    for c in concept_chunks:
+        c["metadata"].update({"game": "any", "play": "singles"})
     chunks.extend(concept_chunks)
+
+    # 3. Champions usage cards from Smogon chaos data
+    chunks.extend(usage_cards.build_chunks())
+
+    # 4. Reworded Pokechamp community guides (run `python -m metamatch.rag.pokechamp` first to fill the cache)
+    guide_chunks = pokechamp.build_chunks()
+    print(f"Loaded {len(guide_chunks)} community guide chunks.")
+    chunks.extend(guide_chunks)
 
     if not chunks:
         print("No data fetched. Aborting.")
         return
 
-    # 3. Index
+    # 5. Index
     store.rebuild_index(chunks)
     
     print("Done! Knowledge Base is ready.")

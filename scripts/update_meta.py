@@ -51,10 +51,14 @@ def main():
     # Usage .txt lives at the month root, chaos .json under chaos/
     success_count = 0
     for fmt in config.FORMATS.values():
-        for base_url, remote_file in [(target_url, fmt["stats"] + ".txt"),
-                                      (target_url + "chaos/", fmt["stats"] + ".json")]:
+        downloads = [(target_url, fmt["stats"] + ".txt", None),
+                     (target_url + "chaos/", fmt["stats"] + ".json", None)]
+        if fmt["game"] == "champions":
+            # Display names for the RAG usage cards (SV names already come from Smogon sets data)
+            downloads.append((target_url + "moveset/", fmt["stats"] + ".txt", fmt["stats"] + ".moveset.txt"))
+        for base_url, remote_file, local_name in downloads:
             # scrapers.download_stat_file saves to config.STATS_DIR
-            local_path = scrapers.download_stat_file(base_url, remote_file)
+            local_path = scrapers.download_stat_file(base_url, remote_file, local_name)
 
             if local_path:
                 success_count += 1

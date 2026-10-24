@@ -111,5 +111,50 @@ class TestChampionsMechanics(unittest.TestCase):
         self.assertEqual(recs[0][0], "Corviknight")
 
 
+GUIDE_HTML = """<html><body><main>
+<p>Pokemon · Field Notes</p>
+<h1>Mega Absol High-Risk Sweeper Lines</h1>
+<h2>Role Overview</h2>
+<p>Mega Absol is a fragile physical sweeper with Magic Bounce. It punishes passive teams.</p>
+<p>Tip</p>
+<h3>Team Support</h3>
+<p>Pair it with Kingambit to punish Intimidate. Redirection support helps if playing in Doubles formats.</p>
+<p>milotic</p>
+<h2>Claims Behind Mega Absol's Sweeper Lines</h2>
+<p>Hatterene's Magic Bounce reflects hazards, which is off topic here.</p>
+</main></body></html>"""
+
+
+class TestChampionsRag(unittest.TestCase):
+
+    def test_parse_guide_splits_doubles_and_stops_at_claims(self):
+        from ..rag import pokechamp
+        g = pokechamp.parse_guide(GUIDE_HTML)
+        self.assertEqual(g["title"], "Mega Absol High-Risk Sweeper Lines")
+        self.assertEqual([s["heading"] for s in g["sections"]], ["Role Overview", "Team Support"])
+        support = g["sections"][1]
+        self.assertEqual(support["singles"], ["Pair it with Kingambit to punish Intimidate."])
+        self.assertEqual(len(support["doubles"]), 1)
+        # Labels, slug cards and the off topic claims section are dropped
+        all_text = " ".join(t for s in g["sections"] for t in s["singles"] + s["doubles"])
+        self.assertNotIn("Hatterene", all_text)
+        self.assertNotIn("milotic", all_text)
+
+    def test_guide_subject(self):
+        from ..rag import pokechamp
+        species = ["Absol", "Charizard", "Garchomp", "Samurott-Hisui"]
+        self.assertEqual(pokechamp.guide_subject("Mega Absol Sweeper Lines", species), "Absol-Mega")
+        self.assertEqual(pokechamp.guide_subject("Mega Charizard X Dragon Dance", species), "Charizard-Mega-X")
+        self.assertEqual(pokechamp.guide_subject("Samurott-Hisui Ceaseless Edge", species), "Samurott-Hisui")
+        self.assertEqual(pokechamp.guide_subject("Trick Room Teams", species), "General")
+
+    def test_usage_card_helpers(self):
+        from ..rag import usage_cards
+        self.assertEqual(usage_cards._fmt_spread("Jolly:2/32/0/0/0/32"), "Jolly 2 HP / 32 Atk / 32 Spe")
+        # Moves are a share of the Pokemon's weight, not of all move slots
+        self.assertEqual(usage_cards._top({"earthquake": 90, "spikes": 30}, total=100, names={"earthquake": "Earthquake"}),
+                         [("Earthquake", 90.0), ("spikes", 30.0)])
+
+
 if __name__ == '__main__':
     unittest.main()
