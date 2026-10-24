@@ -1,6 +1,7 @@
 from metamatch.engine.planner import plan_query
 from metamatch.engine.solvers import solve
 from metamatch.engine.sets import likely_set
+from metamatch.engine.briefing import strategy_briefing
 from metamatch.logic_engine import describe_likely_set
 from .router import get_router
 from .tactician import TacticianAgent
@@ -79,7 +80,8 @@ class AgentManager:
         elif route == "builder":
             return _texts(self.auditor.run(query, team_context, history, named))
         else:
-            return _texts(self.coach.run(query, team_context, history, named))
+            briefing = strategy_briefing(team_context, plan.opponents)
+            return self.coach.run(query, team_context, history, named, briefing)
 
     def get_active_agent_name(self, query: str, team_context: dict = None) -> str:
         """Helper for UI to show which agent is working"""

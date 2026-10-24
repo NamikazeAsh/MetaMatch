@@ -28,10 +28,19 @@ The planner and solvers in `metamatch.engine` produce a `Verdict` (answer, state
 | Agent | Persona | Handles | Temperature | File |
 | :--- | :--- | :--- | :--- | :--- |
 | Tactician | Clemont | Mechanics questions the planner could not resolve | `0.0` | `tactician.py` |
-| Coach | Prof. Oak | Strategy and win conditions, with retrieval from ChromaDB | `0.4` | `coach.py` |
+| Coach | Prof. Oak | Strategy and win conditions, grounded with engine verdicts and ChromaDB retrieval | `0.4` | `coach.py` |
 | Auditor | Brock | Sets and items checked against ladder usage | `0.2` | `auditor.py` |
 
 Oak and Brock also receive likely set cards for any opponent named in the question, plus the last six chat turns.
+
+## Oak's grounding (`coach.py`, `engine/briefing.py`)
+
+`strategy_briefing` gives Oak engine facts instead of letting the model reason over raw numbers:
+
+* **One on one verdicts** for each team member vs a named opponent, or vs the top 3 meta threats: hits to KO both ways from the calc, plus speed, labelled win or lose.
+* **Likely win conditions** (setup sweepers, weather abusers with a setter) and **shared weaknesses**.
+
+For threat, opponent and win condition questions the verdicts are shown first as an **Engine check**. Oak's advice then goes through `verify()`, which rejects invented numbers, Pokémon not in the context, calling a losing member an answer, and moves given to the wrong member. One retry, then only the engine check is shown. Retrieved guides are trimmed and limited to Pokémon on the team or in the facts.
 
 ## Routing (`router.py`)
 

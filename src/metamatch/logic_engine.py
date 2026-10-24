@@ -90,8 +90,11 @@ def _speed_facts(user_name, user_speed, opponent_name, opp_set, opp_base_speed, 
     return [f"SPEED: {user_name} ({user_speed}) is SLOWER than {opponent_name} ({neutral})."]
 
 
-def _damage_facts(user_pokemon, opp_set, game, dex):
-    """Real damage ranges both ways from the calc, best two moves each way."""
+def best_hits(user_pokemon, opp_set, game, dex, n=2):
+    """
+    (dealt, taken): the user's and the opponent's n strongest damaging moves as (move, calc result)
+    pairs, strongest first. None when the calc is unavailable.
+    """
     mine = user_spec(user_pokemon, game)
     opp_spec = calc_spec(opp_set)
     user_moves = [m['name'] for m in user_pokemon.get('Moves', []) if m.get('category') not in (None, 'Status')]
@@ -101,16 +104,24 @@ def _damage_facts(user_pokemon, opp_set, game, dex):
                 + [{"game": game, "attacker": opp_spec, "defender": mine, "move": m} for m in opp_moves])
     results = calc.calculate_many(requests)
     if not any(results):
-        return []
+        return None
 
     def best(pairs):
         hits = [(m, r) for m, r in pairs if r and r['range'][1] > 0]
-        return sorted(hits, key=lambda x: x[1]['percent'][1], reverse=True)[:2]
+        return sorted(hits, key=lambda x: x[1]['percent'][1], reverse=True)[:n]
 
+    return best(zip(user_moves, results[:len(user_moves)])), best(zip(opp_moves, results[len(user_moves):]))
+
+
+def _damage_facts(user_pokemon, opp_set, game, dex):
+    """Real damage ranges both ways from the calc, best two moves each way."""
+    hits = best_hits(user_pokemon, opp_set, game, dex)
+    if hits is None:
+        return []
+    dealt, taken = hits
     user_name, opp_name = user_pokemon['Pokemon'], opp_set['name']
+    user_moves = [m for m in user_pokemon.get('Moves', []) if m.get('category') not in (None, 'Status')]
     facts = []
-    dealt = best(zip(user_moves, results[:len(user_moves)]))
-    taken = best(zip(opp_moves, results[len(user_moves):]))
     if dealt:
         facts.append(f"DAMAGE DEALT: " + "; ".join(
             f"{m} does {r['percent'][0]}-{r['percent'][1]}% to {opp_name}{_ko(r)}" for m, r in dealt) + ".")

@@ -37,7 +37,7 @@ MetaBench is a 120 question benchmark across speed, KO, damage, type, stat and u
 * **Written blind:** the same 120 questions rewritten again in casual player style (lowercase, slang, swapped name order), also by an agent that never saw the code.
 
 * **Overfitting check:** a high held out score means MetaMatch understands the question rather than memorizing the dev wording.
-* **Fair grading:** free form answers are graded by a second local model (Gemma 3 4B) that was validated at 100% agreement against hand labels before use.
+* **Fair grading:** free form answers are graded by a second local model (Gemma 3 4B) that was validated at 100% agreement (100 of 100) with strict `ANSWER:` line grading before use.
 * **Fully local:** no paid APIs anywhere, for answering or for grading.
 
 ### 🧪 Real Answers From the Benchmark
@@ -88,6 +88,15 @@ graph LR
 4. **🔍 Verifier:** the LLM writes a short explanation. Any number not in the facts, or any claim that flips the speed, type or KO verdict, gets rejected. One retry, then MetaMatch shows the raw facts instead.
 5. **❓ Clarify:** if a matchup question names no recognizable opponent, MetaMatch asks rather than answering a different question.
 
+### 📜 Grounded Strategy Advice
+
+Strategy questions ("how do I play against Kingambit?", "what are my biggest threats?") follow the same principle. The engine draws the conclusions, the LLM explains them:
+
+* **🧮 One on one verdicts:** for a named opponent, or each of the top meta threats, the calc works out hits to KO both ways plus speed for every team member, then labels who wins and who loses.
+* **📋 Engine check:** those verdicts open the answer, written by code, so the key facts are always right:
+  > **Vs Kingambit** answers: Corviknight, Garchomp, Torkoal; loses: Dragapult (OHKO'd by Sucker Punch), Venusaur, Alomomola
+* **🔍 Advice verifier:** Professor Oak's advice is rejected if it invents numbers, mentions Pokémon that appear nowhere in the facts, calls a team member an answer to something it loses to, or gives a member a move it doesn't run. One retry, then only the engine check is shown.
+
 ---
 
 ## ✨ Features
@@ -97,7 +106,7 @@ graph LR
 Three specialist agents, each with its own persona and temperature:
 
 * **Clemont (Tactician):** mechanics and math, backed by the grounded pipeline above.
-* **Professor Oak (Coach):** win conditions and game plans, grounded with retrieval over Smogon analyses, strategy concepts and Champions community guides (ChromaDB + `bge-small-en-v1.5`). Sees full set context: item, ability, Tera type, nature, EVs, speed and roles.
+* **Professor Oak (Coach):** win conditions and game plans, grounded with engine matchup verdicts (see above) and retrieval over Smogon analyses, strategy concepts and Champions community guides (ChromaDB + `bge-small-en-v1.5`). Sees full set context: item, ability, Tera type, nature, EVs, speed and roles.
 * **Brock (Builder):** audits your sets against ladder usage and cites exact percentages.
 * **Semantic Router:** MiniLM embeddings pick the right agent for open questions, with a confidence gate that falls back to Oak.
 * **Named opponent awareness:** mention any Pokémon and the agents get its likely set card from usage stats.
@@ -245,7 +254,7 @@ Without Node the app still runs, but chat falls back to type matchups instead of
 ## 🧪 Tests & Benchmark
 
 ```bash
-pytest                                     # 67 tests: parsing, mechanics, planner, verifier
+pytest                                     # 82 tests: parsing, mechanics, planner, verifiers, strategy verdicts
 
 python bench/run.py --arm raw              # bare model with the team pasted in
 python bench/run.py --arm metamatch        # full pipeline
@@ -275,7 +284,7 @@ python bench/report.py                     # accuracy by arm, format and categor
 
 ## 🔮 Limitations & Future Outlook
 
-* **Strategy is the frontier.** Facts are solved, but open ended advice from Oak and Brock is not benchmarked yet, and a 3B model's strategic reasoning is the weakest link. A rubric graded strategy benchmark is next.
+* **Strategy is the frontier.** Facts are solved and Oak's matchup claims are verified, but open ended advice is not benchmarked yet, and the verifier can't catch every strategic mistake a 3B model makes. A rubric graded strategy benchmark is next.
 * **Held out scope.** The held out sets test new wording, not new teams or matchups; a fresh set of unseen questions is still to come.
 * **Assumed sets.** Damage numbers use the opponent's most common set unless you give one.
 * **Champions data.** Smogon has no Champions analyses yet, so its retrieval uses usage cards and community guides, and verified sets are SV only.
