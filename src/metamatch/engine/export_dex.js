@@ -10,7 +10,11 @@ const GAMES = {sv: 9, champions: 0};
 
 for (const [game, num] of Object.entries(GAMES)) {
   const gen = calc.Generations.get(num);
-  const dex = {species: {}, moves: {}, items: {}, abilities: [...gen.abilities].map(a => a.name)};
+  const dex = {species: {}, moves: {}, items: {}, abilities: [...gen.abilities].map(a => a.name), typeChart: {}};
+  for (const t of gen.types) {
+    if (t.name === '???' || t.name === 'Stellar') continue;
+    dex.typeChart[t.name] = Object.fromEntries(Object.entries(t.effectiveness).filter(([d]) => d !== '???' && d !== 'Stellar'));
+  }
   for (const s of gen.species) {
     dex.species[s.name] = {
       types: s.types,
