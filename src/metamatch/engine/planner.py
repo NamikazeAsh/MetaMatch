@@ -31,7 +31,7 @@ STAT_RE = re.compile(r"\bstat\b", re.I)
 
 @dataclass
 class Plan:
-    intent: str = "open"            # speed, ko, damage, type, stat, usage, open
+    intent: str = "open"            # speed, ko, damage, type, stat, usage, clarify, open
     format_id: str = config.DEFAULT_FORMAT
     user: dict | None = None        # team member entry from readTeam
     user_named: bool = False        # False when `user` is just the only member of a one Pokemon team
@@ -195,6 +195,9 @@ def plan_query(query, team):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:
         plan.intent = "speed"
+    elif (SPEED_RE.search(q) or KO_RE.search(q) or DAMAGE_RE.search(q)) and not plan.opponents:
+        # A matchup question with no recognisable opponent: ask, never answer a different question
+        plan.intent = "clarify"
     elif USAGE_RE.search(q) and (plan.opponent or plan.user):
         plan.intent = "usage"
         plan.usage_field = _usage_field(q)

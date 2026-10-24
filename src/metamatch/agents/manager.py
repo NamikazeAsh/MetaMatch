@@ -16,6 +16,10 @@ PERSONAS = {
 }
 
 
+CLARIFY = ("I couldn't tell which opposing Pokemon you mean. Could you name it? "
+           "Full names and common nicknames like Lando, Pex or Corv both work.")
+
+
 def _texts(stream):
     """OpenAI style chunk stream -> plain text chunks."""
     for chunk in stream:
@@ -63,6 +67,8 @@ class AgentManager:
         plan, verdict = self._plan(query, team_context)
         if verdict:
             return self.grounded.run(query, verdict)
+        if plan.intent == "clarify":
+            return iter([CLARIFY])
 
         route, confidence = self.router.route_query(query)
         named = self._named_context(plan)
@@ -78,8 +84,10 @@ class AgentManager:
     def get_active_agent_name(self, query: str, team_context: dict = None) -> str:
         """Helper for UI to show which agent is working"""
         if team_context is not None:
-            _, verdict = self._plan(query, team_context)
+            plan, verdict = self._plan(query, team_context)
             if verdict:
                 return PERSONAS[verdict.persona]
+            if plan.intent == "clarify":
+                return PERSONAS["mechanics"]
         route, _ = self.router.route_query(query)
         return PERSONAS.get(route, "Unknown Agent")

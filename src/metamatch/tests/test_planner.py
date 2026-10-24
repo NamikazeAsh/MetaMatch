@@ -144,3 +144,43 @@ class TestVerifier(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestNamesAndClarify(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.sv, _ = readTeam(SV_TEAM, "gen9ou")
+
+    def test_nicknames_typos_and_megas(self):
+        from metamatch.engine.names import find_pokemon
+        self.assertEqual(find_pokemon("does my rillaboom outspeed cress"), ["Rillaboom", "Cresselia"])
+        self.assertEqual(find_pokemon("can tusk ohko lando"), ["Great Tusk", "Landorus-Therian"])
+        self.assertEqual(find_pokemon("ohko a full health excadril"), ["Excadrill"])
+        self.assertEqual(find_pokemon("is mega garchomp z faster"), ["Garchomp-Mega-Z"])
+        # Item words must not fuzzy match Pokemon ("helmet" vs Shelmet)
+        self.assertEqual(find_pokemon("giga impact on corv @ rocky helmet"), ["Corviknight"])
+
+    def test_unknown_opponent_asks_instead_of_answering(self):
+        p = plan_query("is great tusk faster than zzzmon on its most common spread", self.sv)
+        self.assertEqual(p.intent, "clarify")
+
+    def test_mega_display_name(self):
+        from metamatch.engine.solvers import display_name
+        self.assertEqual(display_name("Garchomp-Mega-Z"), "Mega Garchomp Z")
+        self.assertEqual(display_name("Staraptor-Mega"), "Mega Staraptor")
+        self.assertEqual(display_name("Kingambit"), "Kingambit")
+
+
+class TestContradictions(unittest.TestCase):
+    def test_speed(self):
+        v = Verdict("speed", "no", "Mega Staraptor (178 Speed) is slower than Dragapult (213 Speed).", [],
+                    subject="Mega Staraptor", other="Dragapult")
+        self.assertIsNotNone(verify("Once it Mega Evolves, it outspeeds a Dragapult on its usual spread.", v))
+        self.assertIsNone(verify("Dragapult outspeeds it, so Staraptor moves second.", v))
+
+    def test_ko(self):
+        v = Verdict("ko", "sometimes", "Dragon Tail does 84.8-101.8% to Dragapult, so it OHKOs only on some rolls.", [])
+        self.assertIsNotNone(verify("It is a guaranteed OHKO.", v))
+        survive = Verdict("ko", "yes", "Sucker Punch does 71.4-84.6% to Gholdengo, so Gholdengo survives.", [], survive=True)
+        self.assertIsNotNone(verify("Gholdengo does not survive the hit.", survive))
+        self.assertIsNone(verify("Gholdengo lives comfortably at 71.4-84.6%.", survive))

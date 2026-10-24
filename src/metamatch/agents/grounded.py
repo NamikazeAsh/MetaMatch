@@ -26,6 +26,38 @@ def _numbers(text):
     return {n.rstrip("0").rstrip(".") if "." in n else n for n in NUMBER.findall(text)}
 
 
+def _speed_clash(text, verdict):
+    """Explanation claims the opposite speed order to the verdict."""
+    if not verdict.other:
+        return None
+    o = re.escape(verdict.other)
+    says_faster = re.search(rf"\b(outspeeds?|faster than|outpaces?)\b[^.]{{0,15}}{o}", text, re.I) or \
+        re.search(rf"{o}[^.]{{0,25}}\b(is slower|is outsped)", text, re.I)
+    says_slower = re.search(rf"\b(slower than|outsped by|outpaced by)\b[^.]{{0,15}}{o}", text, re.I) or \
+        re.search(rf"{o}[^.]{{0,25}}\b(outspeeds|is faster|outpaces)", text, re.I)
+    if verdict.answer != "yes" and says_faster:
+        return "a claim that it is faster"
+    if verdict.answer != "no" and says_slower:
+        return "a claim that it is slower"
+    return None
+
+
+KO_CLASHES = {
+    # (survive question, verdict answer) -> wording that contradicts it
+    (False, "yes"): r"\bchance to\b|\b(doesn't|does not|won't|will not|cannot|can't|fails to)\b[^.]{0,20}\bko",
+    (False, "no"): r"\b(guaranteed|will|does) (ohko|one ?hit ko)",
+    (False, "sometimes"): r"\bguaranteed\b",
+    (True, "yes"): r"\b(does not|doesn't|won't|will not|cannot|can't) survive|\bfaints?\b",
+    (True, "no"): r"\b(survives|will survive|lives)\b",
+    (True, "sometimes"): r"\bguaranteed\b",
+}
+
+
+def _ko_clash(text, verdict):
+    pattern = KO_CLASHES.get((verdict.survive, verdict.answer))
+    return "wording that contradicts the KO result" if pattern and re.search(pattern, text, re.I) else None
+
+
 def verify(explanation, verdict):
     """Returns a reason the explanation can't be shown, or None if it is grounded."""
     allowed = _numbers(verdict.statement + " " + " ".join(verdict.facts)) | FREE_NUMBERS
@@ -36,6 +68,10 @@ def verify(explanation, verdict):
         clashes = [a for a, pattern in TYPE_WORDS.items() if a != verdict.answer and pattern.search(explanation)]
         if clashes:
             return f"wording that says {clashes[0]} when the result is {verdict.answer}"
+    clash = _speed_clash(explanation, verdict) if verdict.intent == "speed" else \
+        _ko_clash(explanation, verdict) if verdict.intent == "ko" else None
+    if clash:
+        return clash
     stated = re.findall(r"ANSWER\s*:\s*(.+)", explanation, re.I)
     if stated and verdict.answer.lower() not in stated[-1].lower():
         return f"contradicts the verdict ({stated[-1].strip()})"

@@ -31,6 +31,9 @@ class Verdict:
     statement: str                  # templated sentence stating the answer
     facts: list = field(default_factory=list)
     persona: str = "mechanics"      # which agent persona presents it
+    subject: str = ""               # the player's Pokemon, for contradiction checks
+    other: str = ""                 # the opposing Pokemon
+    survive: bool = False           # KO question phrased as "does X survive"
 
 
 def _pct(x):
@@ -85,8 +88,16 @@ def _any_move(spec_moves, dex):
     return next(iter(dex.move_data))
 
 
+def display_name(name):
+    """'Garchomp-Mega-Z' -> 'Mega Garchomp Z', everything else unchanged."""
+    if "-Mega" not in (name or ""):
+        return name
+    base, _, suffix = name.partition("-Mega")
+    return f"Mega {base} {suffix.strip('-')}".strip()
+
+
 def _user_name(p):
-    return f"{p['Pokemon']} (Mega {p['Forme']})" if p.get("Forme") else p["Pokemon"]
+    return display_name(p["Forme"]) if p.get("Forme") else p["Pokemon"]
 
 
 def solve_speed(plan, dex, game):
@@ -99,6 +110,7 @@ def solve_speed(plan, dex, game):
     them = (_stats(game, spec, move) or {}).get("spe")
     if not us or not them:
         return None
+    name = display_name(name)
     answer = "yes" if us > them else "no" if us < them else "tie"
     verb = {"yes": "outspeeds", "no": "is slower than", "tie": "speed ties with"}[answer]
     spread = describe_spread(s, game) if s else "an uninvested spread"
@@ -112,7 +124,7 @@ def solve_speed(plan, dex, game):
         facts.append(f"Holding Choice Scarf, {_user_name(p)} actually reaches {int(us * 1.5)} Speed.")
     if s and s.get("item") == "Choice Scarf":
         facts.append(f"{_pct(s['item_share'])} of {name} carry Choice Scarf, reaching {int(them * 1.5)} Speed.")
-    return Verdict("speed", answer, statement, facts)
+    return Verdict("speed", answer, statement, facts, subject=_user_name(p), other=name)
 
 
 def _attack(plan, dex, game):
@@ -122,11 +134,12 @@ def _attack(plan, dex, game):
     if not name:
         return None
     mine = user_spec(p, game) if p else None
+    shown = display_name(name)
     if plan.attacker == "opponent" or not p:
-        attacker, defender = (name, opp_spec), ((_user_name(p), mine) if p else None)
+        attacker, defender = (shown, opp_spec), ((_user_name(p), mine) if p else None)
         moves = [plan.move] if plan.move else [m for m, _ in (s or {}).get("moves", [])]
     else:
-        attacker, defender = (_user_name(p), mine), (name, opp_spec)
+        attacker, defender = (_user_name(p), mine), (shown, opp_spec)
         moves = [plan.move] if plan.move else [m["name"] for m in p.get("Moves", []) if m.get("category") != "Status"]
     if not defender or not moves:
         return None
@@ -170,7 +183,7 @@ def solve_ko(plan, dex, game):
     facts = [f"Calc: {r['desc']}"] if r["desc"] else []
     if s and not plan.opp_overrides:
         facts.append(f"{s['name']} assumed on its most common set: {describe_spread(s, game)} @ {s['item']}, {s['ability']}.")
-    return Verdict("ko", answer, statement, facts)
+    return Verdict("ko", answer, statement, facts, subject=att, other=dfn, survive=plan.survive)
 
 
 def solve_damage(plan, dex, game):
@@ -200,6 +213,7 @@ def solve_type(plan, dex, game):
         if not name:
             return None
         types, ability = dex.species(name)["types"], spec.get("ability")
+        name = display_name(name)
     mult = 1.0
     for d in types:
         mult *= chart.get(t, {}).get(d, 1.0)

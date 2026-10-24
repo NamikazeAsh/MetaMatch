@@ -1,6 +1,3 @@
-import json
-import re
-from functools import lru_cache
 from .utils import fetch_pokemon_data, calculate_speed
 from . import config
 from .type_chart import TYPE_CHART
@@ -8,6 +5,7 @@ from .engine import calc
 from .engine.dex import dex_for_format
 from .engine.sets import likely_set, calc_spec, describe_spread
 from .engine.solvers import user_spec
+from .engine.names import find_pokemon
 
 # Abilities that make the holder immune to a move type (lowercase display names)
 ABILITY_IMMUNITY = {
@@ -44,33 +42,9 @@ def detect_intent(query):
     return "strategy"
 
 # --- ENTITY EXTRACTION ---
-def _norm_name(text):
-    return " ".join(re.sub(r"[^a-z0-9]+", " ", text.lower()).split())
-
-
-@lru_cache(maxsize=1)
-def _name_index():
-    """(normalized, display) pairs for every known Pokemon, longest first so 'Rotom-Wash' beats 'Rotom'."""
-    try:
-        with open(config.JSON_DIR / "topPoke.json", encoding="utf-8") as f:
-            names = json.load(f).keys()
-    except (OSError, json.JSONDecodeError):
-        return ()
-    return tuple(sorted(((_norm_name(n), n) for n in names), key=lambda x: len(x[0]), reverse=True))
-
-
 def find_pokemon_in_query(query):
-    """Returns Pokemon named in the query, in the order they appear."""
-    text = f" {_norm_name(query)} "
-    found = []
-    for norm, display in _name_index():
-        key = f" {norm} "
-        pos = text.find(key)
-        if pos >= 0:
-            found.append((pos, display))
-            # Blank out the match (keeping the boundary spaces) so 'Rotom' doesn't also fire inside 'Rotom Wash'
-            text = text[:pos + 1] + " " * len(norm) + text[pos + 1 + len(norm):]
-    return [name for _, name in sorted(found)]
+    """Returns Pokemon named in the query (exact names, nicknames, Mega names, small typos), in order."""
+    return find_pokemon(query)
 
 # --- MATH ENGINE ---
 def get_type_effectiveness(attack_type, defender_types):
