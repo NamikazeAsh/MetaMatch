@@ -184,3 +184,24 @@ class TestContradictions(unittest.TestCase):
         survive = Verdict("ko", "yes", "Sucker Punch does 71.4-84.6% to Gholdengo, so Gholdengo survives.", [], survive=True)
         self.assertIsNotNone(verify("Gholdengo does not survive the hit.", survive))
         self.assertIsNone(verify("Gholdengo lives comfortably at 71.4-84.6%.", survive))
+
+
+class TestHeldOutGaps(unittest.TestCase):
+    """Gaps found by the second blind paraphrase set."""
+
+    def test_stat_without_the_word_stat(self):
+        team, _ = readTeam(SV_TEAM, "gen9ou")
+        p = plan_query("how much Speed does my Great Tusk have?", team)
+        self.assertEqual((p.intent, p.stat), ("stat", "spe"))
+
+    def test_base_name_matches_team_forme(self):
+        team, _ = readTeam("Ogerpon-Wellspring @ Wellspring Mask\nAbility: Water Absorb\nEVs: 252 Atk / 4 SpD / 252 Spe\n"
+                           "Jolly Nature\n- Ivy Cudgel", "gen9ou")
+        p = plan_query("ogerpon-w vs cinderace speed, do i outspeed?", team)
+        self.assertEqual((p.user["Pokemon"], p.opponents), ("Ogerpon-Wellspring", ["Cinderace"]))
+
+    def test_negated_outspeed_is_a_contradiction(self):
+        v = Verdict("speed", "yes", "Blaziken (132 Speed) outspeeds Annihilape (112 Speed).", [],
+                    subject="Blaziken", other="Annihilape")
+        self.assertIsNotNone(verify("You do not outspeed Annihilape here.", v))
+        self.assertIsNone(verify("Blaziken moves first because Annihilape is slower.", v))

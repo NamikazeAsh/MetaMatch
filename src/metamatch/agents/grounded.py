@@ -31,9 +31,10 @@ def _speed_clash(text, verdict):
     if not verdict.other:
         return None
     o = re.escape(verdict.other)
-    says_faster = re.search(rf"\b(outspeeds?|faster than|outpaces?)\b[^.]{{0,15}}{o}", text, re.I) or \
-        re.search(rf"{o}[^.]{{0,25}}\b(is slower|is outsped)", text, re.I)
-    says_slower = re.search(rf"\b(slower than|outsped by|outpaced by)\b[^.]{{0,15}}{o}", text, re.I) or \
+    negated = r"\b(?:do|does|did|can|will)(?:n't| not) outspeed"
+    says_faster = re.search(rf"(?<!not )(?<!n't )\b(outspeeds?|faster than|outpaces?)\b[^.]{{0,15}}{o}", text, re.I) or \
+        re.search(rf"{o}[^.]{{0,25}}(\bis slower|\bis outsped|{negated})", text, re.I)
+    says_slower = re.search(rf"(\bslower than|\boutsped by|\boutpaced by|{negated})[^.]{{0,15}}{o}", text, re.I) or \
         re.search(rf"{o}[^.]{{0,25}}\b(outspeeds|is faster|outpaces)", text, re.I)
     if verdict.answer != "yes" and says_faster:
         return "a claim that it is faster"

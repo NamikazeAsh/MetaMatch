@@ -27,6 +27,8 @@ DAMAGE_RE = re.compile(r"(\bdamage\b|\bpercent(?:age)?\b|%|\bhow much\b)", re.I)
 SPEED_RE = re.compile(r"\b(outspeed|outspeeds|faster|slower|speed tie|out speed|outpace)\b", re.I)
 TYPE_ASK_RE = re.compile(r"\b(immune|immunity|weak|weakness|resist|resists|resistant|neutral|super effective|not very effective)\b", re.I)
 STAT_RE = re.compile(r"\bstat\b", re.I)
+# "how much Speed does my X have", "what Speed does my X hit": a stat question when no opponent is named
+STAT_ASK_RE = re.compile(r"\b(how much|what)\s+(speed|attack|defense|special attack|special defense|hp)\b", re.I)
 
 
 @dataclass
@@ -57,7 +59,10 @@ def _team_member(name, team, dex):
     base = to_id(species.get("baseSpecies", "")) if species else ""
     for p in team.values():
         ids = {to_id(p.get("Pokemon")), to_id(p.get("Forme"))}
-        if target in ids or (base and base in ids):
+        # A bare base name ("Ogerpon") also means a team member of that species ("Ogerpon-Wellspring")
+        member = dex.species(p.get("Pokemon")) if dex else None
+        member_base = to_id(member.get("baseSpecies", "")) if member else ""
+        if target in ids or (base and base in ids) or (member_base and target == member_base):
             return p
     return None
 
@@ -180,7 +185,7 @@ def plan_query(query, team):
 
     # Usage goes last: speed and KO questions also say "most common spread"
     q = query
-    if STAT_RE.search(q) and plan.user and not SPEED_RE.search(q):
+    if plan.user and not SPEED_RE.search(q) and (STAT_RE.search(q) or (STAT_ASK_RE.search(q) and not plan.opponents)):
         plan.intent = "stat"
         plan.stat = _find_stat(scrubbed) or "spe"
     elif KO_RE.search(q) and plan.opponent and (plan.user or plan.move):
