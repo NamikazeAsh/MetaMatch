@@ -8,7 +8,7 @@ class CoachAgent:
         if model_name:
             self.model = model_name
 
-    def run(self, query: str, team_context: dict) -> str:
+    def run(self, query: str, team_context: dict, history: list = None, named_context: str = ""):
         """
         Executes the Strategy Agent.
         Focus: Game plans, win conditions, advice.
@@ -64,7 +64,9 @@ class CoachAgent:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": system_content},
+                {"role": "system", "content": system_content + named_context},
+                # Recent turns so follow ups like "what about against rain?" make sense
+                *(history or [])[-6:],
                 {"role": "user", "content": query}
             ],
             temperature=0.4, # BALANCED

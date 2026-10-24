@@ -27,6 +27,11 @@ class Dex:
         self._moves = {to_id(n): n for n in self.move_data}
         self._items = {to_id(n): n for n in self.item_data}
         self._abilities = {to_id(n): n for n in data.get("abilities", [])}
+        self.type_chart = data.get("typeChart", {})  # attacking type -> defending type -> multiplier
+
+    @property
+    def ability_names(self):
+        return list(self._abilities.values())
 
     def species(self, name):
         """{'name', 'types', 'baseStats', 'abilities', ...} or None."""

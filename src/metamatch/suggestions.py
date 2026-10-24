@@ -138,10 +138,11 @@ def get_client():
     return get_agent_client()
 
 
-def get_chat_response(user_query, team_context=None, team_weakness=None, model_name=None):
+def get_chat_response(user_query, team_context=None, team_weakness=None, history=None):
+    """Generator of answer text chunks for a chat question about the team."""
     from .agents.manager import AgentManager
     manager = AgentManager()
-    return manager.get_response(user_query, team_context, team_weakness)
+    return manager.get_response(user_query, team_context, team_weakness, history)
 
 
 def get_suggestions(team):

@@ -4,6 +4,7 @@ Rerunning resumes where it stopped.
 
 Arms:
   raw        The bare local model with the team pasted in, no grounding.
+  template   Planner and engine verdict only, no LLM.
   metamatch  The full MetaMatch agent pipeline. --src picks which checkout's code to import,
              so an older commit can be benchmarked from a worktree.
 
@@ -34,7 +35,14 @@ def load_questions(path, limit=None, ids=None):
 
 
 def stream_text(stream):
-    return "".join((c.choices[0].delta.content or "") for c in stream if c.choices)
+    """Joins a response stream: plain text chunks (current code) or OpenAI chunks (older commits)."""
+    parts = []
+    for c in stream:
+        if isinstance(c, str):
+            parts.append(c)
+        elif c.choices:
+            parts.append(c.choices[0].delta.content or "")
+    return "".join(parts)
 
 
 class RawArm:
@@ -64,9 +72,27 @@ class MetaMatchArm:
         return stream_text(self.manager.get_response(q["question"], team, weakness))
 
 
+class TemplateArm:
+    """Planner + engine verdict with no LLM at all: the ceiling for calc shaped questions."""
+
+    def __init__(self):
+        from metamatch import team as team_module
+        from metamatch.engine.planner import plan_query
+        from metamatch.engine.solvers import solve
+        self.team_module, self.plan_query, self.solve = team_module, plan_query, solve
+
+    def answer(self, q):
+        team, _ = self.team_module.readTeam(q["team"], q["format"])
+        verdict = self.solve(self.plan_query(q["question"], team))
+        return f"{verdict.statement}\n\nANSWER: {verdict.answer}" if verdict else ""
+
+
+ARMS = {"raw": RawArm, "metamatch": MetaMatchArm, "template": TemplateArm}
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--arm", choices=["raw", "metamatch"], required=True)
+    parser.add_argument("--arm", choices=list(ARMS), required=True)
     parser.add_argument("--name", help="results file name (defaults to the arm)")
     parser.add_argument("--src", default=str(BENCH.parent / "src"), help="src dir to import metamatch from")
     parser.add_argument("--questions", default=str(BENCH / "questions.jsonl"))
@@ -84,7 +110,7 @@ def main():
             done = {json.loads(line)["id"] for line in f if line.strip()}
 
     questions = [q for q in load_questions(args.questions, args.limit, args.ids) if q["id"] not in done]
-    arm = RawArm() if args.arm == "raw" else MetaMatchArm()
+    arm = ARMS[args.arm]()
     print(f"{name}: {len(questions)} questions to run ({len(done)} already done)", flush=True)
 
     for i, q in enumerate(questions, 1):

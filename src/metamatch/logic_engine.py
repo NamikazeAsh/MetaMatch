@@ -7,8 +7,7 @@ from .type_chart import TYPE_CHART
 from .engine import calc
 from .engine.dex import dex_for_format
 from .engine.sets import likely_set, calc_spec, describe_spread
-
-CALC_STAT_KEYS = {"HP": "hp", "Atk": "atk", "Def": "def", "SpA": "spa", "SpD": "spd", "Spe": "spe"}
+from .engine.solvers import user_spec
 
 # Abilities that make the holder immune to a move type (lowercase display names)
 ABILITY_IMMUNITY = {
@@ -89,21 +88,6 @@ def _ko(result):
     return f" ({result['ko']})" if result['ko'] else ""
 
 
-def _user_calc_spec(p, game):
-    """A team member as a calc_server Pokemon spec (Champions uses stat points as 'evs')."""
-    raw = p.get('SP') if game == "champions" else p.get('EVs')
-    spec = {"name": p.get('Forme') or p['Pokemon'],
-            "evs": {CALC_STAT_KEYS[k]: v for k, v in (raw or {}).items() if k in CALC_STAT_KEYS}}
-    if p.get('Nature'):
-        spec['nature'] = p['Nature']
-    if p.get('Item'):
-        spec['item'] = p['Item']
-    ability = p.get('Mega Ability') or p.get('Ability')
-    if ability:
-        spec['ability'] = ability
-    return spec
-
-
 def _speed_facts(user_name, user_speed, opponent_name, opp_set, opp_base_speed, game):
     """Speed comparison against the opponent's real spread distribution, or max speed guesses without usage data."""
     speeds = opp_set["speeds"] if opp_set else []
@@ -134,13 +118,13 @@ def _speed_facts(user_name, user_speed, opponent_name, opp_set, opp_base_speed, 
 
 def _damage_facts(user_pokemon, opp_set, game, dex):
     """Real damage ranges both ways from the calc, best two moves each way."""
-    user_spec = _user_calc_spec(user_pokemon, game)
+    mine = user_spec(user_pokemon, game)
     opp_spec = calc_spec(opp_set)
     user_moves = [m['name'] for m in user_pokemon.get('Moves', []) if m.get('category') not in (None, 'Status')]
     opp_moves = [m for m, _ in opp_set['moves'] if (dex.move(m) or {}).get('category') not in (None, 'Status')]
 
-    requests = ([{"game": game, "attacker": user_spec, "defender": opp_spec, "move": m} for m in user_moves]
-                + [{"game": game, "attacker": opp_spec, "defender": user_spec, "move": m} for m in opp_moves])
+    requests = ([{"game": game, "attacker": mine, "defender": opp_spec, "move": m} for m in user_moves]
+                + [{"game": game, "attacker": opp_spec, "defender": mine, "move": m} for m in opp_moves])
     results = calc.calculate_many(requests)
     if not any(results):
         return []

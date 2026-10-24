@@ -40,6 +40,7 @@ def render():
         """)
 
     if prompt := st.chat_input("How do I beat Kingambit?"):
+        history = [{"role": m["role"], "content": m["content"]} for m in st.session_state.chat_messages]
         st.session_state.chat_messages.append({"role": "user", "content": prompt})
         with chat_container:
             with st.chat_message("user"):
@@ -48,7 +49,7 @@ def render():
         with chat_container:
             from metamatch.agents import AgentManager
             manager = AgentManager()
-            agent_name = manager.get_active_agent_name(prompt)
+            agent_name = manager.get_active_agent_name(prompt, st.session_state.analysis['team'])
 
             avatar = "🤖"
             if "🧪" in agent_name: avatar = "🧪"
@@ -64,13 +65,11 @@ def render():
                     stream = get_chat_response(
                         prompt,
                         st.session_state.analysis['team'],
-                        st.session_state.analysis['weakness']
+                        st.session_state.analysis['weakness'],
+                        history
                     )
 
-                    for chunk in stream:
-                        if not chunk.choices:
-                            continue
-                        content = chunk.choices[0].delta.content or ""
+                    for content in stream:
                         full_response += content
                         response_placeholder.markdown(full_response + "▌")
                 except Exception as e:
