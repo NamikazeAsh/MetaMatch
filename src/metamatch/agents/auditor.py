@@ -22,7 +22,8 @@ class AuditorAgent:
         
         # 2. Run Recommender (Real Code)
         team_names = [p['Pokemon'] for p in team_context.values()]
-        recommendations = recommender.get_recommendations(team_names, top_n=3, format_id=config.team_format(team_context))
+        team_items = [p.get('Item', '') for p in team_context.values()]
+        recommendations = recommender.get_recommendations(team_names, top_n=3, format_id=config.team_format(team_context), team_items=team_items)
 
         # 3. Retrieve RAG Context for 'Why' (Grounded Reasoning)
         rag_hits = store.query_strategies(query, n_results=1, format_id=config.team_format(team_context))

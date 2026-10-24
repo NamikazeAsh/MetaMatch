@@ -1,6 +1,6 @@
-import json
-from pathlib import Path
+import re
 from metamatch import config
+from metamatch.auditor import load_chaos_data
 
 
 def is_mega(pokemon_name: str) -> bool:
@@ -8,6 +8,16 @@ def is_mega(pokemon_name: str) -> bool:
     name_lower = pokemon_name.lower()
     # Matches patterns like "Charizard-Mega-X", "Gengar-Mega", etc.
     return "-mega" in name_lower
+
+
+def holds_mega_stone(item: str) -> bool:
+    """Champions teams declare Megas through the stone (e.g. 'Garchompite Z'), not the species name."""
+    item = (item or "").strip().lower()
+    return item != "eviolite" and re.search(r"ite( [xyz])?$", item) is not None
+
+
+def base_species(pokemon_name: str) -> str:
+    return re.split(r"-mega", pokemon_name, flags=re.IGNORECASE)[0].lower()
 
 
 def _norm(s: str) -> str:
@@ -19,8 +29,6 @@ ROLE_FILL_MOVES = {
     "Hazard Setter":  {"stealthrock", "spikes", "toxicspikes", "stickyweb"},
     "Hazard Remover": {"rapidspin", "defog", "courtchange", "tidyup"},
     "Pivot":          {"uturn", "voltswitch", "flipturn", "teleport", "partingshot", "shedtail"},
-    "Speed Control":  {"tailwind", "trickroom"},
-    "Cleric":         {"wish", "aromatherapy", "healbell"},
 }
 ROLE_BOOST = 1.2
 
@@ -33,7 +41,7 @@ def _infer_candidate_roles(moves_dict: dict, total_weight: float) -> set:
     return {role for role, sig in ROLE_FILL_MOVES.items() if top_moves & sig}
 
 
-def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_roles=None):
+def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_roles=None, team_items=None):
     """
     Analyzes the chaos data to find the best teammates for the current team.
     Uses a simple aggregation of correlation scores across selected formats.
@@ -44,6 +52,7 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_ro
         format_id (str or list): Format identifier(s) (e.g., 'gen9ou' or ['gen9ou', 'gen9uu']).
         team_roles (list[list]): Roles for each Pokemon on the team. Used to boost candidates
                                  that fill missing roles. Pass None to skip role weighting.
+        team_items (list[str]): Held items, used to spot Megas declared through a stone.
 
     Returns:
         List of (name, score, reason) tuples. reason is a string like
@@ -64,7 +73,8 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_ro
     missing_roles = set(ROLE_FILL_MOVES.keys()) - covered_roles
 
     # Check if the current team already has a Mega Pokemon
-    team_has_mega = any(is_mega(name) for name in current_team_names)
+    team_has_mega = (any(is_mega(name) for name in current_team_names)
+                     or any(holds_mega_stone(item) for item in (team_items or [])))
 
     # Map to store aggregated scores and inferred roles per candidate
     candidate_scores: dict[str, float] = {}
@@ -72,21 +82,13 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_ro
 
     # Normalize current team names for matching (Smogon uses exact names)
     team_set = {name.lower() for name in current_team_names}
+    team_species = {base_species(name) for name in current_team_names}
 
     for fmt in format_ids:
         if fmt not in config.FORMATS:
             continue
-        filename = config.FORMATS[fmt]["stats"] + ".json"
-
-        chaos_path = config.STATS_DIR / filename
-        if not chaos_path.exists():
-            continue
-
-        try:
-            with open(chaos_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                data = data.get('data', {})
-        except (json.JSONDecodeError, FileNotFoundError):
+        data = load_chaos_data(fmt)
+        if not data:
             continue
 
         for p_name in current_team_names:
@@ -101,7 +103,7 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_ro
             if p_data:
                 teammates = p_data.get('Teammates', {})
                 for mate, score in teammates.items():
-                    if mate.lower() in team_set:
+                    if mate.lower() in team_set or base_species(mate) in team_species:
                         continue
                     if team_has_mega and is_mega(mate):
                         continue

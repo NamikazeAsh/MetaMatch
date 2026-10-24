@@ -70,6 +70,10 @@ class SemanticRouter:
         Classifies the query into 'mechanics', 'strategy', or 'builder'.
         Returns (route_name, confidence_score).
         """
+        # The chat tab asks for the persona before the response, so reuse the last result
+        if getattr(self, "_last", (None,))[0] == query:
+            return self._last[1]
+
         query_embedding = self.model.encode(query)
         
         CONFIDENCE_THRESHOLD = 0.45
@@ -89,10 +93,9 @@ class SemanticRouter:
                 max_score = route_score
                 best_route = route
 
-        if max_score < CONFIDENCE_THRESHOLD:
-            return "fallback", float(max_score)
-
-        return best_route, float(max_score)
+        result = ("fallback" if max_score < CONFIDENCE_THRESHOLD else best_route, float(max_score))
+        self._last = (query, result)
+        return result
 
 # Singleton instance for import
 _router_instance = None

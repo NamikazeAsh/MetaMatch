@@ -6,18 +6,26 @@ import time
 from . import config
 
 
+def parse_header(line: str) -> tuple[str, str]:
+    """Splits a Showdown header line ('Nick (Species) (M) @ Item') into (species, item)."""
+    name, _, item = line.partition('@')
+    name = re.sub(r'\s*\((M|F)\)\s*$', '', name.strip())
+    nicknamed = re.match(r'^.*\(([^()]+)\)$', name)
+    if nicknamed:
+        name = nicknamed.group(1)
+    return name.strip(), item.strip()
+
+
 def extract_pokemon_names(raw_data: str) -> list[str]:
+    """Species names from a Showdown export; the first line of each block is the header."""
     names = []
-    lines = raw_data.split('\n')
-    for line in lines:
-        line = line.strip()
-        if not line:
+    for block in raw_data.replace('\r\n', '\n').strip().split('\n\n'):
+        lines = [l for l in block.strip().split('\n') if l.strip()]
+        if not lines:
             continue
-        if '@' in line:
-            raw_name = line.split('@')[0].strip()
-            clean_name = re.sub(r'\s*\([MFmf]\)$', '', raw_name)
-            if clean_name and clean_name not in names:
-                names.append(clean_name)
+        name, _ = parse_header(lines[0])
+        if name and name not in names:
+            names.append(name)
     return names
 
 

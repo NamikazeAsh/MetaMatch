@@ -1,19 +1,24 @@
 import json
 import re
+from functools import lru_cache
 from metamatch import config
 
 def load_chaos_data(format_id=config.DEFAULT_FORMAT):
     """
-    Loads the Chaos JSON data for a format.
+    Loads the Chaos JSON data for a format. Cached per file version; treat the result as read only.
     """
     chaos_path = config.STATS_DIR / (config.format_info(format_id)["stats"] + ".json")
     if not chaos_path.exists():
         return None
+    return _load_chaos_file(str(chaos_path), chaos_path.stat().st_mtime)
+
+
+@lru_cache(maxsize=8)
+def _load_chaos_file(path, mtime):
     try:
-        with open(chaos_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            return data.get('data', {})
-    except:
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f).get('data', {})
+    except (OSError, json.JSONDecodeError):
         return None
 
 def audit_team(team_data):

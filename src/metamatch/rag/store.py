@@ -15,6 +15,7 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 import os
 import shutil
+from functools import lru_cache
 from metamatch import config
 
 # Persist DB in the data directory
@@ -36,9 +37,10 @@ def get_collection():
     client = get_client()
     return client.get_or_create_collection(name="pokemon_strategies")
 
+@lru_cache(maxsize=1)
 def get_model():
     """
-    Returns the embedding model.
+    Returns the embedding model, loaded once per process.
     """
     return SentenceTransformer(EMBEDDING_MODEL_NAME)
 

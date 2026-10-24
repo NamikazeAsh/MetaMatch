@@ -24,16 +24,7 @@ class AgentManager:
         # 1. Route
         route, confidence = self.router.route_query(query)
         
-        # 2. Dispatch
-        if route == "fallback":
-            client, model = self.tactician.client, self.tactician.model
-            return client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": "Could you be more specific? Are you asking about mechanics, strategy, or team building?"}],
-                temperature=0.0,
-                stream=True
-            )
-
+        # 2. Dispatch (low confidence queries go to the Coach, the most general agent)
         if route == "mechanics":
             return self.tactician.run(query, team_context, team_weakness)
 
@@ -51,6 +42,6 @@ class AgentManager:
             "mechanics": "Clemont 🧪",
             "strategy": "Professor Oak 📜",
             "builder": "Brock 🍳",
-            "fallback": "MetaMatch 🤖"
+            "fallback": "Professor Oak 📜"
         }
         return personas.get(route, "Unknown Agent")

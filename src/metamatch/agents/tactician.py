@@ -1,7 +1,5 @@
 from .client import get_agent_client
-from metamatch.logic_engine import generate_mechanics_report
-from metamatch import config
-from metamatch.rag import store
+from metamatch.logic_engine import generate_mechanics_report, find_pokemon_in_query
 
 class TacticianAgent:
     def __init__(self, model_name=None):
@@ -16,11 +14,12 @@ class TacticianAgent:
         Temperature: 0.0 (Strict)
         """
         
-        # 1. Retrieve RAG hits ONLY to identify the subject (e.g. "Rotom-Wash")
-        rag_hits = store.query_strategies(query, n_results=1, format_id=config.team_format(team_context))
-        
+        # 1. Opponents are the Pokemon named in the question that aren't on the user's team
+        team_names = {p['Pokemon'].lower() for p in team_context.values()}
+        subjects = [n for n in find_pokemon_in_query(query) if n.lower() not in team_names]
+
         # 2. Generate the Hard Facts (Specific Matchups)
-        mechanics_str = generate_mechanics_report(team_context, rag_hits)
+        mechanics_str = generate_mechanics_report(team_context, subjects)
         
         # 3. Generate General Defensive Profile (from Team Weakness Map)
         defensive_str = ""

@@ -1,5 +1,5 @@
 import json
-from .utils import fetch_pokemon_data, calculate_speed, fetch_move_data, sp_to_ev
+from .utils import fetch_pokemon_data, calculate_speed, fetch_move_data, sp_to_ev, parse_header
 from .type_chart import TYPE_CHART
 from . import config
 
@@ -23,7 +23,7 @@ def looks_like_champions(teamRaw):
 def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
     team = {}
     game = config.format_game(format_id)
-    teamRaw = teamRaw.strip().split('\n\n')
+    teamRaw = teamRaw.replace('\r\n', '\n').strip().split('\n\n')
     
     types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
     team_weakness = {t: {"weak": 0, "resist": 0, "immune": 0, "pokemon": []} for t in types}
@@ -55,12 +55,10 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
         }
 
         # 1. Parse Raw Text
-        for line in lines:
+        poke_data['Pokemon'], poke_data['Item'] = parse_header(lines[0])
+        for line in lines[1:]:
             line = line.strip()
-            if '@' in line:
-                poke_data['Pokemon'] = line.split('@')[0].strip()
-                poke_data['Item'] = line.split('@')[1].strip()
-            elif line.startswith('Ability:'):
+            if line.startswith('Ability:'):
                 poke_data['Ability'] = line.split('Ability:')[1].strip()
             elif line.startswith('Shiny:'):
                 poke_data['Shiny'] = line.split('Shiny:')[1].strip().lower() == 'yes'
@@ -362,12 +360,13 @@ def damageRelations(ptypes):
                 atk_key = atk_type.lower()
                 damage_d[atk_key] = damage_d.get(atk_key, 1.0) * mult
 
-        # Outgoing STAB pressure of this type into all defending types
+    # Outgoing STAB pressure: best multiplier any of the attacker's own types gets into each defending type
+    own_types = [lower_to_title[t.lower()] for t in ptypes if t.lower() in lower_to_title]
+    if own_types:
         for def_type in all_types:
-            mult = TYPE_CHART.get(ptype, {}).get(def_type, 1.0)
+            mult = max(TYPE_CHART.get(t, {}).get(def_type, 1.0) for t in own_types)
             if mult != 1.0:
-                def_key = def_type.lower()
-                attack_d[def_key] = attack_d.get(def_key, 1.0) * mult
+                attack_d[def_type.lower()] = mult
 
     return damage_d, attack_d
 
@@ -378,13 +377,16 @@ def coverageCheck(team):
     'Poison': False,'Ground': False,'Flying': False,'Psychic': False,'Bug': False,'Rock': False,
     'Ghost': False,'Dragon': False,'Dark': False,'Steel': False,'Fairy': False}
     
+    # A type is covered when some damaging move on the team hits it super effectively
     for poke in team:
-        moves = team[poke]['Moves']
-        for move in moves:
+        for move in team[poke]['Moves']:
             m_type = move.get('type')
-            if move.get('category') != 'Status' and m_type in coverage and not coverage[m_type]:
-                coverage[m_type] = True
-        
+            if move.get('category') == 'Status' or m_type not in TYPE_CHART:
+                continue
+            for def_type in coverage:
+                if TYPE_CHART[m_type].get(def_type, 1.0) >= 2.0:
+                    coverage[def_type] = True
+
     return coverage
 
 

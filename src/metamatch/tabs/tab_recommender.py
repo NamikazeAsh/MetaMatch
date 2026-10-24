@@ -21,7 +21,8 @@ def render(team_data: dict, pokemon_names: list):
     recs = recommender.get_recommendations(
         pokemon_names,
         format_id=selected_fmts_rec,
-        team_roles=team_roles_rec
+        team_roles=team_roles_rec,
+        team_items=[p.get("Item", "") for p in team_data.values()]
     )
 
     if recs:

@@ -1,16 +1,12 @@
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-# recommender imports `metamatch.config`, so the src dir must be importable too
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
-from ..team import readTeam, addComments, looks_like_champions
-from ..utils import calculate_speed, sp_to_ev
-from .. import config
+from metamatch.team import readTeam, addComments, looks_like_champions
+from metamatch.utils import calculate_speed, sp_to_ev
+from metamatch import config
 
 
 def mock_fetch_pokemon_data(name):
@@ -60,8 +56,8 @@ class TestChampionsMechanics(unittest.TestCase):
         self.assertTrue(looks_like_champions(CHAMPIONS_TEAM))
         self.assertFalse(looks_like_champions(SV_TEAM))
 
-    @patch('src.metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
-    @patch('src.metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
+    @patch('metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
+    @patch('metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
     def test_parse_champions_team(self, mock_move, mock_fetch):
         team, _ = readTeam(CHAMPIONS_TEAM, "gen9championsou")
         p = team[0]
@@ -70,8 +66,8 @@ class TestChampionsMechanics(unittest.TestCase):
         self.assertEqual(p['EVs'], {'HP': 16, 'Atk': 252, 'Spe': 252})
         self.assertEqual(p['Speed'], 167)
 
-    @patch('src.metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
-    @patch('src.metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
+    @patch('metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
+    @patch('metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
     def test_champions_validation(self, mock_move, mock_fetch):
         # 66 SP and no Tera is a complete Champions set
         team, _ = readTeam(CHAMPIONS_TEAM, "gen9championsou")
@@ -128,7 +124,7 @@ GUIDE_HTML = """<html><body><main>
 class TestChampionsRag(unittest.TestCase):
 
     def test_parse_guide_splits_doubles_and_stops_at_claims(self):
-        from ..rag import pokechamp
+        from metamatch.rag import pokechamp
         g = pokechamp.parse_guide(GUIDE_HTML)
         self.assertEqual(g["title"], "Mega Absol High-Risk Sweeper Lines")
         self.assertEqual([s["heading"] for s in g["sections"]], ["Role Overview", "Team Support"])
@@ -141,7 +137,7 @@ class TestChampionsRag(unittest.TestCase):
         self.assertNotIn("milotic", all_text)
 
     def test_guide_subject(self):
-        from ..rag import pokechamp
+        from metamatch.rag import pokechamp
         species = ["Absol", "Charizard", "Garchomp", "Samurott-Hisui"]
         self.assertEqual(pokechamp.guide_subject("Mega Absol Sweeper Lines", species), "Absol-Mega")
         self.assertEqual(pokechamp.guide_subject("Mega Charizard X Dragon Dance", species), "Charizard-Mega-X")
@@ -149,7 +145,7 @@ class TestChampionsRag(unittest.TestCase):
         self.assertEqual(pokechamp.guide_subject("Trick Room Teams", species), "General")
 
     def test_usage_card_helpers(self):
-        from ..rag import usage_cards
+        from metamatch.rag import usage_cards
         self.assertEqual(usage_cards._fmt_spread("Jolly:2/32/0/0/0/32"), "Jolly 2 HP / 32 Atk / 32 Spe")
         # Moves are a share of the Pokemon's weight, not of all move slots
         self.assertEqual(usage_cards._top({"earthquake": 90, "spikes": 30}, total=100, names={"earthquake": "Earthquake"}),

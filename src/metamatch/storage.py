@@ -1,23 +1,9 @@
 import json
-import re
 from pathlib import Path
 from datetime import datetime
 from metamatch import config
+from metamatch.utils import extract_pokemon_names
 
-def extract_pokemon_names(raw_data):
-    """Parses Pokemon names from raw showdown export text."""
-    pattern = r'^([A-Za-z][A-Za-z\s\-\.]*?)\s*@'
-    names = []
-    lines = raw_data.split('\n')
-    for line in lines:
-        line = line.strip()
-        if not line: continue
-        match = re.search(pattern, line)
-        if match:
-            name = match.group(1).strip()
-            if name and name not in names:
-                names.append(name)
-    return names
 
 def save_team(name, raw_text, analysis=None, user_id="default"):
     """

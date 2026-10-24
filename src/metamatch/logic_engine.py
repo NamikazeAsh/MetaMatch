@@ -1,4 +1,6 @@
+import json
 import re
+from functools import lru_cache
 from .utils import fetch_pokemon_data, calculate_speed
 from . import config
 from .type_chart import TYPE_CHART
@@ -29,21 +31,33 @@ def detect_intent(query):
     return "strategy"
 
 # --- ENTITY EXTRACTION ---
-def extract_pokemon_names(query):
-    """
-    Very basic heuristic to find potential Pokemon names in a query.
-    Ideally, this would use a list of all 1000+ Pokemon, but for now
-    we rely on checking capitalized words or known context.
-    
-    Actually, looking at RAG hits metadata is safer if available.
-    But for pure logic, let's try to match capitalized words against valid API calls?
-    That's too slow.
-    
-    Better approach: The RAG retrieval usually finds the relevant document.
-    We can use the RAG metadata to confirm the subject.
-    """
-    # Placeholder: The Logic Engine is best used *after* RAG has identified the subject.
-    pass
+def _norm_name(text):
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", text.lower()).split())
+
+
+@lru_cache(maxsize=1)
+def _name_index():
+    """(normalized, display) pairs for every known Pokemon, longest first so 'Rotom-Wash' beats 'Rotom'."""
+    try:
+        with open(config.JSON_DIR / "topPoke.json", encoding="utf-8") as f:
+            names = json.load(f).keys()
+    except (OSError, json.JSONDecodeError):
+        return ()
+    return tuple(sorted(((_norm_name(n), n) for n in names), key=lambda x: len(x[0]), reverse=True))
+
+
+def find_pokemon_in_query(query):
+    """Returns Pokemon named in the query, in the order they appear."""
+    text = f" {_norm_name(query)} "
+    found = []
+    for norm, display in _name_index():
+        key = f" {norm} "
+        pos = text.find(key)
+        if pos >= 0:
+            found.append((pos, display))
+            # Blank out the match (keeping the boundary spaces) so 'Rotom' doesn't also fire inside 'Rotom Wash'
+            text = text[:pos + 1] + " " * len(norm) + text[pos + 1 + len(norm):]
+    return [name for _, name in sorted(found)]
 
 # --- MATH ENGINE ---
 def get_type_effectiveness(attack_type, defender_types):
@@ -190,31 +204,20 @@ def analyze_matchup(user_pokemon, opponent_name):
         
     return facts
 
-def generate_mechanics_report(team, rag_hits):
+def generate_mechanics_report(team, subjects):
     """
     The Orchestrator for Mechanics.
-    1. Identify the 'Enemy' from RAG hits metadata.
-    2. Run Matchups for every team member vs that Enemy.
-    3. Return a formatted string of Facts.
+    Runs matchups for every team member vs each opponent named in `subjects`
+    and returns a formatted string of Facts.
     """
-    if not rag_hits:
-        return ""
-
-    # Identify unique subjects
-    subjects = set()
-    for hit in rag_hits:
-        p_name = hit['metadata'].get('pokemon')
-        if p_name:
-            subjects.add(p_name)
-    
     if not subjects:
         return ""
 
     report = "### DETERMINISTIC BATTLE CALCULATIONS (FACTS)\n"
-    
+
     for subject in subjects:
         report += f"--- Matchups vs {subject} ---\n"
-        
+
         # Calculate matchup for each teammate
         for p in team.values():
             facts = analyze_matchup(p, subject)
@@ -223,5 +226,5 @@ def generate_mechanics_report(team, rag_hits):
                 line = " | ".join(facts)
                 report += f"[{p['Pokemon']}]: {line}\n"
         report += "\n"
-                
+
     return report

@@ -1,7 +1,9 @@
 from dotenv import load_dotenv
 import json
 import re
+from functools import lru_cache
 from . import auditor as auditor_module
+from .utils import API_CACHE
 from .team import coverageCheck
 from . import config
 
@@ -16,7 +18,9 @@ ITEM_ABILITY_SYNERGIES = {
     "Magic Guard":  {"prefer": ["Life Orb"],             "reason": "Life Orb recoil is negated by Magic Guard — free 1.3x power"},
 }
 
-CORE_ROLES = {"Hazard Setter", "Hazard Remover", "Pivot", "Speed Control", "Cleric"}
+# Roles nearly every singles team wants. Cleric and Speed Control were dropped: Heal Bell and
+# Aromatherapy are gone in SV, and "Speed Control" had no consistent definition across modules.
+CORE_ROLES = {"Hazard Setter", "Hazard Remover", "Pivot"}
 
 # Chaos file stores move names as lowercase slugs with no spaces — map common ones
 MOVE_DISPLAY = {
@@ -51,20 +55,28 @@ MOVE_DISPLAY = {
     "boosterenergy": "Booster Energy", "supremeoverlord": "Supreme Overlord",
 }
 
+
+@lru_cache(maxsize=1)
+def _cached_move_names() -> dict:
+    """Display names for every move in the PokeAPI cache, keyed by chaos slug ('ceaselessedge')."""
+    names = {}
+    for key in API_CACHE:
+        for prefix in ("move::", "move_"):
+            if key.startswith(prefix):
+                slug = key[len(prefix):]
+                names[slug.replace("-", "")] = slug.replace("-", " ").title()
+    return names
+
+
 def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) -> list[dict]:
     """
     Identifies top meta threats using STAB type coverage vs the team.
     Scoring: members_hit^2 * usage_pct (prioritises breadth of coverage over mere usage).
     Returns list of dicts matching the existing threats render format.
     """
-    # Load stats
     format_id = format_id or config.team_format(team)
-    stats_path = config.STATS_DIR / (config.format_info(format_id)["stats"] + ".json")
-    try:
-        with open(stats_path) as f:
-            raw = json.load(f)
-        poke_stats = raw.get("data", {})
-    except Exception:
+    poke_stats = auditor_module.load_chaos_data(format_id)
+    if not poke_stats:
         return []
 
     # Load types
@@ -75,17 +87,14 @@ def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) ->
         return []
 
     team_names = {p["Pokemon"] for p in team.values()}
-    total_raw = sum(v.get("Raw count", 0) for v in poke_stats.values())
-    if total_raw == 0:
-        return []
-
     scores = []
 
     for meta_name, data in poke_stats.items():
         if meta_name in team_names:
             continue
 
-        usage_pct = data.get("Raw count", 0) / total_raw * 100
+        # "usage" is the rating weighted share of teams running this Pokemon
+        usage_pct = data.get("usage", 0) * 100
         if usage_pct < 1.0:
             continue
 
@@ -125,22 +134,23 @@ def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) ->
                 defensive_checks.append(p["Pokemon"])
 
         # Improvement 4: top moves from chaos data (>10% usage, prettified)
+        # Moves sum to ~4x the Pokemon's weight (one per slot), so divide by the ability total instead
         raw_moves = data.get("Moves", {})
-        total_move_weight = sum(raw_moves.values()) or 1
+        total_move_weight = sum(data.get("Abilities", {}).values()) or 1
         top_moves = sorted(raw_moves.items(), key=lambda x: x[1], reverse=True)[:3]
         move_strs = []
         for m, v in top_moves:
             pct = v / total_move_weight * 100
             if pct < 10:
                 continue
-            pretty = MOVE_DISPLAY.get(m.lower(), m.replace("-", " ").title())
+            pretty = MOVE_DISPLAY.get(m.lower()) or _cached_move_names().get(m.lower(), m.title())
             move_strs.append(f"{pretty} ({pct:.0f}%)")
 
         stab_str = "/".join(types)
         threatens_str = ", ".join(threatened)
 
         # Build explanation
-        explanation = f"{stab_str} STAB coverage hits {len(threatened)}/6 team members ({threatens_str}). Present on {usage_pct:.1f}% of ladder teams."
+        explanation = f"{stab_str} STAB coverage hits {len(threatened)}/{len(team)} team members ({threatens_str}). Present on {usage_pct:.1f}% of ladder teams."
         if move_strs:
             explanation += f" Key moves: {', '.join(move_strs)}."
 
@@ -274,7 +284,7 @@ def get_team_guide(team):
             You are a competitive Pokemon coach teaching a player how to pilot this specific team.
 
             **Team Data:**
-            {json.dumps(clean_team, indent=2)}
+            {json.dumps(clean_team)}
 
             **Task:**
             Write a strategic guide on how to play this team. Focus on game flow, not specific movesets.
@@ -319,7 +329,7 @@ def get_team_guide(team):
             completion = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt_content}],
-                response_format={"type": "json_object"} if "gpt" in model else None,
+                response_format={"type": "json_object"},
                 temperature=0.4,
                 max_tokens=2000,
                 stream=False,

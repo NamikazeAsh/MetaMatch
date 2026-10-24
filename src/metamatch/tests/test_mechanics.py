@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from ..team import readTeam
+from metamatch.team import readTeam
 
 # Mock API response to avoid hitting PokeAPI during tests
 def mock_fetch_pokemon_data(name):
@@ -43,8 +43,8 @@ def mock_fetch_pokemon_data(name):
 
 class TestMechanics(unittest.TestCase):
     
-    @patch('src.metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
-    @patch('src.metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
+    @patch('metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
+    @patch('metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
     def test_ability_immunities(self, mock_move, mock_fetch):
         """
         Test ability-based immunities supported by team.py logic.
@@ -117,8 +117,8 @@ EVs: 252 Def
         # 9. Dachsbun (Well-Baked Body) -> Fire Immune
         self.assertEqual(team[8]['Damage From'].get('fire'), 0.0)
 
-    @patch('src.metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
-    @patch('src.metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
+    @patch('metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
+    @patch('metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
     def test_item_immunities(self, mock_move, mock_fetch):
         raw_team = """
 Heatran @ Air Balloon
@@ -130,8 +130,8 @@ EVs: 252 HP
         # 10. Air Balloon -> Ground Immune
         self.assertEqual(team[0]['Damage From'].get('ground'), 0.0)
 
-    @patch('src.metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
-    @patch('src.metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
+    @patch('metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
+    @patch('metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
     def test_type_chart_extremes(self, mock_move, mock_fetch):
         """
         Test 4x weaknesses and Natural Type Immunities.
@@ -219,7 +219,7 @@ EVs: 252 Atk
         # 26. Torterra (Grass/Ground) vs Ice -> 4x Weak
         self.assertEqual(team[7]['Damage From'].get('ice'), 4.0)
 
-from ..team import detectRole
+from metamatch.team import detectRole
 
 class TestRoles(unittest.TestCase):
     def test_weather_roles(self):
