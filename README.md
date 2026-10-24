@@ -1,128 +1,147 @@
-# MetaMatch <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" width="40" height="40">
+# MetaMatch
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Ollama](https://img.shields.io/badge/AI-Ollama-000000?logo=ollama&logoColor=white)](https://ollama.com/)
+[![Node.js](https://img.shields.io/badge/Calc-%40smogon%2Fcalc-339933?logo=nodedotjs&logoColor=white)](https://github.com/smogon/damage-calc)
+[![ChromaDB](https://img.shields.io/badge/RAG-ChromaDB-FF6F00)](https://www.trychroma.com/)
+[![MetaBench](<https://img.shields.io/badge/MetaBench-97.5%25%20held%20out-brightgreen>)](#-metabench-the-metamatch-benchmarker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**MetaMatch** is a hybrid AI/ML system for high-precision competitive Pokémon team analysis. It combines deterministic mathematical engines with LLM-powered coaching, applying the principle of *code discovers, LLM narrates* — offloading all factual checks (type math, usage stats, item-ability synergies, threat scoring) to Python and reserving the LLM for open-ended strategic reasoning where language generation actually adds value.
+**MetaMatch** is a hybrid AI system for competitive Pokémon team analysis that runs entirely on a laptop. It pairs a deterministic battle engine (the official Smogon damage calculator, monthly ladder statistics, type and role logic) with a small local LLM, on one principle:
+
+> ### 🧠 The engine does the thinking. The LLM does the talking.
+
+Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is computed by code before the model ever sees the question. The LLM only explains a verdict that is already correct, and a verifier throws out any explanation that contradicts it.
+
+**The result:** a 3B model on a 4 GB laptop GPU goes from **18% to 100%** on factual battle questions, and holds **94% and 97.5%** on blind held out sets.
 
 ![MetaMatch Dashboard](assets/images/dark_logo_transp.png)
 
+---
+
+## 📊 MetaBench: The MetaMatch Benchmarker
+
+MetaBench is a 120 question benchmark across speed, KO, damage, type, stat and usage questions in SV and Champions formats. Every answer key comes straight from `@smogon/calc` and raw Smogon data, so nothing is graded on vibes.
+
+| Question set                              | 🤖 Llama 3.2 3B alone | ⚪ MetaMatch (same 3B model) |
+| :---------------------------------------- | :-------------------: | :--------------------------: |
+| **Development set** (120)           |          18%          |        **100%**        |
+| **Held out set 1** (reworded blind) |          25%          |        **94%**        |
+| **Held out set 2** (written blind)  |                      |       **97.5%**       |
+
+* **Overfitting check:** both held out sets were written by agents that never saw the code, so the planner could not have been tuned to their wording.
+* **Fair grading:** free form answers are graded by a second local model (Gemma 3 4B) that was validated at 100% agreement against hand labels before use.
+* **Fully local:** no paid APIs anywhere, for answering or for grading.
+
+### 🧪 Real Answers From the Benchmark
+
+Same model, same team, same question. These are trimmed from the benchmark logs.
+
+#### 1. The Speed Tie
+
+**Q:** *Does my Iron Moth outspeed Ogerpon-Wellspring running its most common spread, ignoring items and abilities?*
+
+* **Llama 3B alone:** "Your Iron Moth's base speed is 120 + 50 (from Quark Drive) = 170... it will outspeed Ogerpon-Wellspring." ❌ *(invented a stat formula)*
+* **MetaMatch:** "Iron Moth (350 Speed) **speed ties** with Ogerpon-Wellspring (Jolly 252 Spe, 350 Speed). Across all Ogerpon-Wellspring sets on the ladder, Iron Moth outspeeds 26% and ties 74%." ✅
+
+#### 2. The Kingambit Check
+
+**Q:** *Does my Cinderace's Flamethrower OHKO a full health Kingambit running its most common set?*
+
+* **Llama 3B alone:** "Kingambit's most common spread is the Choice Scarf... base 120 Speed becomes 240... Pyro Ball has a 10% chance to burn..." ❌ *(wrong item, wrong stats, wrong move)*
+* **MetaMatch:** "Flamethrower does **34.7 to 41.6%** to Kingambit, so it does not OHKO (69.2% chance to 3HKO after Leftovers recovery)." ✅
+
+#### 3. The Stat Check
+
+**Q:** *What is my Cresselia's Speed stat at level 100?*
+
+* **Llama 3B alone:** "Cresselia's base Speed is 120. With 252 EVs... 428." ❌
+* **MetaMatch:** "Cresselia's Speed stat is **250**. HP 401, Attack 158, Defense 256, Special Attack 273, Special Defense 276, Speed 250." ✅
+
+---
+
+## ⚙️ How a Chat Answer Is Made
+
+```mermaid
+graph LR
+    Q["Question"] --> P["Planner"]
+    P -->|fact question| S["Solver"]
+    S -->|"@smogon/calc + dex + usage"| V["Verdict"]
+    V --> L["LLM explains"]
+    L --> C{"Verifier"}
+    C -->|consistent| A["Answer"]
+    C -->|contradiction| R["Retry once, then show facts"]
+    P -->|opponent unclear| Q2["Ask which Pokémon"]
+    P -->|strategy question| G["Router to Oak or Brock"]
+```
+
+1. **🗺️ Planner (zero LLM):** works out what the question asks (speed, KO, damage, type, stat or usage) and which Pokémon, move and set are involved. Understands nicknames (*Lando*, *Pult*, *Tusk*), typos and Mega names.
+2. **🧮 Solver:** computes the answer with the real damage calculator. Opponents get their most common ladder set unless the question gives one (*"Garchomp @ Choice Scarf, Jolly 252 Spe"*).
+3. **📜 Verdict:** the headline answer comes from a template, so it is always the engine's answer, never the model's guess.
+4. **🔍 Verifier:** the LLM writes a short explanation. Any number not in the facts, or any claim that flips the speed, type or KO verdict, gets rejected. One retry, then MetaMatch shows the raw facts instead.
+5. **❓ Clarify:** if a matchup question names no recognizable opponent, MetaMatch asks rather than answering a different question.
+
+---
+
 ## ✨ Features
 
-### 🧠 Smart Analysis Engine
-*   **Role Detection:** Automatically identifies 35+ competitive roles (e.g., *Wall, Setup Sweeper, Cleric, Forced Switcher, Stallbreaker*) based on movesets, abilities, items, and stats.
-*   **Archetype Engine:** Classifies team strategy (*Hyper Offense, Bulky Offense, Stall, Volt-Turn, Weather, Trick Room*) using detected role distributions.
-*   **Deep Logic:** Calculates type weaknesses while respecting **Abilities** and **Items** (e.g., ignores Ground damage for *Levitate* or *Air Balloon* users).
-*   **Meta Auditor:** Validates movesets against high-ladder usage stats, flagging statistically suboptimal choices (e.g., using *Shell Bell* when 98% of players use *Rocky Helmet*).
-*   **Performance Optimized:** Implements intelligent caching for file I/O and API calls with a **30-day TTL** and a 2,000-entry size cap (oldest 200 evicted on overflow) to ensure low-latency responsiveness without unbounded growth.
+### 🤖 Multi Agent Chat
+
+Three specialist agents, each with its own persona and temperature:
+
+* **Clemont (Tactician):** mechanics and math, backed by the grounded pipeline above.
+* **Professor Oak (Coach):** win conditions and game plans, grounded with retrieval over Smogon analyses, strategy concepts and Champions community guides (ChromaDB + `bge-small-en-v1.5`). Sees full set context: item, ability, Tera type, nature, EVs, speed and roles.
+* **Brock (Builder):** audits your sets against ladder usage and cites exact percentages.
+* **Semantic Router:** MiniLM embeddings pick the right agent for open questions, with a confidence gate that falls back to Oak.
+* **Named opponent awareness:** mention any Pokémon and the agents get its likely set card from usage stats.
+
+### 🧮 Real Damage Calculator
+
+* The official **`@smogon/calc`** runs as a lightweight Node sidecar the app talks to over JSON.
+* Species, moves, items, abilities and the type chart are exported from the same package, so the app and the calc **never disagree**.
+* Speed answers consider the opponent's whole ladder speed distribution, not just one spread.
 
 ### 🔍 Team Audit (Fully Deterministic)
-The Audit tab runs instant, zero-LLM checks on every submitted team:
-*   **Item-Ability Synergy Flags:** Detects canonical mismatches (e.g., *Drought* without *Heat Rock*, *Guts* without *Flame Orb/Toxic Orb*, *Magic Guard* without *Life Orb*) with a plain-English explanation of why the pairing matters.
-*   **Role Gap Detection:** Identifies missing core roles (*Hazard Setter, Hazard Remover, Pivot, Speed Control, Cleric*) so you know what structural gaps to address.
-*   **Type Coverage Holes:** Flags types the team has zero offensive coverage against.
-*   **Per-Pokémon Usage Warnings:** Surfaces moves and items running below 5% ladder usage, citing the most common alternatives by percentage.
 
-### ⚠️ Meta Threats (Deterministic Threat Scoring)
-Identifies the top 5 meta threats to your specific team using Smogon Chaos data — no LLM involved:
-*   **STAB Coverage Scoring:** Each meta Pokémon is scored by `members_hit² × ladder_usage%`, prioritising breadth of coverage over raw popularity.
-*   **Offensive Counter-Play:** Cross-references `Damage To` on your team to identify which of your Pokémon can hit back super-effectively.
-*   **Defensive Checks:** Flags which team members resist all of the threat's STAB types.
-*   **Key Moves:** Surfaces the threat's top moves by usage percentage (e.g., *Thunderclap 24%, Dragon Pulse 18%*) so you know exactly what to play around.
+Instant, zero LLM checks on every team:
 
-### 🤝 Teammate Recommender & Composer
-*   **Statistical Synergy:** Suggests optimal teammates based on Smogon "Chaos" correlation matrices from millions of competitive battles.
-*   **Multi-Format Mastery:** Seamlessly toggle between **OU, UU, National Dex, Champions OU and Champions UU** to find partners across different metagames.
-*   **Pokémon Champions Support:** Pick a Champions format in the sidebar and MetaMatch reads stat points (66 total, 32 per stat) instead of EVs, calculates Level 50 Speed, skips Tera checks, and maps Mega Stone holders to their Mega forme's usage data. Champions has no published Smogon sets or analyses yet, so Move Search verified sets and the RAG chat stay SV only.
-*   **Quick Match (New):** Don't have a team? Pick 1-5 Pokémon to instantly identify the best "meta glue" and structural partners for your core.
-*   **Role-Weighted Boosting:** Detects missing roles (Hazard Setter, Hazard Remover, Pivot, Speed Control, Cleric) and applies a ×1.2 score boost to candidates that fill them. Each recommendation card displays a **reason badge** (e.g., *"Fills missing: Hazard Setter, Pivot"*) in gold when a role gap is addressed.
-*   **Real-time Analysis:** Generates data-driven recommendations instantly without relying on LLM processing.
+* **Item and Ability Synergy Flags:** *Drought* without *Heat Rock*, *Guts* without an Orb, *Magic Guard* without *Life Orb*, each with a plain English explanation.
+* **Role Gap Detection:** flags a missing *Hazard Setter*, *Hazard Remover* or *Pivot*.
+* **Type Coverage Holes:** types none of your damaging moves hit super effectively.
+* **Usage Warnings:** moves and items under 5% ladder usage, with the most common alternatives.
+* **Role Detection:** about 35 competitive roles (*Wall, Setup Sweeper, Stallbreaker, Forced Switcher...*) and team archetypes (*Hyper Offense, Stall, Volt Turn, Weather, Trick Room*).
+
+### ⚠️ Meta Threats
+
+The top 5 threats to your specific team, scored by `members_hit² × ladder_usage%` so breadth beats raw popularity. Each threat shows which of your Pokémon can hit back, which resist its STABs, and its key moves by usage.
+
+### 🤝 Teammate Recommender & Quick Match
+
+* **Statistical Synergy:** teammate correlation matrices from Smogon chaos data covering millions of ladder battles.
+* **Role Weighted Boosting:** candidates that fill a missing role get a ×1.2 boost and a gold *"Fills missing: Hazard Setter, Pivot"* badge.
+* **Quick Match:** no team yet? Pick 1 to 5 Pokémon and get the best glue for your core.
+
+### 🌐 Multi Format
+
+Gen 9 **OU, UU, National Dex**, plus **Pokémon Champions OU and UU** with Level 50 stats, stat points instead of EVs, and full Mega Evolution support (Mega Stone holders map to their Mega forme's stats, ability and usage data).
 
 ### 🔎 Set Finder & Move Search
-*   **Reverse-Engineering Engine:** Input any combination of moves (e.g., *Thunder Wave + Scald*) to find which Pokémon run them.
-*   **Dual-Mode Search:**
-    *   **Verified Sets:** Instantly retrieves official competitive sets from the Smogon Strategy Dex (OU, UU, NatDex) with full spread details (Nature, Item, EVs).
-    *   **Experimental Matches:** Scans the entire usage statistics database to find "Loose Matches" — Pokémon that use your selected moves on the ladder (>1%), identifying "homemade" or niche tech that hasn't been documented yet.
 
-### 📼 Replay Auditor (Battle Post-Mortem)
-*   **One-Click Analysis:** Paste any Pokémon Showdown replay link to receive an instant tactical breakdown.
-*   **Momentum Chart:** Visualizes battle momentum turn-by-turn — watch for swings where lines cross to identify pivotal moments.
-*   **Faint Timeline:** See exactly which Pokémon KO'd yours, what move they used, and the damage dealt (including self-KOs like Explosion).
-*   **Blunder Detection:** Identifies 6 types of misplays:
-    *   Lost Hazard Remover early ("You let Corviknight die before removing Stealth Rock")
-    *   Setup Fodder (gave opponent free boosts)
-    *   Wasted Sweeper (setup mon KO'd without dealing damage)
-    *   Hazard Chip Death (fainted to Stealth Rock/Spikes)
-    *   Weather War Loss (lost weather control advantage)
-    *   Momentum Collapse (massive swing in single turn)
-*   **Hazard Damage Summary:** Tracks cumulative entry hazard chip per Pokémon with Heavy-Duty Boots recommendations.
+* **Verified Sets:** official Smogon Strategy Dex sets with full spreads.
+* **Experimental Matches:** scans ladder usage for Pokémon running your move combo (over 1%), surfacing niche tech nobody has written up yet.
 
-### 🧮 Statistical Engine
-MetaMatch processes raw "Chaos" data from Smogon (detailed usage statistics) to power its auditor and recommender systems.
-*   **Weighted Usage:** Calculates the exact usage frequency of every Move, Item, and Ability relative to the Pokemon's total appearance rate.
-*   **Correlation Matrices:** Utilizes 2D sparse matrices to map teammate synergy scores across the entire metagame.
-*   **Master Strategy Database:** Consolidates verified competitive sets from multiple formats (OU, UU, NatDex) into a single, optimized lookup engine.
+### 📼 Replay Auditor
 
-### 📁 Team Management
-*   **Local Persistence:** Save and organize favorite team builds directly to the local filesystem.
-*   **Instant Recall:** Instant dashboard loading for analyzed teams, bypassing the full analysis pipeline for previously processed builds.
-*   **Modular Storage:** Built with a storage adapter pattern for flexible integration between local JSON and cloud databases.
+Paste a Showdown replay link and get a post mortem:
 
-### 🤖 Multi-Agent System (MAS)
-MetaMatch deploys three specialized agents to handle distinct query types, ensuring expert-level accuracy without hallucinations.
-*   **Clemont 🧪 (Tactician):** A strict, deterministic engine (Temp 0.0) that calculates hard facts. Solves mechanics questions like "Is Rotom-Wash weak to Ground?" by cross-referencing Abilities and Type Charts.
-*   **Professor Oak 📜 (Coach):** A creative strategist (Temp 0.4) that uses RAG to explain win conditions and high-level game plans. Receives full set context per Pokémon: Item, Ability, **Tera Type**, Nature, EVs, Speed, and Roles.
-*   **Brock 🍳 (Builder):** A data-driven analyst (Temp 0.2) that audits teams against real-time usage stats, citing exact percentages for items and moves.
-*   **Semantic Router (Confidence-Gated):** Routes queries to the correct agent using cosine similarity against anchor phrases. Queries scoring below a **0.45 confidence threshold** are intercepted before dispatch and return a clarification prompt instead of a potentially wrong agent response.
+* **Momentum Chart** turn by turn, and a **Faint Timeline** of who KO'd whom with what.
+* **Blunder Detection:** losing your hazard remover early, setup fodder, wasted sweepers, hazard chip deaths, lost weather wars and momentum collapses.
+* **Hazard Damage Summary** with Heavy Duty Boots recommendations.
 
-### 🤖 AI-Powered Coaching (RAG-Enhanced)
-MetaMatch implements a sophisticated RAG pipeline to ground LLM reasoning in verified data.
-*   **Retrieval-Augmented Generation (RAG):** Uses a **Vector Database (ChromaDB)** to retrieve real-time competitive strategies from Smogon's Strategy Dex.
-    *   **Model Upgrade:** Now powered by `BAAI/bge-small-en-v1.5` for high-precision semantic search.
-    *   **Granular Chunking:** splits analysis into focused "Checks & Counters", "Moveset Mechanics", and "Team Options" chunks.
-*   **Concept Awareness:** Ingests high-level strategy guides (e.g., "How to Beat Stall", "Hyper Offense 101") to answer broad archetypal questions.
-*   **Context-Aware Chat:** Retrieves relevant competitive guides and cross-references them with **full set data** (Moves, EVs, Nature, Tera Type, Roles, Speed) to provide grounded advice.
-*   **RAG Distance Filtering:** ChromaDB results are filtered by L2 distance (threshold: 1.0). Near-orthogonal chunks (irrelevant retrievals) are dropped before being passed to the LLM.
-*   **Deterministic Anchoring:** Injects pre-calculated Python-derived "Hard Facts" into the prompt context to eliminate logic hallucinations regarding game mechanics.
-*   **Strategic Pilot Guide:** Generates a comprehensive gameplay guide:
-    *   **Win Conditions:** Identifies the primary path to victory.
-    *   **Lead Options:** Suggests optimal leads based on matchups.
-    *   **Key Combos:** Highlights synergies like "Volt-Turn" or defensive cores.
+### Self Updating Data
 
-## 💡 Why MetaMatch? (Hybrid AI vs. Generic LLMs)
-
-Generic LLMs "guess" — MetaMatch **calculates**.
-
-| Feature | 🤖 Generic LLMs (ChatGPT/Claude) | ⚪ MetaMatch (RAG Engine) |
-| :--- | :--- | :--- |
-| **Accuracy** | **Hallucinations:** Often fails simple type math (e.g. ignoring *Levitate*). | **Fact-Anchored:** LLM is provided with hard-coded logic "Ground Truths". |
-| **Data Freshness**| **Knowledge Cutoff:** Lacks access to real-time meta shifts. | **Dynamic Retrieval:** Scrapes and embeds the latest Smogon strategies. |
-| **Logic Engine** | **Probabilistic:** Estimates matchup advantages. | **Deterministic:** Calculates exact multipliers, threat scores, and audit findings in Python — LLM only handles open-ended strategy. |
-| **Model Efficiency** | **Resource Intensive:** Requires massive frontier models to minimize errors. | **Lightweight:** Optimized for local ~3B models (`llama3.2:3b`) by offloading all factual checks to code. |
-| **Workflow** | **Manual Prompting:** Requires constant copy-pasting of team data. | **Seamless Integration:** One-click re-analysis on team changes. |
-
-### 🧪 Real World Examples
-
-#### 1. The "Rotom-Wash" Test
-**Scenario:** Weaknesses of a standard **Rotom-Wash** (*Electric/Water* type with *Levitate* ability).
-*   **Generic LLM:** "Rotom-Wash is Electric/Water. Electric is weak to Ground. Therefore, **Rotom-Wash is weak to Ground**." ❌ *(Fails to account for Ability)*
-*   **MetaMatch:** `Ground: 0.0` (Immune) ✅
-
-#### 2. The "Air Balloon Heatran" Test
-**Scenario:** **Heatran** (*Fire/Steel*) holding an **Air Balloon**.
-*   **Generic LLM:** Often overlooks the item and flags a **4x Ground weakness**. ❌
-*   **MetaMatch:** Correctly identifies the item grants **Ground Immunity** until popped. ✅
-
-#### 3. The "Role Void" Test (Teammate Composer)
-**Scenario:** A National Dex core of *Heatran, Tapu Fini, Kartana, and Dragapult*.
-*   **Action:** We removed the primary defensive pivot, **Landorus-Therian**.
-*   **MetaMatch:** Immediately deprioritized offensive threats and spiked recommendations for **Great Tusk** and **Corviknight**. The engine recognized the sudden lack of *Hazard Removal* and *Ground Immunity*, prioritizing structural repair over raw synergy. ✅
-
-#### 4. The "Foundation First" Test
-**Scenario:** Starting a new build with only *Kartana* and *Dragapult* (two frail breakers).
-*   **MetaMatch:** Instead of suggesting high-damage partners like *Kyurem* (which would compound defensive liabilities), it recommended **Heatran** (Steel glue), **Landorus-T** (Intimidate pivot), and **Toxapex** (Regenerator wall). It built the defensive "scaffolding" required to support the glass cannons first. ✅
+A GitHub Action pulls new Smogon usage stats every month, rebuilds top Pokémon and speed tiers, and commits them. Downloads are all or nothing, so months never mix.
 
 ---
 
@@ -134,170 +153,133 @@ graph TD
     B --> C{"Analysis Pipeline"}
     B <-->|"Save/Load Teams"| S["Local Storage"]
 
-    subgraph AI_Core ["Multi-Agent Core"]
-    C --> R["Semantic Router (MiniLM-L6)"]
-    R -->|Mechanics| T["Clemont (Tactician)"]
-    R -->|Strategy| U["Prof. Oak (Coach)"]
-    R -->|Stats| V["Brock (Builder)"]
-    B -->|"Calculated Math"| T
-    H -->|"RAG Context"| U
-    M -->|"Usage Data"| V
-    T --> W[Response]
-    U --> W
-    V --> W
+    subgraph Engine ["Battle Engine"]
+    K["@smogon/calc (Node)"]
+    X["Bundled Dex"]
+    Y["Likely Sets"]
     end
+
+    subgraph AI_Core ["Chat Core"]
+    B --> PL["Planner"]
+    PL -->|"Fact question"| SO["Solvers"]
+    SO --> GR["Grounded Answer + Verifier"]
+    PL -->|"Open question"| R["Semantic Router (MiniLM)"]
+    R -->|Mechanics| T["Clemont"]
+    R -->|Strategy| U["Prof. Oak"]
+    R -->|Builder| V["Brock"]
+    end
+
+    K --> SO
+    X --> SO
+    Y --> SO
 
     subgraph RAG_Engine ["RAG System"]
-    H["Smogon Strategy Dex"]
-    H -->|"Granular Scraper"| I["ChromaDB Vector Store"]
-    I -->|"Semantic Search (BGE-Small)"| U
-    end
-
-    subgraph Static_Analysis ["Static Analysis"]
-    C --> D["Team Parser"]
-    D -->|PokeAPI| E["Enrich Data"]
-    E --> F["Role Detection"]
-    E --> G["Type Calculator"]
+    H["Smogon Analyses, Concepts, Champions Guides"] --> I["ChromaDB (BGE Small)"]
+    I --> U
     end
 
     subgraph Statistical_Engine ["Statistical Engine"]
     M["Smogon Chaos Data"] -->|"Weighted Usage"| N["Meta Auditor"]
     M -->|"Correlation Matrix"| O["Teammate Recommender"]
+    M --> Y
+    M --> V
+    end
+
+    subgraph Static_Analysis ["Static Analysis"]
+    C --> D["Team Parser"]
+    D --> F["Role Detection"]
+    D --> G["Type Calculator"]
     end
 
     F --> P["Dashboard UI"]
     G --> P
-    W --> P
+    GR --> P
+    T --> P
+    U --> P
+    V --> P
     N --> P
     O --> P
-    S -->|"Instant Recall"| P
 ```
 
 ---
 
-## 🚀 Deployment
+## 🚀 Setup
 
 ### Prerequisites
-1.  **Python 3.10+**
-2.  **Ollama**:
-    *   Install Ollama from [ollama.com](https://ollama.com/).
-    *   Pull the model: `ollama pull llama3.2:3b-instruct-q4_K_M`
-    *   Start the server: `ollama serve`
-    *   To try another pulled model, set `LLM_MODEL` in `.env` (e.g. `LLM_MODEL=gemma3:4b`).
-3.  **Node.js 18+** (for the damage calculator, which wraps the official `@smogon/calc` package).
 
-### Local Setup
+1. **Python 3.10+**
+2. **Node.js 18+** for the damage calculator.
+3. **[Ollama](https://ollama.com/)**, then pull the model:
 
-1.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/NamikazeAsh/MetaMatch.git
-    cd MetaMatch
-    ```
+   ```bash
+   ollama pull llama3.2:3b-instruct-q4_K_M
+   ```
 
-2.  **Install Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    cd src/metamatch/engine && npm install && cd ../../..
-    ```
-    Without Node the app still runs, but answers fall back to type matchups instead of real damage numbers.
-    After upgrading `@smogon/calc`, regenerate the bundled dex with `node src/metamatch/engine/export_dex.js`.
-    
-3.  **Initialize Data & RAG Index:** (First time setup)
-    ```bash
-    # Download usage stats and rebuild topPoke.json and speed tiers
-    python scripts/update_meta.py
+   To try another local model, set `LLM_MODEL` in `.env` (for example `LLM_MODEL=gemma3:4b`).
 
-    # Build Master Strategy Database
-    python scripts/build_strategy_cache.py
+### Install & Run
 
-    # Scrape strategies, concepts & build Vector DB for AI Coach
-    python src/metamatch/rag/build_index.py
-    ```
+```bash
+git clone https://github.com/NamikazeAsh/MetaMatch.git
+cd MetaMatch
+pip install -r requirements.txt
+cd src/metamatch/engine && npm install && cd ../../..
 
-4.  **Launch Application:**
-    ```bash
-    streamlit run src/metamatch/app.py
-    ```
+python scripts/update_meta.py              # usage stats, top Pokémon, speed tiers
+python scripts/build_strategy_cache.py     # Smogon sets for move search
+python src/metamatch/rag/build_index.py    # vector index for the coach
 
-### 🤖 Automation
+streamlit run src/metamatch/app.py
+```
 
-MetaMatch includes a **self-updating pipeline** (`scripts/update_meta.py`) configured via GitHub Actions.
-*   **Schedule:** Checks for last month's Smogon stats on the 2nd, 5th, 9th and 15th, since Smogon publishes a few days into the month. `data/stats/manifest.json` records the month on disk, so once a run succeeds the rest exit early.
-*   **Action:** Downloads the usage and chaos stats for every format in `config.FORMATS` (all or nothing, so months never mix), rebuilds `topPoke.json` and the speed tiers, and commits them.
-*   **Locally:** run `python scripts/update_meta.py` after a new month lands. Add `--rebuild-index` to also rebuild the RAG index, which CI skips because it needs the ML dependencies.
-
-### 🐳 Docker Deployment
-
-1.  **Compose Up:**
-    ```bash
-    docker-compose up -d
-    ```
-2.  **Initialize Model:**
-    ```bash
-    docker exec -it metamatch-ollama ollama pull llama3.2:3b-instruct-q4_K_M
-    ```
-3.  **Access:** `http://localhost:8501`
+Without Node the app still runs, but chat falls back to type matchups instead of real damage numbers.
 
 ---
 
-## 🧪 Quality Assurance
+## 🧪 Tests & Benchmark
 
-MetaMatch includes a comprehensive test suite to verify the deterministic logic engine. It checks 26+ edge cases including complex dual-type multipliers, ability immunities, and item overrides.
-
-**Execute Tests:**
 ```bash
-python -m unittest src/metamatch/tests/test_mechanics.py
+pytest                                     # 67 tests: parsing, mechanics, planner, verifier
+
+python bench/run.py --arm raw              # bare model with the team pasted in
+python bench/run.py --arm metamatch        # full pipeline
+python bench/run.py --arm template         # planner and solver only, no LLM
+python bench/run.py --arm metamatch --questions bench/questions_paraphrase2.jsonl --name held_out_2
+python bench/report.py                     # accuracy by arm, format and category
 ```
 
 ---
 
 ## 🛠️ Module Overview
 
-*   **`src/metamatch/app.py`**: Streamlit frontend and dashboard orchestration.
-*   **`src/metamatch/agents/`**: Multi-Agent System (Router, Manager, Clemont, Oak, Brock).
-*   **`src/metamatch/team.py`**: Core parsing and deterministic calculation engine.
-*   **`src/metamatch/suggestions.py`**: Deterministic team audit engine (item-ability synergies, role gaps, coverage holes, usage warnings) and meta threat scoring. Also orchestrates the LLM-powered Team Guide.
-*   **`src/metamatch/logic_engine.py`**: Deterministic logic engine for chat (matchups, immunities, speed tiers).
-*   **`src/metamatch/rag/`**: Vector database management:
-    *   **`scraper.py`**: ETL pipeline for strategy documentation (granular chunking).
-    *   **`store.py`**: ChromaDB interface and embedding management (`BAAI/bge-small-en-v1.5`).
-    *   **`build_index.py`**: Index initialization (concepts + strategies).
-*   **`src/metamatch/recommender.py`**: Statistical synergy calculator.
-*   **`src/metamatch/auditor.py`**: Meta-usage validation engine.
-*   **`src/metamatch/strategy_data.py`**: Master Strategy Database and dual-mode move search logic.
-*   **`src/metamatch/scrapers.py`**: Smogon Chaos data scraping pipeline.
-*   **`src/metamatch/storage.py`**: Data persistence layer.
-*   **`src/metamatch/utils.py`**: API caching and text normalization.
+| Path                                             | What it does                                                                                                 |
+| :----------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
+| `src/metamatch/app.py`, `tabs/`              | Streamlit app, one module per tab                                                                            |
+| `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, solvers, name matching                                  |
+| `src/metamatch/agents/`                        | Router, manager, grounded answerer and verifier, the three agents ([details](src/metamatch/agents/README.md)) |
+| `src/metamatch/rag/`                           | Smogon scraper, Champions usage cards and guides, ChromaDB store ([details](src/metamatch/rag/README.md))     |
+| `src/metamatch/team.py`                        | Showdown parser, role detection, type math, Mega handling                                                    |
+| `src/metamatch/suggestions.py`                 | Team audit, threat scoring, team guide                                                                       |
+| `src/metamatch/recommender.py`, `auditor.py` | Teammate synergy and usage checks from chaos data                                                            |
+| `src/metamatch/replay.py`                      | Replay parsing, momentum and blunder detection                                                               |
+| `scripts/update_meta.py`                       | Monthly stats pipeline (also run by GitHub Actions)                                                          |
+| `bench/`                                       | MetaBench question generator, runner, grader and report                                                      |
 
 ---
 
 ## 🔮 Limitations & Future Outlook
 
-It's important to acknowledge that the AI landscape is evolving rapidly. As frontier models (like **GPT-5.2**, **Gemini 3**, and beyond) continue to scale, their ability to "simulate" game logic internally will undoubtedly improve.
+* **Strategy is the frontier.** Facts are solved, but open ended advice from Oak and Brock is not benchmarked yet, and a 3B model's strategic reasoning is the weakest link. A rubric graded strategy benchmark is next.
+* **Assumed sets.** Damage numbers use the opponent's most common set unless you give one.
+* **Champions data.** Smogon has no Champions analyses yet, so its retrieval uses usage cards and community guides, and verified sets are SV only.
 
-However, MetaMatch represents a philosophy of **Efficiency & Transparency**:
-1.  **Right Tool for the Job:** We shouldn't need a massive frontier model to calculate a Speed stat. Code is perfect for rules; AI is perfect for strategy.
-2.  **Privacy:** By optimizing for smaller models (Llama 3B), MetaMatch allows you to keep your strategies local and offline.
-3.  **The "Hybrid" Bet:** We believe the future of AI isn't just "bigger models," but "models that know how to use tools." MetaMatch is a proof-of-concept for that future.
-4.  **The Persistent Reasoning Gap:** Even with RAG and deterministic anchoring, small-parameter models (3B-8B) face an inherent "reasoning gap" compared to larger frontier models. While MetaMatch minimizes factual hallucinations by offloading math to Python, the model's ability to synthesize high-level strategic nuance remains a persistent constraint of local, small-scale AI.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Whether it's adding new Role definitions, improving the LLM prompt, or enhancing the UI.
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull-Review (`git push origin feature/AmazingFeature`)
+**The bet:** you should not need a frontier model to calculate a Speed stat. Code is perfect for rules, language models are good at explaining them, and keeping everything local means your teams stay private. MetaMatch is a proof that a small model that knows how to use tools can beat a raw model at the same size by a wide margin.
 
 ---
 
 ## 🙏 Acknowledgements
 
-*   **[PokeAPI](https://pokeapi.co/)**: Comprehensive Pokémon relational data.
-*   **[Smogon University](https://www.smogon.com/)**: Usage statistics and strategy documentation.
-*   **[Ollama](https://ollama.com/)**: Local LLM execution framework.
-*   **[Streamlit](https://streamlit.io/)**: Data dashboarding framework.
+* **[Smogon University](https://www.smogon.com/)**: usage statistics, strategy analyses and [`@smogon/calc`](https://github.com/smogon/damage-calc).
+* **[PokeAPI](https://pokeapi.co/)**: Pokémon relational data.
+* **[Ollama](https://ollama.com/)**: local LLM runtime.
+* **[Streamlit](https://streamlit.io/)**: dashboard framework.

@@ -1,51 +1,27 @@
-# MetaMatch RAG Pipeline
+# Retrieval (RAG)
 
-This directory contains the core components for the Retrieval-Augmented Generation (RAG) system used in MetaMatch. The pipeline scrapes competitive strategy guides from Smogon, embeds them into a vector space, and stores them for semantic retrieval by the AI coach.
+Professor Oak answers strategy questions with passages retrieved from a local ChromaDB index. Each chunk is tagged with its game (`sv`, `champions` or `any`) so a question about a Champions team never retrieves SV advice.
 
-## 📂 Architecture
+## Sources
 
-### 1. `scraper.py` (ETL: Extract, Transform, Load)
-*   **Purpose:** Fetches raw HTML strategy guides from the Smogon Strategy Dex.
-*   **Process:**
-    1.  Uses `BeautifulSoup` to parse HTML.
-    2.  Extracts key sections: "Moves", "Checks and Counters", and "Team Options".
-    3.  Cleanses text to remove whitespace artifacts and boilerplate.
-*   **Target:** Focuses on Generation 9 OU (OverUsed) strategies.
+| Source | Game | File |
+| :--- | :--- | :--- |
+| Smogon Gen 9 OU analyses, split into overview, moveset and checks paragraphs | SV | `scraper.py` |
+| Hand written strategy concepts (`data/knowledge/concepts.md`) | Any | `build_index.py` |
+| Usage cards built from Smogon chaos data: top moves, items, abilities and teammates | Champions | `usage_cards.py` |
+| Community guides from Pokechamp, reworded and cached in `data/knowledge/pokechamp_guides.json` | Champions | `pokechamp.py` |
 
-### 2. `store.py` (Vector Database Interface)
-*   **Tech Stack:** `ChromaDB` (Vector Store) + `Sentence-Transformers` (Embedding Model).
-*   **Embedding Model:** Uses `all-MiniLM-L6-v2` (384 dimensions) for efficient, high-performance semantic similarity.
-*   **Functions:**
-    *   `add_documents()`: Embeds and upserts text chunks into the `smogon_strategies` collection.
-    *   `query_strategies()`: Performs K-Nearest Neighbors (KNN) search to find the most relevant advice for a user's query.
+## Store (`store.py`)
 
-### 3. `build_index.py` (Orchestration)
-*   **Purpose:** The "One-Click" initialization script.
-*   **Workflow:**
-    1.  Calls `scraper.py` to get the latest Top 50 meta Pokemon strategies.
-    2.  Chunks the data into semantically meaningful segments.
-    3.  Calls `store.py` to persist these embeddings into `./data/chroma_db/`.
+* Embeddings: `BAAI/bge-small-en-v1.5` via Sentence Transformers, loaded once and cached.
+* `rebuild_index(chunks)` replaces the `data/chroma_db/` collection.
+* `query_strategies(query, n_results, max_distance, format_id)` returns the nearest singles chunks for the format's game, dropping anything past an L2 distance of 1.0.
 
-## 🔄 Data Flow
-
-```
-[Smogon Dex] 
-    ⬇️ (scraper.py)
-[Raw Text] "Gholdengo checks include..."
-    ⬇️ (sentence-transformers)
-[Vector Embedding] [0.12, -0.45, ...]
-    ⬇️ (store.py)
-[ChromaDB] ./data/chroma_db/
-    ⬇️ (suggestions.py)
-[RAG Context] "SOURCE: Gholdengo checks..." -> LLM Prompt
-```
-
-## 🚀 Usage
-
-To rebuild the vector database (e.g., after a meta shift):
+## Rebuilding
 
 ```bash
-# From project root
+python -m metamatch.rag.pokechamp            # optional: refresh the Champions guide cache
 python src/metamatch/rag/build_index.py
 ```
-*Note: This will populate `data/chroma_db/` with the latest strategies.*
+
+`python scripts/update_meta.py --rebuild-index` does the same after a monthly stats update.
