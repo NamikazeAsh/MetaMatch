@@ -27,7 +27,7 @@ for (const [game, num] of Object.entries(GAMES)) {
   for (const m of gen.moves) {
     if (m.name === '(No Move)') continue;
     // Champions data leaves category off status moves
-    dex.moves[m.name] = {type: m.type, category: m.category || 'Status', basePower: m.basePower || 0};
+    dex.moves[m.name] = {type: m.type, category: m.category || 'Status', basePower: m.basePower || 0, priority: m.priority || 0};
   }
   for (const i of gen.items) {
     dex.items[i.name] = i.megaStone ? {megaStone: i.megaStone} : {};
