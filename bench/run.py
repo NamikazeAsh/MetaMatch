@@ -12,6 +12,7 @@ Examples:
   python bench/run.py --arm raw
   python bench/run.py --arm metamatch --name metamatch_now
   python bench/run.py --arm metamatch --src <worktree>/src --name metamatch_before
+  python bench/run.py --arm template --name ci_template --min-accuracy 1.0   (CI regression gate)
 """
 import argparse
 import json
@@ -99,6 +100,7 @@ def main():
     parser.add_argument("--questions", default=str(BENCH / "questions.jsonl"))
     parser.add_argument("--limit", type=int)
     parser.add_argument("--ids", nargs="*")
+    parser.add_argument("--min-accuracy", type=float, help="exit with an error if overall accuracy is below this (0 to 1)")
     args = parser.parse_args()
 
     sys.path.insert(0, args.src)
@@ -138,6 +140,14 @@ def main():
         print(f"[{i}/{len(questions)}] {q['id']} {q['category']:7} {'OK ' if correct else 'BAD'} "
               f"{latency:5.1f}s parsed={parsed!r} truth={q['answer']['value']!r}" + (f" ERROR {error}" if error else ""),
               flush=True)
+
+    if args.min_accuracy is not None:
+        with open(out_path, encoding="utf-8") as f:
+            rows = [json.loads(line) for line in f if line.strip()]
+        accuracy = sum(r["correct"] for r in rows) / len(rows) if rows else 0.0
+        print(f"{name}: {accuracy:.1%} on {len(rows)} questions (minimum {args.min_accuracy:.1%})")
+        if accuracy < args.min_accuracy:
+            sys.exit(1)
 
 
 if __name__ == "__main__":
