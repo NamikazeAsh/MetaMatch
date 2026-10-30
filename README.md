@@ -6,6 +6,7 @@
 [![Node.js](https://img.shields.io/badge/Calc-%40smogon%2Fcalc-339933?logo=nodedotjs&logoColor=white)](https://github.com/smogon/damage-calc)
 [![ChromaDB](https://img.shields.io/badge/RAG-ChromaDB-FF6F00)](https://www.trychroma.com/)
 [![MetaBench](<https://img.shields.io/badge/MetaBench-97.5%25%20held%20out-brightgreen>)](#-metabench-the-metamatch-benchmarker)
+[![Tests](https://github.com/NamikazeAsh/MetaMatch/actions/workflows/tests.yml/badge.svg)](https://github.com/NamikazeAsh/MetaMatch/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **MetaMatch** is a hybrid AI system for competitive Pokémon team analysis that runs entirely on a laptop. It pairs a deterministic battle engine (the official Smogon damage calculator, monthly ladder statistics, type and role logic) with a small local LLM, on one principle:
@@ -26,9 +27,11 @@ MetaBench is a 120 question benchmark across speed, KO, damage, type, stat and u
 
 | Question set                              | 🤖 Llama 3.2 3B alone | ⚪ MetaMatch (same 3B model) |
 | :---------------------------------------- | :-------------------: | :--------------------------: |
-| **Development set** (120)           |          18%          |        **100%**        |
-| **Held out set 1** (reworded blind) |          25%          |        **94%**        |
-| **Held out set 2** (written blind)  |          26%          |       **97.5%**       |
+| **Development set** (120)           |    18% (12 to 25)     |        **100%**        |
+| **Held out set 1** (reworded blind) |    25% (18 to 33)     |   **94%** (90 to 98)   |
+| **Held out set 2** (written blind)  |    26% (18 to 34)     |  **97.5%** (94 to 100) |
+
+Brackets are bootstrap 95% confidence intervals. On held out set 2 MetaMatch beats the bare model by **+71.7 points** (paired 95% CI +63.3 to +79.2). It ties the planner and engine running with no LLM at all (+0.8 points, CI includes 0), which is the point: the engine produces the accuracy, and the LLM only has to explain it.
 
 **Evaluation explained**
 
@@ -148,11 +151,12 @@ Gen 9 **OU, UU, National Dex**, plus **Pokémon Champions OU and UU** with Level
 
 ### 📼 Replay Auditor
 
-Paste a Showdown replay link and get a post mortem:
+Paste a Showdown replay link (shared `?p2` links and private links work) and get a post mortem:
 
-* **Momentum Chart** turn by turn, and a **Faint Timeline** of who KO'd whom with what.
-* **Blunder Detection:** losing your hazard remover early, setup fodder, wasted sweepers, hazard chip deaths, lost weather wars and momentum collapses.
-* **Hazard Damage Summary** with Heavy Duty Boots recommendations.
+* **Protocol accurate parsing:** Pokémon are tracked by identity, so Illusion, Mega Evolution, forme changes and Bring 3 team sizes are handled. Checked against an independent parser on 450 real replays with zero crashes.
+* **Team Health Chart** turn by turn, and a **Faint Timeline** with the real cause of every KO: the move, hazards, status, recoil, Destiny Bond or Perish Song.
+* **Mistakes and Notes**, built only from what the log shows and dated to their turn: losing your only hazard remover, letting a setup sweeper run through you, moves into immune targets (not counted when the target Terastallized or changed type that turn), bounced hazards, Destiny Bond and hazard chip.
+* **Opponent's Revealed Sets:** every item, ability, Tera type and move they showed.
 
 ### Self Updating Data
 
@@ -254,13 +258,14 @@ Without Node the app still runs, but chat falls back to type matchups instead of
 ## 🧪 Tests & Benchmark
 
 ```bash
-pytest                                     # 82 tests: parsing, mechanics, planner, verifiers, strategy verdicts
+pytest                                     # 96 tests: parsing, mechanics, planner, verifiers, strategy verdicts, replays
 
 python bench/run.py --arm raw              # bare model with the team pasted in
 python bench/run.py --arm metamatch        # full pipeline
 python bench/run.py --arm template         # planner and solver only, no LLM
 python bench/run.py --arm metamatch --questions bench/questions_paraphrase2.jsonl --name held_out_2
-python bench/report.py                     # accuracy by arm, format and category
+python bench/report.py                     # accuracy by arm, format and category, with 95% CIs
+python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paired difference
 ```
 
 ---
@@ -276,7 +281,7 @@ python bench/report.py                     # accuracy by arm, format and categor
 | `src/metamatch/team.py`                        | Showdown parser, role detection, type math, Mega handling                                                    |
 | `src/metamatch/suggestions.py`                 | Team audit, threat scoring, team guide                                                                       |
 | `src/metamatch/recommender.py`, `auditor.py` | Teammate synergy and usage checks from chaos data                                                            |
-| `src/metamatch/replay.py`                      | Replay parsing, momentum and blunder detection                                                               |
+| `src/metamatch/replay/`                        | Showdown protocol parser, team health, mistake and note rules                                                |
 | `scripts/update_meta.py`                       | Monthly stats pipeline (also run by GitHub Actions)                                                          |
 | `bench/`                                       | MetaBench question generator, runner, grader and report                                                      |
 
