@@ -35,11 +35,6 @@
     "owner": "Hydreigon"
   },
   {
-    "label": "Scarf Annihilape",
-    "speed": 234,
-    "owner": "Annihilape"
-  },
-  {
     "label": "Scarf Excadrill",
     "speed": 231,
     "owner": "Excadrill"
@@ -55,9 +50,9 @@
     "owner": "Samurott-Hisui"
   },
   {
-    "label": "Max Absol-Mega-Z",
+    "label": "Max Garchomp-Mega-Z",
     "speed": 223,
-    "owner": "Absol-Mega-Z"
+    "owner": "Garchomp-Mega-Z"
   },
   {
     "label": "Scarf Blaziken",
@@ -68,11 +63,6 @@
     "label": "Max Dragapult",
     "speed": 213,
     "owner": "Dragapult"
-  },
-  {
-    "label": "Max Raichu-Mega-Y",
-    "speed": 200,
-    "owner": "Raichu-Mega-Y"
   },
   {
     "label": "Max Sneasler",
@@ -105,11 +95,6 @@
     "owner": "Hydreigon"
   },
   {
-    "label": "Max Annihilape",
-    "speed": 156,
-    "owner": "Annihilape"
-  },
-  {
     "label": "Max Excadrill",
     "speed": 154,
     "owner": "Excadrill"
@@ -130,6 +115,11 @@
     "owner": "Blaziken"
   },
   {
+    "label": "Max Clefable-Mega",
+    "speed": 134,
+    "owner": "Clefable-Mega"
+  },
+  {
     "label": "Max Corviknight",
     "speed": 130,
     "owner": "Corviknight"
@@ -143,6 +133,11 @@
     "label": "Max Kingambit",
     "speed": 112,
     "owner": "Kingambit"
+  },
+  {
+    "label": "Max Hippowdon",
+    "speed": 108,
+    "owner": "Hippowdon"
   },
   {
     "label": "Max Golisopod-Mega",

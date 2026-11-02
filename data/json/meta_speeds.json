@@ -55,6 +55,11 @@
     "owner": "Landorus-Therian"
   },
   {
+    "label": "Scarf Moltres",
+    "speed": 459,
+    "owner": "Moltres"
+  },
+  {
     "label": "Scarf Pecharunt",
     "speed": 453,
     "owner": "Pecharunt"
@@ -140,6 +145,11 @@
     "owner": "Landorus-Therian"
   },
   {
+    "label": "Max Moltres",
+    "speed": 306,
+    "owner": "Moltres"
+  },
+  {
     "label": "Max Pecharunt",
     "speed": 302,
     "owner": "Pecharunt"
@@ -173,6 +183,11 @@
     "label": "Max Raging Bolt",
     "speed": 273,
     "owner": "Raging Bolt"
+  },
+  {
+    "label": "Max Skarmory",
+    "speed": 262,
+    "owner": "Skarmory"
   },
   {
     "label": "Max Corviknight",

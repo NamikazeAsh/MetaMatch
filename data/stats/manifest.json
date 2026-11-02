@@ -1,0 +1,12 @@
+{
+  "month": "2026-10",
+  "updated_at": "2026-11-02T14:21:58+00:00",
+  "formats": {
+    "gen9ou": "gen9ou-1825",
+    "gen9uu": "gen9uu-1760",
+    "gen9natdex": "gen9nationaldex-1760",
+    "gen9championsou": "gen9championsou-1760",
+    "gen9championsuu": "gen9championsuu-1760"
+  },
+  "pokemon": 1128
+}
