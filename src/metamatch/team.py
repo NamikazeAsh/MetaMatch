@@ -187,10 +187,17 @@ def detectRole(team):
     screen_moves = {"Light Screen", "Reflect", "Aurora Veil"}
     trickroom_moves = {"Trick Room"}
     weather_setter_abilities = {"drizzle", "drought", "sand stream", "snow warning", "orichalcum pulse", "hadron engine"}
-    weather_abilities = {"swift swim": "rain", "chlorophyll": "sun", "sand rush": "sand", "sand force": "sand", "sand veil": "sand", "slush rush": "hail", "snow cloak": "hail", "solar power": "sun", "slush rush": "snow", "quark drive": "electric", "protosynthesis": "sun"}
+    weather_abilities = {"swift swim": "rain", "chlorophyll": "sun", "sand rush": "sand", "sand force": "sand", "sand veil": "sand", "snow cloak": "snow", "solar power": "sun", "slush rush": "snow"}
     choice_items = {"choice scarf": "Speed Control","choice band": "Physical Breaker","choice specs": "Special Breaker"}
     offensive_items = {"life orb", "expert belt", "muscle band", "wise glasses"}
     utility_items = {"mental herb", "lum berry", "sitrus berry", "wiki berry", "mago berry", "aguav berry", "figy berry", "iapapa berry"}
+
+    # Paradox abilities only count as weather abuse when the team brings the field that powers them
+    team_abilities = {str(p.get("Mega Ability") or p.get("Ability", "")).lower() for p in team.values()}
+    if team_abilities & {"drought", "orichalcum pulse"}:
+        weather_abilities["protosynthesis"] = "sun"
+    if team_abilities & {"electric surge", "hadron engine"}:
+        weather_abilities["quark drive"] = "electric"
 
     for poke in team:
         raw_moves = team[poke].get("Moves", [])

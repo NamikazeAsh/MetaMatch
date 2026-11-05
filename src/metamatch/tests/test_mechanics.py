@@ -241,6 +241,16 @@ class TestRoles(unittest.TestCase):
         self.assertIn("Weather Setter", team[2]["Roles"])
         self.assertIn("Weather Abuser", team[3]["Roles"])
 
+    def test_paradox_without_setter_is_not_weather(self):
+        """Protosynthesis and Quark Drive only count as weather abuse when the team sets the field."""
+        team = {
+            0: {"Pokemon": "Great Tusk", "Ability": "Protosynthesis", "Item": "Booster Energy", "Moves": ["Headlong Rush"], "EVs": {}, "Roles": []},
+            1: {"Pokemon": "Iron Valiant", "Ability": "Quark Drive", "Item": "Booster Energy", "Moves": ["Moonblast"], "EVs": {}, "Roles": []},
+        }
+        detectRole(team)
+        self.assertNotIn("Weather Abuser", team[0]["Roles"])
+        self.assertNotIn("Weather Abuser", team[1]["Roles"])
+
     def test_sweeper_roles(self):
         """
         Test detection of Sweeper sub-types.
