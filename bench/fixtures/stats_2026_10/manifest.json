@@ -1,0 +1,34 @@
+{
+  "source_month": "2026-10",
+  "source_commit": "b21a06ada987332fe7ddbb4207f896fa27eda4f3",
+  "source_paths": {
+    "gen9ou-1825.json": "data/stats/gen9ou-1825.json",
+    "gen9championsou-1760.json": "data/stats/gen9championsou-1760.json",
+    "dex_sv.json": "data/json/dex_sv.json",
+    "dex_champions.json": "data/json/dex_champions.json"
+  },
+  "calc_package": "@smogon/calc 0.12.0 (src/metamatch/engine/node_modules, pinned in package.json)",
+  "seed": 20261105,
+  "files": {
+    "gen9ou-1825.json": "5db446f4a347f3faec927623237a89e4474dd3585c7db5ebf0b906a166d1afbf",
+    "gen9championsou-1760.json": "5d5247f9635be1da39b6ea6dc274156923f23cf8c6e7641ecbcea8bb2a1f54f3",
+    "dex_sv.json": "17afa6d74c629620955b3c71afff96db52e8886bfe3b3e172fd48e5fc789e472",
+    "dex_champions.json": "097fce89fee269dbda038992c26aa8f2f6165b6b0a49d946df08a31bc1a6e9aa"
+  },
+  "frozen": {
+    "date": "2026-11-05",
+    "questions_fresh.jsonl": {
+      "sha256_lf": "50fe639caa29db35a3a60c2066ec2885cb04110d62ced100c0b01245a8147ff6",
+      "items": 201,
+      "splits": {
+        "generated": 80,
+        "hard": 81,
+        "handwritten": 40
+      }
+    },
+    "fresh_handwritten.jsonl": {
+      "sha256_lf": "974c67f7d460f4caed6db5a7451200eeabc2c3d9fd648139e3d69f913752d23b"
+    },
+    "note": "sha256_lf hashes the file with CRLF normalised to LF. Do not tune on this set; any edit must fail src/metamatch/tests/test_bench_frozen.py."
+  }
+}
