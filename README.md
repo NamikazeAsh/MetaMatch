@@ -26,6 +26,8 @@ Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is com
 * 🔌 **Works offline:** every analysis tab runs on the engine alone. The LLM is an upgrade, not a dependency.
 * 🔒 **Private:** your teams never leave your machine. No API keys, no cloud, no paid models.
 * 🛡️ **Regression tested:** every push replays the benchmark through CI against a pinned stats snapshot.
+* 📡 **Always current:** MetaFlash turns six months of Smogon ladder data into a live meta front page, refreshed every month by CI.
+* 🔗 **Every team has a link:** dashboards live at their own URL, so refresh, bookmarks, Back and a second tab all just work.
 
 ![MetaMatch Dashboard](assets/images/dashboard.png)
 
@@ -123,6 +125,28 @@ Strategy questions ("how do I play against Kingambit?", "what are my biggest thr
 
 ## ✨ Features
 
+### 📡 MetaFlash: The Meta Front Page
+
+The home screen opens on a magazine style front page of what the ladder is doing right now, for whichever format you pick.
+
+![MetaFlash](assets/images/metaflash.png)
+
+* **Story of the month:** the biggest move in the top 10, with its usage, rank change, standard set, common partners and a six month chart.
+* **Top 10 leaderboard:** usage bars in each Pokémon's type colour and rank changes versus last month.
+* **Story cards:** the #1, the biggest risers and fallers, newcomers breaking into the top 30, and the fastest common threat, each with its standard set and a trend line.
+* **Written by code, not an LLM:** every card and headline (*"Raging Bolt climbs 8 ranks to #5"*) is picked by fixed rules from the data, with usage floors so tiny tiers can't fake a headline.
+* **Honest charts:** every axis starts at zero, so a dip looks as big as it really was.
+* **Self updating:** the monthly stats workflow appends each new month to a compact usage history, so the page is always current with no manual step.
+
+### 🧭 Pages, Links & Memory
+
+* **Top navigation:** Home, Team, Quick Match, Move Search and Replay Auditor are real pages with their own URLs.
+* **Shareable team links:** every analysed team opens at `/team?t=<id>`, a short hash of the paste, so refreshing, bookmarking, opening a second tab and Back / Forward all keep your dashboard.
+* **Pick up where you left off:** your last teams sit in the sidebar as sprite cards, one click from reopening.
+* **A coach chat per team:** each team keeps its own conversation, and it survives a refresh.
+* **Always fresh analysis:** saved and recent teams store only the paste, so reopening one runs the current engine and this month's stats.
+* **Crash safe storage:** teams, chats and preferences live in a local SQLite database with atomic writes, so two tabs saving at once can never lose your saved teams. Everything stays on your machine.
+
 ### 🤖 Multi Agent Chat
 
 Three specialist agents, each with its own persona and temperature:
@@ -170,7 +194,7 @@ Gen 9 **OU, UU, National Dex**, plus **Pokémon Champions OU and UU** with Level
 
 ### 📼 Replay Auditor
 
-Paste a Showdown replay link (shared `?p2` links and private links work) and get a post mortem:
+Paste a Showdown replay link (shared `?p2` links and private links work) and get a post mortem. Every analysis gets its own link (`/replay-auditor?id=<replay>`), so a breakdown can be reopened or bookmarked.
 
 * **Protocol accurate parsing:** Pokémon are tracked by identity, so Illusion, Mega Evolution, forme changes and Bring 3 team sizes are handled. Validated against an independent parser on 450 real ladder replays: zero crashes, 445 of 445 winners and 890 of 890 faint lists matched, and every remaining disagreement (Revival Blessing, Future Sight, Illusion) traced to the reference parser being wrong. The whole pool parses in under a second.
 * **Team Health Chart** turn by turn, and a **Faint Timeline** with the real cause of every KO: the move, hazards, status, recoil, Destiny Bond or Perish Song.
@@ -179,7 +203,7 @@ Paste a Showdown replay link (shared `?p2` links and private links work) and get
 
 ### Self Updating Data
 
-A GitHub Action pulls new Smogon usage stats every month, rebuilds top Pokémon and speed tiers, and commits them. Downloads are all or nothing, so months never mix. The benchmark gate answers from a pinned stats snapshot, so a new month of data can never break CI or silently shift the answer keys.
+A GitHub Action pulls new Smogon usage stats every month, rebuilds top Pokémon and speed tiers, appends the month to the MetaFlash usage history, and commits them. Downloads are all or nothing, so months never mix. The benchmark gate answers from a pinned stats snapshot, so a new month of data can never break CI or silently shift the answer keys.
 
 ---
 
@@ -189,7 +213,7 @@ A GitHub Action pulls new Smogon usage stats every month, rebuilds top Pokémon 
 graph TD
     A["User Input"] -->|"Showdown Export"| B("Streamlit App")
     B --> C{"Analysis Pipeline"}
-    B <-->|"Save/Load Teams"| S["Local Storage"]
+    B <-->|"Teams, chats, prefs"| S["SQLite (local)"]
 
     subgraph Engine ["Battle Engine"]
     K["@smogon/calc (Node)"]
@@ -266,6 +290,7 @@ cd src/metamatch/engine && npm install && cd ../../..
 python scripts/update_meta.py              # usage stats, top Pokémon, speed tiers
 python scripts/build_strategy_cache.py     # Smogon sets for move search
 python src/metamatch/rag/build_index.py    # vector index for the coach
+python scripts/backfill_usage_history.py   # optional: rebuild MetaFlash's six month history (it ships in the repo)
 
 streamlit run src/metamatch/app.py        # run from the repo root so the dark theme loads
 ```
@@ -277,7 +302,7 @@ Ollama and Node are both optional. Without Ollama, every analysis tab still work
 ## 🧪 Tests & Benchmark
 
 ```bash
-pytest                                     # 102 tests: parsing, mechanics, planner, verifiers, strategy verdicts, replays, frozen set integrity
+pytest                                     # 121 tests: parsing, mechanics, planner, verifiers, strategy verdicts, replays, MetaFlash, storage, frozen set integrity
 
 python bench/run.py --arm raw              # bare model with the team pasted in
 python bench/run.py --arm metamatch        # full pipeline
@@ -303,7 +328,9 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 | `src/metamatch/suggestions.py`                 | Team audit, threat scoring, team guide                                                                       |
 | `src/metamatch/recommender.py`, `auditor.py` | Teammate synergy and usage checks from chaos data                                                            |
 | `src/metamatch/replay/`                        | Showdown protocol parser, team health, mistake and note rules                                                |
-| `scripts/update_meta.py`                       | Monthly stats pipeline (also run by GitHub Actions)                                                          |
+| `src/metamatch/meta_pulse.py`                  | MetaFlash: usage history, story selection rules, leaderboard, template headlines                             |
+| `src/metamatch/storage.py`                     | SQLite store for teams, per team chats and preferences, with a one time import of the old JSON saves         |
+| `scripts/update_meta.py`                       | Monthly stats pipeline (also run by GitHub Actions), including the MetaFlash usage history                   |
 | `bench/`                                       | MetaBench question generators, runner, grader, report, and pinned stats snapshots in `bench/fixtures/`       |
 
 ---
