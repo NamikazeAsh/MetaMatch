@@ -5,7 +5,7 @@ from metamatch.utils import get_pokemon_sprite
 
 
 def render(get_strat_data_fn):
-    # The sidebar format picker drives this tab too
+    # The format picker at the top of the page drives this tool
     default_label = config.format_info(st.session_state.get("format_id"))["label"]
     tgt_format = [default_label]
     st.caption(f"Pick 1 to 5 Pokémon to find their best partners in {default_label}.")

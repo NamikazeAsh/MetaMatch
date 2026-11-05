@@ -30,7 +30,7 @@ from metamatch.tabs import (
     tab_quick_match, tab_move_search, tab_replay,
     tab_overview as tab_overview_mod, tab_audit, tab_threats,
     tab_coach_guide, tab_recommender as tab_recommender_mod, tab_matrix as tab_matrix_mod,
-    tab_speed_tiers, tab_chat as tab_chat_mod,
+    tab_speed_tiers, tab_chat as tab_chat_mod, tab_meta_pulse,
 )
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
@@ -283,93 +283,95 @@ def set_card(name, p):
     return f'<div class="mm-set">{"<br>".join(lines)}<ul>{moves}</ul></div>'
 
 
-# --- Sidebar: format, saved teams and help ---
-with st.sidebar:
-    if st.session_state.submitted:
-        if st.button("Analyze another team", icon=":material/edit_note:", width="stretch"):
-            st.session_state.submitted = False
-            st.rerun()
-
-    saved_teams_data = get_cached_teams()
-    if saved_teams_data:
+def render_sidebar():
+    """Saved teams, the meta audit and save box for the analysed team, and paste help (Home only)."""
+    with st.sidebar:
         if st.session_state.submitted:
-            st.markdown("---")
-        team_names = [t['name'] for t in saved_teams_data]
-        selected_name = st.selectbox("Saved teams", ["Select..."] + team_names)
+            if st.button("Analyze another team", icon=":material/edit_note:", width="stretch"):
+                st.session_state.submitted = False
+                st.rerun()
 
-        if selected_name != "Select...":
-            selected_team = next((t for t in saved_teams_data if t['name'] == selected_name), None)
+        saved_teams_data = get_cached_teams()
+        if saved_teams_data:
+            if st.session_state.submitted:
+                st.markdown("---")
+            team_names = [t['name'] for t in saved_teams_data]
+            selected_name = st.selectbox("Saved teams", ["Select..."] + team_names)
 
-            if selected_team:
-                pk_list = selected_team.get('pokemon_names', [])
-                if pk_list:
-                    # Sprites glow in each member's main type colour, like the squad cards
-                    saved_team = (selected_team.get('analysis') or {}).get('team', {})
-                    sets = {p.get('Pokemon'): p for p in saved_team.values()}
-                    tiles = []
-                    for name in pk_list[:6]:
-                        p = sets.get(name, {})
-                        glow = TYPE_MAP.get((p.get('Type') or ['Normal'])[0], {'color': '#00d4ff'})['color']
-                        sprite = get_pokemon_sprite(name)
-                        art = f'<img src="{sprite}" alt="">' if sprite else '<span class="mm-sprite-missing">?</span>'
-                        tiles.append(f'<div class="mm-sprite" style="--glow: {glow}" tabindex="0">'
-                                     f'{art}<small>{escape(name)}</small>{set_card(name, p)}</div>')
-                    st.html(f'<div class="mm-sprites">{"".join(tiles)}</div>')
+            if selected_name != "Select...":
+                selected_team = next((t for t in saved_teams_data if t['name'] == selected_name), None)
 
-                c1, c2 = st.columns(2)
-                if c1.button("Load", icon=":material/folder_open:", width="stretch"):
-                    st.session_state.default_input = selected_team['raw_text']
-                    if selected_team.get('analysis'):
-                        st.session_state.analysis = selected_team['analysis']
-                        st.session_state.pokemon_data = selected_team['raw_text']
-                        st.session_state.pokemon_names = extract_pokemon_names(selected_team['raw_text'])
-                        st.session_state.submitted = True
-                    st.rerun()
-                if c2.button("Delete", icon=":material/delete:", width="stretch"):
-                    if storage.delete_team(selected_name):
-                        get_cached_teams.clear()
-                        st.success(f"Deleted {selected_name}")
+                if selected_team:
+                    pk_list = selected_team.get('pokemon_names', [])
+                    if pk_list:
+                        # Sprites glow in each member's main type colour, like the squad cards
+                        saved_team = (selected_team.get('analysis') or {}).get('team', {})
+                        sets = {p.get('Pokemon'): p for p in saved_team.values()}
+                        tiles = []
+                        for name in pk_list[:6]:
+                            p = sets.get(name, {})
+                            glow = TYPE_MAP.get((p.get('Type') or ['Normal'])[0], {'color': '#00d4ff'})['color']
+                            sprite = get_pokemon_sprite(name)
+                            art = f'<img src="{sprite}" alt="">' if sprite else '<span class="mm-sprite-missing">?</span>'
+                            tiles.append(f'<div class="mm-sprite" style="--glow: {glow}" tabindex="0">'
+                                         f'{art}<small>{escape(name)}</small>{set_card(name, p)}</div>')
+                        st.html(f'<div class="mm-sprites">{"".join(tiles)}</div>')
+
+                    c1, c2 = st.columns(2)
+                    if c1.button("Load", icon=":material/folder_open:", width="stretch"):
+                        st.session_state.default_input = selected_team['raw_text']
+                        if selected_team.get('analysis'):
+                            st.session_state.analysis = selected_team['analysis']
+                            st.session_state.pokemon_data = selected_team['raw_text']
+                            st.session_state.pokemon_names = extract_pokemon_names(selected_team['raw_text'])
+                            st.session_state.submitted = True
                         st.rerun()
+                    if c2.button("Delete", icon=":material/delete:", width="stretch"):
+                        if storage.delete_team(selected_name):
+                            get_cached_teams.clear()
+                            st.success(f"Deleted {selected_name}")
+                            st.rerun()
 
-    if st.session_state.submitted:
-        # --- Meta Auditor ---
-        audit_results = auditor.audit_team(st.session_state.analysis['team'])
-        audit_warnings = audit_results.get("warnings", [])
-        if audit_warnings:
-            st.markdown("---")
-            with st.expander(f"⚠️ Meta Audit ({len(audit_warnings)} Warnings)", expanded=True):
-                st.caption("We detected some statistically unusual choices compared to the current high-ladder meta.")
-                for w in audit_warnings:
-                    st.markdown(f"""
-                    <div style="background: rgba(255, 165, 0, 0.1); border-left: 4px solid #ffa500; padding: 10px; margin-bottom: 8px; border-radius: 4px;">
-                        <div style="font-weight: bold; color: #ffa500;">{escape(str(w['pokemon']))} - {escape(str(w['category']))}</div>
-                        <div style="font-size: 0.9rem;">
-                            You are running <b>{escape(str(w['current']))}</b> (Used by only {w['usage']:.1f}%).<br>
-                            <span style="opacity: 0.8;">Standard: {escape(str(w['suggestion']))}</span>
+        if st.session_state.submitted:
+            # --- Meta Auditor ---
+            audit_results = auditor.audit_team(st.session_state.analysis['team'])
+            audit_warnings = audit_results.get("warnings", [])
+            if audit_warnings:
+                st.markdown("---")
+                with st.expander(f"⚠️ Meta Audit ({len(audit_warnings)} Warnings)", expanded=True):
+                    st.caption("We detected some statistically unusual choices compared to the current high-ladder meta.")
+                    for w in audit_warnings:
+                        st.markdown(f"""
+                        <div style="background: rgba(255, 165, 0, 0.1); border-left: 4px solid #ffa500; padding: 10px; margin-bottom: 8px; border-radius: 4px;">
+                            <div style="font-weight: bold; color: #ffa500;">{escape(str(w['pokemon']))} - {escape(str(w['category']))}</div>
+                            <div style="font-size: 0.9rem;">
+                                You are running <b>{escape(str(w['current']))}</b> (Used by only {w['usage']:.1f}%).<br>
+                                <span style="opacity: 0.8;">Standard: {escape(str(w['suggestion']))}</span>
+                            </div>
                         </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                        """, unsafe_allow_html=True)
+
+            st.markdown("---")
+            with st.expander("💾 Save Analysis", expanded=True):
+                team_name = st.text_input("Team Name:", placeholder="e.g. My Rain Team v1")
+                if st.button("💾 Save Current Analysis", width="stretch"):
+                    if team_name:
+                        storage.save_team(team_name, st.session_state.pokemon_data, st.session_state.analysis)
+                        get_cached_teams.clear()
+                        st.success(f"Saved '{team_name}'!")
+                        st.rerun()
+                    else:
+                        st.error("Please enter a name for the team.")
 
         st.markdown("---")
-        with st.expander("💾 Save Analysis", expanded=True):
-            team_name = st.text_input("Team Name:", placeholder="e.g. My Rain Team v1")
-            if st.button("💾 Save Current Analysis", width="stretch"):
-                if team_name:
-                    storage.save_team(team_name, st.session_state.pokemon_data, st.session_state.analysis)
-                    get_cached_teams.clear()
-                    st.success(f"Saved '{team_name}'!")
-                    st.rerun()
-                else:
-                    st.error("Please enter a name for the team.")
+        with st.expander("What can I paste?", icon=":material/help:"):
+            st.markdown("""
+            * A Showdown export, from the **Export** button in the Teambuilder
+            * A `pokepast.es` link
+            * Nicknames work, for example `Bob (Great Tusk) @ Leftovers`
+            * In Champions the `EVs:` line holds stat points, for example `EVs: 32 HP / 32 Def / 2 SpD`
+            """)
 
-    st.markdown("---")
-    with st.expander("What can I paste?", icon=":material/help:"):
-        st.markdown("""
-        * A Showdown export, from the **Export** button in the Teambuilder
-        * A `pokepast.es` link
-        * Nicknames work, for example `Bob (Great Tusk) @ Leftovers`
-        * In Champions the `EVs:` line holds stat points, for example `EVs: 32 HP / 32 Def / 2 SpD`
-        """)
 
 @st.cache_resource
 def get_master_strategy_data():
@@ -380,22 +382,25 @@ def get_usage_data():
     return strategy_data.load_usage_stats()
 
 
-# The logo carries the MetaMatch wordmark, so no separate title
-# Served from src/metamatch/static (server.enableStaticServing) and shown as a plain Markdown image:
-# st.image and HTML elements wait for lazily loaded frontend code, which made the logo pop in late
+# No st.logo: it forces a sidebar onto every page, and only Home has sidebar content
 LOGO_FILE = Path(__file__).parent / "static" / "logo.png"
-if LOGO_FILE.exists() and st.get_option("server.enableStaticServing"):
-    st.markdown("![MetaMatch logo](app/static/logo.png)")
-elif LOGO_FILE.exists():
-    # Run without .streamlit/config.toml (e.g. from another folder): no static serving, so use st.image
-    with st.container(horizontal_alignment="center", key="brand_logo"):
-        st.image(str(LOGO_FILE), width=210)
-else:
-    st.title("MetaMatch", anchor=False)
 
-if not st.session_state.submitted:
-    # --- Start screen: the team input is the hero, side tools sit below it ---
-    # The one format picker, above everything it drives: the analysis, Quick Match and Move Search
+
+def render_logo():
+    # Served from src/metamatch/static (server.enableStaticServing) and shown as a plain Markdown image:
+    # st.image and HTML elements wait for lazily loaded frontend code, which made the logo pop in late
+    if LOGO_FILE.exists() and st.get_option("server.enableStaticServing"):
+        st.markdown("![MetaMatch logo](app/static/logo.png)")
+    elif LOGO_FILE.exists():
+        # Run without .streamlit/config.toml (e.g. from another folder): no static serving, so use st.image
+        with st.container(horizontal_alignment="center", key="brand_logo"):
+            st.image(str(LOGO_FILE), width=210)
+    else:
+        st.title("MetaMatch", anchor=False)
+
+
+def format_picker():
+    """The one format picker, shared by Home, Quick Match and Move Search through session state."""
     with st.container(horizontal=True, vertical_alignment="center", horizontal_alignment="center", key="format_row"):
         st.markdown("**Format**")
         format_ids = list(config.FORMATS.keys())
@@ -410,186 +415,212 @@ if not st.session_state.submitted:
         )
         st.session_state.format_id = picked or st.session_state.format_id
 
-    with st.container(border=True, key="team_hero"):
-        st.markdown("#### Paste your team to get the full dashboard")
-        with st.form("team_form", border=False):
-            pokemon_data = st.text_area(
-                "Team",
-                value=st.session_state.default_input,
-                placeholder="Paste a Showdown export or a pokepast.es link\n\nGholdengo @ Choice Scarf\nAbility: Good as Gold\n...",
-                height=220,
-                label_visibility="collapsed",
-            )
-            with st.container(horizontal=True, vertical_alignment="center"):
-                analyze_clicked = st.form_submit_button("Analyze team", type="primary", icon=":material/insights:")
-                sample_clicked = st.form_submit_button("Try a sample team", icon=":material/science:")
-                st.caption("Damage calcs, threats, speed tiers and the coach chat, all from one paste.")
 
-        if sample_clicked:
-            st.session_state.format_id = "gen9ou"
-            analyze_team(SAMPLE_TEAM, "gen9ou")
-        elif analyze_clicked:
-            if pokemon_data.strip():
-                analyze_team(pokemon_data, st.session_state.format_id)
-            else:
-                st.warning("Paste a team first, or try the sample team.")
+def page_header(title, blurb):
+    st.markdown(f"## {title}")
+    st.caption(blurb)
 
-    st.caption("**No team yet? Start here**")
-    tool_tab1, tool_tab2, tool_tab3 = st.tabs([
-        ":material/group_add: Quick Match", ":material/search: Move Search", ":material/smart_display: Replay Auditor",
-    ])
 
-    with tool_tab1:
-        tab_quick_match.render(get_master_strategy_data)
+def home_page():
+    render_sidebar()
+    render_logo()
+    if not st.session_state.submitted:
+        # Start screen: the team input is the hero, this month's Meta Pulse sits under it
+        format_picker()
+        with st.container(border=True, key="team_hero"):
+            st.markdown("#### Paste your team to get the full dashboard")
+            with st.form("team_form", border=False):
+                pokemon_data = st.text_area(
+                    "Team",
+                    value=st.session_state.default_input,
+                    placeholder="Paste a Showdown export or a pokepast.es link\n\nGholdengo @ Choice Scarf\nAbility: Good as Gold\n...",
+                    height=220,
+                    label_visibility="collapsed",
+                )
+                with st.container(horizontal=True, vertical_alignment="center"):
+                    analyze_clicked = st.form_submit_button("Analyze team", type="primary", icon=":material/insights:")
+                    sample_clicked = st.form_submit_button("Try a sample team", icon=":material/science:")
+                    st.caption("Damage calcs, threats, speed tiers and the coach chat, all from one paste.")
 
-    with tool_tab2:
-        tab_move_search.render(get_master_strategy_data, get_usage_data)
+            if sample_clicked:
+                st.session_state.format_id = "gen9ou"
+                analyze_team(SAMPLE_TEAM, "gen9ou")
+            elif analyze_clicked:
+                if pokemon_data.strip():
+                    analyze_team(pokemon_data, st.session_state.format_id)
+                else:
+                    st.warning("Paste a team first, or try the sample team.")
 
-    with tool_tab3:
-        tab_replay.render()
+        # This month's Meta Pulse: a swipeable strip of what's moving on the ladder
+        tab_meta_pulse.render(st.session_state.format_id, TYPE_MAP)
 
-if st.session_state.submitted and st.session_state.pokemon_names:
+    if st.session_state.submitted and st.session_state.pokemon_names:
 
-    # --- Metrics Dashboard ---
-    st.markdown("## 📊 Team Dashboard")
+        # --- Metrics Dashboard ---
+        st.markdown("## 📊 Team Dashboard")
 
-    coverage = st.session_state.analysis['coverage']
-    weakness = st.session_state.analysis['weakness']
-    team_data = st.session_state.analysis['team']
+        coverage = st.session_state.analysis['coverage']
+        weakness = st.session_state.analysis['weakness']
+        team_data = st.session_state.analysis['team']
 
-    covered_count = sum(1 for v in coverage.values() if v)
-    most_weak_type = max(weakness.items(), key=lambda x: x[1]['weak'])
+        covered_count = sum(1 for v in coverage.values() if v)
+        most_weak_type = max(weakness.items(), key=lambda x: x[1]['weak'])
 
-    roles = []
-    for p in team_data.values():
-        roles.extend(p['Roles'])
+        roles = []
+        for p in team_data.values():
+            roles.extend(p['Roles'])
 
-    archetype = "Balanced"
-    arch_icon = "⚖️"
+        archetype = "Balanced"
+        arch_icon = "⚖️"
 
-    # Count Pokemon, not role labels: one mon can be both a Wall and a Tank
-    mon_roles = [set(p.get("Roles", [])) for p in team_data.values() if isinstance(p, dict)]
-    wall_tank_count = sum(1 for r in mon_roles if r & {"Wall", "Tank"})
-    sweeper_count = sum(1 for r in mon_roles if any("Sweeper" in x or "Breaker" in x for x in r))
-    weather_count = roles.count("Weather Setter") + roles.count("Weather Abuser")
-    setter_count = roles.count("Weather Setter")
-    pivot_count = roles.count("Pivot")
-    tr_count = roles.count("Trick Room Setter")
-    bulky_offense_count = sum(1 for r in mon_roles if r & {"Bulky Attacker", "Tank"})
+        # Count Pokemon, not role labels: one mon can be both a Wall and a Tank
+        mon_roles = [set(p.get("Roles", [])) for p in team_data.values() if isinstance(p, dict)]
+        wall_tank_count = sum(1 for r in mon_roles if r & {"Wall", "Tank"})
+        sweeper_count = sum(1 for r in mon_roles if any("Sweeper" in x or "Breaker" in x for x in r))
+        weather_count = roles.count("Weather Setter") + roles.count("Weather Abuser")
+        setter_count = roles.count("Weather Setter")
+        pivot_count = roles.count("Pivot")
+        tr_count = roles.count("Trick Room Setter")
+        bulky_offense_count = sum(1 for r in mon_roles if r & {"Bulky Attacker", "Tank"})
 
-    if tr_count >= 1:
-        archetype = "Trick Room"
-        arch_icon = "🌀"
-    elif setter_count >= 1 and weather_count >= 2:
-        archetype = "Weather Offense"
-        arch_icon = "🌦️"
-    elif pivot_count >= 3:
-        archetype = "Volt-Turn / Pivot"
-        arch_icon = "🔄"
-    elif wall_tank_count >= 4: # Increased threshold for pure stall
-        archetype = "Stall"
-        arch_icon = "🐢"
-    elif sweeper_count >= 4:
-        archetype = "Hyper Offense"
-        arch_icon = "⚔️"
-    elif bulky_offense_count >= 3:
-        archetype = "Bulky Offense"
-        arch_icon = "🛡️⚔️"
+        if tr_count >= 1:
+            archetype = "Trick Room"
+            arch_icon = "🌀"
+        elif setter_count >= 1 and weather_count >= 2:
+            archetype = "Weather Offense"
+            arch_icon = "🌦️"
+        elif pivot_count >= 3:
+            archetype = "Volt-Turn / Pivot"
+            arch_icon = "🔄"
+        elif wall_tank_count >= 4: # Increased threshold for pure stall
+            archetype = "Stall"
+            arch_icon = "🐢"
+        elif sweeper_count >= 4:
+            archetype = "Hyper Offense"
+            arch_icon = "⚔️"
+        elif bulky_offense_count >= 3:
+            archetype = "Bulky Offense"
+            arch_icon = "🛡️⚔️"
 
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Archetype", f"{arch_icon} {archetype}")
-    with m2:
-        st.metric("Type Coverage", f"{covered_count}/18")
-        st.progress(covered_count / 18)
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Archetype", f"{arch_icon} {archetype}")
+        with m2:
+            st.metric("Type Coverage", f"{covered_count}/18")
+            st.progress(covered_count / 18)
 
-    weak_type_name = most_weak_type[0].capitalize()
-    t_info_m = TYPE_MAP.get(weak_type_name, {'color': '#777', 'icon': '❓'})
-    weak_label = f"{t_info_m['icon']} {weak_type_name}"
+        weak_type_name = most_weak_type[0].capitalize()
+        t_info_m = TYPE_MAP.get(weak_type_name, {'color': '#777', 'icon': '❓'})
+        weak_label = f"{t_info_m['icon']} {weak_type_name}"
 
-    if most_weak_type[1]['weak'] >= 3:
-        m3.metric("Critical Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="normal")
-    else:
-        m3.metric("Top Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="off")
+        if most_weak_type[1]['weak'] >= 3:
+            m3.metric("Critical Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="normal")
+        else:
+            m3.metric("Top Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="off")
 
-    # --- Squad Section ---
-    st.markdown("## 🦸 Your Squad")
-    st.markdown("<br>", unsafe_allow_html=True) # Spacer
-    names = st.session_state.pokemon_names
+        # --- Squad Section ---
+        st.markdown("## 🦸 Your Squad")
+        st.markdown("<br>", unsafe_allow_html=True) # Spacer
+        names = st.session_state.pokemon_names
 
-    for i in range(0, len(names), 3):
-        cols = st.columns(3)
-        batch = names[i:i+3]
-        for j, name in enumerate(batch):
-            idx = i + j
-            # Handle potential key mismatch (int vs string) from JSON loading
-            poke = team_data.get(idx) or team_data.get(str(idx))
-            if not poke: continue
+        for i in range(0, len(names), 3):
+            cols = st.columns(3)
+            batch = names[i:i+3]
+            for j, name in enumerate(batch):
+                idx = i + j
+                # Handle potential key mismatch (int vs string) from JSON loading
+                poke = team_data.get(idx) or team_data.get(str(idx))
+                if not poke: continue
 
-            # Get Type Color for Glow
-            primary_type = poke['Type'][0] if poke['Type'] else 'Normal'
-            type_color = TYPE_MAP.get(primary_type, {'color': '#777'})['color']
+                # Get Type Color for Glow
+                primary_type = poke['Type'][0] if poke['Type'] else 'Normal'
+                type_color = TYPE_MAP.get(primary_type, {'color': '#777'})['color']
 
-            # Construct Glassmorphism Card HTML
-            card_html = f"""
-            <div class="pokemon-card" style="border: 1px solid {type_color}44; box-shadow: 0 0 15px -5px {type_color}, inset 0 0 20px -15px {type_color};">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div style="flex-shrink: 0; position: relative;">
-                        <div style="position: absolute; width: 60px; height: 60px; background: {type_color}; filter: blur(30px); opacity: 0.4; z-index: 0; top: 10px; left: 10px;"></div>
-                        <img src="{get_pokemon_sprite(name) or ''}" width="90" style="position: relative; z-index: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
-                    </div>
-                    <div style="flex-grow: 1;">
-                        <div class="poke-name">{escape(name)}</div>
-                        <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px;">
-                            {''.join([f'<span style="background:{TYPE_MAP.get(t, {}).get("color", "#555")}; color:white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">{TYPE_MAP.get(t, {}).get("icon", "")} {t}</span>' for t in poke['Type']])}
+                # Construct Glassmorphism Card HTML
+                card_html = f"""
+                <div class="pokemon-card" style="border: 1px solid {type_color}44; box-shadow: 0 0 15px -5px {type_color}, inset 0 0 20px -15px {type_color};">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="flex-shrink: 0; position: relative;">
+                            <div style="position: absolute; width: 60px; height: 60px; background: {type_color}; filter: blur(30px); opacity: 0.4; z-index: 0; top: 10px; left: 10px;"></div>
+                            <img src="{get_pokemon_sprite(name) or ''}" width="90" style="position: relative; z-index: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <div class="poke-name">{escape(name)}</div>
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px;">
+                                {''.join([f'<span style="background:{TYPE_MAP.get(t, {}).get("color", "#555")}; color:white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">{TYPE_MAP.get(t, {}).get("icon", "")} {t}</span>' for t in poke['Type']])}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
-                    <div class="stat-text" style="margin-bottom: 6px;">
-                        {' '.join([f'<span class="role-badge">🛡️ {escape(r)}</span>' for r in poke['Roles'][:3]]) if poke['Roles'] else '<span style="opacity:0.5; font-size:0.8rem">No specific roles</span>'}
+                    <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
+                        <div class="stat-text" style="margin-bottom: 6px;">
+                            {' '.join([f'<span class="role-badge">🛡️ {escape(r)}</span>' for r in poke['Roles'][:3]]) if poke['Roles'] else '<span style="opacity:0.5; font-size:0.8rem">No specific roles</span>'}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #ddd; margin-top: 8px;">
+                            <span>🎒 {escape(str(poke['Item']))}</span>
+                            <span style="opacity: 0.8;">✨ {escape(str(poke['Ability']))}</span>
+                        </div>
+                         <div class="stat-text" style="font-size: 0.75rem; margin-top:8px; color: {type_color}; opacity: 0.9; font-family: monospace;">
+                            {escape(str(poke['Nature']))} Nature • {', '.join([f'{v} {k}' for k, v in sorted((poke.get('SP') or poke['EVs']).items(), key=lambda x: x[1], reverse=True)[:2]])}
+                         </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #ddd; margin-top: 8px;">
-                        <span>🎒 {escape(str(poke['Item']))}</span>
-                        <span style="opacity: 0.8;">✨ {escape(str(poke['Ability']))}</span>
-                    </div>
-                     <div class="stat-text" style="font-size: 0.75rem; margin-top:8px; color: {type_color}; opacity: 0.9; font-family: monospace;">
-                        {escape(str(poke['Nature']))} Nature • {', '.join([f'{v} {k}' for k, v in sorted((poke.get('SP') or poke['EVs']).items(), key=lambda x: x[1], reverse=True)[:2]])}
-                     </div>
                 </div>
-            </div>
-            """
+                """
 
-            with cols[j]:
-                st.markdown(card_html, unsafe_allow_html=True)
-    st.markdown("---")
+                with cols[j]:
+                    st.markdown(card_html, unsafe_allow_html=True)
+        st.markdown("---")
 
-    # --- Detailed Analysis Tabs ---
-    st.header("Detailed Analysis")
-    tab_overview, tab3, tab4, tab8, tab_rec, tab_matrix, tab7, tab_chat = st.tabs([
-        "Team Overview", "Audit", "Meta Threats", "Coach Guide", "Recommendations", "Matchup Matrices", "Speed Tiers", "Coach Chat"
-    ])
+        # --- Detailed Analysis Tabs ---
+        st.header("Detailed Analysis")
+        tab_overview, tab3, tab4, tab8, tab_rec, tab_matrix, tab7, tab_chat = st.tabs([
+            "Team Overview", "Audit", "Meta Threats", "Coach Guide", "Recommendations", "Matchup Matrices", "Speed Tiers", "Coach Chat"
+        ])
 
-    with tab_chat:
-        tab_chat_mod.render()
+        with tab_chat:
+            tab_chat_mod.render()
 
-    with tab_overview:
-        tab_overview_mod.render(coverage, weakness, team_data, TYPE_MAP)
+        with tab_overview:
+            tab_overview_mod.render(coverage, weakness, team_data, TYPE_MAP)
 
-    with tab3:
-        tab_audit.render()
+        with tab3:
+            tab_audit.render()
 
-    with tab4:
-        tab_threats.render()
+        with tab4:
+            tab_threats.render()
 
-    with tab8:
-        tab_coach_guide.render()
+        with tab8:
+            tab_coach_guide.render()
 
-    with tab_rec:
-        tab_recommender_mod.render(team_data, st.session_state.pokemon_names)
+        with tab_rec:
+            tab_recommender_mod.render(team_data, st.session_state.pokemon_names)
 
-    with tab_matrix:
-        tab_matrix_mod.render(team_data)
+        with tab_matrix:
+            tab_matrix_mod.render(team_data)
 
-    with tab7:
-        tab_speed_tiers.render(team_data)
+        with tab7:
+            tab_speed_tiers.render(team_data)
 
+
+def quick_match_page():
+    page_header("🤝 Quick Match", "No team yet? Pick a core and get the partners that pair best with it on the ladder.")
+    format_picker()
+    tab_quick_match.render(get_master_strategy_data)
+
+
+def move_search_page():
+    page_header("🔎 Move Search", "Find sets that run a combination of moves, from the Strategy Dex and ladder usage.")
+    format_picker()
+    tab_move_search.render(get_master_strategy_data, get_usage_data)
+
+
+def replay_page():
+    page_header("📼 Replay Auditor", "Paste a Showdown replay for a turn by turn post mortem of your battle.")
+    tab_replay.render()
+
+
+nav = st.navigation([
+    st.Page(home_page, title="Home", icon=":material/home:", default=True),
+    st.Page(quick_match_page, title="Quick Match", icon=":material/group_add:", url_path="quick-match"),
+    st.Page(move_search_page, title="Move Search", icon=":material/search:", url_path="move-search"),
+    st.Page(replay_page, title="Replay Auditor", icon=":material/smart_display:", url_path="replay-auditor"),
+], position="top")
+nav.run()
