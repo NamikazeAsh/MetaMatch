@@ -262,3 +262,32 @@ def pulse(format_id, n=8, history=None, month=None, with_sets=True):
         card["headline"] = _headline(card, label)
         cards.append(card)
     return cards
+
+
+def leaderboard(format_id, n=10, history=None, month=None):
+    """Top `n` by usage this month: [{name, rank, usage, prev_rank, types}] (prev_rank None if new or unknown)."""
+    history = load_history() if history is None else history
+    months = _months(history, format_id, month or current_month())
+    if not months:
+        return []
+    now = _table(history, format_id, months[-1])
+    prev = _table(history, format_id, months[-2]) if len(months) >= 2 else None
+    dex = dex_for_format(format_id)
+    rows = []
+    for name in sorted(now, key=lambda x: now[x][0])[:n]:
+        species = dex.species(name) if dex else None
+        rows.append({
+            "name": name, "rank": now[name][0], "usage": now[name][1],
+            "prev_rank": prev.get(name, (None,))[0] if prev is not None else None,
+            "has_prev": prev is not None,
+            "types": species["types"] if species else [],
+        })
+    return rows
+
+
+def featured_index(cards):
+    """Which card leads the section: the biggest riser inside the top 10, else the #1."""
+    risers = [i for i, c in enumerate(cards) if c["kind"] == "riser" and c["rank"] <= 10]
+    if risers:
+        return max(risers, key=lambda i: cards[i]["delta"] or 0)
+    return next((i for i, c in enumerate(cards) if c["kind"] == "top"), 0)

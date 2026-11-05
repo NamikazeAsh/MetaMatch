@@ -63,5 +63,18 @@ class TestMetaPulse(unittest.TestCase):
         self.assertEqual(mp.month_label("2026-10"), "October 2026")
 
 
+class TestMagazine(unittest.TestCase):
+    def test_leaderboard_rank_changes(self):
+        rows = mp.leaderboard("gen9ou", n=4, history=_history(), month="2026-10")
+        self.assertEqual([r["name"] for r in rows], ["A", "B", "C", "E"])
+        self.assertEqual([r["prev_rank"] for r in rows], [1, 4, 2, 35])  # E was ranked 35th last month
+
+    def test_featured_prefers_top10_riser(self):
+        cards = mp.pulse("gen9ou", n=6, history=_history(), month="2026-10", with_sets=False)
+        self.assertEqual(cards[mp.featured_index(cards)]["name"], "B")
+        only_top = [c for c in cards if c["kind"] != "riser"]
+        self.assertEqual(only_top[mp.featured_index(only_top)]["kind"], "top")
+
+
 if __name__ == "__main__":
     unittest.main()
