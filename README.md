@@ -10,7 +10,7 @@
 [![Node.js](https://img.shields.io/badge/Calc-%40smogon%2Fcalc-339933?logo=nodedotjs&logoColor=white)](https://github.com/smogon/damage-calc)
 [![ChromaDB](https://img.shields.io/badge/RAG-ChromaDB-FF6F00)](https://www.trychroma.com/)
 [![MetaBench](<https://img.shields.io/badge/MetaBench-97.5%25%20held%20out-brightgreen>)](#-metabench-the-metamatch-benchmarker)
-[![Frozen Test Set](<https://img.shields.io/badge/Frozen%20test%20set-201%20questions-blueviolet>)](#-frozen-fresh-test-set)
+[![Frozen Test Set](<https://img.shields.io/badge/Frozen%20test%20set-201%20questions-blueviolet>)](#frozen-fresh-test-set)
 [![Tests](https://github.com/NamikazeAsh/MetaMatch/actions/workflows/tests.yml/badge.svg)](https://github.com/NamikazeAsh/MetaMatch/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -55,7 +55,7 @@ Brackets are bootstrap 95% confidence intervals. On held out set 2 MetaMatch bea
 * **Fair grading:** free form answers are graded by a second local model (Gemma 3 4B) that was validated at 100% agreement (100 of 100) with strict `ANSWER:` line grading before use.
 * **Fully local:** no paid APIs anywhere, for answering or for grading.
 
-### 🧊 Frozen Fresh Test Set
+### Frozen Fresh Test Set
 
 The next round of evaluation is already locked in: **201 brand new questions** that no part of MetaMatch has ever been run on.
 
@@ -106,11 +106,11 @@ graph LR
     P -->|strategy question| G["Router to Oak or Brock"]
 ```
 
-1. **🗺️ Planner (zero LLM):** works out what the question asks (speed, KO, damage, type, stat or usage) and which Pokémon, move and set are involved. Recognizes all 1,400+ species and formes in the bundled dex, plus nicknames (*Lando*, *Pult*, *Tusk*), typos and Mega names.
-2. **🧮 Solver:** computes the answer with the real damage calculator. Opponents get their most common ladder set unless the question gives one (*"Garchomp @ Choice Scarf, Jolly 252 Spe"*).
-3. **📜 Verdict:** the headline answer comes from a template, so it is always the engine's answer, never the model's guess.
-4. **🔍 Verifier:** the LLM writes a short explanation. Any number not in the facts, or any claim that flips the speed, type or KO verdict, gets rejected. One retry, then MetaMatch shows the raw facts instead.
-5. **❓ Clarify:** if a matchup question names no recognizable opponent, MetaMatch asks rather than answering a different question.
+1. **Planner (zero LLM):** works out what the question asks (speed, KO, damage, type, stat or usage) and which Pokémon, move and set are involved. Recognizes all 1,400+ species and formes in the bundled dex, plus nicknames (*Lando*, *Pult*, *Tusk*), typos and Mega names.
+2. **Solver:** computes the answer with the real damage calculator. Opponents get their most common ladder set unless the question gives one (*"Garchomp @ Choice Scarf, Jolly 252 Spe"*).
+3. **Verdict:** the headline answer comes from a template, so it is always the engine's answer, never the model's guess.
+4. **Verifier:** the LLM writes a short explanation. Any number not in the facts, or any claim that flips the speed, type or KO verdict, gets rejected. One retry, then MetaMatch shows the raw facts instead.
+5. **Clarify:** if a matchup question names no recognizable opponent, MetaMatch asks rather than answering a different question.
 
 ### 📜 Grounded Strategy Advice
 
@@ -338,7 +338,7 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 ## 🔮 Limitations & Future Outlook
 
 * **Strategy is the frontier.** Facts are solved and Oak's matchup claims are verified, but open ended advice is not benchmarked yet, and the verifier can't catch every strategic mistake a 3B model makes. A rubric graded strategy benchmark is next.
-* **Fresh set results.** The [201 question frozen set](#-frozen-fresh-test-set) covers new Pokémon, items, field effects and opponent phrased questions. It is locked and waiting for its first run.
+* **Fresh set results.** The [201 question frozen set](#frozen-fresh-test-set) covers new Pokémon, items, field effects and opponent phrased questions. It is locked and waiting for its first run.
 * **Assumed sets.** Damage numbers use the opponent's most common set unless you give one.
 * **Champions data.** Smogon has no Champions analyses yet, so its retrieval uses usage cards and community guides, and verified sets are SV only.
 
