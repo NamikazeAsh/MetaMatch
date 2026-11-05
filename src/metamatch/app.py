@@ -425,7 +425,7 @@ def home_page():
     render_sidebar()
     render_logo()
     if not st.session_state.submitted:
-        # Start screen: the team input is the hero, this month's Meta Pulse sits under it
+        # Start screen: the team input is the hero, this month's MetaFlash sits under it
         format_picker()
         with st.container(border=True, key="team_hero"):
             st.markdown("#### Paste your team to get the full dashboard")
@@ -451,7 +451,7 @@ def home_page():
                 else:
                     st.warning("Paste a team first, or try the sample team.")
 
-        # This month's Meta Pulse: a swipeable strip of what's moving on the ladder
+        # MetaFlash: this month's featured story, top 10 and movers on the ladder
         tab_meta_pulse.render(st.session_state.format_id, TYPE_MAP)
 
     if st.session_state.submitted and st.session_state.pokemon_names:

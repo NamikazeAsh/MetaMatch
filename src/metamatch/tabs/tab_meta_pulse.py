@@ -1,5 +1,5 @@
 """
-Meta Pulse section for the start screen, laid out like a magazine page: a featured story with a
+MetaFlash section for the start screen (meta_pulse.py picks the cards), laid out like a magazine page: a featured story with a
 6 month chart, a top 10 leaderboard beside it, and a grid of story cards underneath (a swipe strip
 on phones). Pure HTML and CSS through st.html, so it renders in the page without an iframe.
 st.html sanitizes inline <svg>, so charts ride in as data URI background images like the sprites.
@@ -15,9 +15,19 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
 
 CSS = """
 <style>
-.mp-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin: 6px 2px 12px 2px; }
-.mp-title { font-weight:800; font-size:1.35rem; color:#fff; letter-spacing:0.3px; white-space:nowrap; }
-.mp-sub { font-size:0.78rem; color:#8a93a6; text-align:right; }
+.mp-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin:28px 2px 16px 2px;
+  padding-bottom:14px; position:relative; }
+.mp-head::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
+  background:linear-gradient(90deg, rgba(0,212,255,0.7), rgba(0,255,204,0.25) 40%, transparent); }
+.mp-kicker { font-size:0.7rem; font-weight:800; letter-spacing:2.4px; text-transform:uppercase; color:#00d4ff; }
+.mp-title { font-weight:900; font-size:2.4rem; line-height:1.05; letter-spacing:-0.5px; white-space:nowrap; margin-top:2px;
+  background:linear-gradient(90deg, #ffffff 0%, #9cf1ff 55%, #00ffcc 100%); -webkit-background-clip:text; background-clip:text;
+  color:transparent; filter:drop-shadow(0 0 18px rgba(0,212,255,0.25)); }
+.mp-tag { font-size:1rem; color:#aab3c5; margin-top:4px; }
+.mp-sub { font-size:0.78rem; color:#8a93a6; text-align:right; line-height:1.5; }
+.mp-sub b { color:#d6dbe6; font-weight:700; }
+.mp-live { display:inline-block; width:7px; height:7px; border-radius:50%; background:#5fd38d; margin-right:6px;
+  box-shadow:0 0 8px #5fd38d; vertical-align:middle; }
 
 .mp-mag { display:grid; grid-template-columns:minmax(0, 1.65fr) minmax(0, 1fr); gap:14px; margin-bottom:14px; }
 .mp-panel { position:relative; border-radius:16px; padding:16px 18px; overflow:hidden;
@@ -104,6 +114,9 @@ CSS = """
   .mp-chart { width:100%; background-position:left center; }
 }
 @media (max-width: 640px) {
+  .mp-head { flex-direction:column; align-items:flex-start; }
+  .mp-sub { text-align:left; }
+  .mp-title { font-size:1.9rem; }
   .mp-f-top { flex-direction:column; align-items:flex-start; gap:8px; }
   .mp-f-sprite { width:88px; height:88px; }
   .mp-f-name { font-size:1.5rem; }
@@ -310,9 +323,11 @@ def render(format_id, type_map):
     rating = fmt["stats"].rsplit("-", 1)[-1]
     lead = meta_pulse.featured_index(cards)
     stories = [c for i, c in enumerate(cards) if i != lead][:6]
-    head = (f'<div class="mp-head"><span class="mp-title">📡 Meta Pulse</span>'
-            f'<span class="mp-sub">{escape(meta_pulse.month_label(month))} · {escape(fmt["label"])} ladder {rating}+ · '
-            f'Smogon usage stats</span></div>')
+    head = (f'<div class="mp-head"><div><div class="mp-kicker">This month on the ladder</div>'
+            f'<div class="mp-title">MetaFlash</div>'
+            '<div class="mp-tag">The ladder&#39;s biggest moves, the month they happen.</div></div>'
+            f'<div class="mp-sub"><span class="mp-live"></span><b>{escape(meta_pulse.month_label(month))}</b><br>'
+            f'{escape(fmt["label"])} ladder {rating}+ · Smogon usage stats</div></div>')
     mag = f'<div class="mp-mag">{_feature(cards[lead], type_map)}{_board(rows, type_map)}</div>'
     grid = f'<div class="mp-stories">{"".join(_card(c, type_map) for c in stories)}</div>'
     st.html(CSS + head + mag + grid)
