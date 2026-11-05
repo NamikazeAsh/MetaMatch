@@ -44,6 +44,7 @@ jobs:
     - name: Unit Tests
       run: pytest -q
 
-    # Planner and engine only, no LLM: fails the build if fact answering regresses on the dev set
+    # Planner and engine only, no LLM: fails the build if fact answering regresses on the dev set.
+    # Answers come from the stats snapshot the dev set was built on, so monthly stats updates can't break it.
     - name: MetaBench Regression Gate
-      run: python bench/run.py --arm template --name ci_template --min-accuracy 1.0
+      run: python bench/run.py --arm template --name ci_template --stats-dir bench/fixtures/stats_2026_09 --min-accuracy 1.0

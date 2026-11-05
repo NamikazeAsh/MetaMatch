@@ -12,10 +12,11 @@ Examples:
   python bench/run.py --arm raw
   python bench/run.py --arm metamatch --name metamatch_now
   python bench/run.py --arm metamatch --src <worktree>/src --name metamatch_before
-  python bench/run.py --arm template --name ci_template --min-accuracy 1.0   (CI regression gate)
+  python bench/run.py --arm template --name ci_template --stats-dir bench/fixtures/stats_2026_09 --min-accuracy 1.0   (CI gate)
 """
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -100,10 +101,14 @@ def main():
     parser.add_argument("--questions", default=str(BENCH / "questions.jsonl"))
     parser.add_argument("--limit", type=int)
     parser.add_argument("--ids", nargs="*")
+    parser.add_argument("--stats-dir", help="usage stats folder to answer from, e.g. the snapshot the question set was built on")
     parser.add_argument("--min-accuracy", type=float, help="exit with an error if overall accuracy is below this (0 to 1)")
     args = parser.parse_args()
 
     sys.path.insert(0, args.src)
+    if args.stats_dir:
+        # Must be set before metamatch is imported, since config reads it once
+        os.environ["METAMATCH_STATS_DIR"] = str(Path(args.stats_dir).resolve())
     name = args.name or args.arm
     out_path = BENCH / "results" / f"{name}.jsonl"
     out_path.parent.mkdir(exist_ok=True)

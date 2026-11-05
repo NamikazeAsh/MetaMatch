@@ -7,7 +7,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Data Directories
 DATA_DIR = BASE_DIR / "data"
 JSON_DIR = DATA_DIR / "json"
-STATS_DIR = DATA_DIR / "stats"
+# METAMATCH_STATS_DIR pins usage stats to a snapshot (MetaBench answer keys are frozen against one month)
+STATS_DIR = Path(os.environ["METAMATCH_STATS_DIR"]) if os.environ.get("METAMATCH_STATS_DIR") else DATA_DIR / "stats"
 USER_DIR = DATA_DIR / "user"
 
 # Assets Directory
