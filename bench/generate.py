@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from metamatch import config  # noqa: E402
 from metamatch.engine import calc  # noqa: E402
-from metamatch.engine.dex import get_dex, to_id  # noqa: E402
+from metamatch.engine.dex import get_dex  # noqa: E402
 
 STATS = ["hp", "atk", "def", "spa", "spd", "spe"]
 STAT_LABELS = {"hp": "HP", "atk": "Atk", "def": "Def", "spa": "SpA", "spd": "SpD", "spe": "Spe"}

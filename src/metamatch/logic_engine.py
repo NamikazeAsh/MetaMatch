@@ -17,29 +17,6 @@ ABILITY_IMMUNITY = {
 }
 
 # --- INTENT ROUTER ---
-def detect_intent(query):
-    """
-    Classifies the user query into 'mechanics' or 'strategy'.
-    """
-    query = query.lower()
-    
-    mechanics_keywords = [
-        "vs", "against", "beat", "counter", "stop", "wall", "switch", "lead", 
-        "damage", "speed", "faster", "slower", "check", "kill", "ohko", "survive"
-    ]
-    
-    strategy_keywords = [
-        "set", "build", "role", "evs", "nature", "item", "guide", "how to", "use",
-        "synergy", "partner", "advice", "struggling"
-    ]
-    
-    # Simple keyword matching score
-    mech_score = sum(1 for w in mechanics_keywords if w in query)
-    strat_score = sum(1 for w in strategy_keywords if w in query)
-    
-    if mech_score >= strat_score:
-        return "mechanics"
-    return "strategy"
 
 # --- ENTITY EXTRACTION ---
 def find_pokemon_in_query(query):

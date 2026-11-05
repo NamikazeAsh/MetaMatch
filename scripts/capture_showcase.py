@@ -43,11 +43,6 @@ sys.path.insert(0, str(ROOT / "src"))
 
 # --- Data and processes --------------------------------------------------------
 
-def sample_team():
-    """The app's built in OU sample team, read from app.py without importing (and so running) the app."""
-    src = (ROOT / "src" / "metamatch" / "app.py").read_text(encoding="utf-8")
-    return re.search(r'SAMPLE_TEAM = """(.*?)"""', src, re.S).group(1)
-
 
 def ladder_team(names, format_id):
     """A Showdown export of each Pokemon's most common ladder set this month."""

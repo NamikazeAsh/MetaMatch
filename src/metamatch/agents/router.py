@@ -1,7 +1,7 @@
 import re
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from typing import List, Dict, Tuple
+from typing import Dict, Tuple
 
 MECHANICS_PATTERN = re.compile(
     r"\b(damage|ohko|2hko|3hko|ko|kos|survive|survives|faster|slower|outspeed|outspeeds|speed tie|immune|resist|resists)\b",

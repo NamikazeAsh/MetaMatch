@@ -151,7 +151,6 @@ def get_suggestions(team):
     Checks item-ability synergies, role gaps, type coverage, and Smogon usage warnings.
     """
     audit_res = auditor_module.audit_team(team)
-    audit_reports = audit_res.get("reports", {})
 
     # --- Team-level analysis ---
     team_analysis = []

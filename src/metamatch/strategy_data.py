@@ -1,9 +1,6 @@
 import requests
 import json
-import os
-from pathlib import Path
 from . import config
-from .utils import pokeSlugify
 
 # Define sources for the Master Strategy Database
 # We switch to the 'sets' endpoint for structured data. Champions formats have no published sets yet.

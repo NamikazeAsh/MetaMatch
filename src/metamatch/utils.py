@@ -1,7 +1,6 @@
 import requests
 import re
 import json
-import os
 import time
 from . import config
 
@@ -233,38 +232,6 @@ def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item="", game="sv")
     return stat
 
 
-def fetch_ability_data(ability_name: str) -> str:
-    """
-    Fetches the short effect description of an ability from PokeAPI.
-    Returns a plain-English string like 'Doubles Speed in harsh sunlight.'
-    Returns empty string on failure.
-    """
-    slug = ability_name.lower().strip().replace(" ", "-").replace("'", "")
-    cache_key = f"ability::{slug}"
-
-    if cache_key in API_CACHE:
-        cached = _entry_data(API_CACHE[cache_key])
-        if isinstance(cached, str):
-            return cached
-
-    url = f"https://pokeapi.co/api/v2/ability/{slug}"
-    try:
-        res = requests.get(url, timeout=5)
-        if res.status_code == 200:
-            data = res.json()
-            # Prefer English short_effect; fall back to effect
-            for entry in data.get("effect_entries", []):
-                if entry.get("language", {}).get("name") == "en":
-                    desc = entry.get("short_effect", entry.get("effect", "")).strip()
-                    API_CACHE[cache_key] = _wrap(desc)
-                    save_cache(API_CACHE)
-                    return desc
-    except Exception as e:
-        print(f"Error fetching ability {ability_name}: {e}")
-
-    return ""
-
-
 def fetch_move_data(move_name):
     """
     Fetches move metadata from PokeAPI.
@@ -330,17 +297,3 @@ def fetch_pokepaste(url_or_id: str) -> str | None:
     except Exception:
         return None
 
-def is_showdown_export(text: str) -> bool:
-    """
-    Detect if text looks like a Showdown team export.
-    Checks for common patterns like '@' (item), 'Ability:', 'EVs:', 'Nature'.
-    """
-    text = text.strip()
-    if not text:
-        return False
-    # Must have at least one Pokemon with item OR ability line
-    has_item = '@' in text
-    has_ability = 'Ability:' in text
-    has_nature = 'Nature' in text
-    has_move = text.count('\n-') >= 1
-    return (has_item or has_ability) and (has_nature or has_move)

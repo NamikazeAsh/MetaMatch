@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 
 from metamatch import config
 from metamatch.engine import calc
-from metamatch.engine.dex import dex_for_format, to_id
+from metamatch.engine.dex import dex_for_format
 from metamatch.engine.sets import calc_spec, chaos_entry, describe_spread, likely_set
 
 STAT_NAMES = {"hp": "HP", "atk": "Attack", "def": "Defense", "spa": "Special Attack", "spd": "Special Defense", "spe": "Speed"}

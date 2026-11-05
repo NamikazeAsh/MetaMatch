@@ -1,5 +1,4 @@
 import requests
-import json
 from bs4 import BeautifulSoup
 import sys
 from pathlib import Path
@@ -12,14 +11,6 @@ from metamatch.utils import fetch_pokemon_data
 
 SMOGON_API_URL = "https://pkmn.github.io/smogon/data/analyses/gen9ou.json"
 
-def clean_html(html_text):
-    """
-    Removes HTML tags from the text.
-    """
-    if not html_text:
-        return ""
-    soup = BeautifulSoup(html_text, 'html.parser')
-    return soup.get_text(separator=" ").strip()
 
 def get_pokemon_context(name):
     """

@@ -2,23 +2,12 @@ import re
 import requests
 import json
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
-from .utils import pokeSlugify, fetch_pokemon_data, calculate_speed
+from .utils import fetch_pokemon_data, calculate_speed
 from . import config
 from .engine.dex import get_dex
 
 TIMEOUT = 60  # seconds; chaos files are several MB
 
-def get_latest_stats_url():
-    """
-    Calculates the URL for the previous month's Smogon stats directory.
-    """
-    today = datetime.today()
-    first_day_of_current_month = today.replace(day=1)
-    last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
-    year = last_day_of_previous_month.year
-    month = last_day_of_previous_month.month
-    return f"https://www.smogon.com/stats/{year:04d}-{month:02d}/"
 
 def download_stat_file(stats_url, target_filename, local_name=None, dest_dir=None):
     """
@@ -161,15 +150,3 @@ def refresh_derived():
     return len(top_poke_data)
 
 
-def main():
-    """
-    Downloads the latest month's usage .txt and chaos .json for every registered format,
-    then rebuilds the derived files. scripts/update_meta.py is the full pipeline.
-    """
-    print("Starting Smogon stats update...")
-    stats_base_url = get_latest_stats_url()
-    for fmt in config.FORMATS.values():
-        print(f"\nProcessing {fmt['label']}...")
-        download_stat_file(stats_base_url, fmt["stats"] + ".txt")
-        download_stat_file(stats_base_url + "chaos/", fmt["stats"] + ".json")
-    refresh_derived()
