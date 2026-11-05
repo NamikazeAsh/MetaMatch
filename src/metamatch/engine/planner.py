@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from metamatch import config
 from metamatch.engine.dex import dex_for_format, to_id
 from metamatch.engine.sets import likely_set
-from metamatch.logic_engine import find_pokemon_in_query
+from metamatch.engine.names import find_pokemon, find_pokemon_spans
 
 TYPES = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground",
          "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
@@ -40,6 +40,8 @@ class Plan:
     opponents: list = field(default_factory=list)   # Pokemon names not on the team
     move: str | None = None
     attacker: str = "user"          # who uses `move`: "user" or "opponent"
+    subject: str = "user"           # whose side the question is asked from: "user" or "opponent"
+    speed_ask: str = "faster"       # "slower" when the question asks if the subject is slower
     ko_hits: int = 1                # 1 for OHKO, 2 for 2HKO...
     survive: bool = False           # "can X survive ..." flips the yes/no
     atk_type: str | None = None
@@ -102,34 +104,104 @@ def _find_stat(query):
     return None
 
 
-def _parse_set(query, dex):
-    """Explicit opponent set details: '@ Item', a nature, an ability and '252 HP / 4 Def' style spreads."""
-    overrides = {}
-    item = re.search(r"@\s*([A-Za-z][\w' .-]*?)\s*(?:,|\?|$)", query)
-    if item and dex and dex.item_name(item.group(1)):
-        overrides["item"] = dex.item_name(item.group(1))
-    for nature in NATURES:
-        if re.search(rf"\b{nature}\b", query):
-            overrides["nature"] = nature
-            break
-    evs = re.findall(r"(\d+)\s*(HP|Atk|Def|SpA|SpD|Spe)\b", query)
-    if evs:
-        overrides["evs"] = {EV_LABELS[s.lower()]: int(v) for v, s in evs}
-    if dex and overrides:
-        for name in dex.ability_names:
-            if len(name) > 3 and re.search(rf"\b{re.escape(name)}\b", query):
-                overrides["ability"] = name
+# Text allowed between a set detail and the Pokemon it describes: "my Jolly 252 Atk Great Tusk"
+GLUE_RE = re.compile(r"^[\s/+,()]*(?:(?:my|your|the|a|an)\s+)?[\s/+,()]*$", re.I)
+
+
+def _owner(spans, start, end, style, text):
+    """'user' when a set detail is glued to a team member's mention, else 'opponent' (old behaviour)."""
+    if style == "prefix":
+        nxt = next((s for s in spans if s[0] >= end), None)
+        if nxt and nxt[3] == "user" and GLUE_RE.match(text[end:nxt[0]]):
+            return "user"
+    else:
+        prev = next((s for s in reversed(spans) if s[1] <= start), None)
+        if prev and prev[3] == "user" and GLUE_RE.match(text[prev[1]:start]):
+            return "user"
+    return "opponent"
+
+
+def _parse_set(query, dex, spans=()):
+    """Explicit opponent set details: '@ Item', a nature, an ability and '252 HP / 4 Def' style spreads.
+    `spans` are (start, end, name, side) mentions; details glued to a team member's mention are skipped."""
+    hits = []  # (start, end, key, value, style)
+    for m in re.finditer(r"@\s*((?:[A-Za-z][\w'.-]*\s*){1,4})", query):
+        words = m.group(1).split()
+        for k in range(len(words), 0, -1):
+            if dex and dex.item_name(" ".join(words[:k])):
+                hits.append((m.start(), m.end(), "item", dex.item_name(" ".join(words[:k])), "suffix"))
                 break
+    for nature in NATURES:
+        for m in re.finditer(rf"\b{nature}\b", query):
+            hits.append((m.start(), m.end(), "nature", nature, "prefix"))
+    for m in re.finditer(r"(\d+)\s*(HP|Atk|Def|SpA|SpD|Spe)\b", query):
+        hits.append((m.start(), m.end(), "evs", (EV_LABELS[m.group(2).lower()], int(m.group(1))), "prefix"))
+    if dex:
+        for name in dex.ability_names:
+            if len(name) > 3:
+                for m in re.finditer(rf"\b{re.escape(name)}\b", query):
+                    hits.append((m.start(), m.end(), "ability", name, "prefix"))
+    # Blank every detail so a run of them ("Jolly 252 Atk") still counts as glued to the name
+    text = query
+    for a, b, *_ in hits:
+        text = text[:a] + " " * (b - a) + text[b:]
+    overrides = {}
+    for a, b, key, value, style in sorted(hits, key=lambda h: h[0]):
+        if _owner(spans, a, b, style, text) != "opponent":
+            continue
+        if key == "evs":
+            overrides.setdefault("evs", {})[value[0]] = value[1]
+        elif key == "ability":
+            overrides.setdefault("_ability", value)
+        else:
+            overrides.setdefault(key, value)
+    ability = overrides.pop("_ability", None)
+    if ability and overrides:
+        overrides["ability"] = ability
     return overrides
 
 
 def _usage_field(query):
-    q = query.lower()
-    for word, fld in (("tera", "tera"), ("ability", "ability"), ("item", "item"), ("spread", "spread"),
-                      ("nature", "spread"), ("move", "move"), ("set", "item")):
-        if word in q:
+    """Which usage field is asked for; whole words only, so 'Terapagos' is not 'tera'."""
+    for pattern, fld in ((r"tera", "tera"), (r"abilit(?:y|ies)", "ability"), (r"items?", "item"),
+                         (r"spreads?", "spread"), (r"natures?", "spread"), (r"move(?:s|set)?", "move"), (r"sets?", "item")):
+        if re.search(rf"\b{pattern}\b", query, re.I):
             return fld
     return "item"
+
+
+PRONOUN_RE = re.compile(r"\b(i|we|it|you|he|she|they)\b", re.I)
+TARGET_RE = re.compile(r"\b(to|against|into|on|vs)\b", re.I)
+
+
+def _subject(query, spans):
+    """Side of the question's grammatical subject: the last mention before the question verb
+    ("outspeed", "OHKO", "survive", or "to" in damage questions) in the same sentence. A lead in
+    sentence ("Raging Bolt is on its usual set, does my Skarmory outspeed it?") is skipped."""
+    anchor = SPEED_RE.search(query) or KO_RE.search(query) or TARGET_RE.search(query)
+    if not anchor:
+        return "user"
+    begin = max(query.rfind(c, 0, anchor.start()) for c in ".?!;") + 1
+    before = [(b, side) for a, b, _, side in spans if begin <= a < anchor.start()]
+    if not before:
+        return "user"
+    # "my Skarmory vs a Raging Bolt, do I outspeed it?": a pronoun after the last name is the real subject
+    if PRONOUN_RE.search(query[before[-1][0]:anchor.start()]):
+        return "user"
+    return before[-1][1]
+
+
+def _possessor(query, move, plan):
+    """'user' or 'opponent' when the move is written as 'X's Move' (X may be a nickname), else None."""
+    m = re.search(rf"['’]s\s+{re.escape(move)}", query, re.I)
+    if not m:
+        return None
+    owners = find_pokemon(query[:m.start()])
+    if not owners:
+        return None
+    if owners[-1] in plan.opponents:
+        return "opponent"
+    return "user" if plan.user is not None else None
 
 
 def plan_query(query, team):
@@ -139,7 +211,8 @@ def plan_query(query, team):
     dex = dex_for_format(format_id)
     plan = Plan(format_id=format_id)
 
-    names = find_pokemon_in_query(query)
+    raw_spans = find_pokemon_spans(query)
+    names = list(dict.fromkeys(d for _, _, d in raw_spans))
     for name in names:
         member = _team_member(name, team, dex)
         if member is not None:
@@ -149,11 +222,17 @@ def plan_query(query, team):
             plan.opponents.append(name)
     if plan.user is None and len(team) == 1:
         plan.user = next(iter(team.values()))
+    spans = [(a, b, d, "opponent" if d in plan.opponents else "user") for a, b, d in raw_spans]
+    plan.subject = _subject(query, spans)
 
     # Text with Pokemon names removed, for move, type and keyword scans
     scrubbed = query
     for name in names:
         scrubbed = _blank(scrubbed, name)
+    # Nicknames too ("gambit"), which the canonical name blanking above misses
+    for a, b, _ in raw_spans:
+        scrubbed = scrubbed[:a] + " " * (b - a) + scrubbed[b:]
+    names_only = scrubbed
 
     members = [plan.user] if plan.user else list(team.values())
     user_moves = [m["name"] for p in members for m in p.get("Moves", [])]
@@ -168,20 +247,27 @@ def plan_query(query, team):
             plan.user_named = plan.user is not None
             user_moves = [m["name"] for m in (plan.user or {}).get("Moves", [])]
 
-    plan.opp_overrides = _parse_set(query, dex) if plan.opponent else {}
+    plan.opp_overrides = _parse_set(query, dex, spans) if plan.opponent else {}
     if dex:
         for ability in dex.ability_names:
             if len(ability) > 3:
                 scrubbed = _blank(scrubbed, ability)
 
-    # Who attacks: possessive "X's Move" wins, then "survive", then whose moveset has the move
-    if plan.move:
-        lowered = query.lower()
-        opp_poss = plan.opponent and f"{plan.opponent.lower()}'s {plan.move.lower()}" in lowered
-        if opp_poss or (re.search(r"\bsurvive", lowered) and plan.move not in user_moves):
-            plan.attacker = "opponent"
-        elif plan.move not in user_moves and plan.move in opp_moves:
-            plan.attacker = "opponent"
+    # Who attacks: possessive "X's Move" wins, then a move only one side runs, then grammar:
+    # the subject attacks, unless it is the one trying to survive
+    survive = bool(re.search(r"\bsurvive", query, re.I))
+    other = "opponent" if plan.subject == "user" else "user"
+    possessor = _possessor(query, plan.move, plan) if plan.move else None
+    if possessor:
+        plan.attacker = possessor
+    elif plan.move and plan.move in user_moves and plan.move not in opp_moves:
+        plan.attacker = "user"
+    elif plan.move and plan.move in opp_moves and plan.move not in user_moves:
+        plan.attacker = "opponent"
+    else:
+        plan.attacker = other if survive else plan.subject
+    if re.search(r"\b(slower|outsped)\b", query, re.I):
+        plan.speed_ask = "slower"
 
     # Usage goes last: speed and KO questions also say "most common spread"
     q = query
@@ -205,5 +291,5 @@ def plan_query(query, team):
         plan.intent = "clarify"
     elif USAGE_RE.search(q) and (plan.opponent or plan.user):
         plan.intent = "usage"
-        plan.usage_field = _usage_field(q)
+        plan.usage_field = _usage_field(names_only)
     return plan

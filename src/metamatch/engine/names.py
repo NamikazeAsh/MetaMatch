@@ -33,6 +33,18 @@ NICKNAMES = {
     "hatt": "Hatterene", "ceru": "Ceruledge", "staraptor": "Staraptor",
 }
 
+# Nicknames that are also ordinary English: they only count in a Pokemon slot (see _nickname_ok)
+AMBIGUOUS_NICKNAMES = {"gross", "moth", "crown", "drill", "valiant", "treads", "zap", "hippo", "meow",
+                       "prim", "ogre", "cornerstone"}
+# Words right before a Pokemon slot: "my moth", "vs gross", "ohko crown"
+SLOT_WORDS = {"my", "your", "their", "opposing", "opp", "enemy", "vs", "versus", "against", "than",
+              "does", "can", "outspeed", "outspeeds", "ohko", "ohkos", "2hko", "ko", "kos", "kill", "beat", "check"}
+# Regional forme suffix -> the adjective players use ("Ninetales-Alola" -> "Alolan Ninetales")
+REGION_ADJ = {"Alola": "alolan", "Galar": "galarian", "Hisui": "hisuian", "Paldea": "paldean"}
+# Base formes the dex has no name for, so "Single Strike Urshifu" still resolves
+BASE_FORMES = {"Urshifu": "Single Strike", "Landorus": "Incarnate", "Tornadus": "Incarnate",
+               "Thundurus": "Incarnate", "Enamorus": "Incarnate", "Ogerpon": "Teal"}
+
 # Tokens that look like names to a fuzzy matcher but are normal question words
 COMMON_WORDS = {
     "outspeed", "outspeeds", "faster", "slower", "survive", "survives", "damage", "percent", "percentage",
@@ -55,6 +67,71 @@ def _mega_aliases(name):
         return []
     base, suffix = norm(parts[0]), norm(parts[1])
     return [f"mega {base} {suffix}".strip(), f"{base} mega {suffix}".strip()]
+
+
+def _norm_map(text):
+    """norm(text) padded with spaces, plus the raw index of each normalised character."""
+    out, idx = [" "], [0]
+    for i, ch in enumerate(text or ""):
+        c = ch.lower()
+        if len(c) == 1 and ("a" <= c <= "z" or "0" <= c <= "9"):
+            out.append(c)
+            idx.append(i)
+        elif out[-1] != " ":
+            out.append(" ")
+            idx.append(i)
+    if out[-1] != " ":
+        out.append(" ")
+        idx.append(len(text or ""))
+    return "".join(out), idx
+
+
+def _nickname_ok(query, start, end):
+    """An English word nickname ('moth', 'gross') counts only where a Pokemon fits."""
+    raw = query[start:end]
+    before = query[:start].rstrip()
+    if raw[:1].isupper() and before and before[-1] not in ".?!:":
+        return True
+    if re.match(r"['\u2019]s\b", query[end:]):
+        return True
+    prev = re.findall(r"[a-z0-9]+", before.lower())
+    return bool(prev) and prev[-1] in SLOT_WORDS
+
+
+@lru_cache(maxsize=1)
+def _forme_aliases():
+    """Aliases built from dex forme data: 'alolan ninetales', 'wash rotom', 'rotom w', 'black kyurem'."""
+    from metamatch.engine.dex import get_dex
+    bases = {}
+    for game in ("sv", "champions"):
+        dex = get_dex(game)
+        for name, data in (dex.species_data.items() if dex else []):
+            base = data.get("baseSpecies")
+            if base and name.startswith(base + "-"):
+                forme = name[len(base) + 1:]
+                if not re.search(r"Mega|Gmax|Totem|Tera$", forme):
+                    bases.setdefault(base, {})[name] = forme
+    pairs = {}
+    for base, formes in bases.items():
+        b = norm(base)
+        initials = [f[0].lower() for f in formes.values()]
+        for name, forme in formes.items():
+            f = norm(forme)
+            pairs.setdefault(f"{f} {b}", name)
+            region, _, rest = forme.partition("-")
+            if region in REGION_ADJ:
+                adj, rest = REGION_ADJ[region], norm(rest)
+                pairs.setdefault(f"{adj} {b} {rest}".strip(), name)
+                if rest:
+                    pairs.setdefault(f"{adj} {rest} {b}", name)
+            # One letter short forms ("Rotom W") only when unambiguous and not an English word ("Ninetales a")
+            letter = forme[0].lower()
+            if "-" not in forme and initials.count(letter) == 1 and letter not in "ai":
+                pairs.setdefault(f"{b} {letter}", name)
+    for base, forme in BASE_FORMES.items():
+        pairs.setdefault(f"{norm(forme)} {norm(base)}", base)
+        pairs.setdefault(f"{norm(base)} {norm(forme)}", base)
+    return pairs
 
 
 @lru_cache(maxsize=1)
@@ -88,6 +165,9 @@ def _index():
         for alias in _mega_aliases(n):
             pairs.setdefault(alias, n)
     known = set(names)
+    for alias, target in _forme_aliases().items():
+        if target in known:
+            pairs.setdefault(alias, target)
     for alias, target in NICKNAMES.items():
         if target in known:
             pairs.setdefault(alias, target)
@@ -113,19 +193,23 @@ def _fuzzy_targets():
     # Usage list names only: typo matching against every dex entry (CAP, battle formes) misfires far more often
     usage = set(_usage_names())
     return {alias: display for alias, display in _index()
-            if display in usage and len(alias) >= 5 and alias.count(" ") <= 1}
+            if display in usage and len(alias) >= 5 and alias.count(" ") <= 1
+            and alias not in AMBIGUOUS_NICKNAMES and len(alias.split()[-1]) > 1}
 
 
-def find_pokemon(query):
-    """Pokemon named in the query, in the order they appear."""
-    text = f" {norm(query)} "
+def find_pokemon_spans(query):
+    """(start, end, display) for every Pokemon mention, as raw character offsets into `query`, in order."""
+    text, idx = _norm_map(query)
     found = []
     for alias, display in _index():
         key = f" {alias} "
         pos = text.find(key)
         while pos >= 0:
-            if display not in [d for _, d in found]:
-                found.append((pos, display))
+            start, end = idx[pos + 1], idx[pos + len(alias)] + 1
+            if alias in AMBIGUOUS_NICKNAMES and not _nickname_ok(query, start, end):
+                pos = text.find(key, pos + 1)
+                continue
+            found.append((start, end, display))
             # Blank out the match (keeping the boundary spaces) so 'Rotom' doesn't also fire inside 'Rotom Wash'
             text = text[:pos + 1] + " " * len(alias) + text[pos + 1 + len(alias):]
             pos = text.find(key)
@@ -141,7 +225,12 @@ def find_pokemon(query):
             candidates.insert(0, f"{word} {words[i + 1][1]}")
         for cand in candidates:
             match = difflib.get_close_matches(cand, targets, n=1, cutoff=0.85)
-            if match and targets[match[0]] not in [d for _, d in found]:
-                found.append((pos, targets[match[0]]))
+            if match and targets[match[0]] not in [d for _, _, d in found]:
+                found.append((idx[pos], idx[pos + len(cand) - 1] + 1, targets[match[0]]))
                 break
-    return [display for _, display in sorted(found)]
+    return sorted(found)
+
+
+def find_pokemon(query):
+    """Pokemon named in the query, in the order they appear."""
+    return list(dict.fromkeys(d for _, _, d in find_pokemon_spans(query)))

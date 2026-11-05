@@ -36,9 +36,11 @@ def _speed_clash(text, verdict):
         re.search(rf"{o}[^.]{{0,25}}(\bis slower|\bis outsped|{negated})", text, re.I)
     says_slower = re.search(rf"(\bslower than|\boutsped by|\boutpaced by|{negated})[^.]{{0,15}}{o}", text, re.I) or \
         re.search(rf"{o}[^.]{{0,25}}\b(outspeeds|is faster|outpaces)", text, re.I)
-    if verdict.answer != "yes" and says_faster:
+    # "Is X slower?" questions answer yes when X is slower, so read the verdict back as "is X faster"
+    answer = {"yes": "no", "no": "yes"}.get(verdict.answer, verdict.answer) if verdict.ask_slower else verdict.answer
+    if answer != "yes" and says_faster:
         return "a claim that it is faster"
-    if verdict.answer != "no" and says_slower:
+    if answer != "no" and says_slower:
         return "a claim that it is slower"
     return None
 

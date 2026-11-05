@@ -34,6 +34,7 @@ class Verdict:
     subject: str = ""               # the player's Pokemon, for contradiction checks
     other: str = ""                 # the opposing Pokemon
     survive: bool = False           # KO question phrased as "does X survive"
+    ask_slower: bool = False        # speed question phrased as "is X slower": "yes" means subject is slower
 
 
 def _pct(x):
@@ -111,10 +112,18 @@ def solve_speed(plan, dex, game):
     if not us or not them:
         return None
     name = display_name(name)
-    answer = "yes" if us > them else "no" if us < them else "tie"
-    verb = {"yes": "outspeeds", "no": "is slower than", "tie": "speed ties with"}[answer]
+    order = "yes" if us > them else "no" if us < them else "tie"
+    verb = {"yes": "outspeeds", "no": "is slower than", "tie": "speed ties with"}[order]
     spread = describe_spread(s, game) if s else "an uninvested spread"
     statement = f"{_user_name(p)} ({us} Speed) {verb} {name} running its most common spread ({spread}, {them} Speed)."
+    # The answer is about the question's subject and comparison: "Does Dragapult outspeed my Tusk?"
+    subject, other, faster = _user_name(p), name, us > them
+    if plan.subject == "opponent":
+        subject, other, faster = name, _user_name(p), them > us
+        verb = {"yes": "is slower than", "no": "outspeeds", "tie": "speed ties with"}[order]
+        statement = f"{name} running its most common spread ({spread}, {them} Speed) {verb} {_user_name(p)} ({us} Speed)."
+    slower = (them > us) if plan.subject == "user" else (us > them)
+    answer = "tie" if us == them else ("yes" if (slower if plan.speed_ask == "slower" else faster) else "no")
     facts = [f"{_user_name(p)} Speed: {us}.", f"{name} Speed with its most common spread: {them}."]
     if s and s["speeds"]:
         faster = sum(share for spe, share in s["speeds"] if spe < us)
@@ -124,7 +133,9 @@ def solve_speed(plan, dex, game):
         facts.append(f"Holding Choice Scarf, {_user_name(p)} actually reaches {int(us * 1.5)} Speed.")
     if s and s.get("item") == "Choice Scarf":
         facts.append(f"{_pct(s['item_share'])} of {name} carry Choice Scarf, reaching {int(them * 1.5)} Speed.")
-    return Verdict("speed", answer, statement, facts, subject=_user_name(p), other=name)
+    # Contradiction checks read the answer as "subject is faster than other", inverted when ask_slower
+    return Verdict("speed", answer, statement, facts, subject=subject, other=other,
+                   ask_slower=plan.speed_ask == "slower")
 
 
 def _attack(plan, dex, game):
