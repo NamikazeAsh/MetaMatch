@@ -122,6 +122,15 @@ CSS = """
 .mp-tip::after { content:""; position:absolute; left:14px; top:100%; border:6px solid transparent;
   border-top-color:color-mix(in srgb, var(--pc) 55%, transparent); }
 .mp-mate-wrap:hover .mp-tip, .mp-mate-wrap:focus-visible .mp-tip { opacity:1; visibility:visible; transform:translateY(0); }
+/* Cards in the last grid column open their hover cards leftward so they never run off the section's edge */
+.mp-stories .mp-card:nth-child(3n) .mp-tip { left:auto; right:-6px; }
+.mp-stories .mp-card:nth-child(3n) .mp-tip::after { left:auto; right:14px; }
+@media (max-width: 1050px) {
+  .mp-stories .mp-card:nth-child(3n) .mp-tip { left:-6px; right:auto; }
+  .mp-stories .mp-card:nth-child(3n) .mp-tip::after { left:14px; right:auto; }
+  .mp-stories .mp-card:nth-child(2n) .mp-tip { left:auto; right:-6px; }
+  .mp-stories .mp-card:nth-child(2n) .mp-tip::after { left:auto; right:14px; }
+}
 .mp-tip-sprite { width:48px; height:48px; flex-shrink:0; background-size:contain, contain; background-repeat:no-repeat;
   background-position:center; filter:drop-shadow(0 0 8px color-mix(in srgb, var(--pc) 60%, transparent)); }
 .mp-tip-body { display:flex; flex-direction:column; gap:3px; min-width:0; }

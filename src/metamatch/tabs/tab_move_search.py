@@ -1,6 +1,15 @@
+from html import escape
+
 import streamlit as st
 from metamatch import config, strategy_data
 from metamatch.utils import get_pokemon_sprite
+
+
+def _options(value):
+    """Strategy Dex fields can be one value or a list of alternatives: 'Sitrus Berry / Heavy-Duty Boots'."""
+    if isinstance(value, (list, tuple)):
+        return escape(" / ".join(str(v) for v in value))
+    return escape(str(value).strip("[]").replace("'", "").replace(", ", " / "))
 
 
 def render(get_strat_data_fn, get_usage_data_fn):
@@ -102,9 +111,9 @@ def render(get_strat_data_fn, get_usage_data_fn):
 <div style="font-size: 1.1rem; font-weight: 600; color: #e0e0e0;">{res['set_name'].split('(')[0]}</div>
 </div>
 <div style="text-align: right; font-size: 0.8rem; color: #aaa;">
-<div>✨ {res['ability']}</div>
-<div>🎒 {res['item']}</div>
-<div>🧬 {' / '.join(res['nature']) if isinstance(res['nature'], list) else str(res['nature']).strip("[]").replace("'", "").replace(", ", " / ")}</div>
+<div>✨ {_options(res['ability'])}</div>
+<div>🎒 {_options(res['item'])}</div>
+<div>🧬 {_options(res['nature'])}</div>
 </div>
 </div>
 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; font-size: 0.85rem;">

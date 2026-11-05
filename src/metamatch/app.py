@@ -55,6 +55,13 @@ st.html(r'''
     div[data-testid="stMetricValue"] { font-family: 'Inter', sans-serif; font-weight: 800 !important; color: #fff !important; text-shadow: 0 0 15px rgba(255,255,255,0.2); font-size: clamp(1.4rem, 2.2vw, 2.1rem) !important; }
     div[data-testid="stMetricLabel"] { color: #888 !important; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem !important; }
 
+    /* Recent team cards: link and remove button stay on one line, a long label ends in an ellipsis */
+    [class*="st-key-recentrow_"] { flex-wrap: nowrap !important; }
+    [class*="st-key-recentrow_"] [data-testid="stPageLink"] { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+    [class*="st-key-recentrow_"] [data-testid="stPageLink"] a, [class*="st-key-recentrow_"] [data-testid="stPageLink"] p {
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    [class*="st-key-forget_"] { flex: 0 0 auto; }
+
     /* Small remove buttons on the sidebar's recent team cards */
     [class*="st-key-forget_"] button { width: auto !important; min-height: 0 !important; padding: 2px 4px !important;
         background: transparent !important; border: none !important; color: #6b7487 !important; box-shadow: none !important; }
@@ -360,7 +367,7 @@ def recent_teams_sidebar(exclude=None):
             st.html(team_strip(t))
             names = t['pokemon_names']
             label = t['name'] or (names[0] + (f" + {len(names) - 1}" if len(names) > 1 else "") if names else "Team")
-            with st.container(horizontal=True, vertical_alignment="center", gap="small"):
+            with st.container(horizontal=True, vertical_alignment="center", gap="small", key=f"recentrow_{t['id']}"):
                 st.page_link(TEAM_PAGE, label=f"{label} · {config.FORMATS.get(t['format'], {}).get('label', '')}",
                              icon=":material/history:", query_params={"t": t['id']}, width="stretch")
                 # Saved teams only leave this list; unsaved ones are deleted with their chat
