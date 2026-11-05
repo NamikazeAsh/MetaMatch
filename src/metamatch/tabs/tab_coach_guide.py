@@ -1,6 +1,22 @@
 import streamlit as st
 
 
+def _guide_controls():
+    """The guide is a slow LLM call, so it's written on request instead of during analysis."""
+    from metamatch.agents.client import ollama_available
+    from metamatch.suggestions import get_team_guide
+    if not ollama_available():
+        st.info("The pilot guide is written by the local coach model. Start Ollama to generate one; "
+                "every other tab works without it.")
+        return
+    if st.session_state.analysis.get('guide') is False:
+        st.warning("The coach couldn't write a guide for this team. Try again.")
+    if st.button("Write my pilot guide", type="primary", key="coach_guide_button"):
+        with st.spinner("Professor Oak is writing your guide..."):
+            st.session_state.analysis['guide'] = get_team_guide(st.session_state.analysis['team']) or False
+        st.rerun()
+
+
 def render():
     if st.session_state.analysis.get('guide'):
         g = st.session_state.analysis['guide']
@@ -29,4 +45,4 @@ def render():
             with st.expander(f"🔗 {c.get('name')}", expanded=True):
                 st.write(c.get('description'))
     else:
-        st.warning("Guide generation failed or is unavailable.")
+        _guide_controls()

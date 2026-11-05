@@ -6,7 +6,7 @@ the LLM's advice is shown only if it passes a verifier, with one retry.
 """
 import re
 
-from .client import get_agent_client
+from .client import get_agent_client, ollama_available
 from .grounded import FREE_NUMBERS, _numbers
 from metamatch import config
 from metamatch.engine.briefing import Briefing
@@ -15,6 +15,7 @@ from metamatch.rag import store
 
 # Retrieved analyses can run past 3,000 characters; a 3B model loses the engine facts behind them
 RAG_CHARS = 700
+OFFLINE_NOTE = "_Professor Oak is offline (Ollama isn't running), so only the engine's numbers are shown. Start Ollama for his advice._"
 # Questions where the engine's verdicts are the core of the answer
 SUMMARY_RE = re.compile(r"\b(threats?|counters?|struggle\w*|win ?con\w*|weakness\w*|weak to)", re.I)
 RECOMMEND = re.compile(r"\b(answer|counter|handle|best|deal with|check|beat|use|great|ideal|recommend|switch|option|"
@@ -152,12 +153,20 @@ Rules:
             yield briefing.summary + "\n\n"
 
         context = self._context(query, team_context, named_context, briefing.facts)
+        if not ollama_available():
+            yield OFFLINE_NOTE
+            if not show_summary and briefing.summary:
+                yield "\n\n" + briefing.summary
+            return
         feedback = None
         for _ in range(2):
             try:
                 advice = self._advise(context, history, feedback)
             except Exception as e:  # LLM down: the engine check still stands on its own
                 print(f"Coach failed: {e}")
+                yield OFFLINE_NOTE
+                if not show_summary and briefing.summary:
+                    yield "\n\n" + briefing.summary
                 return
             feedback = verify(advice, context, briefing, team_context)
             if feedback is None:

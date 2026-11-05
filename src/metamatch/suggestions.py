@@ -228,6 +228,9 @@ def get_team_guide(team):
             "Roles": p.get("Roles", [])
         })
 
+    from .agents.client import ollama_available
+    if not ollama_available():
+        return None
     max_retries = 3
     attempt = 0
     client, model = get_client()

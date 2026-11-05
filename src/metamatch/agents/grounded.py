@@ -7,7 +7,7 @@ On failure the LLM gets one retry, then the answer is shown with the facts inste
 """
 import re
 
-from .client import get_agent_client
+from .client import get_agent_client, ollama_available
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
 ANSWER_LINE = re.compile(r"^\s*\**ANSWER\s*:.*$", re.I | re.M)
@@ -105,6 +105,8 @@ class GroundedAgent:
 
     def explain(self, query, verdict):
         """A verified explanation, or '' when the model can't produce one."""
+        if not ollama_available():
+            return ""
         feedback = None
         for _ in range(2):
             try:
