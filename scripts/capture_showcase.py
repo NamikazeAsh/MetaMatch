@@ -171,6 +171,15 @@ def frame(page, name, target=None, offset=80):
     return save(Image.open(io.BytesIO(page.screenshot())), name)
 
 
+def collapse_sidebar(page):
+    """Hides the sidebar so content frames show the content, not the same recent teams every time."""
+    if not page.locator('[data-testid="stSidebar"][aria-expanded="true"]').count():
+        return
+    page.locator('[data-testid="stSidebarHeader"]').first.hover()
+    page.locator('[data-testid="stSidebarCollapseButton"] button').first.click()
+    page.wait_for_timeout(900)
+
+
 def open_sample(page):
     page.goto(URL)
     page.wait_for_selector(".mp-card", timeout=120000)
@@ -267,6 +276,7 @@ def capture_dashboard(b, llm):
     check(page, "dashboard")
     frame(page, "dashboard")
     frame(page, "squad", "text=Your Squad", offset=90)
+    collapse_sidebar(page)
     for name, slug in [("Team Overview", "tab_overview"), ("Audit", "tab_audit"), ("Meta Threats", "tab_threats"),
                        ("Recommendations", "tab_recommendations"), ("Matchup Matrices", "tab_matrices"),
                        ("Speed Tiers", "tab_speed")]:
@@ -284,16 +294,25 @@ def capture_dashboard(b, llm):
 
 
 def capture_chat(b):
+    """One clean conversation per shot: the team's saved chat is cleared and the page reloaded first."""
+    from metamatch import storage
     page = new_page(b)
     open_sample(page)
-    tab(page, "Coach Chat")
+    team_url = page.url
+    tid = re.search(r"[?&]t=([0-9a-f]+)", team_url).group(1)
     for question, slug in [("Does my Great Tusk outspeed Iron Valiant?", "chat_clemont"),
                            ("How do I beat Raging Bolt?", "chat_oak"),
                            ("What item does Kingambit usually run?", "chat_brock"),
                            ("Does it outspeed my Dragapult?", "chat_clarify")]:
+        storage.clear_chat(tid)
+        page.goto(team_url)
+        page.wait_for_selector("text=Team Dashboard", timeout=120000)
+        idle(page)
+        collapse_sidebar(page)
+        tab(page, "Coach Chat")
         q, _ = ask(page, question)
         check(page, slug)
-        frame(page, slug, q, offset=90)
+        frame(page, slug, "text=Ask the Coach", offset=85)
     page.close()
 
 
@@ -358,6 +377,13 @@ def capture_extras(b, user_dir):
         page.get_by_role("button", name="Try a sample team").click()
         page.wait_for_selector("text=Team Dashboard", timeout=120000)
         idle(page)
+        # Same store as the chat shots: start from an empty conversation
+        from metamatch import storage
+        storage.clear_chat(re.search(r"[?&]t=([0-9a-f]+)", page.url).group(1))
+        page.reload()
+        page.wait_for_selector("text=Team Dashboard", timeout=120000)
+        idle(page)
+        collapse_sidebar(page)
         tab(page, "Coach Chat")
         q, _ = send(page, "What are my biggest threats?")
         frame(page, "offline_mode", q, offset=90)

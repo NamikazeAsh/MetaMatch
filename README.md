@@ -31,7 +31,7 @@ Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is com
 
 ![MetaMatch Dashboard](assets/images/dashboard.png)
 
-<p align="center"><b>👀 No install needed: <a href="showcase/">take the visual tour</a></b>, every screen of the app with real data and real coach answers.</p>
+<p align="center"><b>No install needed: <a href="showcase/">take the visual tour</a></b>, every screen of the app with real data and real coach answers.</p>
 
 ---
 
