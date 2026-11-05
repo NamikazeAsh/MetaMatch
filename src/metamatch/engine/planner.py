@@ -48,6 +48,7 @@ class Plan:
     stat: str | None = None
     usage_field: str | None = None  # item, ability, move, tera, spread
     opp_overrides: dict = field(default_factory=dict)  # explicit set details from the question
+    raw_stats: bool = False         # "ignore items/abilities": compare bare stats, no Scarf or field
 
     @property
     def opponent(self):
@@ -286,6 +287,7 @@ def plan_query(query, team):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:
         plan.intent = "speed"
+        plan.raw_stats = bool(re.search(r"\b(ignor\w*|without|no)\b[^.?]*\b(items?|scarf)\b", q, re.I))
     elif (SPEED_RE.search(q) or KO_RE.search(q) or DAMAGE_RE.search(q)) and not plan.opponents:
         # A matchup question with no recognisable opponent: ask, never answer a different question
         plan.intent = "clarify"

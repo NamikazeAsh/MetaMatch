@@ -6,6 +6,7 @@
 //            "attacker_stats": {...}, "defender_stats": {...}} or {"id", "ok": false, "error": "..."}
 const readline = require('readline');
 const calc = require('@smogon/calc');
+const {getFinalSpeed} = require('@smogon/calc/dist/mechanics/util');
 
 const GENS = {sv: calc.Generations.get(9), champions: calc.Generations.get(0)};
 
@@ -38,6 +39,8 @@ function run(req) {
     desc,
     attacker_stats: attacker.stats,
     defender_stats: defender.stats,
+    attacker_speed: getFinalSpeed(gen, attacker, field, field.attackerSide),
+    defender_speed: getFinalSpeed(gen, defender, field, field.defenderSide),
   };
 }
 

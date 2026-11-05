@@ -9,7 +9,9 @@ from dataclasses import dataclass, field
 
 from metamatch import config
 from metamatch.engine.dex import dex_for_format
-from metamatch.engine.sets import likely_set
+from metamatch.engine import mechanics
+from metamatch.engine.sets import calc_spec, likely_set
+from metamatch.engine.solvers import user_spec
 from metamatch.logic_engine import best_hits
 from metamatch.suggestions import compute_threats
 from metamatch.type_chart import TYPE_CHART
@@ -41,24 +43,49 @@ def _hits_to_ko(result):
     return math.ceil(100 / lo) if lo > 0 else None
 
 
+def _kill_priority(pairs, k, attacker, defender, dex):
+    """(priority, move) of the strongest priority bracket that can land the k-th, killing hit."""
+    if not pairs or k is None:
+        return 0, None
+    best = pairs[0][1]
+    hp = best["defender_stats"]["hp"]
+    effect = mechanics.survival_effect(best, attacker, defender, pairs[0][0])
+    before = mechanics._total(best, k - 1, effect)[0] if k > 1 else 0
+    top = (0, None)
+    for move, r in pairs:
+        pri = mechanics.move_priority(move, dex, attacker, turn=k)
+        first_hit = mechanics._total(r, 1, effect if k == 1 else None)[0]
+        if pri > top[0] and before + first_hit >= hp:
+            top = (pri, move)
+    return top
+
+
 def exchange(p, opp_set, game, dex):
     """
-    One on one numbers for a team member vs an opponent set: speed share, best hit each way and
-    hits to KO each way. None when the calc is unavailable.
+    One on one numbers for a team member vs an opponent set: speed share (Choice Scarf mixed in at its
+    usage share), best hit each way, hits to KO each way (Sturdy, Sash and Disguise aware) and the
+    priority each side can finish with. None when the calc is unavailable.
     """
-    hits = best_hits(p, opp_set, game, dex, n=1)
+    hits = best_hits(p, opp_set, game, dex, n=4)
     if hits is None:
         return None
     dealt, taken = hits
+    mine, theirs = user_spec(p, game), calc_spec(opp_set)
     speeds = opp_set.get("speeds") or []
-    user_speed = p.get("Speed", 0)
+    # Final Speed from the same calc call the damage came from, so it matches the chat speed solver
+    user_speed = next((r.get("attacker_speed") for _, r in dealt), None) or p.get("Speed", 0)
+    to_ko = mechanics.hits_to_ko(dealt[0][1], mine, theirs, dealt[0][0]) if dealt else None
+    to_be_koed = mechanics.hits_to_ko(taken[0][1], theirs, mine, taken[0][0]) if taken else None
     return {
         "name": p["Pokemon"],
-        "outspeeds": sum(share for spe, share in speeds if spe < user_speed),
+        "speed": user_speed,
+        "outspeeds": mechanics.scarf_adjusted_share(user_speed, speeds, opp_set.get("scarf_share", 0.0)),
         "dealt": dealt[0] if dealt else None,
         "taken": taken[0] if taken else None,
-        "to_ko": _hits_to_ko(dealt[0][1]) if dealt else None,
-        "to_be_koed": _hits_to_ko(taken[0][1]) if taken else None,
+        "to_ko": to_ko,
+        "to_be_koed": to_be_koed,
+        "priority": _kill_priority(dealt, to_ko, mine, theirs, dex),
+        "opp_priority": _kill_priority(taken, to_be_koed, theirs, mine, dex),
     }
 
 
@@ -69,7 +96,9 @@ def _verdict(x):
         return "lose" if theirs else "even"
     if theirs is None:
         return "win"
-    faster = x["outspeeds"] >= 0.5
+    # On the turn both would land the KO, the higher priority finisher moves first, then Speed
+    pri, opp_pri = x.get("priority", (0, None))[0], x.get("opp_priority", (0, None))[0]
+    faster = pri > opp_pri or (pri == opp_pri and x["outspeeds"] >= 0.5)
     if mine < theirs or (mine == theirs and faster):
         return "win"
     if theirs == 1 or mine > theirs or (mine == theirs and not faster):
@@ -91,6 +120,10 @@ def _reason(x):
     """'faster; Earthquake 69-82% (2HKO); takes Iron Head 43-51% (3HKO)'"""
     share = x["outspeeds"]
     speed = "faster" if share >= 0.95 else "slower" if share <= 0.05 else f"faster than {share * 100:.0f}% of sets"
+    if x.get("priority", (0, None))[1] and x["to_ko"] == x["to_be_koed"]:
+        speed += f", finishes first with {x['priority'][1]}"
+    if x.get("opp_priority", (0, None))[1] and x["to_ko"] == x["to_be_koed"]:
+        speed += f", but it finishes with {x['opp_priority'][1]}"
     dealt = f"{_hit(x['dealt'])} ({_hko(x['to_ko'])})" if x["dealt"] else "no damaging move"
     taken = f"takes {_hit(x['taken'])} ({_hko(x['to_be_koed'])})" if x["taken"] else "takes no damage"
     return f"{speed}; {dealt}; {taken}"

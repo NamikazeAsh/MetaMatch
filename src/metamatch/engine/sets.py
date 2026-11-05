@@ -111,6 +111,8 @@ def likely_set(name, format_id, known=None):
         "ability_share": ability_share,
         "moves": move_list,
         "tera": (teras[0][0].capitalize(), teras[0][1]) if teras else None,
+        "scarf_share": 1.0 if to_id(item or "") == "choicescarf" and known.get("item") else
+                       0.0 if known.get("item") else dict(items).get("choicescarf", 0.0),
         "speeds": speed_distribution(key, format_id, entry),
     }
 
