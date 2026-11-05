@@ -31,6 +31,8 @@ Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is com
 
 ![MetaMatch Dashboard](assets/images/dashboard.png)
 
+<p align="center"><b>👀 No install needed: <a href="showcase/">take the visual tour</a></b>, every screen of the app with real data and real coach answers.</p>
+
 ---
 
 ## 📊 MetaBench: The MetaMatch Benchmarker
@@ -302,7 +304,7 @@ Ollama and Node are both optional. Without Ollama, every analysis tab still work
 ## 🧪 Tests & Benchmark
 
 ```bash
-pytest                                     # 123 tests: parsing, mechanics, planner, verifiers, strategy verdicts, replays, MetaFlash, storage, frozen set integrity
+pytest                                     # 124 tests: parsing, mechanics, planner, verifiers, strategy verdicts, replays, MetaFlash, storage, frozen set integrity
 
 python bench/run.py --arm raw              # bare model with the team pasted in
 python bench/run.py --arm metamatch        # full pipeline
