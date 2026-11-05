@@ -4,6 +4,7 @@
 
 <h1 align="center">MetaMatch</h1>
 
+[![Visual Tour](https://img.shields.io/badge/Visual%20Tour-see%20every%20screen-00d4ff)](showcase/)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Ollama](https://img.shields.io/badge/AI-Ollama-000000?logo=ollama&logoColor=white)](https://ollama.com/)
@@ -13,6 +14,8 @@
 [![Frozen Test Set](<https://img.shields.io/badge/Frozen%20test%20set-201%20questions-blueviolet>)](#frozen-fresh-test-set)
 [![Tests](https://github.com/NamikazeAsh/MetaMatch/actions/workflows/tests.yml/badge.svg)](https://github.com/NamikazeAsh/MetaMatch/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**[Take the visual tour](showcase/)**, every screen of the app with real data and real coach answers.
 
 **MetaMatch** is a hybrid AI system for competitive Pokémon team analysis that runs entirely on a laptop. It pairs a deterministic battle engine (the official Smogon damage calculator, monthly ladder statistics, type and role logic) with a small local LLM, on one principle:
 
@@ -30,8 +33,6 @@ Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is com
 * 🔗 **Every team has a link:** dashboards live at their own URL, so refresh, bookmarks, Back and a second tab all just work.
 
 ![MetaMatch Dashboard](assets/images/dashboard.png)
-
-<p align="center"><b>No install needed: <a href="showcase/">take the visual tour</a></b>, every screen of the app with real data and real coach answers.</p>
 
 ---
 
