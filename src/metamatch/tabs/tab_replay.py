@@ -56,7 +56,18 @@ def _team_states(battle, side):
     return "".join(rows)
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _fetch(replay_id):
+    """Replay JSON by id, cached so refreshing a /replay-auditor?id= link doesn't refetch."""
+    return replay.fetch_replay(replay_id)
+
+
 def render():
+    # /replay-auditor?id=<replay id> opens straight onto that replay (refresh and bookmarks work)
+    linked = st.query_params.get("id")
+    if linked and "replay_url_input" not in st.session_state:
+        st.session_state.replay_url_input = linked
+
     col_link, col_analyze = st.columns([3, 1])
     with col_link:
         replay_url = st.text_input(
@@ -68,12 +79,16 @@ def render():
     with col_analyze:
         analyze_btn = st.button("🔍 Analyze Replay", width="stretch", type="primary")
 
-    if analyze_btn and replay_url:
+    auto = bool(linked) and st.session_state.get("replay_id") != linked and not analyze_btn
+    if (analyze_btn and replay_url) or auto:
         with st.spinner("Fetching and analyzing replay..."):
             try:
-                _, link_side = replay.parse_replay_link(replay_url)
-                st.session_state.replay_analysis = replay.analyze(replay.fetch_replay(replay_url))
+                replay_id, link_side = replay.parse_replay_link(linked if auto else replay_url)
+                st.session_state.replay_analysis = replay.analyze(_fetch(replay_id))
+                st.session_state.replay_id = replay_id
                 st.session_state.replay_perspective = link_side or "p1"
+                if analyze_btn and st.query_params.get("id") != replay_id:
+                    st.query_params["id"] = replay_id  # only on a click: URL writes add history entries
             except replay.ReplayError as e:
                 st.error(str(e))
             except Exception as e:  # a log this parser has never seen; never show a traceback

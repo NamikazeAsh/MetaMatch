@@ -169,8 +169,9 @@ def delete_team(name):
 
 def chat_messages(tid):
     with _db() as c:
-        return [{"role": r["role"], "name": r["name"], "avatar": r["avatar"], "content": r["content"]}
-                for r in c.execute("SELECT * FROM chats WHERE team_id = ? ORDER BY id", (tid,))]
+        rows = c.execute("SELECT * FROM chats WHERE team_id = ? ORDER BY id", (tid,)).fetchall()
+    # Same shape the chat tab builds live: user messages have no name or avatar keys at all
+    return [{k: r[k] for k in ("role", "name", "avatar", "content") if r[k] is not None} for r in rows]
 
 
 def add_chat_message(tid, role, content, name=None, avatar=None):

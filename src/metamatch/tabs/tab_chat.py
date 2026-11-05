@@ -1,5 +1,13 @@
 import streamlit as st
+from metamatch import config, storage
 from metamatch.suggestions import get_chat_response
+
+
+def _persist(role, content, name=None, avatar=None):
+    """Keeps the conversation with its team, so a refresh or reopening the team brings it back."""
+    tid = st.session_state.get("team_id")
+    if config.LOCAL_MODE and tid:
+        storage.add_chat_message(tid, role, content, name=name, avatar=avatar)
 
 
 def render():
@@ -42,6 +50,7 @@ def render():
     if prompt := st.chat_input("How do I beat Kingambit?"):
         history = [{"role": m["role"], "content": m["content"]} for m in st.session_state.chat_messages]
         st.session_state.chat_messages.append({"role": "user", "content": prompt})
+        _persist("user", prompt)
         with chat_container:
             with st.chat_message("user"):
                 st.markdown(prompt)
@@ -83,3 +92,4 @@ def render():
             "avatar": avatar,
             "content": full_response
         })
+        _persist("assistant", full_response, name=agent_name, avatar=avatar)

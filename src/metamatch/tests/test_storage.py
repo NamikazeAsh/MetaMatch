@@ -87,7 +87,10 @@ class TestChatsAndPrefs(StorageTest):
         b = storage.remember_team(TEAM_CHAMPS, "gen9championsou")
         storage.add_chat_message(a, "user", "How do I beat Kingambit?")
         storage.add_chat_message(a, "assistant", "Engine check...", name="Professor Oak", avatar="📜")
-        self.assertEqual([m["role"] for m in storage.chat_messages(a)], ["user", "assistant"])
+        msgs = storage.chat_messages(a)
+        self.assertEqual([m["role"] for m in msgs], ["user", "assistant"])
+        self.assertNotIn("name", msgs[0])  # a None name crashed st.chat_message on restore
+        self.assertEqual(msgs[1]["name"], "Professor Oak")
         self.assertEqual(storage.chat_messages(b), [])
         storage.clear_chat(a)
         self.assertEqual(storage.chat_messages(a), [])

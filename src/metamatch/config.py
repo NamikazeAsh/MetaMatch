@@ -26,6 +26,10 @@ FORMATS = {
 }
 DEFAULT_FORMAT = "gen9ou"
 
+# Local single user mode (the default): recent teams, team links, chats and prefs persist in data/user/metamatch.db.
+# Set METAMATCH_LOCAL_MODE=0 on a shared deployment so visitors never see each other's teams.
+LOCAL_MODE = os.environ.get("METAMATCH_LOCAL_MODE", "1") != "0"
+
 # Champions replaces EVs with stat points: 66 total, 32 max per stat, level 50, IVs fixed at 31
 CHAMPIONS_SP_TOTAL = 66
 CHAMPIONS_SP_MAX = 32
