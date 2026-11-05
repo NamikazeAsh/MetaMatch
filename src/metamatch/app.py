@@ -319,13 +319,9 @@ def render_sidebar():
 
                     c1, c2 = st.columns(2)
                     if c1.button("Load", icon=":material/folder_open:", width="stretch"):
-                        st.session_state.default_input = selected_team['raw_text']
-                        if selected_team.get('analysis'):
-                            st.session_state.analysis = selected_team['analysis']
-                            st.session_state.pokemon_data = selected_team['raw_text']
-                            st.session_state.pokemon_names = extract_pokemon_names(selected_team['raw_text'])
-                            st.session_state.submitted = True
-                        st.rerun()
+                        # Saved teams store the paste only, so loading re-runs the current engine
+                        st.session_state.format_id = selected_team['format']
+                        analyze_team(selected_team['raw_text'], selected_team['format'])
                     if c2.button("Delete", icon=":material/delete:", width="stretch"):
                         if storage.delete_team(selected_name):
                             get_cached_teams.clear()
@@ -356,7 +352,7 @@ def render_sidebar():
                 team_name = st.text_input("Team Name:", placeholder="e.g. My Rain Team v1")
                 if st.button("💾 Save Current Analysis", width="stretch"):
                     if team_name:
-                        storage.save_team(team_name, st.session_state.pokemon_data, st.session_state.analysis)
+                        storage.save_team(team_name, st.session_state.pokemon_data, config.team_format(st.session_state.analysis['team']))
                         get_cached_teams.clear()
                         st.success(f"Saved '{team_name}'!")
                         st.rerun()
