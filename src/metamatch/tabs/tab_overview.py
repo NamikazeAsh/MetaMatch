@@ -1,3 +1,5 @@
+from html import escape
+
 import streamlit as st
 
 
@@ -32,7 +34,7 @@ def render(coverage: dict, weakness: dict, team_data: dict, type_map: dict):
                     if p.get('Damage From', {}).get(t_n.lower(), 1.0) > 1:
                         weak_mons.append(p['Pokemon'])
 
-                tooltip = f"Weak: {', '.join(weak_mons)}"
+                tooltip = escape(f"Weak: {', '.join(weak_mons)}", quote=True)
 
                 alert = f'''
                 <div title="{tooltip}" style="background-color:{bg}; padding:10px; border-radius:5px; border-left: 5px solid {bc}; margin-bottom:10px; cursor: help;">

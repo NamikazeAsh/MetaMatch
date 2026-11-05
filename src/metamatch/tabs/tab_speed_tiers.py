@@ -19,4 +19,4 @@ def render(team_data: dict):
     base = alt.Chart(df_c).encode(y=alt.Y('Name', sort='-x', axis=alt.Axis(title=None)), x=alt.X('Speed', axis=alt.Axis(title='Speed Stat')), tooltip=['Name', 'Speed', 'Type'])
     dots = base.mark_circle(size=100).encode(color=alt.Color('Type', scale=alt.Scale(domain=['Your Team', 'Meta'], range=['#3399FF', '#888888'])), opacity=alt.condition(alt.datum.Type == 'Your Team', alt.value(1.0), alt.value(0.5)))
     text = base.mark_text(align='left', dx=10, color='#3399FF', fontWeight='bold').encode(text=alt.Text('Speed'), opacity=alt.condition(alt.datum.Type == 'Your Team', alt.value(1.0), alt.value(0.0)))
-    st.altair_chart((dots + text).properties(height=600), use_container_width=True)
+    st.altair_chart((dots + text).properties(height=600), width="stretch")

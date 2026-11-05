@@ -1,0 +1,24 @@
+[theme]
+base = "dark"
+primaryColor = "#00d4ff"
+backgroundColor = "#0f1219"
+secondaryBackgroundColor = "#1a2030"
+textColor = "#e0e0e0"
+borderColor = "#2a3142"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap"
+baseRadius = "medium"
+
+[theme.sidebar]
+backgroundColor = "#11151f"
+secondaryBackgroundColor = "#1a2030"
+
+[client]
+toolbarMode = "minimal"
+
+[server]
+enableStaticServing = true
+# The auto reload watcher walks every loaded module (torch, transformers...) whenever a browser
+# connects, stalling the first paint by about a second. For live reload while editing, run with
+# --server.fileWatcherType auto
+fileWatcherType = "none"

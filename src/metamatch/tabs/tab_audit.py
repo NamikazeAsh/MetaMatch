@@ -1,3 +1,5 @@
+from html import escape
+
 import streamlit as st
 from metamatch.utils import get_pokemon_sprite
 
@@ -13,7 +15,7 @@ def render():
                 st.markdown(f"""
                 <div style="background: rgba(0, 212, 255, 0.05); border-left: 4px solid #00d4ff; padding: 12px 16px; margin-bottom: 12px; border-radius: 0 8px 8px 0;">
                     <span style="font-size: 1.1rem; margin-right: 8px;">💡</span>
-                    <span style="color: #e0e0e0; font-size: 0.95rem;">{p}</span>
+                    <span style="color: #e0e0e0; font-size: 0.95rem;">{escape(str(p))}</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -35,8 +37,8 @@ def render():
                         <img src="{sprite_url}" width="50" style="filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));">
                     </div>
                     <div>
-                        <div style="font-weight: 700; font-size: 1.1rem; color: #00d4ff; margin-bottom: 4px;">{pk}</div>
-                        <div style="color: #ccc; font-size: 0.9rem; line-height: 1.5;">{advice_text}</div>
+                        <div style="font-weight: 700; font-size: 1.1rem; color: #00d4ff; margin-bottom: 4px;">{escape(str(pk))}</div>
+                        <div style="color: #ccc; font-size: 0.9rem; line-height: 1.5;">{escape(advice_text)}</div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)

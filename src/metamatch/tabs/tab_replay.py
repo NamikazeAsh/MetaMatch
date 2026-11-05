@@ -57,8 +57,7 @@ def _team_states(battle, side):
 
 
 def render():
-    st.markdown("### 📼 Replay Auditor")
-    st.caption("Paste a Pokémon Showdown replay link to receive a tactical breakdown of your battle.")
+    st.caption("Paste a Pokémon Showdown replay link for a breakdown of your battle.")
 
     col_link, col_analyze = st.columns([3, 1])
     with col_link:

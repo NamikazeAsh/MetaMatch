@@ -29,17 +29,23 @@ def extract_pokemon_names(raw_data: str) -> list[str]:
     return names
 
 
+_SPRITES: dict[str, str] = {}
+
+
 def get_pokemon_sprite(name: str) -> str | None:
+    """Sprite URL from PokeAPI. Only hits are cached, so a network blip doesn't blank a sprite for the session."""
+    if name in _SPRITES:
+        return _SPRITES[name]
     try:
         slugified_name = pokeSlugify(name)
         url = f"https://pokeapi.co/api/v2/pokemon/{slugified_name}"
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
-            data = response.json()
-            sprite_url = data['sprites']['front_default']
+            sprite_url = response.json()['sprites']['front_default']
             if sprite_url:
+                _SPRITES[name] = sprite_url
                 return sprite_url
-    except:
+    except Exception:
         pass
     return None
 

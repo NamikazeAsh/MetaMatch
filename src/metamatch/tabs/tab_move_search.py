@@ -1,19 +1,15 @@
 import streamlit as st
-from metamatch import strategy_data
+from metamatch import config, strategy_data
 from metamatch.utils import get_pokemon_sprite
 
 
 def render(get_strat_data_fn, get_usage_data_fn):
-    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
-
-    with st.container():
-        c1, c2 = st.columns([3, 1])
-        with c1:
-            st.markdown("### 🔎 Find Sets by Moves")
-            st.caption("Locate verified Smogon sets or experimental ladder combos.")
-        with c2:
-            st.markdown("<div style='height: 15px'></div>", unsafe_allow_html=True)
-            include_loose = st.toggle("🧪 Include Loose Matches", value=False, help="Search usage stats for 'homemade' combos not yet in the Strategy Dex.")
+    # The format picker above the tabs drives this tab too
+    label = config.format_info(st.session_state.get("format_id"))["label"]
+    is_champions = config.format_game(st.session_state.get("format_id")) == "champions"
+    with st.container(horizontal=True, vertical_alignment="center"):
+        st.caption(f"Find {label} sets that run a combination of moves.")
+        include_loose = st.toggle("Include loose matches", value=False, help="Search usage stats for 'homemade' combos not yet in the Strategy Dex.")
 
     master_strat_data = get_strat_data_fn()
     usage_data = get_usage_data_fn()
@@ -32,7 +28,7 @@ def render(get_strat_data_fn, get_usage_data_fn):
 
     col_btn, col_info = st.columns([1, 4])
     with col_btn:
-        search_clicked = st.button("🚀 Find Sets", key="find_sets_btn", use_container_width=True)
+        search_clicked = st.button("🚀 Find Sets", key="find_sets_btn", width="stretch")
     with col_info:
         if not search_clicked and not move_selection:
             st.caption("👈 Select moves to start searching.")
@@ -41,11 +37,16 @@ def render(get_strat_data_fn, get_usage_data_fn):
 
     if search_clicked:
         if move_selection:
-            strat_results = strategy_data.find_sets_with_moves(move_selection, data=master_strat_data)
+            strat_results = [r for r in strategy_data.find_sets_with_moves(move_selection, data=master_strat_data)
+                             if label in r.get('formats', [])]
+            for r in strat_results:
+                r['formats'] = [label]
 
             usage_results = []
-            if include_loose:
-                usage_results = strategy_data.find_usage_matches(move_selection, usage_data=usage_data)
+            # Smogon has no Champions analyses yet, so ladder usage is the only source there
+            if include_loose or is_champions:
+                usage_results = [r for r in strategy_data.find_usage_matches(move_selection, usage_data=usage_data)
+                                 if r['format'] == label]
 
             exact_mons = {r['pokemon'] for r in strat_results}
             filtered_usage = [r for r in usage_results if r['pokemon'] not in exact_mons]
@@ -166,6 +167,6 @@ def render(get_strat_data_fn, get_usage_data_fn):
 </div>
 """, unsafe_allow_html=True)
             else:
-                st.warning("No matches found. Try enabling 'Include Loose Matches' or checking your move selection.")
+                st.warning(f"No {label} matches found. Try turning on 'Include loose matches', or pick another format above.")
         else:
             st.error("Please select at least one move.")

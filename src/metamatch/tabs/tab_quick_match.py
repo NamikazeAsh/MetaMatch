@@ -5,17 +5,10 @@ from metamatch.utils import get_pokemon_sprite
 
 
 def render(get_strat_data_fn):
-    st.markdown("### 🤝 Quick Match")
-    st.caption("Don't have a full team? Pick 1-5 Pokémon to find their best partners.")
-
+    # The sidebar format picker drives this tab too
     default_label = config.format_info(st.session_state.get("format_id"))["label"]
-    tgt_format = st.pills(
-        "Competitive Format",
-        options=[f["label"] for f in config.FORMATS.values()],
-        default=[default_label],
-        selection_mode="multi",
-        label_visibility="collapsed"
-    )
+    tgt_format = [default_label]
+    st.caption(f"Pick 1 to 5 Pokémon to find their best partners in {default_label}.")
 
     try:
         with open(config.JSON_DIR / "topPoke.json", "r") as f:
@@ -39,7 +32,7 @@ def render(get_strat_data_fn):
         selected_format_labels = tgt_format if tgt_format else [default_label]
 
         if recs:
-            st.markdown(f"**Top recommended partners for your squad:**")
+            st.markdown("**Top recommended partners for your squad:**")
             max_score = recs[0][1]
 
             for i in range(0, len(recs), 4):
