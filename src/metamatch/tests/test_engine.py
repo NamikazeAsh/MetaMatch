@@ -124,3 +124,21 @@ class TestCalc(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestNamesOffUsageList(unittest.TestCase):
+    """A Pokemon that drops off this month's usage list must still be recognised from the dex."""
+
+    def test_dex_species_found_without_usage_list(self):
+        from metamatch.engine import names
+        caches = (names._usage_names, names._index, names._fuzzy_targets)
+        for c in caches:
+            c.cache_clear()
+        try:
+            with patch.object(names, "_usage_names", lambda: ()):
+                for c in caches[1:]:
+                    c.cache_clear()
+                self.assertEqual(names.find_pokemon("does my Volcarona outspeed Baxcalibur"), ["Volcarona", "Baxcalibur"])
+        finally:
+            for c in caches:
+                c.cache_clear()

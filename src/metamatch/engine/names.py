@@ -58,13 +58,31 @@ def _mega_aliases(name):
 
 
 @lru_cache(maxsize=1)
-def _index():
-    """(alias, display) pairs, longest alias first so 'Rotom-Wash' beats 'Rotom'."""
+def _usage_names():
+    """Species on this month's usage list (topPoke.json), which changes with every stats update."""
     try:
         with open(config.JSON_DIR / "topPoke.json", encoding="utf-8") as f:
-            names = list(json.load(f).keys())
+            return tuple(json.load(f).keys())
     except (OSError, json.JSONDecodeError):
-        names = []
+        return ()
+
+
+@lru_cache(maxsize=1)
+def _dex_names():
+    """Every species in the bundled dexes, so a Pokemon that drops off the usage list is still recognised."""
+    from metamatch.engine.dex import get_dex
+    names = []
+    for game in ("sv", "champions"):
+        dex = get_dex(game)
+        if dex:
+            names.extend(dex.species_data)
+    return tuple(dict.fromkeys(names))
+
+
+@lru_cache(maxsize=1)
+def _index():
+    """(alias, display) pairs, longest alias first so 'Rotom-Wash' beats 'Rotom'."""
+    names = list(dict.fromkeys(_usage_names() + _dex_names()))
     pairs = {norm(n): n for n in names}
     for n in names:
         for alias in _mega_aliases(n):
@@ -92,7 +110,10 @@ def _game_words():
 @lru_cache(maxsize=1)
 def _fuzzy_targets():
     """Single and two word names that typos are matched against."""
-    return {alias: display for alias, display in _index() if len(alias) >= 5 and alias.count(" ") <= 1}
+    # Usage list names only: typo matching against every dex entry (CAP, battle formes) misfires far more often
+    usage = set(_usage_names())
+    return {alias: display for alias, display in _index()
+            if display in usage and len(alias) >= 5 and alias.count(" ") <= 1}
 
 
 def find_pokemon(query):
