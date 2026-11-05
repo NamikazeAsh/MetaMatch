@@ -126,6 +126,20 @@ class TestChatsAndPrefs(StorageTest):
         self.assertEqual(storage.get_pref("format"), "gen9uu")
 
 
+class TestUserDirOverride(unittest.TestCase):
+    def test_env_moves_the_store(self):
+        import importlib
+        from metamatch import config
+        with tempfile.TemporaryDirectory() as tmp, patch.dict("os.environ", {"METAMATCH_USER_DIR": tmp}):
+            importlib.reload(config)
+            importlib.reload(storage)
+            self.assertEqual(storage.DB_PATH, Path(tmp) / "metamatch.db")
+        # Back to the real paths for every other test
+        importlib.reload(config)
+        importlib.reload(storage)
+        self.assertEqual(storage.DB_PATH, config.DATA_DIR / "user" / "metamatch.db")
+
+
 class TestLegacyMigration(StorageTest):
     def test_old_json_teams_are_imported_once(self):
         legacy = {"teams": {"Rain": {"name": "Rain", "raw_text": TEAM, "updated_at": "2026-03-01T10:00:00",
