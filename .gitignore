@@ -141,6 +141,7 @@ data/json/*
 !data/json/meta_speeds_champions.json
 !data/json/dex_sv.json
 !data/json/dex_champions.json
+!data/json/usage_history.json
 data/stats/
 data/user/
 

@@ -105,6 +105,11 @@ def main():
         }, f, indent=2)
     logging.info(f"Stats updated to {args.month}.")
 
+    # Month over month history for the Meta Pulse on the start screen
+    from metamatch import meta_pulse
+    history = meta_pulse.record_local_stats(meta_pulse.load_history(), args.month)
+    meta_pulse.save_history(history)
+
     if args.rebuild_index:
         from metamatch.rag import build_index
         build_index.main()
