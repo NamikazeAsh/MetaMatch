@@ -54,6 +54,29 @@ class TestTeams(StorageTest):
         self.assertIsNotNone(storage.get_team(saved))
         self.assertEqual(len(storage.recent_teams(limit=100)), storage.KEEP_RECENT + 1)
 
+    def test_forget_recent(self):
+        loose = storage.remember_team(TEAM_CHAMPS, "gen9championsou")
+        storage.add_chat_message(loose, "user", "hi")
+        kept = storage.save_team("Keeper", TEAM, "gen9ou")
+        self.assertTrue(storage.forget_team(loose))
+        self.assertIsNone(storage.get_team(loose))  # unsaved: gone, chat with it
+        self.assertEqual(storage.chat_messages(loose), [])
+        self.assertTrue(storage.forget_team(kept))
+        self.assertEqual(storage.recent_teams(), [])  # saved: hidden from recent...
+        self.assertEqual([t["name"] for t in storage.list_teams_detailed()], ["Keeper"])  # ...but still saved
+        storage.remember_team(TEAM, "gen9ou")  # reopening brings it back
+        self.assertEqual([t["id"] for t in storage.recent_teams()], [kept])
+        self.assertFalse(storage.forget_team("nope"))
+
+    def test_old_database_gets_new_columns(self):
+        import sqlite3
+        conn = sqlite3.connect(storage.DB_PATH)
+        conn.execute("CREATE TABLE teams (id TEXT PRIMARY KEY, raw_text TEXT NOT NULL, format TEXT NOT NULL, name TEXT UNIQUE,"
+                     " created_at TEXT NOT NULL, opened_at TEXT NOT NULL, opened_seq INTEGER NOT NULL DEFAULT 0, saved_at TEXT)")
+        conn.execute("INSERT INTO teams VALUES ('abc', 'Pikachu', 'gen9ou', NULL, 'x', 'x', 1, NULL)")
+        conn.commit(); conn.close()
+        self.assertEqual([t["id"] for t in storage.recent_teams()], ["abc"])
+
     def test_save_rename_and_delete(self):
         a = storage.save_team("Main", TEAM, "gen9ou")
         b = storage.save_team("Main", TEAM_CHAMPS, "gen9championsou")  # name moves to the new team

@@ -55,6 +55,11 @@ st.html(r'''
     div[data-testid="stMetricValue"] { font-family: 'Inter', sans-serif; font-weight: 800 !important; color: #fff !important; text-shadow: 0 0 15px rgba(255,255,255,0.2); font-size: clamp(1.4rem, 2.2vw, 2.1rem) !important; }
     div[data-testid="stMetricLabel"] { color: #888 !important; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem !important; }
 
+    /* Small remove buttons on the sidebar's recent team cards */
+    [class*="st-key-forget_"] button { width: auto !important; min-height: 0 !important; padding: 2px 4px !important;
+        background: transparent !important; border: none !important; color: #6b7487 !important; box-shadow: none !important; }
+    [class*="st-key-forget_"] button:hover { color: #ff7b7b !important; transform: none !important; }
+
     /* Glass Buttons */
     .stButton > button { background: rgba(0, 212, 255, 0.1) !important; color: #00d4ff !important; border: 1px solid #00d4ff !important; backdrop-filter: blur(5px); border-radius: 8px !important; font-weight: 600 !important; transition: all 0.3s ease !important; width: 100%; }
     .stButton > button:hover { background: rgba(0, 212, 255, 0.2) !important; box-shadow: 0 0 20px rgba(0, 212, 255, 0.4) !important; transform: scale(1.02); }
@@ -355,8 +360,14 @@ def recent_teams_sidebar(exclude=None):
             st.html(team_strip(t))
             names = t['pokemon_names']
             label = t['name'] or (names[0] + (f" + {len(names) - 1}" if len(names) > 1 else "") if names else "Team")
-            st.page_link(TEAM_PAGE, label=f"{label} · {config.FORMATS.get(t['format'], {}).get('label', '')}",
-                         icon=":material/history:", query_params={"t": t['id']}, width="stretch")
+            with st.container(horizontal=True, vertical_alignment="center", gap="small"):
+                st.page_link(TEAM_PAGE, label=f"{label} · {config.FORMATS.get(t['format'], {}).get('label', '')}",
+                             icon=":material/history:", query_params={"t": t['id']}, width="stretch")
+                # Saved teams only leave this list; unsaved ones are deleted with their chat
+                if st.button("", icon=":material/close:", key=f"forget_{t['id']}", type="tertiary",
+                             help="Remove from recent" + (" (stays in Saved teams)" if t['name'] else "")):
+                    storage.forget_team(t['id'])
+                    st.rerun()
     st.markdown("---")
 
 

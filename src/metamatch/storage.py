@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS teams (
     created_at TEXT NOT NULL,
     opened_at  TEXT NOT NULL,
     opened_seq INTEGER NOT NULL DEFAULT 0,
+    in_recent  INTEGER NOT NULL DEFAULT 1,
     saved_at   TEXT
 );
 CREATE INDEX IF NOT EXISTS teams_opened ON teams(opened_seq);
@@ -77,6 +78,7 @@ def _db():
                 if str(path) not in _ready:
                     conn.execute("PRAGMA journal_mode = WAL")  # readers never block the writer, two tabs are fine
                     conn.executescript(SCHEMA)
+                    _upgrade_schema(conn)
                     conn.execute("BEGIN IMMEDIATE")
                     migrated = _migrate_legacy_json(conn)
                     conn.execute("COMMIT")
@@ -92,6 +94,13 @@ def _db():
         raise
     finally:
         conn.close()
+
+
+def _upgrade_schema(conn):
+    """Adds columns introduced after a database was created (CREATE TABLE IF NOT EXISTS won't)."""
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(teams)")}
+    if "in_recent" not in cols:
+        conn.execute("ALTER TABLE teams ADD COLUMN in_recent INTEGER NOT NULL DEFAULT 1")
 
 
 def normalise(raw_text):
@@ -124,7 +133,7 @@ def remember_team(raw_text, format_id):
         # opened_seq orders recent teams: Windows clock ticks are too coarse for timestamps to break ties
         seq = c.execute("SELECT COALESCE(MAX(opened_seq), 0) + 1 FROM teams").fetchone()[0]
         c.execute("INSERT INTO teams (id, raw_text, format, created_at, opened_at, opened_seq) VALUES (?, ?, ?, ?, ?, ?) "
-                  "ON CONFLICT(id) DO UPDATE SET opened_at = excluded.opened_at, opened_seq = excluded.opened_seq",
+                  "ON CONFLICT(id) DO UPDATE SET opened_at = excluded.opened_at, opened_seq = excluded.opened_seq, in_recent = 1",
                   (tid, text, format_id, now, now, seq))
         # Unnamed teams beyond the newest KEEP_RECENT are dropped; saved teams are never pruned
         c.execute("DELETE FROM teams WHERE name IS NULL AND id NOT IN "
@@ -140,7 +149,17 @@ def get_team(tid):
 
 def recent_teams(limit=5):
     with _db() as c:
-        return [_row(r) for r in c.execute("SELECT * FROM teams ORDER BY opened_seq DESC LIMIT ?", (limit,))]
+        return [_row(r) for r in c.execute("SELECT * FROM teams WHERE in_recent = 1 ORDER BY opened_seq DESC LIMIT ?", (limit,))]
+
+
+def forget_team(tid):
+    """Removes a team from recent teams. An unsaved team is deleted with its chat; a saved team only
+    leaves the recent list and stays under Saved teams. True if the team existed."""
+    with _db() as c:
+        cur = c.execute("DELETE FROM teams WHERE id = ? AND name IS NULL", (tid,))
+        if cur.rowcount:
+            return True
+        return c.execute("UPDATE teams SET in_recent = 0 WHERE id = ?", (tid,)).rowcount > 0
 
 
 def save_team(name, raw_text, format_id):
