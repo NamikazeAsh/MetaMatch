@@ -107,6 +107,32 @@ CSS = """
   border:1px solid rgba(255,255,255,0.08); background-size:contain, contain; background-repeat:no-repeat; background-position:center; }
 .mp-spark { flex-shrink:0; background-repeat:no-repeat; }
 
+/* Partner hover cards: open on hover or keyboard focus, anchored left so a panel edge never clips them */
+.mp-mate-wrap { position:relative; display:inline-flex; align-items:center; gap:5px; outline:none; cursor:default; }
+.mp-mate-wrap .mp-mate { transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.mp-mate-wrap:hover .mp-mate, .mp-mate-wrap:focus-visible .mp-mate { transform:scale(1.15);
+  border-color:var(--pc); box-shadow:0 0 10px -2px var(--pc); }
+.mp-tip { position:absolute; left:-6px; bottom:calc(100% + 10px); z-index:40; display:flex; gap:10px; align-items:center;
+  width:max-content; min-width:180px; max-width:240px; padding:10px 12px; border-radius:12px;
+  background:linear-gradient(160deg, color-mix(in srgb, var(--pc) 18%, #141a26), #141a26 60%);
+  border:1px solid color-mix(in srgb, var(--pc) 55%, transparent);
+  box-shadow:0 10px 28px rgba(0,0,0,0.55), 0 0 18px -6px var(--pc);
+  opacity:0; visibility:hidden; transform:translateY(4px); pointer-events:none;
+  transition:opacity .14s ease, transform .14s ease, visibility .14s; }
+.mp-tip::after { content:""; position:absolute; left:14px; top:100%; border:6px solid transparent;
+  border-top-color:color-mix(in srgb, var(--pc) 55%, transparent); }
+.mp-mate-wrap:hover .mp-tip, .mp-mate-wrap:focus-visible .mp-tip { opacity:1; visibility:visible; transform:translateY(0); }
+.mp-tip-sprite { width:48px; height:48px; flex-shrink:0; background-size:contain, contain; background-repeat:no-repeat;
+  background-position:center; filter:drop-shadow(0 0 8px color-mix(in srgb, var(--pc) 60%, transparent)); }
+.mp-tip-body { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.mp-tip-name { font-weight:800; font-size:0.88rem; color:#fff; white-space:nowrap; }
+.mp-tip-types { display:flex; gap:4px; }
+.mp-tip-type { font-size:0.6rem; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; color:#fff;
+  padding:1px 6px; border-radius:4px; text-shadow:0 1px 2px rgba(0,0,0,0.35); }
+.mp-tip-line { font-size:0.72rem; color:#aab3c5; white-space:nowrap; }
+.mp-tip-line b { color:#fff; }
+@media (prefers-reduced-motion: reduce) { .mp-tip, .mp-mate-wrap .mp-mate { transition:none; } }
+
 @media (max-width: 1050px) { .mp-stories { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) {
   .mp-mag { grid-template-columns:minmax(0, 1fr); }
@@ -198,6 +224,28 @@ def _sprite_bg(name):
     return f"background-image:url({forme}), url({base});"
 
 
+def _partner(p, type_map, label, show_name=False):
+    """A partner sprite that opens a small card on hover or focus: types, ladder rank, usage and usual item."""
+    if isinstance(p, str):
+        p = {"name": p, "types": []}
+    color = _color(p.get("types"), type_map)
+    chips = "".join(f'<span class="mp-tip-type" style="background:{type_map.get(t, {}).get("color", "#555")}">{escape(t)}</span>'
+                    for t in p.get("types") or [])
+    lines = []
+    if p.get("rank"):
+        lines.append(f'<span class="mp-tip-line"><b>#{p["rank"]}</b> in {escape(label)} · <b>{p["usage"]:.1f}%</b> usage</span>')
+    held = " · ".join(escape(x) for x in (p.get("item"), p.get("ability")) if x)
+    if held:
+        lines.append(f'<span class="mp-tip-line">{held}</span>')
+    name = escape(p["name"])
+    return (f'<span class="mp-mate-wrap" tabindex="0" style="--pc:{color}">'
+            f'<span class="mp-mate" style="{_sprite_bg(p["name"])}" role="img" aria-label="{name}"></span>'
+            f'{f"<span>{name}</span>" if show_name else ""}'
+            f'<span class="mp-tip" role="tooltip"><span class="mp-tip-sprite" style="{_sprite_bg(p["name"])}"></span>'
+            f'<span class="mp-tip-body"><span class="mp-tip-name">{name}</span>'
+            f'<span class="mp-tip-types">{chips}</span>{"".join(lines)}</span></span></span>')
+
+
 def _delta(card):
     d = card.get("delta")
     if d is None:
@@ -219,7 +267,7 @@ def _moves(card):
     return "".join(f'<span class="mp-move">{escape(m)}</span>' for m in card.get("moves", []))
 
 
-def _feature(card, type_map):
+def _feature(card, type_map, label_fmt=""):
     color = _color(card.get("types"), type_map)
     icon, label = card["badge"]
     pills = [f'<span class="mp-pill"><b>{card["usage"]:.1f}%</b>usage</span>']
@@ -230,8 +278,8 @@ def _feature(card, type_map):
         pills.append(f'<span class="mp-pill"><b>{arrow} {abs(card["delta"]):.1f}</b>points this month</span>')
     if card.get("speed"):
         pills.append(f'<span class="mp-pill"><b>{card["speed"]}</b>Speed</span>')
-    mates = "".join(f'<span class="mp-f-mate"><span class="mp-mate" style="{_sprite_bg(m)}"></span>{escape(m)}</span>'
-                    for m in card.get("teammates") or [])
+    mates = "".join(f'<span class="mp-f-mate">{_partner(p, type_map, label_fmt, show_name=True)}</span>'
+                    for p in card.get("partners") or card.get("teammates") or [])
     mates_html = f'<div class="mp-f-mates"><span>Pairs with</span>{mates}</div>' if mates else ""
     return f"""
 <div class="mp-panel mp-feature" style="{_vars(color)}">
@@ -278,13 +326,12 @@ def _board(rows, type_map):
             f'<div>{"".join(items)}</div></div>')
 
 
-def _card(card, type_map):
+def _card(card, type_map, label_fmt=""):
     color = _color(card.get("types"), type_map)
     icon, label = card["badge"]
-    mates = card.get("teammates") or []
-    # Partner sprites with names on hover: three names never fit the card width as text
-    mate_icons = "".join(f'<span class="mp-mate" title="{escape(m)}" role="img" aria-label="{escape(m)}" '
-                         f'style="{_sprite_bg(m)}"></span>' for m in mates)
+    mates = card.get("partners") or card.get("teammates") or []
+    # Partner sprites open a small card on hover: three names never fit the card width as text
+    mate_icons = "".join(_partner(p, type_map, label_fmt) for p in mates)
     mates_html = f'<span>Pairs with</span>{mate_icons}' if mates else ""
     speed = f" · {card['speed']} Spe" if card.get("speed") else ""
     return f"""
@@ -328,6 +375,7 @@ def render(format_id, type_map):
             '<div class="mp-tag">The ladder&#39;s biggest moves, the month they happen.</div></div>'
             f'<div class="mp-sub"><span class="mp-live"></span><b>{escape(meta_pulse.month_label(month))}</b><br>'
             f'{escape(fmt["label"])} ladder {rating}+ · Smogon usage stats</div></div>')
-    mag = f'<div class="mp-mag">{_feature(cards[lead], type_map)}{_board(rows, type_map)}</div>'
-    grid = f'<div class="mp-stories">{"".join(_card(c, type_map) for c in stories)}</div>'
+    label = fmt["label"]
+    mag = f'<div class="mp-mag">{_feature(cards[lead], type_map, label)}{_board(rows, type_map)}</div>'
+    grid = f'<div class="mp-stories">{"".join(_card(c, type_map, label) for c in stories)}</div>'
     st.html(CSS + head + mag + grid)

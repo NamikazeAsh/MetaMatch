@@ -302,7 +302,7 @@ Ollama and Node are both optional. Without Ollama, every analysis tab still work
 ## 🧪 Tests & Benchmark
 
 ```bash
-pytest                                     # 121 tests: parsing, mechanics, planner, verifiers, strategy verdicts, replays, MetaFlash, storage, frozen set integrity
+pytest                                     # 123 tests: parsing, mechanics, planner, verifiers, strategy verdicts, replays, MetaFlash, storage, frozen set integrity
 
 python bench/run.py --arm raw              # bare model with the team pasted in
 python bench/run.py --arm metamatch        # full pipeline
@@ -346,7 +346,7 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 
 ---
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 * **[Smogon University](https://www.smogon.com/)**: usage statistics, strategy analyses and [`@smogon/calc`](https://github.com/smogon/damage-calc).
 * **[PokeAPI](https://pokeapi.co/)**: Pokémon relational data.

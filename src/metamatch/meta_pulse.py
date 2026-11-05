@@ -142,6 +142,17 @@ def _set_summary(name, format_id):
     }
 
 
+def _partner(name, format_id, now):
+    """What a partner hover card shows: types, this month's rank and usage, and its most common item."""
+    from metamatch.engine.sets import likely_set
+    dex = dex_for_format(format_id)
+    species = dex.species(name) if dex else None
+    s = likely_set(name, format_id) or {}
+    rank, usage = now.get(name, (None, None))
+    return {"name": name, "types": species["types"] if species else [], "rank": rank, "usage": usage,
+            "item": s.get("item"), "ability": s.get("ability")}
+
+
 def _headline(card, label):
     """One line of news under the card's name, so it never repeats the name."""
     rank, prev_rank, kind = card["rank"], card["prev_rank"], card["kind"]
@@ -259,6 +270,7 @@ def pulse(format_id, n=8, history=None, month=None, with_sets=True):
         }
         if with_sets:
             card.update(sets.get(name) or _set_summary(name, format_id))
+            card["partners"] = [_partner(m, format_id, now) for m in card.get("teammates") or []]
         card["headline"] = _headline(card, label)
         cards.append(card)
     return cards
