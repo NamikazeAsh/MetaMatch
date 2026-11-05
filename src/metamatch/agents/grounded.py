@@ -2,63 +2,24 @@
 Presents an engine Verdict. The verdict sentence is templated; the LLM only adds a short
 explanation, which a verifier checks before it is shown:
   * every number in the explanation must appear in the verdict or facts
+  * no clause may claim a different speed order, KO result or type matchup (agents/claims.py)
   * it must not state a different final answer
 On failure the LLM gets one retry, then the answer is shown with the facts instead.
 """
 import re
 
+from . import claims
 from .client import get_agent_client, ollama_available
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
 ANSWER_LINE = re.compile(r"^\s*\**ANSWER\s*:.*$", re.I | re.M)
 # Numbers that can't mislead even when the facts don't spell them out
 FREE_NUMBERS = {"0", "1", "100"}
-# For type verdicts, wording that implies a different matchup is a contradiction
-TYPE_WORDS = {
-    "immune": re.compile(r"\bimmun", re.I),
-    "resists": re.compile(r"\bresist", re.I),
-    "weak": re.compile(r"\bweak|super[\s-]effective", re.I),
-    "neutral": re.compile(r"\bneutral", re.I),
-}
+CLAIM_CHECKS = {"type": claims.type_clash, "speed": claims.speed_clash, "ko": claims.ko_clash}
 
 
 def _numbers(text):
     return {n.rstrip("0").rstrip(".") if "." in n else n for n in NUMBER.findall(text)}
-
-
-def _speed_clash(text, verdict):
-    """Explanation claims the opposite speed order to the verdict."""
-    if not verdict.other:
-        return None
-    o = re.escape(verdict.other)
-    negated = r"\b(?:do|does|did|can|will)(?:n't| not) outspeed"
-    says_faster = re.search(rf"(?<!not )(?<!n't )\b(outspeeds?|faster than|outpaces?)\b[^.]{{0,15}}{o}", text, re.I) or \
-        re.search(rf"{o}[^.]{{0,25}}(\bis slower|\bis outsped|{negated})", text, re.I)
-    says_slower = re.search(rf"(\bslower than|\boutsped by|\boutpaced by|{negated})[^.]{{0,15}}{o}", text, re.I) or \
-        re.search(rf"{o}[^.]{{0,25}}\b(outspeeds|is faster|outpaces)", text, re.I)
-    # "Is X slower?" questions answer yes when X is slower, so read the verdict back as "is X faster"
-    answer = {"yes": "no", "no": "yes"}.get(verdict.answer, verdict.answer) if verdict.ask_slower else verdict.answer
-    if answer != "yes" and says_faster:
-        return "a claim that it is faster"
-    if answer != "no" and says_slower:
-        return "a claim that it is slower"
-    return None
-
-
-KO_CLASHES = {
-    # (survive question, verdict answer) -> wording that contradicts it
-    (False, "yes"): r"\bchance to\b|\b(doesn't|does not|won't|will not|cannot|can't|fails to)\b[^.]{0,20}\bko",
-    (False, "no"): r"\b(guaranteed|will|does) (ohko|one ?hit ko)",
-    (False, "sometimes"): r"\bguaranteed\b",
-    (True, "yes"): r"\b(does not|doesn't|won't|will not|cannot|can't) survive|\bfaints?\b",
-    (True, "no"): r"\b(survives|will survive|lives)\b",
-    (True, "sometimes"): r"\bguaranteed\b",
-}
-
-
-def _ko_clash(text, verdict):
-    pattern = KO_CLASHES.get((verdict.survive, verdict.answer))
-    return "wording that contradicts the KO result" if pattern and re.search(pattern, text, re.I) else None
 
 
 def verify(explanation, verdict):
@@ -67,12 +28,8 @@ def verify(explanation, verdict):
     unknown = _numbers(explanation) - allowed
     if unknown:
         return f"numbers not in the facts: {', '.join(sorted(unknown))}"
-    if verdict.intent == "type":
-        clashes = [a for a, pattern in TYPE_WORDS.items() if a != verdict.answer and pattern.search(explanation)]
-        if clashes:
-            return f"wording that says {clashes[0]} when the result is {verdict.answer}"
-    clash = _speed_clash(explanation, verdict) if verdict.intent == "speed" else \
-        _ko_clash(explanation, verdict) if verdict.intent == "ko" else None
+    check = CLAIM_CHECKS.get(verdict.intent)
+    clash = check(explanation, verdict) if check else None
     if clash:
         return clash
     stated = re.findall(r"ANSWER\s*:\s*(.+)", explanation, re.I)

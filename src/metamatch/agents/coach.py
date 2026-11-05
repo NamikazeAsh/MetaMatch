@@ -19,8 +19,42 @@ OFFLINE_NOTE = "_Professor Oak is offline (Ollama isn't running), so only the en
 # Questions where the engine's verdicts are the core of the answer
 SUMMARY_RE = re.compile(r"\b(threats?|counters?|struggle\w*|win ?con\w*|weakness\w*|weak to)", re.I)
 RECOMMEND = re.compile(r"\b(answer|counter|handle|best|deal with|check|beat|use|great|ideal|recommend|switch|option|"
-                       r"take (?:out|down)|viable|good|strong|effective|key|reliable)", re.I)
-CAUTION = re.compile(r"\b(lose|loses|avoid|struggle|weak|ohko|threat|vulnerable|careful|risk|not|can't|cannot|don't|no )", re.I)
+                       r"take (?:out|down)|viable|good|strong|effective|key|reliable|bring|send|lead with|pivot)", re.I)
+# Double negatives that read like caution but recommend ("don't hesitate", "does not fear"): removed before checking
+POSITIVE_IDIOM = re.compile(r"\b(?:don't|do not|never) (?:hesitate|be afraid|worry)\w*|\bno reason not to\b|\bnot afraid\b|"
+                            r"\b(?:does not|doesn't|don't|do not|need not|needn't) (?:fear|mind|care about)\b|\bnot (?:only|just)\b|"
+                            r"\bwithout (?:fear|risk)\b|\bno risk\b", re.I)
+NEGATOR = re.compile(r"\b(?:not|never|no|avoid\w*|don't|doesn't|isn't|aren't|won't|cannot|can't|shouldn't|wouldn't|"
+                     r"stop|skip|instead of|rather than|unlike|except|over|than|nor)\b|n't\b", re.I)
+# Wording that puts the clause's own subject on the losing side, so it isn't a recommendation
+LOSS = re.compile(r"\b(?:lose|loses|losing|lost to|struggles?|struggling|weak|vulnerable|threat\w*|careful|risk\w*|ohko\w*|"
+                  r"dies|faints?|outclassed|walled|danger\w*|liability|keep \w+ (?:away|out|back)|stay away)\b", re.I)
+CLAUSE = re.compile(r"[;,]|\b(?:but|however|while|whereas|although|though|and|so|instead|rather|because|since|unless)\b", re.I)
+
+
+def recommends_loser(sentence, losers, members):
+    """A team member that the sentence recommends against this opponent although it loses the one on one, or None.
+    Each un-negated recommend word is credited to the nearest member in its clause; "over X" or "instead of X"
+    marks X as the alternative, not the pick."""
+    sentence = POSITIVE_IDIOM.sub(" ", sentence)
+    for clause in CLAUSE.split(sentence):
+        low = clause.lower()
+        spots = []
+        for n in members:
+            for m in re.finditer(rf"\b{re.escape(n.lower())}\b", low):
+                before = low[:m.start()].split()[-2:]
+                if not set(before) & {"over", "than", "of", "not", "unlike", "except", "avoid", "avoiding"}:
+                    spots.append((m.start(), n))
+        if not spots or LOSS.search(clause):
+            continue
+        for cue in RECOMMEND.finditer(clause):
+            head = clause[:cue.start()].split()[-3:]
+            if any(NEGATOR.fullmatch(w.strip(".,!?").lower()) or w.lower().endswith("n't") for w in head):
+                continue
+            nearest = min(spots, key=lambda s: abs(s[0] - cue.start()))[1]
+            if nearest in losers:
+                return nearest
+    return None
 
 
 def _trim(text, limit=RAG_CHARS):
@@ -65,13 +99,14 @@ def verify(advice, context, briefing, team=None):
     # With a single matchup every sentence is about that opponent, named or not
     only = len(briefing.matchups) == 1
     for m in briefing.matchups:
+        losers = {x["name"] for x in m.losses}
+        members = losers | {x["name"] for x in m.wins} | {p["Pokemon"] for p in (team or {}).values()}
         for sentence in re.split(r"(?<=[.!?])\s+", advice):
-            about = only or m.opponent.lower() in sentence.lower()
-            if not about or not RECOMMEND.search(sentence) or CAUTION.search(sentence):
+            if not (only or m.opponent.lower() in sentence.lower()):
                 continue
-            for x in m.losses:
-                if x["name"].lower() in sentence.lower():
-                    return f"a claim that {x['name']} handles {m.opponent}, but it loses to {m.opponent} one on one"
+            loser = recommends_loser(sentence, losers, members)
+            if loser:
+                return f"a claim that {loser} handles {m.opponent}, but it loses to {m.opponent} one on one"
     return _move_owner_clash(advice, team or {})
 
 

@@ -35,6 +35,8 @@ class Verdict:
     other: str = ""                 # the opposing Pokemon
     survive: bool = False           # KO question phrased as "does X survive"
     ask_slower: bool = False        # speed question phrased as "is X slower": "yes" means subject is slower
+    subject_is_player: bool = True  # False when the question's subject is the opponent ("does Dragapult outspeed me")
+    hits: int = 1                   # KO verdicts: the number of hits the question asked about
 
 
 def _pct(x):
@@ -142,7 +144,7 @@ def solve_speed(plan, dex, game):
         facts.append(f"{_pct(s['item_share'])} of {name} carry Choice Scarf, reaching {int(them * 1.5)} Speed.")
     # Contradiction checks read the answer as "subject is faster than other", inverted when ask_slower
     return Verdict("speed", answer, statement, facts, subject=subject, other=other,
-                   ask_slower=plan.speed_ask == "slower")
+                   ask_slower=plan.speed_ask == "slower", subject_is_player=plan.subject != "opponent")
 
 
 def _attack(plan, dex, game):
@@ -197,7 +199,7 @@ def solve_ko(plan, dex, game):
         facts.append(f"{dfn} at full HP keeps {effect}; hazards or earlier chip would remove it.")
     if s and not plan.opp_overrides:
         facts.append(f"{s['name']} assumed on its most common set: {describe_spread(s, game)} @ {s['item']}, {s['ability']}.")
-    return Verdict("ko", answer, statement, facts, subject=att, other=dfn, survive=plan.survive)
+    return Verdict("ko", answer, statement, facts, subject=att, other=dfn, survive=plan.survive, hits=plan.ko_hits)
 
 
 def solve_damage(plan, dex, game):

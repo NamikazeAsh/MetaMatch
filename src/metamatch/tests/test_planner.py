@@ -129,8 +129,10 @@ class TestSolvers(unittest.TestCase):
 
 
 class TestVerifier(unittest.TestCase):
+    # A survive question ("Does Gholdengo survive Sucker Punch?"), as the KO solver builds it
     verdict = Verdict("ko", "yes", "Kingambit's Sucker Punch does 71.4-84.6% to Gholdengo, so Gholdengo survives.",
-                      ["Calc: 252+ Atk Kingambit Sucker Punch vs. 252 HP / 0 Def Gholdengo: 225-267 (71.4 - 84.6%)"])
+                      ["Calc: 252+ Atk Kingambit Sucker Punch vs. 252 HP / 0 Def Gholdengo: 225-267 (71.4 - 84.6%)"],
+                      survive=True)
 
     def test_grounded_text_passes(self):
         self.assertIsNone(verify("Sucker Punch only takes 71.4 to 84.6% of Gholdengo's HP, so it lives the hit.", self.verdict))
