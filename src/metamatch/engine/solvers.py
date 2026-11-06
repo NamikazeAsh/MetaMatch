@@ -51,6 +51,8 @@ def user_spec(p, game, details=None, dex=None):
     raw = p.get("SP") if game == "champions" else p.get("EVs")
     spec = {"name": p.get("Forme") or p["Pokemon"],
             "evs": {CALC_STAT_KEYS[k]: v for k, v in (raw or {}).items() if k in CALC_STAT_KEYS}}
+    if p.get("IVs") and game != "champions":
+        spec["ivs"] = {CALC_STAT_KEYS[k]: v for k, v in p["IVs"].items() if k in CALC_STAT_KEYS}
     if p.get("Nature"):
         spec["nature"] = p["Nature"]
     if p.get("Item"):

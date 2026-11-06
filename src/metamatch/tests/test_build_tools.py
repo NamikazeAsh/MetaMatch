@@ -81,5 +81,21 @@ class TestThreatBoard(unittest.TestCase):
             self.assertNotIn(name, v.answer)
 
 
+class TestSpeedBoard(unittest.TestCase):
+    def test_ivs_are_parsed_and_lower_speed(self):
+        team, _ = readTeam("Hatterene @ Life Orb\nAbility: Magic Bounce\nEVs: 252 HP / 252 SpA\nQuiet Nature\n"
+                           "IVs: 0 Atk / 0 Spe\n- Psychic", "gen9ou")
+        p = next(iter(team.values()))
+        self.assertEqual(p["IVs"], {"Atk": 0, "Spe": 0})
+        self.assertEqual(p["Speed"], 56)   # base 29, 0 IV, 0 EV, Quiet: floor(63 * 0.9)
+
+    def test_outspeed_share_mixes_in_scarf(self):
+        from metamatch.engine.speed_board import MetaSpeed, outspeed_share
+        m = MetaSpeed("X", 10.0, [(300, 0.8), (250, 0.2)], scarf_share=0.5)
+        self.assertAlmostEqual(outspeed_share(301, m), 0.5)     # beats every unscarfed set, no scarfed one
+        self.assertAlmostEqual(outspeed_share(460, m), 1.0)
+        self.assertAlmostEqual(outspeed_share(260, m), 0.1)     # only the unscarfed 250s
+
+
 if __name__ == "__main__":
     unittest.main()

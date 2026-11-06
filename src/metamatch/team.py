@@ -47,6 +47,7 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
             'Tera Type': '',
             'EVs': {},        # Champions: EV equivalents of SP, so role thresholds still apply
             'SP': {},         # Champions stat points as exported
+            'IVs': {},        # only the IVs the paste lists (Showdown omits 31s); Champions has none
             'Format': format_id,
             'Nature': '',
             'Moves': [],
@@ -79,6 +80,11 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
                             poke_data['EVs'][stat] = sp_to_ev(val)
                         else:
                             poke_data['EVs'][stat] = val
+            elif line.startswith('IVs:') and game != "champions":
+                for iv in line.split('IVs:')[1].strip().split('/'):
+                    parts = iv.strip().split(' ')
+                    if len(parts) >= 2 and parts[0].isdigit():
+                        poke_data['IVs'][parts[1]] = int(parts[0])
             elif line.endswith('Nature'):
                 poke_data['Nature'] = line.replace('Nature', '').strip()
             elif line.startswith('-'):
@@ -118,7 +124,8 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
             if poke_data['Nature'] in speed_plus: nature_mod = 1.1
             elif poke_data['Nature'] in speed_minus: nature_mod = 0.9
             
-            poke_data['Speed'] = calculate_speed(base_spe, ev_spe, 31, nature_mod, poke_data['Item'], game)
+            iv_spe = poke_data['IVs'].get('Spe', 31)
+            poke_data['Speed'] = calculate_speed(base_spe, ev_spe, iv_spe, nature_mod, poke_data['Item'], game)
         else:
             # Fallback if API fails
             poke_data['Type'] = [] 
