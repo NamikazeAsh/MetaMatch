@@ -15,6 +15,7 @@ from pathlib import Path
 
 ENGINE_DIR = Path(__file__).resolve().parent
 SERVER = ENGINE_DIR / "calc_server.js"
+CHUNK = 32  # requests in flight per round trip
 
 
 class CalcClient:
@@ -44,9 +45,15 @@ class CalcClient:
         return self._proc
 
     def calculate_many(self, requests):
-        """Runs a batch of calc requests. Returns one result dict (or None on error) per request."""
+        """Runs a batch of calc requests. Returns one result dict (or None on error) per request.
+        Large batches go in chunks: writing everything before reading fills the pipes and stalls on Windows."""
         if not requests:
             return []
+        if len(requests) > CHUNK:
+            out = []
+            for start in range(0, len(requests), CHUNK):
+                out.extend(self.calculate_many(requests[start:start + CHUNK]))
+            return out
         with self._lock:
             proc = self._ensure()
             if proc is None:
