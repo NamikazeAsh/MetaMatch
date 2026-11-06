@@ -71,7 +71,11 @@ def main():
     args = parser.parse_args()
 
     if read_manifest().get("month") == args.month and not args.force:
-        logging.info(f"Stats for {args.month} are already on disk. Nothing to do.")
+        logging.info(f"Stats for {args.month} are already on disk.")
+        # The RAG index lives only on this machine, so it can lag behind stats the monthly Action committed
+        if args.rebuild_index:
+            from metamatch.rag import build_index
+            build_index.main()
         return
 
     month_url = f"https://www.smogon.com/stats/{args.month}/"

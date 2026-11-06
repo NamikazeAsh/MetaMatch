@@ -12,6 +12,7 @@ SRC_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(SRC_DIR))
 
 from metamatch import config
+from metamatch.rag.chunking import header
 
 # Unofficial Champions community guides. Stored reworded (never verbatim) and tagged
 # so retrieval only serves them to Champions teams, with doubles advice kept apart.
@@ -210,18 +211,16 @@ def build_chunks():
     """Turns the reworded cache into RAG chunks. Never touches the network or the LLM."""
     chunks = []
     for entry in load_cache().values():
-        label = "DOUBLES ONLY" if entry["play"] == "doubles" else "Champions singles"
-        text = (
-            f"UNOFFICIAL COMMUNITY GUIDE ({label}): {entry['pokemon']}. "
-            f"[{entry['heading']}] " + " ".join(entry["bullets"])
-        )
+        label = "Champions doubles" if entry["play"] == "doubles" else "Champions singles"
+        text = header(entry["pokemon"], entry["heading"], f"{label} unofficial community guide") + " ".join(entry["bullets"])
         chunks.append({
             "pokemon": entry["pokemon"],
             "category": "Community Guide",
             "text": text,
             "metadata": {
                 "pokemon": entry["pokemon"], "type": "community_guide", "source": "pokechamp",
-                "game": "champions", "play": entry["play"], "title": entry["heading"],
+                "game": "champions", "play": entry["play"], "title": entry["heading"], "section": entry["heading"],
+                "format": "any",
             },
         })
     return chunks

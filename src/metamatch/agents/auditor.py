@@ -1,6 +1,8 @@
 from .client import get_agent_client
 from metamatch import auditor, recommender, config
 from metamatch.rag import store
+from metamatch.engine.names import find_pokemon
+from .coach import _relevant, _trim
 
 class AuditorAgent:
     def __init__(self, model_name=None):
@@ -26,10 +28,14 @@ class AuditorAgent:
         recommendations = recommender.get_recommendations(team_names, top_n=3, format_id=config.team_format(team_context), team_items=team_items)
 
         # 3. Retrieve RAG Context for 'Why' (Grounded Reasoning)
-        rag_hits = store.query_strategies(query, n_results=1, format_id=config.team_format(team_context))
+        # Same filters as Oak: only references about Pokemon in play, trimmed to one prompt slot
+        asked = find_pokemon(query)
+        focus = set(asked) | set(find_pokemon(named_context)) | {p.get("Forme") or p["Pokemon"] for p in team_context.values()}
+        rag_hits = [h for h in store.query_strategies(query, n_results=3, format_id=config.team_format(team_context), names=asked)
+                    if _relevant(h, focus)]
         rag_context = ""
         if rag_hits:
-            rag_context = f"### STRATEGY CONTEXT (EXPLAINER)\n{rag_hits[0]['text']}\n"
+            rag_context = f"### STRATEGY CONTEXT (EXPLAINER)\n{_trim(rag_hits[0]['text'])}\n"
         
         # 4. Format Data for LLM
         audit_str = "### METAGAME USAGE REPORT\n"

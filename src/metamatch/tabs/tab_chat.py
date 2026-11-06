@@ -13,6 +13,13 @@ def _persist(role, content, name=None, avatar=None):
 def render():
     st.subheader("💬 Ask the Coach (Powered by RAG)")
     st.caption("Ask specific questions about counters, mechanics, or strategy. The AI uses Smogon data to answer.")
+    try:
+        from metamatch.rag import store
+        if store.index_stale():
+            st.caption(f"The strategy references were built for {store.index_info().get('stats_month') or 'older'} stats. "
+                       "Run `python scripts/update_meta.py --rebuild-index` to refresh them.")
+    except Exception:  # the RAG stack is optional; the chat works without it
+        pass
 
     chat_container = st.container()
 

@@ -1,79 +1,67 @@
+"""
+Builds the local RAG index from every source:
+  * Smogon analyses for each SV format (rag/scraper.py)
+  * concept notes, one file per game (data/knowledge/concepts_<general|sv|champions>.md)
+  * Champions usage cards from the downloaded chaos stats (rag/usage_cards.py)
+  * reworded Pokechamp community guides from the local cache (rag/pokechamp.py)
+Run: python src/metamatch/rag/build_index.py  (or scripts/update_meta.py --rebuild-index)
+"""
+import re
 import sys
 from pathlib import Path
-import re
 
 # Add 'src' directory to path so "import metamatch" works
 SRC_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(SRC_DIR))
 
-from metamatch.rag import scraper, store, usage_cards, pokechamp
+from metamatch import config  # noqa: E402
+from metamatch.rag import pokechamp, scraper, store, usage_cards  # noqa: E402
+from metamatch.rag.chunking import header  # noqa: E402
+
+KNOWLEDGE_DIR = config.DATA_DIR / "knowledge"
+# File -> (game tag, source label). "any" concepts reach every game's prompts, so they must hold everywhere
+CONCEPT_FILES = {"concepts_general.md": ("any", "General singles concept"),
+                 "concepts_sv.md": ("sv", "SV singles concept"),
+                 "concepts_champions.md": ("champions", "Champions singles concept")}
+
 
 def load_concepts():
-    """
-    Loads manual concept guides from data/knowledge/concepts.md
-    """
-    concept_path = Path(__file__).resolve().parent.parent.parent.parent / "data" / "knowledge" / "concepts.md"
-    if not concept_path.exists():
-        print(f"Warning: Concepts file not found at {concept_path}")
-        return []
-
-    with open(concept_path, "r", encoding="utf-8") as f:
-        text = f.read()
-
+    """One chunk per '## Title' section of each concept file (text before the first title is a preamble)."""
     chunks = []
-    # Split by markdown headers (## Title)
-    sections = re.split(r'(^## .+$)', text, flags=re.MULTILINE)
-    
-    current_title = "General"
-    
-    for i in range(len(sections)):
-        section = sections[i].strip()
-        if not section: continue
-        
-        if section.startswith("##"):
-            current_title = section.replace("##", "").strip()
-        else:
-            # This is the content for the previous title
-            chunks.append({
-                "pokemon": "General Concept", # Generic placeholder
-                "category": "Guide",
-                "text": f"GUIDE: {current_title}\n{section}",
-                "metadata": {"pokemon": "Concept", "type": "concept", "title": current_title}
-            })
-            
+    for name, (game, source) in CONCEPT_FILES.items():
+        path = KNOWLEDGE_DIR / name
+        if not path.exists():
+            print(f"Warning: {path} not found")
+            continue
+        sections = re.split(r"^## (.+)$", path.read_text(encoding="utf-8"), flags=re.M)
+        for title, body in zip(sections[1::2], sections[2::2]):
+            body = body.strip()
+            if body:
+                chunks.append({
+                    "pokemon": "Concept",
+                    "text": header("General concept", title.strip(), source) + body,
+                    "metadata": {"pokemon": "Concept", "type": "concept", "title": title.strip(), "section": title.strip(),
+                                 "source": "concepts", "game": game, "play": "singles", "format": "any"},
+                })
     print(f"Loaded {len(chunks)} concept chunks.")
     return chunks
 
+
 def main():
     print("Starting Knowledge Base construction...")
-    
-    # 1. Scrape Strategies (Smogon SV OU analyses)
     chunks = scraper.fetch_smogon_strategies()
-    for c in chunks:
-        c["metadata"].update({"game": "sv", "play": "singles"})
-    
-    # 2. Load Manual Concepts (general singles knowledge, valid for every game)
-    concept_chunks = load_concepts()
-    for c in concept_chunks:
-        c["metadata"].update({"game": "any", "play": "singles"})
-    chunks.extend(concept_chunks)
-
-    # 3. Champions usage cards from Smogon chaos data
+    chunks.extend(load_concepts())
     chunks.extend(usage_cards.build_chunks())
-
-    # 4. Reworded Pokechamp community guides (run `python -m metamatch.rag.pokechamp` first to fill the cache)
+    # Run `python -m metamatch.rag.pokechamp` first to fill the guide cache
     guide_chunks = pokechamp.build_chunks()
     print(f"Loaded {len(guide_chunks)} community guide chunks.")
     chunks.extend(guide_chunks)
-
     if not chunks:
         print("No data fetched. Aborting.")
         return
-
-    # 5. Index
     store.rebuild_index(chunks)
-    
     print("Done! Knowledge Base is ready.")
+
 
 if __name__ == "__main__":
     main()

@@ -13,8 +13,8 @@ from metamatch.engine.briefing import Briefing
 from metamatch.engine.names import find_pokemon
 from metamatch.rag import store
 
-# Retrieved analyses can run past 3,000 characters; a 3B model loses the engine facts behind them
-RAG_CHARS = 700
+# Chunks are 300 to 900 characters plus a header line; the cap guards against odd long ones
+RAG_CHARS = 1000
 OFFLINE_NOTE = "_Professor Oak is offline (Ollama isn't running), so only the engine's numbers are shown. Start Ollama for his advice._"
 # Questions where the engine's verdicts are the core of the answer
 SUMMARY_RE = re.compile(r"\b(threats?|counters?|struggle\w*|win ?con\w*|weakness\w*|weak to)", re.I)
@@ -66,10 +66,27 @@ def _trim(text, limit=RAG_CHARS):
     return cut[:end + 1] if end > limit // 2 else cut + "..."
 
 
-def _relevant(hit, focus_text):
-    """Concept chunks always count; Pokemon chunks only when that Pokemon is on the team or in the facts."""
+def _species_key(name):
+    """'Absol-Mega' and 'Absol' share a key, so a guide on the Mega counts for a team running Absol."""
+    return re.sub(r"[^a-z0-9]", "", (name or "").split("-Mega")[0].lower())
+
+
+def _relevant(hit, focus_names):
+    """Concept chunks always count; Pokemon chunks only when that Pokemon is on the team, named or in the facts.
+    focus_names: canonical names (planner resolver), so 'Mega Absol' matches a chunk about 'Absol-Mega'."""
     subject = hit["metadata"].get("pokemon") or ""
-    return hit["metadata"].get("type") == "concept" or not subject or subject.lower() in focus_text
+    if hit["metadata"].get("type") == "concept" or subject in ("", "Concept", "General"):
+        return True
+    return _species_key(subject) in {_species_key(n) for n in focus_names}
+
+
+def _source_label(meta):
+    """'Kingambit, Set Swords Dance (smogon analysis)' for the sources line under an answer."""
+    kind = {"smogon_analysis": "Smogon analysis", "smogon_stats": "ladder stats", "pokechamp": "community guide",
+            "concepts": "concept note"}.get(meta.get("source"), "reference")
+    subject = meta.get("pokemon")
+    where = meta.get("section") or meta.get("title") or ""
+    return f"{subject}, {where} ({kind})" if subject and subject != "Concept" else f"{where} ({kind})"
 
 
 def _move_owner_clash(advice, team):
@@ -115,6 +132,7 @@ class CoachAgent:
         self.client, self.model = get_agent_client()
         if model_name:
             self.model = model_name
+        self.sources = []  # references the last answer's prompt used, shown under the advice
 
     def _context(self, query, team_context, named_context, facts):
         """The user message: retrieved guides, the team, named sets and engine facts, then the question."""
@@ -138,15 +156,19 @@ class CoachAgent:
                 + f"Speed: {p.get('Speed', '?')} | Moves: {moves}\n"
             )
 
-        # Retrieve strategy guides, keeping only ones about Pokemon in play
-        focus_text = (query + team_str + named_context + facts).lower()
-        rag_hits = store.query_strategies(query, n_results=4, format_id=config.team_format(team_context))
-        rag_hits = [h for h in rag_hits if _relevant(h, focus_text)][:2]
+        # Retrieve references, keeping only ones about Pokemon in play
+        asked = find_pokemon(query)
+        focus_names = set(asked) | set(find_pokemon(named_context + facts))
+        for p in team_context.values():
+            focus_names |= {p.get("Pokemon"), p.get("Forme")} - {None}
+        rag_hits = store.query_strategies(query, n_results=4, format_id=config.team_format(team_context), names=asked)
+        rag_hits = [h for h in rag_hits if _relevant(h, focus_names)][:2]
+        self.sources = [_source_label(h["metadata"]) for h in rag_hits]
         rag_context = ""
         if rag_hits:
-            rag_context = "### SMOGON STRATEGY DATABASE (REFERENCE)\n"
+            rag_context = "### REFERENCES (Smogon analyses, ladder stats, community guides, concept notes)\n"
             for hit in rag_hits:
-                rag_context += f"SOURCE [{hit['metadata'].get('pokemon')}]: {_trim(hit['text'])}\n\n"
+                rag_context += f"{_trim(hit['text'])}\n\n"
 
         # Context, facts and the question sit together at the end, where a small model pays the most attention
         return (
@@ -206,6 +228,8 @@ Rules:
             feedback = verify(advice, context, briefing, team_context)
             if feedback is None:
                 yield advice
+                if self.sources:
+                    yield "\n\n_References: " + "; ".join(self.sources) + "._"
                 return
         # Both drafts failed the fact check: say so rather than show unverified advice
         yield "_Professor Oak's advice didn't pass the fact check this time, so only the engine's numbers are shown._"

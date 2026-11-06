@@ -8,6 +8,7 @@ SRC_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(SRC_DIR))
 
 from metamatch import config
+from metamatch.rag.chunking import header
 from metamatch.utils import fetch_pokemon_data, calculate_speed
 
 # One chunk per Pokemon built straight from Smogon chaos data, so every number the
@@ -90,8 +91,8 @@ def build_chunks(games=("champions",)):
             moves = _top(p.get("Moves", {}), 6, total=weight, names=names)
             teammates = sorted(p.get("Teammates", {}).items(), key=lambda x: x[1], reverse=True)[:5]
             text = (
-                f"{fmt['label'].upper()} LADDER USAGE DATA (Smogon stats): {name}. "
-                f"Used on {usage:.1f}% of teams. "
+                header(name, "Ladder usage stats", f"{fmt['label']} Smogon stats")
+                + f"Used on {usage:.1f}% of teams. "
                 f"Spreads: " + ", ".join(f"{_fmt_spread(s)} ({pct:.0f}%)" for s, pct in spreads) + ". "
                 f"Items: " + ", ".join(f"{i} ({pct:.0f}%)" for i, pct in _top(p.get("Items", {}), names=names)) + ". "
                 f"Abilities: " + ", ".join(f"{a} ({pct:.0f}%)" for a, pct in _top(p.get("Abilities", {}), 2, names=names)) + ". "
@@ -104,7 +105,7 @@ def build_chunks(games=("champions",)):
                 "category": "Usage",
                 "text": text,
                 "metadata": {
-                    "pokemon": name, "type": "usage", "source": "smogon_stats",
+                    "pokemon": name, "type": "usage", "source": "smogon_stats", "section": "Ladder usage stats",
                     "game": fmt["game"], "play": "singles", "format": fmt_id,
                 },
             })
