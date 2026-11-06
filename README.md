@@ -172,6 +172,7 @@ The home screen opens on a magazine style front page of what the ladder is doing
 ### 🧭 Pages, Links & Memory
 
 * **Top navigation:** Home, Team, Quick Match, Move Search and Replay Auditor are real pages with their own URLs.
+* **Fast dashboards:** only the tab you open runs its calculations, so a team opens instantly.
 * **Shareable team links:** every analysed team opens at `/team?t=<id>`, a short hash of the paste, so refreshing, bookmarking, opening a second tab and Back / Forward all keep your dashboard.
 * **Pick up where you left off:** your last teams sit in the sidebar as sprite cards, one click from reopening.
 * **A coach chat per team:** each team keeps its own conversation, and it survives a refresh.
@@ -204,15 +205,33 @@ Instant, zero LLM checks on every team:
 * **Usage Warnings:** moves and items under 5% ladder usage, with the most common alternatives.
 * **Role Detection:** about 35 competitive roles (*Wall, Setup Sweeper, Stallbreaker, Forced Switcher...*) and team archetypes (*Hyper Offense, Stall, Volt Turn, Weather, Trick Room*).
 
-### ⚠️ Meta Threats
+### ⚠️ Threat Board
 
-The top 5 threats to your specific team, scored by `members_hit² × ladder_usage%` so breadth beats raw popularity. Each threat shows which of your Pokémon can hit back, which resist its STABs, and its key moves by usage.
+Your whole team against the format's 12 most used Pokémon, one matchup at a time, every verdict worked out by the real damage calculator.
 
-### 🤝 Teammate Recommender & Quick Match
+* **See every matchup at a glance:** a win or lose grid, with each threat's usage beside it.
+* **Hover for the full story:** who moves first, the best hit each way and how many hits each side needs.
+* **Spot your holes:** threats with no answer or only one are called out, along with your weakest matchup.
+* **Ask in chat:** *"what checks Kyurem?"* gets the same engine answer in words, and the AI can never call a Pokémon that loses one on one an answer.
 
-* **Statistical Synergy:** teammate correlation matrices from Smogon chaos data covering millions of ladder battles.
-* **Role Weighted Boosting:** candidates that fill a missing role get a ×1.2 boost and a gold *"Fills missing: Hazard Setter, Pivot"* badge.
+### 🤝 Team Completer
+
+Most recommenders suggest whatever is popular. The Team Completer picks your next teammate by what it adds.
+
+* **Fixes your weak spots:** candidates are ranked by which of your thin matchups they actually beat, checked by the damage calculator.
+* **Real pairings, not popularity:** shows how often players put each pick next to your Pokémon, compared with an average team. Hover for the numbers.
+* **Fills missing roles:** flags picks that add a hazard setter, hazard removal or a pivot.
+* **Calls out filler:** popular picks that wouldn't fix anything are shown separately, so you don't waste the slot.
+* **Works with full teams too:** choose the member you'd swap and get its replacements.
 * **Quick Match:** no team yet? Pick 1 to 5 Pokémon and get the best glue for your core.
+
+### Speed Tiers
+
+Speed against what players actually run, not a guess.
+
+* **Real spreads for your format:** every spread the top 25 Pokémon run this month, with Choice Scarf sets marked.
+* **Your true Speed:** worked out with your item and IVs, so Choice Scarf and Trick Room sets are right.
+* **What if?:** slide your Speed and see exactly which threats you'd start outspeeding.
 
 ### 🌐 Multi Format
 
@@ -273,7 +292,7 @@ graph TD
 
     subgraph Statistical_Engine ["Statistical Engine"]
     M["Smogon Chaos Data"] -->|"Weighted Usage"| N["Meta Auditor"]
-    M -->|"Correlation Matrix"| O["Teammate Recommender"]
+    M -->|"Teammate Lift"| O["Team Completer"]
     M --> Y
     M --> V
     end
@@ -333,7 +352,7 @@ Ollama and Node are both optional. Without Ollama, every analysis tab still work
 ## 🧪 Tests & Benchmark
 
 ```bash
-pytest                                     # 184 tests: parsing, mechanics, planner, constraints, verifiers, retrieval, strategy verdicts, replays, MetaFlash, storage, frozen set integrity
+pytest                                     # 193 tests: parsing, mechanics, planner, constraints, verifiers, retrieval, threat board, team completer, speed tiers, replays, MetaFlash, storage, frozen set integrity
 
 python bench/extraction/score.py           # question understanding: slot F1 on the dev half (--split test for the held out half)
 python bench/rag/score.py                  # retrieval: recall@k, MRR and strict hits through the production path
@@ -355,7 +374,7 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 | Path                                             | What it does                                                                                                 |
 | :----------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
 | `src/metamatch/app.py`, `tabs/`              | Streamlit app, one module per tab                                                                            |
-| `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, constraint parser, solvers, shared mechanics, name matching |
+| `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, constraint parser, solvers, shared mechanics, name matching, Threat Board, Team Completer, Speed Tiers |
 | `src/metamatch/agents/`                        | Router, manager, grounded answerer and verifier, the three agents ([details](src/metamatch/agents/README.md)) |
 | `src/metamatch/rag/`                           | Analyses for every SV format, usage cards, guides, chunking, hybrid ChromaDB + BM25 store ([details](src/metamatch/rag/README.md)) |
 | `src/metamatch/team.py`                        | Showdown parser, role detection, type math, Mega handling                                                    |
