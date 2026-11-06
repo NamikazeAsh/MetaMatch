@@ -18,14 +18,21 @@ STAT_WORDS = {"hp": "hp", "attack": "atk", "atk": "atk", "defense": "def", "def"
               "special attack": "spa", "spa": "spa", "special defense": "spd", "spd": "spd",
               "speed": "spe", "spe": "spe"}
 
-USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|standard (?:set|item|spread)|what (?:item|ability|tera|nature|spread)|which (?:item|ability|tera))\b", re.I)
+USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|standard (?:set|item|spread)|what (?:item|ability|tera|nature|spread)|"
+                      r"which (?:item|ability|tera)|usual(?:ly)?|typical(?:ly)?|carr(?:y|ies)|common\s+(?:\w+\s+)?sets?)\b", re.I)
+# Words right before a target: a team species named after one of these is the opponent's copy
+OPP_MARK_RE = re.compile(r"\b(a|an|opposing|enemy|their|opp|vs|versus|against|into|on|to|from|than|ohko|ohkos|2hko|"
+                         r"outspeeds?|kos?|beats?|hits?|resists?)\s+(?:[\w+-]+\s+){0,2}$", re.I)
+MIRROR_RE = re.compile(r"\bmirror\b", re.I)
 KO_RE = re.compile(r"\b(ohko|2hko|3hko|ohkos|2hkos|one ?shot|survive|survives|live|lives|tank|tanks|withstand|"
                    r"kill|kills|ko|kos)\b", re.I)
 # "can X survive / live / tank Y": the yes or no is about the defender
 SURVIVE_RE = re.compile(r"\b(survive|survives|live|lives|tank|tanks|withstand)\b", re.I)
-DAMAGE_RE = re.compile(r"(\bdamage\b|\bpercent(?:age)?\b|%|\bhow much\b)", re.I)
-SPEED_RE = re.compile(r"\b(outspeed|outspeeds|faster|slower|speed tie|out speed|outpace)\b", re.I)
-TYPE_ASK_RE = re.compile(r"\b(immune|immunity|weak|weakness|resist|resists|resistant|neutral|super effective|not very effective)\b", re.I)
+DAMAGE_RE = re.compile(r"(\bdamage\b|\bdmg\b|\bcalc\b|\bpercent(?:age)?\b|%|\bhow much\b)", re.I)
+SPEED_RE = re.compile(r"\b(outspeed|outspeeds|faster|slower|speed tie|out speed|outpace|moves? first|goes? first|"
+                      r"mirror speed|speed (?:check|comparison|matchup))\b", re.I)
+TYPE_ASK_RE = re.compile(r"\b(immune|immunity|weak|weakness|resist|resists|resistant|neutral|super effective|not very effective|"
+                         r"type matchup|typing)\b", re.I)
 # "stat boosts" and "stat changes" are assumptions in matchup questions, not stat questions
 STAT_RE = re.compile(r"\bstat\b(?!\s+(?:boost|change|stage|drop|raise))", re.I)
 # "how much Speed does my X have", "what Speed does my X hit": a stat question when no opponent is named
@@ -104,6 +111,16 @@ def _find_type(text):
     return None
 
 
+def _attack_type(text, move, dex):
+    """Attack type a type question asks about: a named type, else the type of a named damaging move
+    ("does Toxapex resist Moonblast"). Status moves don't count: their effect isn't a type matchup."""
+    named = _find_type(text)
+    if named or not (move and dex):
+        return named
+    data = dex.move(move) or {}
+    return data.get("type") if data.get("category") != "Status" else None
+
+
 def _find_stat(query):
     lowered = query.lower()
     for word in sorted(STAT_WORDS, key=len, reverse=True):
@@ -164,26 +181,31 @@ def plan_query(query, team):
 
     raw_spans = find_pokemon_spans(query)
     names = list(dict.fromkeys(d for _, _, d in raw_spans))
-    spans, mine_said = [], False
+    spans = []
     for a, b, name in raw_spans:
         member = _team_member(name, team, dex)
-        owned = bool(re.search(r"\b(my|our)\s+$", query[max(0, a - 20):a], re.I))
-        # "does my Scizor OHKO a full health Scizor": a later mention of the same species without "my" is the opponent
-        if member is not None and member is plan.user and mine_said and not owned:
+        before = query[max(0, a - 30):a]
+        owned = bool(re.search(r"\b(my|our)\s+$", before, re.I))
+        # A team species named as a target once the player's Pokemon is known is the opponent's copy:
+        # "does my Scizor OHKO a full health Scizor", "how much does rilla wood hammer do to corv"
+        if member is not None and plan.user is not None and not owned and OPP_MARK_RE.search(before):
             member = None
         if member is not None:
             plan.user = plan.user or member
             plan.user_named = True
-            mine_said = mine_said or owned
         elif name not in plan.opponents:
             plan.opponents.append(name)
         spans.append((a, b, name, "user" if member is not None else "opponent"))
+    # "tusk mirror": the opponent is the same species as the only Pokemon named
+    if plan.user is not None and not plan.opponents and MIRROR_RE.search(query):
+        plan.opponents.append(plan.user["Pokemon"])
     if plan.user is None and len(team) == 1:
         plan.user = next(iter(team.values()))
     plan.subject = _subject(query, spans)
 
     # Set details and field conditions the question states
-    stated = constraints.extract(query, spans, dex, (plan.user or {}).get("Item"))
+    stated = constraints.extract(query, spans, dex, (plan.user or {}).get("Item"), plan.subject,
+                                 bool(SURVIVE_RE.search(query)))
     plan.user_overrides, plan.opp_overrides = stated.user, stated.opponent
     plan.conditions, plan.screens, plan.strongest = stated.conditions, stated.screens, stated.strongest
     plan.unhandled = constraints.unhandled(query, stated.consumed, spans)
@@ -234,6 +256,8 @@ def plan_query(query, team):
     if re.search(r"\b(slower|outsped)\b", query, re.I):
         plan.speed_ask = "slower"
 
+    plan.raw_stats = stated.raw_stats
+
     # Usage goes last: speed and KO questions also say "most common spread"
     q = query
     # A stat question is about the named team member, else a named Pokemon off the team
@@ -249,14 +273,13 @@ def plan_query(query, team):
         hits = re.search(r"\b(o|\d)hko", q, re.I)
         plan.ko_hits = 1 if not hits or hits.group(1).lower() == "o" else int(hits.group(1))
         plan.survive = survive
-    elif TYPE_ASK_RE.search(q) and _find_type(scrubbed) and (plan.user or plan.opponent):
+    elif TYPE_ASK_RE.search(q) and _attack_type(scrubbed, plan.move, dex) and (plan.user or plan.opponent):
         plan.intent = "type"
-        plan.atk_type = _find_type(scrubbed)
+        plan.atk_type = _attack_type(scrubbed, plan.move, dex)
     elif DAMAGE_RE.search(q) and plan.opponent and (plan.user or plan.move):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:
         plan.intent = "speed"
-        plan.raw_stats = stated.raw_stats
     elif (SPEED_RE.search(q) or KO_RE.search(q) or DAMAGE_RE.search(q)) and not plan.opponents:
         # A matchup question with no recognisable opponent: ask, never answer a different question
         plan.intent = "clarify"

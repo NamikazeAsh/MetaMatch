@@ -42,9 +42,10 @@ SETUP_MOVES = {"Swords Dance": {"atk": 2}, "Nasty Plot": {"spa": 2}, "Dragon Dan
                "Bulk Up": {"atk": 1, "def": 1}, "Shell Smash": {"atk": 2, "spa": 2, "spe": 2},
                "Agility": {"spe": 2}, "Iron Defense": {"def": 2}, "Belly Drum": {"atk": 6},
                "Tidy Up": {"atk": 1, "spe": 1}, "Victory Dance": {"atk": 1, "def": 1, "spe": 1}}
+SETUP_ALIASES = {"dd": "Dragon Dance", "sd": "Swords Dance", "np": "Nasty Plot", "cm": "Calm Mind", "qd": "Quiver Dance"}
 WEATHER = {"rain": "Rain", "sun": "Sun", "sunlight": "Sun", "sand": "Sand", "sandstorm": "Sand",
            "snow": "Snow", "hail": "Snow"}
-SCREENS = {"reflect": "isReflect", "light screen": "isLightScreen", "aurora veil": "isAuroraVeil"}
+SCREENS = {"reflect": "isReflect", "light screen": "isLightScreen", "aurora veil": "isAuroraVeil", "veil": "isAuroraVeil"}
 
 GLUE_RE = re.compile(r"^[\s/+,()]*(?:(?:my|your|the|a|an|their|opposing|enemy)\s+)?[\s/+,()]*$", re.I)
 NO_RE = r"(?:no|without|not holding|minus)\s+(?:an?\s+|any\s+|its\s+|the\s+)?"
@@ -110,7 +111,8 @@ def _hits(query, dex):
         add(m.start(), m.end(), "no_speed_item", True, "suffix")
     for m in re.finditer(rf"\b{NO_RE}(?:held\s+)?item\b|\bitemless\b", query, re.I):
         add(m.start(), m.end(), "item", "", "suffix")
-    for m in re.finditer(rf"\b{NO_RE}(?:tera(?:stalli[sz]\w*)?)\b", query, re.I):
+    for m in re.finditer(r"\b(?:no|without|not|never|doesn'?t|does not|won'?t|will not|didn'?t|isn'?t)\s+"
+                         r"(?:going to\s+|gonna\s+)?(?:use\s+)?tera\w*\b", query, re.I):
         add(m.start(), m.end(), "tera", "", "suffix")
     for alias, item in ITEM_ALIASES.items():
         for m in re.finditer(rf"\b{NO_RE}{alias}\b", query, re.I):
@@ -124,19 +126,23 @@ def _hits(query, dex):
         moves = [x for x in moves if x]
         if moves:
             add(m.start(), m.end(), "moves", moves, "suffix")
+    for a, b, moves in _move_runs(query, dex):
+        add(a, b, "moves", moves, "suffix")
     for m in re.finditer(r"\bability\s*:\s*([A-Za-z][\w' -]*?)(?=[,);.\n]|$)", query, re.I):
         name = dex.ability_name(m.group(1)) if dex else None
         if name:
             add(m.start(), m.end(), "ability", name, "suffix")
-    for m in re.finditer(r"\btera(?:stalli[sz]\w*)?(?:\s+type)?\s*(?::|into|to|as)?\s*(\w+)\b|\b(\w+)\s+tera\b", query, re.I):
-        t = (m.group(1) or m.group(2) or "").capitalize()
-        if t in TYPES:
-            add(m.start(), m.end(), "tera", t)
-    for move, boost in SETUP_MOVES.items():
-        for m in re.finditer(rf"\b(?:after|following)\s+(?:an?\s+|one\s+|a single\s+)?{move}\b", query, re.I):
-            if free(m.start(), m.end()):
-                hits.extend((m.start(), m.end(), "boost", (stat, n), "suffix") for stat, n in boost.items())
-                taken.append(m.span())
+    for rx in (r"\btera(?:stalli[sz]\w*|s\b|'?d\b)?(?:\s+type)?\s*(?::|into|to|as)?\s*(\w+)\b", r"\b(\w+)\s+tera\b"):
+        for m in re.finditer(rx, query, re.I):
+            if m.group(1).capitalize() in TYPES:
+                add(m.start(), m.end(), "tera", m.group(1).capitalize())
+    setup = {**{m.lower(): m for m in SETUP_MOVES}, **SETUP_ALIASES}
+    names = "|".join(re.escape(k) for k in sorted(setup, key=len, reverse=True))
+    for m in re.finditer(rf"\b(?:after|following)\s+(?:an?\s+|one\s+|a single\s+)?({names})\b", query, re.I):
+        if free(m.start(), m.end()):
+            boost = SETUP_MOVES[setup[m.group(1).lower()]]
+            hits.extend((m.start(), m.end(), "boost", (stat, n), "subject") for stat, n in boost.items())
+            taken.append(m.span())
     for nature in NATURES:
         # English words ("calm", "bold", "careful") only count capitalised; never inside "Calm Mind" or "Brave Bird"
         flags = re.I if nature in CASUAL_NATURES else 0
@@ -155,13 +161,18 @@ def _hits(query, dex):
         add(m.start(), m.end(), "uninvested", True)
     for m in re.finditer(rf"(?<![\w])([+-][1-6])\s*{STAT_WORD}?\b", query, re.I):
         stat = STAT_ALIASES.get((m.group(2) or "").lower(), "_atk")
-        add(m.start(), m.end(), "boost", (stat, int(m.group(1))))
-    for alias, item in ITEM_ALIASES.items():
-        for m in re.finditer(rf"\b{alias}\b", query, re.I):
-            add(m.start(), m.end(), "item", item)
+        style = "subject" if re.search(r"\bat\s*$", query[:m.start()], re.I) else "prefix"
+        add(m.start(), m.end(), "boost", (stat, int(m.group(1))), style)
+    # Full names before casual ones, so "Choice Scarf" is one detail and not "Choice" plus "scarf"
     for rx, item in _items(dex):
         for m in rx.finditer(query):
             add(m.start(), m.end(), "item", item)
+    for alias, item in ITEM_ALIASES.items():
+        for m in re.finditer(rf"\b{alias}\b", query, re.I):
+            add(m.start(), m.end(), "item", item)
+    # "both uninvested", "both Jolly": the detail describes both sides
+    hits[:] = [(a, b, k, v, "both" if re.search(r"\bboth\s+(?:are\s+|run\s+|running\s+|have\s+)?$", query[:a], re.I) else st)
+               for a, b, k, v, st in hits]
     if dex:
         for name in dex.ability_names:
             if len(name) > 3:
@@ -170,21 +181,55 @@ def _hits(query, dex):
     return hits
 
 
+_MOVE_RX = {}
+
+
+def _move_regex(dex):
+    if id(dex) not in _MOVE_RX:
+        names = sorted((n for n in dex.move_data if len(n) > 2), key=len, reverse=True)
+        _MOVE_RX[id(dex)] = re.compile(r"(?<![\w-])(" + "|".join(re.escape(n) for n in names) + r")(?![\w-])", re.I)
+    return _MOVE_RX[id(dex)]
+
+
+def _move_runs(query, dex, least=3):
+    """(start, end, moves) for runs of `least` or more move names separated only by list punctuation."""
+    if not dex:
+        return []
+    found = [(m.start(), m.end(), dex.move_name(m.group(1))) for m in _move_regex(dex).finditer(query)]
+    runs, cur = [], []
+    for hit in found:
+        if cur and not re.fullmatch(r"[\s,/|;-]*(?:and\s+|or\s+)?[\s-]*", query[cur[-1][1]:hit[0]], re.I):
+            runs.append(cur)
+            cur = []
+        cur.append(hit)
+    runs.append(cur)
+    return [(r[0][0], r[-1][1], list(dict.fromkeys(x[2] for x in r))) for r in runs if len(r) >= least]
+
+
 def _sentence_start(query, pos):
     return max(query.rfind(c, 0, pos) for c in ".?!;\n") + 1
 
 
-def _owner(spans, a, b, style, blanked, query):
-    """Side of the mention a detail belongs to: glued next mention, else closest mention before, else opponent."""
+def _owner(spans, a, b, style, blanked, query, subject="user", survive=False):
+    """Side of the mention a detail belongs to: a glued next mention, else the closest mention before it.
+    'subject' details (setup moves, "at +2") go to whoever acts unless a mention sits right before them
+    ("mine at +1"). Details before any mention ("Assuming 252 HP / 4 Def, does X OHKO Y") describe the
+    defender: the subject of a survive question, else the side opposite the subject."""
     if style == "prefix":
         nxt = next((s for s in spans if s[0] >= b), None)
         if nxt and GLUE_RE.match(blanked[b:nxt[0]]):
             return nxt[3]
     prev = next((s for s in reversed(spans) if s[1] <= a), None)
+    if style == "subject":
+        if prev and re.fullmatch(r"[\s,']*(?:s\s+)?(?:is\s+)?(?:at\s+)?", blanked[prev[1]:a], re.I):
+            return prev[3]
+        # Boosts belong to whoever attacks: the subject, or its opponent in a survive question
+        return ("opponent" if subject == "user" else "user") if survive else subject
     if prev:
         return prev[3]
-    # Details before any name in a later clause ("Assuming 252 HP / 4 Def, does X OHKO Y") describe the opponent
-    return "opponent"
+    if survive:
+        return subject
+    return "opponent" if subject == "user" else "user"
 
 
 def _field(query, out):
@@ -192,10 +237,13 @@ def _field(query, out):
                          r"\b(rain|sun|sandstorm|sand|snow)\s+(?:is\s+)?(?:up|active|on the field)\b", query, re.I):
         out.conditions["weather"] = WEATHER[(m.group(1) or m.group(2)).lower()]
         out.consumed.append(m.span())
+    for m in re.finditer(r"(?:^|[.?!;]\s*)(rain|sun|sand|sandstorm|snow)\s*[:,]", query, re.I):
+        out.conditions["weather"] = WEATHER[m.group(1).lower()]
+        out.consumed.append(m.span(1))
     for m in re.finditer(r"\b(Electric|Grassy|Psychic|Misty)\s+Terrain\b", query, re.I):
         out.conditions["terrain"] = m.group(1).capitalize()
         out.consumed.append(m.span())
-    screen = r"(reflect|light screen|aurora veil)"
+    screen = r"(reflect|light screen|aurora veil|veil)"
     for m in re.finditer(rf"\b(?:behind|under|through|with|into)\s+(?:an?\s+|the\s+)?{screen}\b[^.?;,]*|"
                          rf"\b{screen}\s+(?:is\s+|being\s+)?(?:up|active|set|on)\b[^.?;,]*", query, re.I):
         name = (m.group(1) or m.group(2)).lower()
@@ -206,9 +254,15 @@ def _field(query, out):
         out.consumed.append(m.span())
 
 
-def extract(query, spans, dex, user_item=None):
+# Words that stand for one side in a mirror match: "mine at +1, theirs is Adamant"
+SIDE_WORDS = [(r"\b(?:mine|my one|my side)\b", "user"),
+              (r"\b(?:theirs|their one|the other one|the opposing one|their side|the opponent'?s?)\b", "opponent")]
+
+
+def extract(query, spans, dex, user_item=None, subject="user", survive=False):
     """Constraints for `query`. spans: (start, end, name, side) Pokemon mentions in order, side 'user' | 'opponent'.
-    user_item: the player's held item, so "no booster" is credited to the side that actually holds one."""
+    user_item: the player's held item, so "no booster" is credited to the side that actually holds one.
+    subject: side of the question's subject; survive: a survive question (see _owner)."""
     out = Constraints()
     out.raw_stats = bool(RAW_RE.search(query))
     out.strongest = bool(re.search(r"\b(strongest|best|most damaging|hardest hitting)\s+(?:listed\s+)?(?:attack|move)", query, re.I))
@@ -220,27 +274,36 @@ def extract(query, spans, dex, user_item=None):
     blanked = query
     for a, b, *_ in hits:
         blanked = blanked[:a] + " " * (b - a) + blanked[b:]
+    marks = sorted(spans + [(m.start(), m.end(), "", side) for rx, side in SIDE_WORDS for m in re.finditer(rx, query, re.I)])
     loose = {}
     for a, b, key, value, style in sorted(hits, key=lambda h: h[0]):
-        side = getattr(out, _owner(spans, a, b, style, blanked, query))
-        if key == "no_item" and user_item and value.lower() == user_item.lower():
+        side = getattr(out, _owner(marks, a, b, style, blanked, query, subject, survive))
+        # "...? no booster": a negated item with no mention earlier in its sentence goes to whoever holds it
+        alone = not any(_sentence_start(query, a) <= s[0] < a for s in marks)
+        if key == "no_item" and alone and user_item and value.lower() == user_item.lower():
             side = out.user
         if key == "ability_loose":
-            # A bare ability name ("thanks to Levitate") only counts beside other set details
-            loose.setdefault(id(side), (side, value))
+            # A bare ability name ("thanks to Levitate") only counts beside other set details or glued to a name
+            nxt = next((s for s in marks if s[0] >= b), None)
+            if nxt and GLUE_RE.match(blanked[b:nxt[0]]):
+                side.setdefault("ability", value)
+                out.consumed.append((a, b))
+            else:
+                loose.setdefault(id(side), (side, value))
             continue
         out.consumed.append((a, b))
-        if key == "evs":
-            side.setdefault("evs", {})[value[0]] = value[1]
-        elif key == "boost":
-            side.setdefault("boosts", {})[value[0]] = side.get("boosts", {}).get(value[0], 0) + value[1]
-        elif key in ("max", "min"):
-            side.setdefault(key, []).append(value)
-        elif key == "no_item":
-            if side.get("item") in (None, value):
-                side["item"] = ""
-        else:
-            side.setdefault(key, value)
+        for side in ((out.user, out.opponent) if style == "both" else (side,)):
+            if key == "evs":
+                side.setdefault("evs", {})[value[0]] = value[1]
+            elif key == "boost":
+                side.setdefault("boosts", {})[value[0]] = side.get("boosts", {}).get(value[0], 0) + value[1]
+            elif key in ("max", "min"):
+                side.setdefault(key, []).append(value)
+            elif key == "no_item":
+                if side.get("item") in (None, value):
+                    side["item"] = ""
+            else:
+                side.setdefault(key, value)
     for side, ability in loose.values():
         if side and "ability" not in side:
             side["ability"] = ability
@@ -267,7 +330,7 @@ def unhandled(query, consumed, spans):
         lead = query[max(_sentence_start(query, a), a - 40):a]
         if NEGATED_RE.search(lead):
             continue
-        out.append(m.group(0).strip())
+        out.append(re.sub(r"^(?:at|from)\s+", "", m.group(0).strip(), flags=re.I))
     return list(dict.fromkeys(out))
 
 

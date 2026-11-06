@@ -30,15 +30,20 @@ NICKNAMES = {
     "rs urshifu": "Urshifu-Rapid-Strike", "kyurem": "Kyurem", "darmanitan": "Darmanitan",
     "lucario": "Lucario", "zard": "Charizard", "gross": "Metagross", "scizor": "Scizor",
     "pawm": "Pawmot", "sneas": "Sneasler", "annihil": "Annihilape", "prim": "Primarina",
-    "hatt": "Hatterene", "ceru": "Ceruledge", "staraptor": "Staraptor",
+    "hatt": "Hatterene", "ceru": "Ceruledge", "staraptor": "Staraptor", "bundle": "Iron Bundle",
+    "kart": "Kartana", "barra": "Barraskewda", "bolt": "Raging Bolt", "rmoon": "Roaring Moon",
 }
 
 # Nicknames that are also ordinary English: they only count in a Pokemon slot (see _nickname_ok)
 AMBIGUOUS_NICKNAMES = {"gross", "moth", "crown", "drill", "valiant", "treads", "zap", "hippo", "meow",
-                       "prim", "ogre", "cornerstone"}
-# Words right before a Pokemon slot: "my moth", "vs gross", "ohko crown"
+                       "prim", "ogre", "cornerstone", "bundle", "bolt"}
+# Words right before a Pokemon slot: "my moth", "vs gross", "ohko crown", "tera fighting valiant", "specs bundle"
 SLOT_WORDS = {"my", "your", "their", "opposing", "opp", "enemy", "vs", "versus", "against", "than",
-              "does", "can", "outspeed", "outspeeds", "ohko", "ohkos", "2hko", "ko", "kos", "kill", "beat", "check"}
+              "does", "can", "outspeed", "outspeeds", "ohko", "ohkos", "2hko", "ko", "kos", "kill", "beat", "check",
+              "on", "into", "a", "an", "if", "tera", "specs", "scarf", "band", "boots", "banded", "scarfed", "jolly", "timid",
+              "adamant", "modest", "impish", "bold", "calm", "careful", "sassy", "normal", "fire", "water", "electric",
+              "grass", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon",
+              "dark", "steel", "fairy"}
 # Regional forme suffix -> the adjective players use ("Ninetales-Alola" -> "Alolan Ninetales")
 REGION_ADJ = {"Alola": "alolan", "Galar": "galarian", "Hisui": "hisuian", "Paldea": "paldean"}
 # Base formes the dex has no name for, so "Single Strike Urshifu" still resolves

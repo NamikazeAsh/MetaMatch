@@ -177,6 +177,9 @@ def _attack(plan, dex, game):
     if not name:
         return None
     mine = _mine(plan, dex, game) if p else None
+    if plan.raw_stats:  # "ignoring items and abilities": both sides bare
+        bare = lambda spec: {k: v for k, v in spec.items() if k not in ("item", "ability")} if spec else spec
+        mine, opp_spec = bare(mine), bare(opp_spec)
     shown = display_name(name)
     if plan.attacker == "opponent" or not p:
         attacker, defender, defender_side = (shown, opp_spec), ((_user_name(p), mine) if p else None), "user"
