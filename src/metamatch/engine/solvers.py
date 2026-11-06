@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass, field
 
 from metamatch import config
-from metamatch.engine import calc, mechanics
+from metamatch.engine import calc, constraints, mechanics
 from metamatch.engine.dex import dex_for_format
 from metamatch.engine.sets import calc_spec, chaos_entry, describe_spread, likely_set
 
@@ -43,8 +43,9 @@ def _pct(x):
     return f"{x * 100:.0f}%"
 
 
-def user_spec(p, game):
-    """A team member as a calc_server Pokemon spec (Champions uses stat points as 'evs')."""
+def user_spec(p, game, details=None, dex=None):
+    """A team member as a calc_server Pokemon spec (Champions uses stat points as 'evs'), with any set
+    details the question states for it applied."""
     raw = p.get("SP") if game == "champions" else p.get("EVs")
     spec = {"name": p.get("Forme") or p["Pokemon"],
             "evs": {CALC_STAT_KEYS[k]: v for k, v in (raw or {}).items() if k in CALC_STAT_KEYS}}
@@ -55,7 +56,7 @@ def user_spec(p, game):
     ability = p.get("Mega Ability") or p.get("Ability")
     if ability:
         spec["ability"] = ability
-    return spec
+    return constraints.apply(spec, details, dex, game) if details else spec
 
 
 def _opponent(plan, dex):
@@ -69,13 +70,32 @@ def _opponent(plan, dex):
         if not species:
             return None, None, None
         name, spec = species["name"], {"name": species["name"]}
-    overrides = plan.opp_overrides
-    for key in ("item", "ability", "nature"):
-        if overrides.get(key):
-            spec[key] = overrides[key]
-    if overrides.get("evs"):
-        spec["evs"] = {k: overrides["evs"].get(k, 0) for k in ("hp", "atk", "def", "spa", "spd", "spe")}
+    spec = constraints.apply(spec, plan.opp_overrides, dex, config.format_game(plan.format_id))
     return name, spec, s
+
+
+def _mine(plan, dex, game):
+    return user_spec(plan.user, game, plan.user_overrides, dex)
+
+
+def _calc_field(plan, defender_side=None):
+    """calc Field for the stated weather and terrain, plus screens on the defender's side."""
+    f = dict(plan.conditions)
+    flags = set(plan.screens.get("defender", ())) | set(plan.screens.get(defender_side, ()))
+    if defender_side and flags:
+        f["defenderSide"] = {flag: True for flag in flags}
+    return f or None
+
+
+def _spread_text(spec, game):
+    return describe_spread({"nature": spec.get("nature", "Serious"), "evs": spec.get("evs") or {}}, game)
+
+
+def _spread_label(plan, s, spec, game):
+    """How the opponent's spread was chosen, for the verdict sentence (closing bracket added by the caller)."""
+    if constraints.stated_spread(plan.opp_overrides):
+        return f"running the stated spread ({_spread_text(spec, game)}"
+    return f"running its most common spread ({describe_spread(s, game) if s else 'an uninvested spread'}"
 
 
 def _stats(game, spec, move):
@@ -109,38 +129,41 @@ def solve_speed(plan, dex, game):
     if not name:
         return None
     move = _any_move([m["name"] for m in p.get("Moves", [])], dex)
+    mine = _mine(plan, dex, game)
     stated = plan.opp_overrides.get("item")
     if plan.raw_stats:
         stated = None
-        us = (_stats(game, user_spec(p, game), move) or {}).get("spe")
+        us = (_stats(game, mine, move) or {}).get("spe")
         them = (_stats(game, spec, move) or {}).get("spe")
     else:
-        us = mechanics.final_speed(user_spec(p, game), game, move)
-        them = mechanics.final_speed(mechanics.opponent_speed_spec(spec, stated), game, move)
+        us = mechanics.final_speed(mine, game, move, _calc_field(plan))
+        them = mechanics.final_speed(mechanics.opponent_speed_spec(spec, stated), game, move, _calc_field(plan))
     if not us or not them:
         return None
     name = display_name(name)
     order = "yes" if us > them else "no" if us < them else "tie"
     verb = {"yes": "outspeeds", "no": "is slower than", "tie": "speed ties with"}[order]
-    spread = describe_spread(s, game) if s else "an uninvested spread"
-    held = f" with {p['Item']}" if us != (_stats(game, user_spec(p, game), move) or {}).get("spe") else ""
+    label = _spread_label(plan, s, spec, game)
+    held = f" with {mine['item']}" if mine.get("item") and us != (_stats(game, mine, move) or {}).get("spe") else ""
     theirs = f" @ {stated}" if stated in mechanics.OPP_SPEED_ITEMS else ""
-    statement = f"{_user_name(p)} ({us} Speed{held}) {verb} {name}{theirs} running its most common spread ({spread}, {them} Speed)."
+    statement = f"{_user_name(p)} ({us} Speed{held}) {verb} {name}{theirs} {label}, {them} Speed)."
     # The answer is about the question's subject and comparison: "Does Dragapult outspeed my Tusk?"
     subject, other, faster = _user_name(p), name, us > them
     if plan.subject == "opponent":
         subject, other, faster = name, _user_name(p), them > us
         verb = {"yes": "is slower than", "no": "outspeeds", "tie": "speed ties with"}[order]
-        statement = (f"{name}{theirs} running its most common spread ({spread}, {them} Speed) {verb} "
+        statement = (f"{name}{theirs} {label}, {them} Speed) {verb} "
                      f"{_user_name(p)} ({us} Speed{held}).")
     slower = (them > us) if plan.subject == "user" else (us > them)
     answer = "tie" if us == them else ("yes" if (slower if plan.speed_ask == "slower" else faster) else "no")
-    facts = [f"{_user_name(p)} Speed: {us}.", f"{name} Speed with its most common spread: {them}."]
-    if s and s["speeds"]:
+    told = constraints.stated_spread(plan.opp_overrides)
+    which = "the stated spread" if told else "its most common spread"
+    facts = [f"{_user_name(p)} Speed: {us}.", f"{name} Speed with {which}: {them}."]
+    if s and s["speeds"] and not told:
         faster = sum(share for spe, share in s["speeds"] if spe < us)
         tied = sum(share for spe, share in s["speeds"] if spe == us)
         facts.append(f"Across all {name} sets on the ladder, {_user_name(p)} outspeeds {_pct(faster)} and ties {_pct(tied)}.")
-    if s and s.get("item") == "Choice Scarf" and not stated:
+    if s and s.get("item") == "Choice Scarf" and "item" not in plan.opp_overrides and not plan.opp_overrides.get("no_speed_item"):
         facts.append(f"{_pct(s['item_share'])} of {name} carry Choice Scarf, reaching {int(them * 1.5)} Speed.")
     # Contradiction checks read the answer as "subject is faster than other", inverted when ask_slower
     return Verdict("speed", answer, statement, facts, subject=subject, other=other,
@@ -153,17 +176,22 @@ def _attack(plan, dex, game):
     name, opp_spec, s = _opponent(plan, dex)
     if not name:
         return None
-    mine = user_spec(p, game) if p else None
+    mine = _mine(plan, dex, game) if p else None
     shown = display_name(name)
     if plan.attacker == "opponent" or not p:
-        attacker, defender = (shown, opp_spec), ((_user_name(p), mine) if p else None)
-        moves = [plan.move] if plan.move else [m for m, _ in (s or {}).get("moves", [])]
+        attacker, defender, defender_side = (shown, opp_spec), ((_user_name(p), mine) if p else None), "user"
+        moves = [plan.move] if plan.move else (plan.opp_overrides.get("moves") or [m for m, _ in (s or {}).get("moves", [])])
     else:
-        attacker, defender = (_user_name(p), mine), (shown, opp_spec)
-        moves = [plan.move] if plan.move else [m["name"] for m in p.get("Moves", []) if m.get("category") != "Status"]
+        attacker, defender, defender_side = (_user_name(p), mine), (shown, opp_spec), "opponent"
+        moves = [plan.move] if plan.move else (plan.user_overrides.get("moves")
+                                               or [m["name"] for m in p.get("Moves", []) if m.get("category") != "Status"])
+    # "Its strongest move" means its strongest attack: status moves never count
+    moves = [m for m in moves if m == plan.move or (dex.move(m) or {}).get("category") != "Status"]
     if not defender or not moves:
         return None
-    results = calc.calculate_many([{"game": game, "attacker": attacker[1], "defender": defender[1], "move": m} for m in moves])
+    f = _calc_field(plan, defender_side)
+    results = calc.calculate_many([{"game": game, "attacker": attacker[1], "defender": defender[1], "move": m,
+                                    **({"field": f} if f else {})} for m in moves])
     scored = [(m, r) for m, r in zip(moves, results) if r]
     if not scored:
         return None
@@ -197,7 +225,7 @@ def solve_ko(plan, dex, game):
     facts = [f"Calc: {r['desc']}"] if r["desc"] else []
     if effect:
         facts.append(f"{dfn} at full HP keeps {effect}; hazards or earlier chip would remove it.")
-    if s and not plan.opp_overrides:
+    if s and not constraints.stated_spread(plan.opp_overrides) and "item" not in plan.opp_overrides:
         facts.append(f"{s['name']} assumed on its most common set: {describe_spread(s, game)} @ {s['item']}, {s['ability']}.")
     return Verdict("ko", answer, statement, facts, subject=att, other=dfn, survive=plan.survive, hits=plan.ko_hits)
 
@@ -211,7 +239,7 @@ def solve_damage(plan, dex, game):
     ko = f" ({r['ko']})" if r["ko"] else ""
     statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{ko}."
     facts = [f"Calc: {r['desc']}"] if r["desc"] else []
-    if s and not plan.opp_overrides:
+    if s and not constraints.stated_spread(plan.opp_overrides) and "item" not in plan.opp_overrides:
         facts.append(f"{s['name']} assumed on its most common set: {describe_spread(s, game)} @ {s['item']}, {s['ability']}.")
     return Verdict("damage", f"{lo}-{hi}%", statement, facts)
 
@@ -222,14 +250,18 @@ def solve_type(plan, dex, game):
     # The question is about the named team member, else a named opponent, else the only team member
     if plan.user is not None and (plan.user_named or not plan.opponent):
         p = plan.user
-        name, types, spec = _user_name(p), p.get("Type", []), user_spec(p, game)
-        ability = p.get("Mega Ability") or p.get("Ability")
+        name, types, spec = _user_name(p), p.get("Type", []), _mine(plan, dex, game)
+        ability = spec.get("ability")
     else:
         name, spec, s = _opponent(plan, dex)
         if not name:
             return None
         types, ability = dex.species(name)["types"], spec.get("ability")
         name = display_name(name)
+    # A Terastallized Pokemon takes hits as its Tera type alone (Stellar keeps its own types)
+    tera = spec.get("teraType")
+    if tera and tera != "Stellar":
+        types = [tera]
     mult = 1.0
     for d in types:
         mult *= chart.get(t, {}).get(d, 1.0)
@@ -249,22 +281,33 @@ def solve_type(plan, dex, game):
     answer = "immune" if mult == 0 else "resists" if mult < 1 else "weak" if mult > 1 else "neutral"
     phrase = {"immune": f"is immune to {t} attacks{via}", "resists": f"resists {t} attacks ({mult:g}x)",
               "weak": f"is weak to {t} attacks ({mult:g}x)", "neutral": f"takes neutral damage from {t} attacks (1x)"}[answer]
-    statement = f"{name} ({'/'.join(types)}{', ' + ability if ability else ''}) {phrase}."
+    typing = f"Tera {tera}" if tera and tera != "Stellar" else "/".join(types)
+    statement = f"{name} ({typing}{', ' + ability if ability else ''}) {phrase}."
     facts = [f"{t} vs {d}: {chart.get(t, {}).get(d, 1.0):g}x." for d in types]
     return Verdict("type", answer, statement, facts)
 
 
 def solve_stat(plan, dex, game):
-    p = plan.user
-    move = _any_move([m["name"] for m in p.get("Moves", [])], dex)
-    stats = _stats(game, user_spec(p, game), move)
+    if plan.stat_target == "opponent":
+        name, spec, s = _opponent(plan, dex)
+        if not name:
+            return None
+        who, item = display_name(name), spec.get("item")
+        how = (f" ({_spread_text(spec, game)})" if constraints.stated_spread(plan.opp_overrides) else
+               f" on its most common spread ({describe_spread(s, game)})" if s else " uninvested")
+        moves = [m for m, _ in (s or {}).get("moves", [])]
+    else:
+        p = plan.user
+        spec, who, item, how = _mine(plan, dex, game), _user_name(p), p.get("Item"), ""
+        moves = [m["name"] for m in p.get("Moves", [])]
+    stats = _stats(game, spec, _any_move(moves, dex))
     if not stats:
         return None
     value = stats[plan.stat]
     level = 50 if game == "champions" else 100
-    statement = f"{_user_name(p)}'s {STAT_NAMES[plan.stat]} stat is {value} at level {level}."
+    statement = f"{who}'s {STAT_NAMES[plan.stat]} stat is {value} at level {level}{how}."
     facts = [f"All stats: " + ", ".join(f"{STAT_NAMES[k]} {v}" for k, v in stats.items()) + "."]
-    if plan.stat == "spe" and (p.get("Item") or "").lower() == "choice scarf":
+    if plan.stat == "spe" and (item or "").lower() == "choice scarf":
         facts.append(f"With Choice Scarf it moves at {int(value * 1.5)}.")
     return Verdict("stat", str(value), statement, facts)
 
@@ -313,7 +356,15 @@ def solve(plan):
     if not solver or not dex:
         return None
     try:
-        return solver(plan, dex, config.format_game(plan.format_id))
+        verdict = solver(plan, dex, config.format_game(plan.format_id))
     except (KeyError, TypeError, ValueError, AttributeError) as e:
         print(f"Solver {plan.intent} failed: {e}")
         return None
+    if verdict and plan.intent != "usage":
+        # Stated versus assumed: say what came from the question, and what the engine could not count
+        for who, details in (("your Pokemon", plan.user_overrides), ("the opponent", plan.opp_overrides)):
+            if constraints.summary(details):
+                verdict.facts.append(f"Stated in the question for {who}: {constraints.summary(details)}.")
+        if plan.unhandled:
+            verdict.statement += f" This does not count {', '.join(plan.unhandled)}."
+    return verdict

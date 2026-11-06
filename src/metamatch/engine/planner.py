@@ -7,26 +7,27 @@ import re
 from dataclasses import dataclass, field
 
 from metamatch import config
+from metamatch.engine import constraints
 from metamatch.engine.dex import dex_for_format, to_id
 from metamatch.engine.sets import likely_set
 from metamatch.engine.names import find_pokemon, find_pokemon_spans
 
 TYPES = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground",
          "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
-NATURES = ["Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed", "Impish", "Lax",
-           "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild", "Quiet", "Bashful", "Rash",
-           "Calm", "Gentle", "Sassy", "Careful", "Quirky"]
 STAT_WORDS = {"hp": "hp", "attack": "atk", "atk": "atk", "defense": "def", "def": "def",
               "special attack": "spa", "spa": "spa", "special defense": "spd", "spd": "spd",
               "speed": "spe", "spe": "spe"}
-EV_LABELS = {"hp": "hp", "atk": "atk", "def": "def", "spa": "spa", "spd": "spd", "spe": "spe"}
 
 USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|standard (?:set|item|spread)|what (?:item|ability|tera|nature|spread)|which (?:item|ability|tera))\b", re.I)
-KO_RE = re.compile(r"\b(ohko|2hko|3hko|ohkos|2hkos|one ?shot|survive|survives|kill|kills|ko|kos)\b", re.I)
+KO_RE = re.compile(r"\b(ohko|2hko|3hko|ohkos|2hkos|one ?shot|survive|survives|live|lives|tank|tanks|withstand|"
+                   r"kill|kills|ko|kos)\b", re.I)
+# "can X survive / live / tank Y": the yes or no is about the defender
+SURVIVE_RE = re.compile(r"\b(survive|survives|live|lives|tank|tanks|withstand)\b", re.I)
 DAMAGE_RE = re.compile(r"(\bdamage\b|\bpercent(?:age)?\b|%|\bhow much\b)", re.I)
 SPEED_RE = re.compile(r"\b(outspeed|outspeeds|faster|slower|speed tie|out speed|outpace)\b", re.I)
 TYPE_ASK_RE = re.compile(r"\b(immune|immunity|weak|weakness|resist|resists|resistant|neutral|super effective|not very effective)\b", re.I)
-STAT_RE = re.compile(r"\bstat\b", re.I)
+# "stat boosts" and "stat changes" are assumptions in matchup questions, not stat questions
+STAT_RE = re.compile(r"\bstat\b(?!\s+(?:boost|change|stage|drop|raise))", re.I)
 # "how much Speed does my X have", "what Speed does my X hit": a stat question when no opponent is named
 STAT_ASK_RE = re.compile(r"\b(how much|what)\s+(speed|attack|defense|special attack|special defense|hp)\b", re.I)
 
@@ -47,7 +48,13 @@ class Plan:
     atk_type: str | None = None
     stat: str | None = None
     usage_field: str | None = None  # item, ability, move, tera, spread
-    opp_overrides: dict = field(default_factory=dict)  # explicit set details from the question
+    opp_overrides: dict = field(default_factory=dict)   # set details the question states for the opponent
+    user_overrides: dict = field(default_factory=dict)  # ... and for the player's Pokemon
+    conditions: dict = field(default_factory=dict)      # calc Field the question states: weather, terrain
+    screens: dict = field(default_factory=dict)         # "user" | "opponent" | "defender" -> calc Side screen flags
+    strongest: bool = False         # "assume it uses its strongest listed move"
+    stat_target: str = "user"       # stat questions: whose stat ("opponent" for a Pokemon off the team)
+    unhandled: list = field(default_factory=list)  # stated conditions the engine can't apply ("Tailwind", "burned")
     raw_stats: bool = False         # "ignore items/abilities": compare bare stats, no Scarf or field
 
     @property
@@ -105,63 +112,6 @@ def _find_stat(query):
     return None
 
 
-# Text allowed between a set detail and the Pokemon it describes: "my Jolly 252 Atk Great Tusk"
-GLUE_RE = re.compile(r"^[\s/+,()]*(?:(?:my|your|the|a|an)\s+)?[\s/+,()]*$", re.I)
-
-
-def _owner(spans, start, end, style, text):
-    """'user' when a set detail is glued to a team member's mention, else 'opponent' (old behaviour)."""
-    if style == "prefix":
-        nxt = next((s for s in spans if s[0] >= end), None)
-        if nxt and nxt[3] == "user" and GLUE_RE.match(text[end:nxt[0]]):
-            return "user"
-    else:
-        prev = next((s for s in reversed(spans) if s[1] <= start), None)
-        if prev and prev[3] == "user" and GLUE_RE.match(text[prev[1]:start]):
-            return "user"
-    return "opponent"
-
-
-def _parse_set(query, dex, spans=()):
-    """Explicit opponent set details: '@ Item', a nature, an ability and '252 HP / 4 Def' style spreads.
-    `spans` are (start, end, name, side) mentions; details glued to a team member's mention are skipped."""
-    hits = []  # (start, end, key, value, style)
-    for m in re.finditer(r"@\s*((?:[A-Za-z][\w'.-]*\s*){1,4})", query):
-        words = m.group(1).split()
-        for k in range(len(words), 0, -1):
-            if dex and dex.item_name(" ".join(words[:k])):
-                hits.append((m.start(), m.end(), "item", dex.item_name(" ".join(words[:k])), "suffix"))
-                break
-    for nature in NATURES:
-        for m in re.finditer(rf"\b{nature}\b", query):
-            hits.append((m.start(), m.end(), "nature", nature, "prefix"))
-    for m in re.finditer(r"(\d+)\s*(HP|Atk|Def|SpA|SpD|Spe)\b", query):
-        hits.append((m.start(), m.end(), "evs", (EV_LABELS[m.group(2).lower()], int(m.group(1))), "prefix"))
-    if dex:
-        for name in dex.ability_names:
-            if len(name) > 3:
-                for m in re.finditer(rf"\b{re.escape(name)}\b", query):
-                    hits.append((m.start(), m.end(), "ability", name, "prefix"))
-    # Blank every detail so a run of them ("Jolly 252 Atk") still counts as glued to the name
-    text = query
-    for a, b, *_ in hits:
-        text = text[:a] + " " * (b - a) + text[b:]
-    overrides = {}
-    for a, b, key, value, style in sorted(hits, key=lambda h: h[0]):
-        if _owner(spans, a, b, style, text) != "opponent":
-            continue
-        if key == "evs":
-            overrides.setdefault("evs", {})[value[0]] = value[1]
-        elif key == "ability":
-            overrides.setdefault("_ability", value)
-        else:
-            overrides.setdefault(key, value)
-    ability = overrides.pop("_ability", None)
-    if ability and overrides:
-        overrides["ability"] = ability
-    return overrides
-
-
 def _usage_field(query):
     """Which usage field is asked for; whole words only, so 'Terapagos' is not 'tera'."""
     for pattern, fld in ((r"tera", "tera"), (r"abilit(?:y|ies)", "ability"), (r"items?", "item"),
@@ -214,17 +164,29 @@ def plan_query(query, team):
 
     raw_spans = find_pokemon_spans(query)
     names = list(dict.fromkeys(d for _, _, d in raw_spans))
-    for name in names:
+    spans, mine_said = [], False
+    for a, b, name in raw_spans:
         member = _team_member(name, team, dex)
+        owned = bool(re.search(r"\b(my|our)\s+$", query[max(0, a - 20):a], re.I))
+        # "does my Scizor OHKO a full health Scizor": a later mention of the same species without "my" is the opponent
+        if member is not None and member is plan.user and mine_said and not owned:
+            member = None
         if member is not None:
             plan.user = plan.user or member
             plan.user_named = True
+            mine_said = mine_said or owned
         elif name not in plan.opponents:
             plan.opponents.append(name)
+        spans.append((a, b, name, "user" if member is not None else "opponent"))
     if plan.user is None and len(team) == 1:
         plan.user = next(iter(team.values()))
-    spans = [(a, b, d, "opponent" if d in plan.opponents else "user") for a, b, d in raw_spans]
     plan.subject = _subject(query, spans)
+
+    # Set details and field conditions the question states
+    stated = constraints.extract(query, spans, dex, (plan.user or {}).get("Item"))
+    plan.user_overrides, plan.opp_overrides = stated.user, stated.opponent
+    plan.conditions, plan.screens, plan.strongest = stated.conditions, stated.screens, stated.strongest
+    plan.unhandled = constraints.unhandled(query, stated.consumed, spans)
 
     # Text with Pokemon names removed, for move, type and keyword scans
     scrubbed = query
@@ -234,6 +196,9 @@ def plan_query(query, team):
     for a, b, _ in raw_spans:
         scrubbed = scrubbed[:a] + " " * (b - a) + scrubbed[b:]
     names_only = scrubbed
+    # ... and the stated details, so "moves: Knock Off, Ice Shard" or "Reflect up" never reads as the asked move
+    for a, b in stated.consumed:
+        scrubbed = scrubbed[:a] + " " * (b - a) + scrubbed[b:]
 
     members = [plan.user] if plan.user else list(team.values())
     user_moves = [m["name"] for p in members for m in p.get("Moves", [])]
@@ -248,7 +213,6 @@ def plan_query(query, team):
             plan.user_named = plan.user is not None
             user_moves = [m["name"] for m in (plan.user or {}).get("Moves", [])]
 
-    plan.opp_overrides = _parse_set(query, dex, spans) if plan.opponent else {}
     if dex:
         for ability in dex.ability_names:
             if len(ability) > 3:
@@ -256,7 +220,7 @@ def plan_query(query, team):
 
     # Who attacks: possessive "X's Move" wins, then a move only one side runs, then grammar:
     # the subject attacks, unless it is the one trying to survive
-    survive = bool(re.search(r"\bsurvive", query, re.I))
+    survive = bool(SURVIVE_RE.search(query))
     other = "opponent" if plan.subject == "user" else "user"
     possessor = _possessor(query, plan.move, plan) if plan.move else None
     if possessor:
@@ -272,14 +236,19 @@ def plan_query(query, team):
 
     # Usage goes last: speed and KO questions also say "most common spread"
     q = query
-    if plan.user and not SPEED_RE.search(q) and (STAT_RE.search(q) or (STAT_ASK_RE.search(q) and not plan.opponents)):
+    # A stat question is about the named team member, else a named Pokemon off the team
+    target = ("user" if plan.user is not None and (plan.user_named or not plan.opponents)
+              else "opponent" if plan.opponents else None)
+    if target and not SPEED_RE.search(q) and (
+            STAT_RE.search(q) or (STAT_ASK_RE.search(q) and (not plan.opponents or target == "opponent"))):
         plan.intent = "stat"
+        plan.stat_target = target
         plan.stat = _find_stat(scrubbed) or "spe"
     elif KO_RE.search(q) and plan.opponent and (plan.user or plan.move):
         plan.intent = "ko"
         hits = re.search(r"\b(o|\d)hko", q, re.I)
         plan.ko_hits = 1 if not hits or hits.group(1).lower() == "o" else int(hits.group(1))
-        plan.survive = bool(re.search(r"\bsurvive", q, re.I))
+        plan.survive = survive
     elif TYPE_ASK_RE.search(q) and _find_type(scrubbed) and (plan.user or plan.opponent):
         plan.intent = "type"
         plan.atk_type = _find_type(scrubbed)
@@ -287,7 +256,7 @@ def plan_query(query, team):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:
         plan.intent = "speed"
-        plan.raw_stats = bool(re.search(r"\b(ignor\w*|without|no)\b[^.?]*\b(items?|scarf)\b", q, re.I))
+        plan.raw_stats = stated.raw_stats
     elif (SPEED_RE.search(q) or KO_RE.search(q) or DAMAGE_RE.search(q)) and not plan.opponents:
         # A matchup question with no recognisable opponent: ask, never answer a different question
         plan.intent = "clarify"

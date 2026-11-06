@@ -124,6 +124,11 @@ def _forme_aliases():
                 pairs.setdefault(f"{adj} {b} {rest}".strip(), name)
                 if rest:
                     pairs.setdefault(f"{adj} {rest} {b}", name)
+                else:
+                    # "Galar Slowking", "G-Slowking", "H Arcanine" ("A" is skipped: it reads as an article)
+                    pairs.setdefault(f"{norm(region)} {b}", name)
+                    if region[0] != "A":
+                        pairs.setdefault(f"{region[0].lower()} {b}", name)
             # One letter short forms ("Rotom W") only when unambiguous and not an English word ("Ninetales a")
             letter = forme[0].lower()
             if "-" not in forme and initials.count(letter) == 1 and letter not in "ai":
