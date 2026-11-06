@@ -15,7 +15,17 @@ NUMBER = re.compile(r"\d+(?:\.\d+)?")
 ANSWER_LINE = re.compile(r"^\s*\**ANSWER\s*:.*$", re.I | re.M)
 # Numbers that can't mislead even when the facts don't spell them out
 FREE_NUMBERS = {"0", "1", "100"}
-CLAIM_CHECKS = {"type": claims.type_clash, "speed": claims.speed_clash, "ko": claims.ko_clash}
+def _checks_clash(explanation, verdict):
+    """A sentence recommending a member that loses to the opponent one on one."""
+    from .coach import recommends_loser
+    for sentence in re.split(r"(?<=[.!?])\s+", explanation):
+        loser = recommends_loser(sentence, set(verdict.losers), set(verdict.members))
+        if loser:
+            return f"a claim that {loser} handles {verdict.other}, but it loses one on one"
+    return None
+
+
+CLAIM_CHECKS = {"type": claims.type_clash, "speed": claims.speed_clash, "ko": claims.ko_clash, "checks": _checks_clash}
 
 
 def _numbers(text):

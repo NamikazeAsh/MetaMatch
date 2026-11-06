@@ -24,6 +24,9 @@ USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|standard (?:set|i
 OPP_MARK_RE = re.compile(r"\b(a|an|opposing|enemy|their|opp|vs|versus|against|into|on|to|from|than|ohko|ohkos|2hko|"
                          r"outspeeds?|kos?|beats?|hits?|resists?)\s+(?:[\w+-]+\s+){0,2}$", re.I)
 MIRROR_RE = re.compile(r"\bmirror\b", re.I)
+# "what checks Kyurem", "who on my team counters Zamazenta", "answers to Raging Bolt": a team wide matchup question
+CHECKS_RE = re.compile(r"\b(?:what|who|which)\b[^.?!]*\b(?:checks?|counters?|answers?|handles?|beats?|walls?|stops?)\b|"
+                       r"\b(?:checks?|counters?|answers?)\s+(?:to|for|against)\b", re.I)
 KO_RE = re.compile(r"\b(ohko|2hko|3hko|ohkos|2hkos|one ?shot|survive|survives|live|lives|tank|tanks|withstand|"
                    r"kill|kills|ko|kos)\b", re.I)
 # "can X survive / live / tank Y": the yes or no is about the defender
@@ -62,6 +65,7 @@ class Plan:
     strongest: bool = False         # "assume it uses its strongest listed move"
     stat_target: str = "user"       # stat questions: whose stat ("opponent" for a Pokemon off the team)
     unhandled: list = field(default_factory=list)  # stated conditions the engine can't apply ("Tailwind", "burned")
+    team: dict = field(default_factory=dict, repr=False)  # the whole team, for team wide answers ("what checks X")
     raw_stats: bool = False         # "ignore items/abilities": compare bare stats, no Scarf or field
 
     @property
@@ -177,7 +181,7 @@ def plan_query(query, team):
     team = team or {}
     format_id = config.team_format(team)
     dex = dex_for_format(format_id)
-    plan = Plan(format_id=format_id)
+    plan = Plan(format_id=format_id, team=team)
 
     raw_spans = find_pokemon_spans(query)
     names = list(dict.fromkeys(d for _, _, d in raw_spans))
@@ -280,6 +284,8 @@ def plan_query(query, team):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:
         plan.intent = "speed"
+    elif CHECKS_RE.search(q) and plan.opponent and team:
+        plan.intent = "checks"
     elif (SPEED_RE.search(q) or KO_RE.search(q) or DAMAGE_RE.search(q)) and not plan.opponents:
         # A matchup question with no recognisable opponent: ask, never answer a different question
         plan.intent = "clarify"

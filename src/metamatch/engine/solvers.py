@@ -37,6 +37,8 @@ class Verdict:
     ask_slower: bool = False        # speed question phrased as "is X slower": "yes" means subject is slower
     subject_is_player: bool = True  # False when the question's subject is the opponent ("does Dragapult outspeed me")
     hits: int = 1                   # KO verdicts: the number of hits the question asked about
+    losers: list = field(default_factory=list)  # checks verdicts: members that lose one on one
+    members: list = field(default_factory=list)  # checks verdicts: the whole team
 
 
 def _pct(x):
@@ -348,8 +350,35 @@ def solve_usage(plan, dex, game):
     return Verdict("usage", display(top), statement, facts, persona="builder")
 
 
+def _join(names):
+    names = list(names)
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1] if names else ""
+
+
+def solve_checks(plan, dex, game):
+    """'What checks X on my team': every member against X's most common set, one on one (engine/threat_board.py)."""
+    from metamatch.engine.threat_board import threat_row
+    row = threat_row(plan.team, plan.opponent, plan.format_id)
+    if not row:
+        return None
+    name, answers, losses = display_name(row.name), row.answers, row.losses
+    if answers:
+        statement = f"{_join(answers)} {'beats' if len(answers) == 1 else 'beat'} {name} one on one."
+    else:
+        statement = f"Nobody on your team beats {name} one on one."
+    ohko = [m for m in losses if (row.cells[m].exchange or {}).get("to_be_koed") == 1]
+    if ohko:
+        statement += f" {name} OHKOs {_join(ohko)}."
+    facts = [f"{m} vs {name}: {row.cells[m].reason}." for m in answers + losses]
+    if row.checks_data:
+        facts.append(f"Smogon's checks data also lists {_join(row.checks_data)} as checks to {name}.")
+    facts.append(f"{name} assumed on its most common set; switching, hazards and setup are not counted.")
+    return Verdict("checks", ", ".join(answers) or "none", statement, facts, other=name,
+                   losers=losses, members=list(row.cells))
+
+
 SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage,
-           "type": solve_type, "stat": solve_stat, "usage": solve_usage}
+           "type": solve_type, "stat": solve_stat, "usage": solve_usage, "checks": solve_checks}
 
 
 def solve(plan):

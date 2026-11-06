@@ -669,7 +669,7 @@ def team_page():
     # --- Detailed Analysis Tabs ---
     st.header("Detailed Analysis")
     tab_overview, tab3, tab4, tab8, tab_rec, tab_matrix, tab7, tab_chat = st.tabs([
-        "Team Overview", "Audit", "Meta Threats", "Coach Guide", "Recommendations", "Matchup Matrices", "Speed Tiers", "Coach Chat"
+        "Team Overview", "Audit", "Threat Board", "Coach Guide", "Recommendations", "Matchup Matrices", "Speed Tiers", "Coach Chat"
     ])
 
     with tab_chat:
@@ -682,7 +682,7 @@ def team_page():
         tab_audit.render()
 
     with tab4:
-        tab_threats.render()
+        tab_threats.render(team_data)
 
     with tab8:
         tab_coach_guide.render()
