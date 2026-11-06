@@ -46,6 +46,16 @@ st.html(r'''
     /* Transparent Header */
     .stApp > header { background-color: transparent; }
 
+    /* Loading: the MetaMatch logo spins in place of Streamlit's default spinner */
+    [data-testid="stSpinnerIcon"] { width: 30px !important; height: 30px !important; border: none !important;
+        background: url("/app/static/logo_spinner.png") center / contain no-repeat !important;
+        animation: mm-spin 1.1s linear infinite !important; filter: drop-shadow(0 0 6px rgba(0, 212, 255, .35)); }
+    [data-testid="stSpinnerIcon"] > * { display: none !important; }
+    [data-testid="stSpinner"] { color: #9fb0cc; font-weight: 500; }
+    @keyframes mm-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { [data-testid="stSpinnerIcon"] { animation: mm-pulse 1.6s ease-in-out infinite !important; } }
+    @keyframes mm-pulse { 50% { opacity: .45; } }
+
     /* Sidebar Glassmorphism */
     [data-testid="stSidebar"] { background: rgba(255, 255, 255, 0.02) !important; backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
     [data-testid="stSidebar"] .stMarkdown h1, [data-testid="stSidebar"] .stMarkdown h2 { color: #00d4ff; text-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
@@ -668,33 +678,26 @@ def team_page():
 
     # --- Detailed Analysis Tabs ---
     st.header("Detailed Analysis")
-    tab_overview, tab3, tab4, tab8, tab_rec, tab_matrix, tab7, tab_chat = st.tabs([
-        "Team Overview", "Audit", "Threat Board", "Coach Guide", "Recommendations", "Matchup Matrices", "Speed Tiers", "Coach Chat"
-    ])
-
-    with tab_chat:
-        tab_chat_mod.render()
-
-    with tab_overview:
-        tab_overview_mod.render(coverage, weakness, team_data, TYPE_MAP)
-
-    with tab3:
-        tab_audit.render()
-
-    with tab4:
-        tab_threats.render(team_data)
-
-    with tab8:
-        tab_coach_guide.render()
-
-    with tab_rec:
-        tab_recommender_mod.render(team_data, st.session_state.pokemon_names)
-
-    with tab_matrix:
-        tab_matrix_mod.render(team_data)
-
-    with tab7:
-        tab_speed_tiers.render(team_data)
+    # Only the open tab runs: the Threat Board, Team Completer and Speed Tiers each run the damage calc,
+    # and hidden tabs would otherwise compute on every load
+    (tab_overview, tab3, tab4, tab_rec, tab_matrix, tab7, tab8, tab_chat) = st.tabs([
+        "Team Overview", "Audit", "Threat Board", "Recommendations", "Matchup Matrices", "Speed Tiers",
+        "Coach Guide", "Coach Chat"
+    ], on_change="rerun", key="dashboard_tab")
+    tabs = [
+        (tab_overview, lambda: tab_overview_mod.render(coverage, weakness, team_data, TYPE_MAP)),
+        (tab3, tab_audit.render),
+        (tab4, lambda: tab_threats.render(team_data)),
+        (tab_rec, lambda: tab_recommender_mod.render(team_data, st.session_state.pokemon_names)),
+        (tab_matrix, lambda: tab_matrix_mod.render(team_data)),
+        (tab7, lambda: tab_speed_tiers.render(team_data)),
+        (tab8, tab_coach_guide.render),
+        (tab_chat, tab_chat_mod.render),
+    ]
+    for tab, draw in tabs:
+        if tab.open:
+            with tab:
+                draw()
 
 
 def quick_match_page():

@@ -22,6 +22,34 @@ class Cell:
     reason: str           # "faster; Earthquake 69-82% (2HKO); takes Iron Head 43-51% (3HKO)"
     exchange: dict = None
 
+    @property
+    def parts(self):
+        """The verdict split for display: speed, the best hit each way, and who finishes with priority."""
+        return exchange_parts(self.exchange) if self.exchange else {}
+
+
+def _hko(n):
+    return "OHKO" if n == 1 else f"{n}HKO" if n else ""
+
+
+def exchange_parts(x):
+    """{'speed', 'dealt', 'dealt_ko', 'taken', 'taken_ko', 'priority'} for one exchange (briefing.exchange)."""
+    share = x["outspeeds"]
+    speed = "Faster" if share >= 0.95 else "Slower" if share <= 0.05 else f"Faster than {share * 100:.0f}% of sets"
+    priority = ""
+    if x.get("priority", (0, None))[1] and x["to_ko"] == x["to_be_koed"]:
+        priority = f"Finishes first with {x['priority'][1]}"
+    elif x.get("opp_priority", (0, None))[1] and x["to_ko"] == x["to_be_koed"]:
+        priority = f"It finishes first with {x['opp_priority'][1]}"
+
+    def hit(pair):
+        move, r = pair
+        lo, hi = r["percent"]
+        return f"{move} {lo:g} to {hi:g}%"
+    return {"speed": speed, "priority": priority,
+            "dealt": hit(x["dealt"]) if x.get("dealt") else "No damaging move", "dealt_ko": _hko(x.get("to_ko")),
+            "taken": hit(x["taken"]) if x.get("taken") else "Takes no damage", "taken_ko": _hko(x.get("to_be_koed"))}
+
 
 @dataclass
 class ThreatRow:

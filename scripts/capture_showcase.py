@@ -272,7 +272,7 @@ def capture_dashboard(b, llm):
     frame(page, "dashboard")
     frame(page, "squad", "text=Your Squad", offset=90)
     collapse_sidebar(page)
-    for name, slug in [("Team Overview", "tab_overview"), ("Audit", "tab_audit"), ("Meta Threats", "tab_threats"),
+    for name, slug in [("Team Overview", "tab_overview"), ("Audit", "tab_audit"), ("Threat Board", "tab_threats"),
                        ("Recommendations", "tab_recommendations"), ("Matchup Matrices", "tab_matrices"),
                        ("Speed Tiers", "tab_speed")]:
         tab(page, name)

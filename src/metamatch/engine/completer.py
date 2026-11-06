@@ -32,6 +32,7 @@ class Candidate:
     covers: list = field(default_factory=list)     # threats it beats that the team struggles with
     lift: float | None = None                      # mean pairing lift with the team
     best_pair: tuple | None = None                 # (member, lift) with the strongest pairing
+    pairs: list = field(default_factory=list)      # [(member, share of that member's teams running it, lift)], strongest first
     roles: list = field(default_factory=list)      # missing core roles it fills
 
     @property
@@ -51,6 +52,12 @@ def lift(data, a, b):
         return None
     share = ea.get("Teammates", {}).get(b, 0) / _weight(ea)
     return share / eb["usage"]
+
+
+def pair_share(data, a, b):
+    """Share of the month's teams with `a` that also run `b`."""
+    ea = data.get(a)
+    return (ea.get("Teammates", {}).get(b, 0) / _weight(ea)) if ea else 0.0
 
 
 def member_from_set(s, format_id):
@@ -132,6 +139,7 @@ def complete(team, format_id=None, n_threats=15, top_n=6, extra=()):
         if lifts:
             cand.lift = sum(v for _, v in lifts) / len(lifts)
             cand.best_pair = max(lifts, key=lambda mv: mv[1])
+            cand.pairs = sorted(((m, pair_share(data, m, c), v) for m, v in lifts), key=lambda x: x[2], reverse=True)
         cand.roles = sorted(_candidate_roles(s) & missing)
         ranked.append(cand)
 

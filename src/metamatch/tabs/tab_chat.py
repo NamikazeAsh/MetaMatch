@@ -11,8 +11,8 @@ def _persist(role, content, name=None, avatar=None):
 
 
 def render():
-    st.subheader("💬 Ask the Coach (Powered by RAG)")
-    st.caption("Ask specific questions about counters, mechanics, or strategy. The AI uses Smogon data to answer.")
+    st.subheader("💬 Ask the Coach")
+    st.caption("Ask about counters, speed, damage or strategy. Answers use this month's ladder data and the real damage calculator.")
     try:
         from metamatch.rag import store
         if store.index_stale():

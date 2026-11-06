@@ -6,23 +6,49 @@ import streamlit as st
 
 from metamatch import config
 from metamatch.engine import threat_board as tb
+from metamatch.utils import get_pokemon_sprite
 
 N_THREATS = 12
+VERDICT_WORD = {"win": "beats", "lose": "loses to", "even": "trades evenly with"}
 STYLE = """
 <style>
-.tb-wrap { overflow-x: auto; }
-.tb { border-collapse: separate !important; border-spacing: 4px; width: 100%; min-width: 640px; border: none !important; }
+.tb { border-collapse: separate !important; border-spacing: 5px; width: 100%; border: none !important; }
 .tb th, .tb td { border: none !important; }
 .tb th { font-size: .78rem; font-weight: 600; color: #9fb0cc; text-align: center; padding: 2px 4px; }
-.tb td.name { font-weight: 600; white-space: nowrap; padding-right: 8px; }
-.tb td.name small { display: block; font-weight: 400; color: #8fa1bf; font-family: monospace; }
-.tb td.c { text-align: center; border-radius: 7px; font: 600 .72rem monospace; letter-spacing: .05em; padding: 10px 4px; cursor: help; }
-.tb td.win { background: rgba(52,211,153,.16); color: #34d399; }
-.tb td.lose { background: rgba(248,113,113,.16); color: #f87171; }
-.tb td.even { background: rgba(123,138,166,.16); color: #9aa7bf; }
+.tb td.name { font-weight: 600; white-space: nowrap; padding-right: 10px; }
+.tb td.name small { display: block; font-weight: 400; color: #8fa1bf; font-size: .74rem; }
 .tb tr.hole td.name { color: #f87171; }
-.tb-line { font-size: .92rem; margin: 2px 0; }
-.tb-line b { color: #e6edf7; }
+.tb td.c { position: relative; text-align: center; border-radius: 8px; font: 700 .7rem system-ui, sans-serif; letter-spacing: .08em;
+  padding: 11px 4px; transition: transform .12s, box-shadow .12s; }
+.tb td.win { background: rgba(52,211,153,.15); color: #34d399; }
+.tb td.lose { background: rgba(248,113,113,.15); color: #f87171; }
+.tb td.even { background: rgba(148,163,184,.15); color: #a3b1c9; }
+.tb td.c:hover { transform: scale(1.06); box-shadow: 0 0 0 1px currentColor; z-index: 5; }
+.tb .tip { visibility: hidden; opacity: 0; position: absolute; left: 50%; transform: translateX(-50%); top: calc(100% + 8px);
+  width: 270px; z-index: 20; text-align: left; letter-spacing: 0; text-transform: none; padding: 12px 14px; border-radius: 12px;
+  background: #0f1729; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 14px 30px rgba(0,0,0,.45); color: #dbe4f3;
+  font: 400 .82rem/1.45 system-ui, sans-serif; transition: opacity .12s; pointer-events: none; }
+.tb tr.up .tip { top: auto; bottom: calc(100% + 8px); }
+.tb td.c:hover .tip { visibility: visible; opacity: 1; }
+.tip .tt { font-weight: 700; font-size: .88rem; margin-bottom: 8px; }
+.tip .tt.win { color: #34d399; } .tip .tt.lose { color: #f87171; } .tip .tt.even { color: #a3b1c9; }
+.tip .row { display: grid; grid-template-columns: 72px 1fr; gap: 8px; padding: 3px 0; }
+.tip .k { color: #8fa1bf; font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; padding-top: 1px; }
+.tip .ko { display: inline-block; margin-left: 6px; font-size: .7rem; font-weight: 700; padding: 0 6px; border-radius: 999px;
+  background: rgba(34,211,238,.14); color: #22d3ee; }
+.tb-cards { display: grid; gap: 10px; }
+.tb-card { display: grid; grid-template-columns: 48px 1fr; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); }
+.tb-card.win { border-left: 3px solid #34d399; } .tb-card.lose { border-left: 3px solid #f87171; }
+.tb-card img { width: 48px; height: 48px; object-fit: contain; }
+.tb-card .nm { font-weight: 700; }
+.tb-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.tb-chip { font-size: .74rem; padding: 2px 9px; border-radius: 999px; background: rgba(148,163,184,.14); color: #c6d1e3; }
+.tb-chip.good { background: rgba(52,211,153,.14); color: #34d399; }
+.tb-chip.bad { background: rgba(248,113,113,.14); color: #f87171; }
+.tb-head { font-weight: 700; margin: 4px 0 8px; }
+.tb-empty { color: #8fa1bf; font-size: .9rem; padding: 10px 0; }
+.tb-note { font-size: .78rem; color: #8fa1bf; margin-top: 8px; }
 </style>
 """
 
@@ -33,7 +59,7 @@ def _board(team_json, format_id, stats_month):
     team = json.loads(team_json)
     rows = tb.threat_board(team, n=N_THREATS, format_id=format_id)
     return [{"name": r.name, "usage": r.usage, "answers": r.answers, "losses": r.losses, "cc": r.checks_data,
-             "cells": {m: {"verdict": c.verdict, "reason": c.reason} for m, c in r.cells.items()}} for r in rows]
+             "cells": {m: {"verdict": c.verdict, "parts": c.parts} for m, c in r.cells.items()}} for r in rows]
 
 
 def _stats_month():
@@ -43,29 +69,60 @@ def _stats_month():
         return ""
 
 
+def _tip(member, threat, cell):
+    p = cell["parts"]
+    if not p:
+        return ""
+    ko = lambda k: f'<span class="ko">{escape(k)}</span>' if k else ""
+    rows = [("Speed", escape(p["speed"]) + (f"<br>{escape(p['priority'])}" if p["priority"] else "")),
+            ("Hits with", escape(p["dealt"]) + ko(p["dealt_ko"])),
+            ("Takes", escape(p["taken"]) + ko(p["taken_ko"]))]
+    body = "".join(f'<div class="row"><span class="k">{k}</span><span>{v}</span></div>' for k, v in rows)
+    title = f"{escape(member)} {VERDICT_WORD[cell['verdict']]} {escape(threat)}"
+    return f'<div class="tip"><div class="tt {cell["verdict"]}">{title}</div>{body}</div>'
+
+
 def _grid(rows, members):
     head = "<tr><th></th>" + "".join(f"<th>{escape(m)}</th>" for m in members) + "</tr>"
     body = []
-    for r in rows:
+    for i, r in enumerate(rows):
         cells = []
         for m in members:
             c = r["cells"].get(m)
             if not c:
-                cells.append('<td class="c even" title="No calc data">?</td>')
+                cells.append('<td class="c even">?</td>')
                 continue
-            tip = escape(f"{m} vs {r['name']}: {c['reason'] or 'no clear knockout either way'}")
-            cells.append(f'<td class="c {c["verdict"]}" title="{tip}">{c["verdict"].upper()}</td>')
-        hole = " hole" if not r["answers"] else ""
-        body.append(f'<tr class="{hole.strip()}"><td class="name">{escape(r["name"])}<small>{r["usage"]:g}% of teams</small></td>'
+            cells.append(f'<td class="c {c["verdict"]}">{c["verdict"].upper()}{_tip(m, r["name"], c)}</td>')
+        cls = " ".join(x for x in ("hole" if not r["answers"] else "", "up" if i >= len(rows) / 2 else "") if x)
+        body.append(f'<tr class="{cls}"><td class="name">{escape(r["name"])}<small>on {r["usage"]:g}% of teams</small></td>'
                     + "".join(cells) + "</tr>")
-    return f'<div class="tb-wrap"><table class="tb">{head}{"".join(body)}</table></div>'
+    return f'<table class="tb">{head}{"".join(body)}</table>'
+
+
+def _cards(names, threat, row, kind):
+    if not names:
+        return ('<div class="tb-empty">Nobody on your team beats it one on one.</div>' if kind == "win"
+                else '<div class="tb-empty">Nobody on your team loses to it one on one.</div>')
+    out = []
+    for m in names:
+        p = row["cells"][m]["parts"]
+        speed_good = p["speed"].startswith("Faster")
+        chips = [f'<span class="tb-chip {"good" if speed_good else ""}">{escape(p["speed"])}</span>']
+        if p["priority"]:
+            chips.append(f'<span class="tb-chip {"good" if p["priority"].startswith("Finishes") else "bad"}">{escape(p["priority"])}</span>')
+        chips.append(f'<span class="tb-chip good">Hits: {escape(p["dealt"])}{" · " + p["dealt_ko"] if p["dealt_ko"] else ""}</span>')
+        chips.append(f'<span class="tb-chip bad">Takes: {escape(p["taken"])}{" · " + p["taken_ko"] if p["taken_ko"] else ""}</span>')
+        sprite = escape(get_pokemon_sprite(m) or "")
+        out.append(f'<div class="tb-card {kind}"><img src="{sprite}" alt=""><div><div class="nm">{escape(m)}</div>'
+                   f'<div class="tb-chips">{"".join(chips)}</div></div></div>')
+    return '<div class="tb-cards">' + "".join(out) + "</div>"
 
 
 def render(team_data):
     format_id = config.team_format(team_data)
     label = config.format_info(format_id)["label"]
     st.caption(f"Your team against the {N_THREATS} most used Pokémon in {label}, each on its most common set. "
-               "Every verdict is worked out by the damage calculator: speed, the best hit each way, and how many hits each side needs.")
+               "Every verdict comes from the damage calculator.")
     with st.spinner("Running the matchups..."):
         rows = _board(json.dumps(team_data, sort_keys=True, default=str), format_id, _stats_month())
     if not rows:
@@ -87,27 +144,19 @@ def render(team_data):
     c3.metric("Weakest matchup", weakest["name"], help=f"{n} answer{'s' if n != 1 else ''} on your team.")
 
     st.markdown(STYLE + _grid(rows, members), unsafe_allow_html=True)
-    st.caption("Hover a cell for the numbers. Red names have no answer on your team.")
+    st.caption("Hover a cell to see how it plays out. Red names have no answer on your team.")
 
     names = [r["name"] for r in rows]
-    pick = st.selectbox("Look at a threat", names, index=names.index(weakest["name"]), key="threat_pick")
+    pick = st.pills("Look closer at a threat", names, default=weakest["name"], key="threat_pick") or weakest["name"]
     r = rows[names.index(pick)]
     left, right = st.columns(2)
     with left:
-        st.markdown(f"**Answers to {escape(pick)}**")
-        if r["answers"]:
-            for m in r["answers"]:
-                st.markdown(f'<div class="tb-line"><b>{escape(m)}</b>: {escape(r["cells"][m]["reason"])}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown("Nobody on your team beats it one on one.")
-        if r["cc"]:
-            st.caption("Smogon's checks data agrees on: " + ", ".join(r["cc"]))
+        st.markdown(STYLE + f'<div class="tb-head">Answers to {escape(pick)} ({len(r["answers"])})</div>'
+                    + _cards(r["answers"], pick, r, "win")
+                    + (f'<div class="tb-note">Smogon\'s checks data agrees on {escape(", ".join(r["cc"]))}.</div>' if r["cc"] else ""),
+                    unsafe_allow_html=True)
     with right:
-        st.markdown(f"**Loses to {escape(pick)}**")
-        if r["losses"]:
-            for m in r["losses"]:
-                st.markdown(f'<div class="tb-line"><b>{escape(m)}</b>: {escape(r["cells"][m]["reason"])}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown("No one on your team loses to it one on one.")
-    st.caption("One on one on the most common set: switching, hazards, setup and Tera are not counted. "
-               "Ask the Coach Chat \"what checks Kyurem?\" for the same answer in words.")
+        st.markdown(STYLE + f'<div class="tb-head">Loses to {escape(pick)} ({len(r["losses"])})</div>'
+                    + _cards(r["losses"], pick, r, "lose"), unsafe_allow_html=True)
+    st.caption("One on one, on each threat's most common set. Switching, hazards, setup and Tera aren't counted. "
+               "You can also ask the Coach Chat \"what checks Kyurem?\".")
