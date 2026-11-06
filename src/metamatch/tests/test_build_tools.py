@@ -97,5 +97,28 @@ class TestSpeedBoard(unittest.TestCase):
         self.assertAlmostEqual(outspeed_share(260, m), 0.1)     # only the unscarfed 250s
 
 
+@unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+class TestCompleter(unittest.TestCase):
+    def test_lift_separates_real_pairs_from_popular_ones(self):
+        from metamatch.auditor import load_chaos_data
+        from metamatch.engine.completer import lift
+        data = load_chaos_data("gen9ou")
+        self.assertIsNone(lift(data, "Kingambit", "NotAPokemon"))
+        value = lift(data, "Kingambit", "Great Tusk")
+        self.assertTrue(value is None or value > 0)
+
+    def test_candidates_skip_the_team_and_fill_holes(self):
+        from metamatch.engine.completer import complete
+        team, _ = readTeam(TEAM, "gen9ou")
+        picks, redundant, board = complete(team, "gen9ou", n_threats=6, top_n=4)
+        names = {p["Pokemon"] for p in team.values()}
+        self.assertTrue(picks)
+        for c in picks + redundant:
+            self.assertNotIn(c.name, names)
+            self.assertTrue(0 <= c.gain <= 1)
+        for c in redundant:
+            self.assertEqual(c.gain, 0)
+
+
 if __name__ == "__main__":
     unittest.main()
