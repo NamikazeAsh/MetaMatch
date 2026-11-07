@@ -34,7 +34,7 @@ Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is com
 * 📡 **Always current:** MetaFlash turns six months of Smogon ladder data into a live meta front page, refreshed every month by CI.
 * 🔗 **Every team has a link:** dashboards live at their own URL, so refresh, bookmarks, Back and a second tab all just work.
 
-![MetaMatch Dashboard](assets/images/dashboard.png)
+![MetaMatch Dashboard](showcase/images/dashboard.webp)
 
 ---
 
@@ -160,7 +160,7 @@ Strategy questions ("how do I play against Kingambit?", "what are my biggest thr
 
 The home screen opens on a magazine style front page of what the ladder is doing right now, for whichever format you pick.
 
-![MetaFlash](assets/images/metaflash.png)
+![MetaFlash](showcase/images/metaflash.webp)
 
 * **Story of the month:** the biggest move in the top 10, with its usage, rank change, standard set, common partners and a six month chart.
 * **Top 10 leaderboard:** usage bars in each Pokémon's type colour and rank changes versus last month.

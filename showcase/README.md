@@ -4,7 +4,7 @@
 
 Everything MetaMatch does, without installing anything. Every screen is the real app running locally: real ladder data, real engine verdicts and real answers from a 3B model on a laptop GPU. Nothing is mocked.
 
-[Main README](../README.md) · [Home](#home-and-metaflash) · [Dashboard](#the-team-dashboard) · [Coach chat](#the-coaching-staff) · [Tools](#tools) · [Everyday use](#built-to-be-used)
+[Main README](../README.md) · [Home](#home-and-metaflash) · [Dashboard](#the-team-dashboard) · [Coach chat](#the-coaching-staff) · [Team building](#team-building-tools) · [Tools](#tools) · [Everyday use](#built-to-be-used)
 
 ![The team dashboard for the built in sample team](images/dashboard.webp)
 
@@ -60,29 +60,35 @@ Which types you hit and which ones hit you, counted per member.
 
 ![Team Overview: offensive coverage and defensive weaknesses](images/tab_overview.webp)
 
-### Audit
+### Audit and Team Check
 
-Deterministic checks for item and ability synergy, missing roles and coverage holes.
+Legality in plain English, a one click conversion between SV EVs and Champions stat points, a team report to download, and checks for item and ability synergy, missing roles and coverage holes.
 
-![Audit: item and ability synergy flags and role gaps](images/tab_audit.webp)
+![Audit: Team Check, export, and synergy and role checks](images/tab_audit.webp)
 
-### Meta Threats
+### Threat Board
 
-The five biggest threats to this team, scored by members hit squared times ladder usage, each with counterplay from your own six.
+Your team against the format's 12 most used Pokémon, one matchup at a time, every verdict worked out by the damage calculator.
 
-![Meta Threats: the five biggest threats to this team](images/tab_threats.webp)
+![Threat Board: a win or lose grid of the top 12 threats against the team](images/tab_threats.webp)
 
-### Coach Guide
+Hover any cell to see how the matchup plays out: who moves first, the best hit each way and how many hits each side needs.
 
-Win condition, leads, Tera plan and key combos, written on demand by the local model.
+![A Threat Board hover card with speed, damage and hits to KO](images/threat_hover.webp)
 
-![Coach Guide: a pilot guide written by the local model](images/tab_guide.webp)
+Pick a threat to see exactly who answers it and who loses to it.
 
-### Recommendations
+![Answers to and losses to Kyurem, with the numbers for each](images/threat_detail.webp)
 
-Ladder teammate data, with a boost for Pokémon that fill a role the team is missing.
+### Team Completer
 
-![Recommendations: teammates that fill your missing roles](images/tab_recommendations.webp)
+The next teammate, picked by which of your weak spots it beats and how often players really pair it with your team, not by popularity. Across 882 tests on real ladder teams, its first pick fixes 82% of a team's weak spots.
+
+![Team Completer: candidates that beat the team's weak spots](images/tab_recommendations.webp)
+
+Hover a pairing to see the ladder numbers behind it.
+
+![A pairing hover card with how often the pick appears next to each team member](images/completer_hover.webp)
 
 ### Matchup Matrices
 
@@ -92,9 +98,10 @@ The full type chart for your six, on defence and on offence.
 
 ### Speed Tiers
 
-Your real speed stats placed among the top meta threats.
+Your true Speed, with items and IVs, against every spread the format's top Pokémon really run, with Choice Scarf sets marked and a slider to test more Speed.
 
-![Speed Tiers: your team against the meta's speed tiers](images/tab_speed.webp)
+![Speed Tiers: the team against real ladder spreads](images/tab_speed.webp)
+
 
 ---
 
@@ -110,7 +117,7 @@ The verdict comes from the engine, the explanation from the model, checked again
 
 ### Professor Oak, strategy
 
-One on one engine verdicts open the answer, then verified advice.
+One on one engine verdicts open the answer, then verified advice, with the Smogon references he read listed underneath.
 
 ![Professor Oak's engine check and advice against Raging Bolt](images/chat_oak.webp)
 
@@ -128,11 +135,35 @@ When a question is ambiguous, it asks instead of answering a different question.
 
 ---
 
+## Team Building Tools
+
+### Spread Lab
+
+Pick what your Pokémon needs to do: outspeed a threat, OHKO or 2HKO a target, survive a hit. It finds the smallest spread that does all of it.
+
+![Spread Lab: the Pokémon being tuned and its benchmarks](images/spread_lab.webp)
+
+Every benchmark is rechecked with the damage calculator, and compared with the spreads players run most.
+
+![Spread Lab result: the spread, stat bars, checks and the ladder comparison](images/spread_lab_result.webp)
+
+### Matchup Preview
+
+Paste the team you're about to face, even just the six names from team preview, and see every matchup.
+
+![Matchup Preview: your team against theirs, with summary cards and the grid](images/matchup_preview.webp)
+
+In Pokémon Champions it also picks the three to bring, checked against every three they could bring.
+
+![Matchup Preview: the three to bring and the matchup cards](images/matchup_bring.webp)
+
+---
+
 ## Tools
 
 ### Quick Match
 
-No team yet? Pick a core and get the partners that pair best with it on the ladder.
+No team yet? Pick a core and get the partners players actually build with it in your format.
 
 ![Quick Match partners for Great Tusk and Kingambit](images/quick_match.webp)
 

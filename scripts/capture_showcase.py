@@ -265,7 +265,7 @@ def capture_home(b):
     page.close()
 
 
-def capture_dashboard(b, llm):
+def capture_dashboard(b, llm=False):
     page = new_page(b)
     open_sample(page)
     check(page, "dashboard")
@@ -279,12 +279,21 @@ def capture_dashboard(b, llm):
         page.wait_for_timeout(800)
         check(page, name)
         frame(page, slug, 'text=Detailed Analysis', offset=85)
-    if llm:
-        tab(page, "Coach Guide")
-        page.get_by_role("button", name="Write my pilot guide").click()
-        page.wait_for_selector("text=Team Pilot Guide", timeout=300000)
-        idle(page)
-        frame(page, "tab_guide", 'text=Detailed Analysis', offset=85)
+        if slug == "tab_threats":
+            # A hover card in context, then the answer and loss cards under the grid
+            scroll_to(page, 'text=Detailed Analysis', offset=85)
+            page.locator("td.c").nth(13).hover()
+            page.wait_for_timeout(500)
+            frame(page, "threat_hover")
+            page.mouse.move(5, 5)
+            frame(page, "threat_detail", "text=Look closer at a threat", offset=120)
+        if slug == "tab_recommendations":
+            scroll_to(page, 'text=Detailed Analysis', offset=85)
+            page.locator(".tc-pop").nth(3).hover()
+            page.wait_for_timeout(500)
+            frame(page, "completer_hover")
+            page.mouse.move(5, 5)
+    # No Coach Guide shot: the guide is still free model writing that the engine doesn't check
     page.close()
 
 
@@ -348,6 +357,37 @@ def capture_tools(b):
     check(page, "replay")
     frame(page, "replay_auditor", "h2", offset=80)
     frame(page, "replay_details", "text=Mistakes", offset=90)
+
+    # Spread Lab: the example benchmarks, then the result
+    page.goto(URL + "/spread-lab")
+    page.wait_for_selector("text=What does it need to do", timeout=120000)
+    idle(page)
+    page.get_by_role("button", name="Try an example").click()
+    idle(page)
+    page.get_by_role("button", name="Find the smallest spread").click()
+    page.wait_for_selector("text=How the ladder", timeout=180000)
+    idle(page)
+    page.wait_for_timeout(1200)
+    check(page, "spread lab")
+    frame(page, "spread_lab", "h2", offset=80)
+    frame(page, "spread_lab_result", "text=Smallest spread that does it", offset=110)
+
+    # Matchup Preview on Champions OU with the sample teams, so the bring 3 pick shows
+    page.goto(URL + "/matchup-preview")
+    page.wait_for_selector("text=Try a sample", timeout=120000)
+    idle(page)
+    page.locator("[data-testid=stButtonGroup] button", has_text="Champions OU").click()
+    idle(page)
+    page.get_by_role("button", name="Try a sample").click()
+    page.wait_for_selector("text=Bring these three", timeout=180000)
+    idle(page)
+    page.wait_for_timeout(1500)
+    check(page, "matchup preview")
+    frame(page, "matchup_preview", ".pv-vs", offset=330)
+    frame(page, "matchup_bring", "text=Bring these three", offset=330)
+    # The format pick is remembered: back to OU so later shots open on OU
+    page.locator("[data-testid=stButtonGroup] button", has_text="OU").first.click()
+    idle(page)
     page.close()
 
 
