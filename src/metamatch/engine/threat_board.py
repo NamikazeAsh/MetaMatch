@@ -98,7 +98,11 @@ def member_names(team):
 
 def threat_row(team, name, format_id, usage=None):
     """One row of the board: every member against `name`'s most common set. None without usage data or the calc."""
-    opp_set = likely_set(name, format_id)
+    return row_for_set(team, likely_set(name, format_id), format_id, usage)
+
+
+def row_for_set(team, opp_set, format_id, usage=None):
+    """A board row for any opponent set shaped like sets.likely_set (a pasted set works too)."""
     dex = dex_for_format(format_id)
     if not opp_set or not dex:
         return None

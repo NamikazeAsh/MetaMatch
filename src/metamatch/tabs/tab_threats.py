@@ -82,7 +82,9 @@ def _tip(member, threat, cell):
     return f'<div class="tip"><div class="tt {cell["verdict"]}">{title}</div>{body}</div>'
 
 
-def _grid(rows, members):
+def _grid(rows, members, sub=None):
+    """The win or lose grid. sub(row) gives the line under each threat's name (its usage by default)."""
+    sub = sub or (lambda r: f"on {r['usage']:g}% of teams")
     head = "<tr><th></th>" + "".join(f"<th>{escape(m)}</th>" for m in members) + "</tr>"
     body = []
     for i, r in enumerate(rows):
@@ -94,7 +96,7 @@ def _grid(rows, members):
                 continue
             cells.append(f'<td class="c {c["verdict"]}">{c["verdict"].upper()}{_tip(m, r["name"], c)}</td>')
         cls = " ".join(x for x in ("hole" if not r["answers"] else "", "up" if i >= len(rows) / 2 else "") if x)
-        body.append(f'<tr class="{cls}"><td class="name">{escape(r["name"])}<small>on {r["usage"]:g}% of teams</small></td>'
+        body.append(f'<tr class="{cls}"><td class="name">{escape(r["name"])}<small>{escape(sub(r))}</small></td>'
                     + "".join(cells) + "</tr>")
     return f'<table class="tb">{head}{"".join(body)}</table>'
 

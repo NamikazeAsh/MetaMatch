@@ -170,5 +170,25 @@ class TestSpreadLab(unittest.TestCase):
         self.assertIn("Dragapult", failed[0])
 
 
+class TestMatchupPreview(unittest.TestCase):
+    def test_names_get_ladder_sets_and_pastes_are_used_as_written(self):
+        from metamatch.engine.preview import opponent_sets
+        sets, unknown = opponent_sets("Kingambit, Raging Bolt, zzzmon", "gen9ou")
+        self.assertEqual([s["name"] for s in sets], ["Kingambit", "Raging Bolt"])
+        sets, _ = opponent_sets("Kingambit @ Leftovers\nAbility: Defiant\nEVs: 252 HP / 252 Atk\nAdamant Nature\n- Iron Head",
+                                "gen9ou")
+        self.assertEqual((sets[0]["item"], sets[0]["ability"], sets[0]["stated"]), ("Leftovers", "Defiant", True))
+
+    def test_bring_three_uses_the_worst_case(self):
+        from types import SimpleNamespace as NS
+        from metamatch.engine.preview import bring_three
+        win = NS(verdict="win")
+        rows = [NS(name=t, cells={m: win for m in ms}) for t, ms in
+                [("A", ["x"]), ("B", ["x"]), ("C", ["y"]), ("D", ["z"])]]
+        best = bring_three(rows, ["x", "y", "z", "w"])[0]
+        self.assertEqual(set(best[0]), {"x", "y", "z"})
+        self.assertEqual(best[1], 3)
+
+
 if __name__ == "__main__":
     unittest.main()

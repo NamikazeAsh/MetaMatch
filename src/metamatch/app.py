@@ -30,7 +30,7 @@ from metamatch.tabs import (
     tab_quick_match, tab_move_search, tab_replay,
     tab_overview as tab_overview_mod, tab_audit, tab_threats,
     tab_coach_guide, tab_recommender as tab_recommender_mod, tab_matrix as tab_matrix_mod,
-    tab_speed_tiers, tab_chat as tab_chat_mod, tab_meta_pulse, tab_spread_lab,
+    tab_speed_tiers, tab_chat as tab_chat_mod, tab_meta_pulse, tab_spread_lab, tab_preview,
 )
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
@@ -718,6 +718,14 @@ def spread_lab_page():
     tab_spread_lab.render((st.session_state.get("analysis") or {}).get("team"))
 
 
+def matchup_preview_page():
+    page_header("⚔️ Matchup Preview", "Your team against the one you're about to face, every matchup worked out by the damage calculator.")
+    team = (st.session_state.get("analysis") or {}).get("team")
+    if not team:
+        format_picker()
+    tab_preview.render(team)
+
+
 def replay_page():
     page_header("📼 Replay Auditor", "Paste a Showdown replay for a turn by turn post mortem of your battle.")
     tab_replay.render()
@@ -733,6 +741,7 @@ nav = st.navigation([
     st.Page(quick_match_page, title="Quick Match", icon=":material/group_add:", url_path="quick-match"),
     st.Page(move_search_page, title="Move Search", icon=":material/search:", url_path="move-search"),
     st.Page(spread_lab_page, title="Spread Lab", icon=":material/tune:", url_path="spread-lab"),
+    st.Page(matchup_preview_page, title="Matchup Preview", icon=":material/swords:", url_path="matchup-preview"),
     st.Page(replay_page, title="Replay Auditor", icon=":material/smart_display:", url_path="replay-auditor"),
 ], position="top")
 nav.run()
