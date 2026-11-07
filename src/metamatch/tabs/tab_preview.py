@@ -25,12 +25,93 @@ def _as_rows(rows):
              "cells": {m: {"verdict": c.verdict, "parts": c.parts} for m, c in r.cells.items()}} for r in rows]
 
 
-def render(team=None):
+CHAMPIONS_SAMPLE = """Garchomp @ Garchompite Z
+Ability: Rough Skin
+EVs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Earthquake
+- Dragon Claw
+- Stone Edge
+- Swords Dance
+
+Kingambit @ Black Glasses
+Ability: Supreme Overlord
+EVs: 32 HP / 32 Atk / 2 Def
+Adamant Nature
+- Sucker Punch
+- Kowtow Cleave
+- Iron Head
+- Swords Dance
+
+Corviknight @ Leftovers
+Ability: Pressure
+EVs: 32 HP / 32 Def / 2 SpD
+Impish Nature
+- Brave Bird
+- Body Press
+- Roost
+- U-turn
+
+Hatterene @ Life Orb
+Ability: Magic Bounce
+EVs: 32 HP / 32 SpA / 2 SpD
+Modest Nature
+- Dazzling Gleam
+- Psychic
+- Mystical Fire
+- Trick Room
+
+Rotom-Wash @ Sitrus Berry
+Ability: Levitate
+EVs: 32 HP / 32 Def / 2 SpA
+Bold Nature
+- Hydro Pump
+- Volt Switch
+- Will-O-Wisp
+- Pain Split
+
+Glimmora @ Focus Sash
+Ability: Toxic Debris
+EVs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
+- Power Gem
+- Sludge Wave
+- Stealth Rock
+- Earth Power"""
+
+
+def _sample_opponents(format_id, exclude):
+    """The format's six most used Pokemon not on your team, as a team preview line."""
+    from metamatch.engine.threat_board import top_threats
+    return ", ".join(name for name, _ in top_threats(format_id, exclude=exclude, n=6))
+
+
+def _load_sample(format_id, sample_team, has_team, mine_names):
+    """Fills both boxes (or just theirs when a team is already open). Runs as a button callback, before the widgets."""
+    champions = config.format_game(format_id) == "champions"
+    if not has_team:
+        mine = CHAMPIONS_SAMPLE if champions else (sample_team or "")
+        st.session_state["pv_mine"] = mine
+        mine_names = [block.split("@")[0].strip() for block in mine.split("\n\n") if block.strip()]
+    st.session_state[f"pv_theirs_{format_id}"] = _sample_opponents(format_id, mine_names)
+
+
+def render(team=None, sample_team=None):
     format_id = st.session_state.get("format_id") or config.DEFAULT_FORMAT
+    has_team = bool(team)
     if team:
         format_id = config.team_format(team)
-        st.caption(f"Using your open team ({config.format_info(format_id)['label']}). Paste the team you're facing.")
-    else:
+    mine_names = [p["Pokemon"] for p in (team or {}).values()]
+    top, button = st.columns([4, 1], vertical_alignment="bottom")
+    with top:
+        st.caption(f"Using your open team ({config.format_info(format_id)['label']}). Paste the team you're facing."
+                   if has_team else "Paste both teams, or try it with a sample first.")
+    with button:
+        st.button("Try a sample", key="pv_sample", width="stretch",
+                  help="Fills in sample teams so you can see how it works." if not has_team
+                  else "Fills their side with this format's six most used Pokémon.",
+                  on_click=_load_sample, args=(format_id, sample_team, has_team, mine_names))
+    if not has_team:
         mine_text = st.text_area("Your team", height=140, key="pv_mine",
                                  placeholder="Paste your Showdown export, or open a team first and it's used here.")
         team = readTeam(mine_text, format_id)[0] if mine_text.strip() else None

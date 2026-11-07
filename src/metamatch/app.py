@@ -723,7 +723,7 @@ def matchup_preview_page():
     team = (st.session_state.get("analysis") or {}).get("team")
     if not team:
         format_picker()
-    tab_preview.render(team)
+    tab_preview.render(team, sample_team=SAMPLE_TEAM)
 
 
 def replay_page():
