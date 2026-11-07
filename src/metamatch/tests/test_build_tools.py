@@ -120,5 +120,23 @@ class TestCompleter(unittest.TestCase):
             self.assertEqual(c.gain, 0)
 
 
+class TestQuickMatch(unittest.TestCase):
+    def test_core_partners_skip_the_core_and_rank_by_score(self):
+        from metamatch.engine.completer import core_partners
+        out = core_partners(["Kingambit", "Great Tusk"], "gen9ou", n=10)
+        self.assertTrue(out)
+        names = [r["name"] for r in out]
+        self.assertNotIn("Kingambit", names)
+        self.assertNotIn("Great Tusk", names)
+        scores = [r["score"] for r in out]
+        self.assertEqual(scores, sorted(scores, reverse=True))
+        for r in out:
+            self.assertTrue(0 < r["share"] <= 1)
+
+    def test_unknown_core_gives_nothing(self):
+        from metamatch.engine.completer import core_partners
+        self.assertEqual(core_partners(["NotAPokemon"], "gen9ou"), [])
+
+
 if __name__ == "__main__":
     unittest.main()

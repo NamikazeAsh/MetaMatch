@@ -148,3 +148,33 @@ def complete(team, format_id=None, n_threats=15, top_n=6, extra=()):
     # Popular picks that add nothing new: what a usage only recommender would have suggested
     redundant = sorted((c for c in ranked if c.gain == 0 and c not in picks), key=lambda c: c.usage, reverse=True)[:2]
     return picks, redundant, board
+
+
+def core_partners(core, format_id, n=16, min_usage=0.01):
+    """
+    Quick Match: partners for a core of 1 to 5 names, no sets needed. Ranked by how often teams with the core
+    run each candidate (the mean share across core members), boosted when that is well above the candidate's
+    own usage, so a real pairing beats a Pokemon that is simply on every team.
+    """
+    data = load_chaos_data(format_id) or {}
+    core = [c for c in core if c in data]
+    if not core:
+        return []
+    species = {base_species(c) for c in core}
+    has_mega = any(is_mega(c) for c in core)
+    pool = {}
+    for m in core:
+        for mate in (data[m].get("Teammates") or {}):
+            pool.setdefault(mate, None)
+    out = []
+    for c in pool:
+        entry = data.get(c)
+        if not entry or entry.get("usage", 0) < min_usage or base_species(c) in species or (has_mega and is_mega(c)):
+            continue
+        pairs = sorted(((m, pair_share(data, m, c), lift(data, m, c) or 0.0) for m in core), key=lambda x: x[2], reverse=True)
+        share = sum(p[1] for p in pairs) / len(pairs)
+        mean_lift = sum(p[2] for p in pairs) / len(pairs)
+        out.append({"name": c, "usage": round(entry["usage"] * 100, 1), "share": share, "lift": mean_lift,
+                    "pairs": pairs, "score": share * math.sqrt(min(mean_lift, 3.0))})
+    out.sort(key=lambda x: x["score"], reverse=True)
+    return out[:n]
