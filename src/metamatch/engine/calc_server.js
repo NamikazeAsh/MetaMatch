@@ -10,10 +10,29 @@ const {getFinalSpeed} = require('@smogon/calc/dist/mechanics/util');
 
 const GENS = {sv: calc.Generations.get(9), champions: calc.Generations.get(0)};
 
+// Usage stats name some Pokemon by base species while the dex only has formes ("Aegislash" vs "Aegislash-Shield")
+const formeCache = new Map();
+function resolveSpecies(gen, name) {
+  if (gen.species.get(calc.toID(name))) return name;
+  const key = `${gen.num}:${name}`;
+  if (!formeCache.has(key)) {
+    // "-Both" is the calc's Stance Change forme (Blade when attacking, Shield when hit), so it wins when present
+    let found = ["Both", "Shield"].map(f => `${name}-${f}`).find(n => gen.species.get(calc.toID(n))) || null;
+    if (!found) {
+      for (const s of gen.species) {
+        if (s.name.startsWith(`${name}-`)) { found = s.name; break; }
+      }
+    }
+    formeCache.set(key, found);
+  }
+  return formeCache.get(key);
+}
+
 function makePokemon(gen, spec) {
   const {name, ...options} = spec;
-  if (!gen.species.get(calc.toID(name))) throw new Error(`Unknown Pokemon: ${name}`);
-  return new calc.Pokemon(gen, name, options);
+  const resolved = resolveSpecies(gen, name);
+  if (!resolved) throw new Error(`Unknown Pokemon: ${name}`);
+  return new calc.Pokemon(gen, resolved, options);
 }
 
 function run(req) {
