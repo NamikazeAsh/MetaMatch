@@ -30,7 +30,7 @@ from metamatch.tabs import (
     tab_quick_match, tab_move_search, tab_replay,
     tab_overview as tab_overview_mod, tab_audit, tab_threats,
     tab_coach_guide, tab_recommender as tab_recommender_mod, tab_matrix as tab_matrix_mod,
-    tab_speed_tiers, tab_chat as tab_chat_mod, tab_meta_pulse,
+    tab_speed_tiers, tab_chat as tab_chat_mod, tab_meta_pulse, tab_spread_lab,
 )
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
@@ -712,6 +712,12 @@ def move_search_page():
     tab_move_search.render(get_master_strategy_data, get_usage_data)
 
 
+def spread_lab_page():
+    page_header("📐 Spread Lab", "The smallest spread that hits every benchmark you need, checked by the damage calculator.")
+    format_picker()
+    tab_spread_lab.render((st.session_state.get("analysis") or {}).get("team"))
+
+
 def replay_page():
     page_header("📼 Replay Auditor", "Paste a Showdown replay for a turn by turn post mortem of your battle.")
     tab_replay.render()
@@ -726,6 +732,7 @@ nav = st.navigation([
     TEAM_PAGE,
     st.Page(quick_match_page, title="Quick Match", icon=":material/group_add:", url_path="quick-match"),
     st.Page(move_search_page, title="Move Search", icon=":material/search:", url_path="move-search"),
+    st.Page(spread_lab_page, title="Spread Lab", icon=":material/tune:", url_path="spread-lab"),
     st.Page(replay_page, title="Replay Auditor", icon=":material/smart_display:", url_path="replay-auditor"),
 ], position="top")
 nav.run()

@@ -138,5 +138,37 @@ class TestQuickMatch(unittest.TestCase):
         self.assertEqual(core_partners(["NotAPokemon"], "gen9ou"), [])
 
 
+@unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+class TestSpreadLab(unittest.TestCase):
+    def test_first_ok_finds_the_smallest_passing_value(self):
+        from metamatch.engine.spread_lab import _first_ok
+        values = list(range(0, 253, 4))
+        self.assertEqual(values[_first_ok(values, lambda v: v >= 100)], 100)
+        self.assertIsNone(_first_ok(values, lambda v: v > 999))
+
+    def test_champions_result_fits_the_budget_and_passes_its_recheck(self):
+        from metamatch.engine.sets import likely_set
+        from metamatch.engine.spread_lab import Benchmark, Lab
+        s = likely_set("Garchomp", "gen9championsou")
+        base = {"name": s["name"], "item": s["item"], "ability": s["ability"]}
+        r = Lab(base, [Benchmark("outspeed", "Samurott-Hisui"), Benchmark("ko", "Kingambit", "Earthquake", 2)],
+                "gen9championsou").run()
+        self.assertTrue(r.ok, r.problem)
+        self.assertLessEqual(r.used, 66)
+        self.assertTrue(all(v <= 32 for v in r.evs.values()))
+        self.assertTrue(all(ok for _, ok, _ in r.checks))
+
+    def test_impossible_benchmarks_are_reported_not_fatal(self):
+        from metamatch.engine.sets import likely_set
+        from metamatch.engine.spread_lab import Benchmark, Lab
+        g = likely_set("Gholdengo", "gen9ou")
+        base = {"name": g["name"], "item": "Leftovers", "ability": g["ability"]}
+        r = Lab(base, [Benchmark("outspeed", "Dragapult"), Benchmark("survive", "Kingambit", "Sucker Punch")], "gen9ou").run()
+        self.assertTrue(r.ok)
+        failed = [label for label, ok, _ in r.checks if not ok]
+        self.assertEqual(len(failed), 1)
+        self.assertIn("Dragapult", failed[0])
+
+
 if __name__ == "__main__":
     unittest.main()
