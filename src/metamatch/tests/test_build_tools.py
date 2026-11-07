@@ -190,5 +190,30 @@ class TestMatchupPreview(unittest.TestCase):
         self.assertEqual(best[1], 3)
 
 
+class TestTeamCheck(unittest.TestCase):
+    def test_legal_team_passes(self):
+        from metamatch.engine.team_check import check
+        team, _ = readTeam(TEAM, "gen9ou")
+        levels = [level for level, _ in check(team, "gen9ou")]
+        self.assertNotIn("fix", levels)
+        self.assertIn("ok", levels)
+
+    def test_problems_are_explained(self):
+        from metamatch.engine.team_check import check
+        bad = TEAM.replace("252 HP / 252 Atk / 4 SpD", "252 HP / 252 Atk / 252 SpD").replace("- Iron Head", "- Iron Head\n- Swords Dance")
+        team, _ = readTeam(bad + "\n\n" + TEAM.split("\n\n")[0], "gen9ou")
+        text = " ".join(msg for level, msg in check(team, "gen9ou") if level == "fix")
+        self.assertIn("756 EVs", text)
+        self.assertIn("Swords Dance twice", text)
+        self.assertIn("Species Clause", text)
+
+    def test_spread_conversion_round_trips_the_usual_numbers(self):
+        from metamatch.engine.team_check import convert_paste, ev_to_sp
+        self.assertEqual((ev_to_sp(252), ev_to_sp(4), ev_to_sp(0)), (32, 1, 0))
+        out = convert_paste("X @ Y\nTera Type: Fire\nEVs: 252 Atk / 4 SpD / 252 Spe\nJolly Nature", to_champions=True)
+        self.assertIn("EVs: 32 Atk / 1 SpD / 32 Spe", out)
+        self.assertNotIn("Tera Type", out)
+
+
 if __name__ == "__main__":
     unittest.main()
