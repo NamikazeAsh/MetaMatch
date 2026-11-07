@@ -145,7 +145,7 @@ class Lab:
                 return self.ko_ok(spec, b, calc.calculate(self.ko_requests(spec, b)))
             i = _first_ok(self.grid, ok)
             if i is None:
-                return None, f"can't guarantee: {b.label()}"
+                return None, "no spread guarantees it"
             evs[stat] = max(evs[stat], self.grid[i])
         # Survival: for every HP value, the least Def and SpD that pass every hit of that category, in batches
         survive = [b for b in self.benchmarks if b.kind == "survive"]
@@ -172,7 +172,7 @@ class Lab:
                 if best and hp >= best[0]:
                     break   # more HP can't make a cheaper total
             if best is None:
-                return None, "can't survive: " + ", ".join(b.label() for b in survive)
+                return None, "no spread survives it" if len(survive) == 1 else "no spread survives all of these hits"
             evs.update(best[1])
         return evs, ""
 
