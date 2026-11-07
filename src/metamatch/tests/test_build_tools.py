@@ -217,3 +217,19 @@ class TestTeamCheck(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCoachGuideGrounding(unittest.TestCase):
+    def test_broken_promises_and_wrong_tera_are_removed(self):
+        from metamatch.suggestions import ground_guide
+        team, _ = readTeam(TEAM.replace("Jolly Nature", "Tera Type: Ground\nJolly Nature", 1), "gen9ou")
+        guide = {"lead_options": [{"pokemon": "Great Tusk", "scenario": "Lead to guarantee rocks."},
+                                  {"pokemon": "Great Tusk", "scenario": "Lead to spin away hazards with Rapid Spin."},
+                                  {"pokemon": "Garchomp", "scenario": "Lead to set Spikes."}],
+                 "key_combos": [{"name": "Tusk + Kingambit", "description": "Tusk uses Knock Off, Kingambit cleans with Kowtow Cleave."},
+                                {"name": "Tusk + Gholdengo", "description": "Gholdengo sets up with Nasty Plot."}],
+                 "tera_strategy": "Great Tusk Teras Fire to beat Corviknight."}
+        out = ground_guide(guide, team, is_champions=False)
+        self.assertEqual([x["scenario"] for x in out["lead_options"]], ["Lead to spin away hazards with Rapid Spin."])
+        self.assertEqual([x["name"] for x in out["key_combos"]], ["Tusk + Kingambit"])
+        self.assertIn("Ground", out["tera_strategy"])
