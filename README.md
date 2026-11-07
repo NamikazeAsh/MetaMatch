@@ -171,7 +171,7 @@ The home screen opens on a magazine style front page of what the ladder is doing
 
 ### 🧭 Pages, Links & Memory
 
-* **Top navigation:** Home, Team, Quick Match, Move Search and Replay Auditor are real pages with their own URLs.
+* **Top navigation:** Home, Team, Quick Match, Move Search, Spread Lab, Matchup Preview and Replay Auditor are real pages with their own URLs.
 * **Fast dashboards:** only the tab you open runs its calculations, so a team opens instantly.
 * **Shareable team links:** every analysed team opens at `/team?t=<id>`, a short hash of the paste, so refreshing, bookmarking, opening a second tab and Back / Forward all keep your dashboard.
 * **Pick up where you left off:** your last teams sit in the sidebar as sprite cards, one click from reopening.
@@ -199,6 +199,7 @@ Three specialist agents, each with its own persona and temperature:
 
 Instant, zero LLM checks on every team:
 
+* **Team Check:** legality in plain English (species, moves, items, EV or stat point limits, Tera, Species Clause, Mega rules), a one click conversion between SV EVs and Champions stat points, and a downloadable team report to share.
 * **Item and Ability Synergy Flags:** *Drought* without *Heat Rock*, *Guts* without an Orb, *Magic Guard* without *Life Orb*, each with a plain English explanation.
 * **Role Gap Detection:** flags a missing *Hazard Setter*, *Hazard Remover* or *Pivot*.
 * **Type Coverage Holes:** types none of your damaging moves hit super effectively.
@@ -223,7 +224,8 @@ Most recommenders suggest whatever is popular. The Team Completer picks your nex
 * **Fills missing roles:** flags picks that add a hazard setter, hazard removal or a pivot.
 * **Calls out filler:** popular picks that wouldn't fix anything are shown separately, so you don't waste the slot.
 * **Works with full teams too:** choose the member you'd swap and get its replacements.
-* **Quick Match:** no team yet? Pick 1 to 5 Pokémon and get the best glue for your core.
+* **Proven on real teams:** across 882 tests on real ladder teams with one member hidden, its first pick fixes **82%** of the team's weak spots, against 52% for a usage based recommender.
+* **Quick Match:** no team yet? Pick 1 to 5 Pokémon and get the partners players actually build with them in your format, with the numbers on hover.
 
 ### Speed Tiers
 
@@ -232,6 +234,23 @@ Speed against what players actually run, not a guess.
 * **Real spreads for your format:** every spread the top 25 Pokémon run this month, with Choice Scarf sets marked.
 * **Your true Speed:** worked out with your item and IVs, so Choice Scarf and Trick Room sets are right.
 * **What if?:** slide your Speed and see exactly which threats you'd start outspeeding.
+
+### Spread Lab
+
+Tell it what your Pokémon needs to do and it finds the smallest spread that does all of it.
+
+* **Pick your benchmarks:** outspeed a threat (its usual spread or every common one, even with Choice Scarf), OHKO or 2HKO a target, or survive a specific hit.
+* **The least investment:** searches every useful nature and spread with the damage calculator, then rechecks each benchmark on the result.
+* **Honest about the impossible:** a benchmark no spread can reach is named, with the reason, and the rest are still solved.
+* **Compared with the ladder:** shows how the most common spreads do on the same benchmarks, and gives you a ready to paste set.
+* **Champions ready:** works in stat points with the 66 point budget.
+
+### Matchup Preview
+
+Paste the team you're about to face, even just the six names from team preview.
+
+* **Every matchup:** the same win or lose grid and hover detail as the Threat Board, using their sets exactly when you paste them.
+* **Champions bring 3:** picks the three that hold up best against any three they could bring, checked against all 20 of their options. No win chances and no guesses about their picks.
 
 ### 🌐 Multi Format
 
@@ -352,10 +371,11 @@ Ollama and Node are both optional. Without Ollama, every analysis tab still work
 ## 🧪 Tests & Benchmark
 
 ```bash
-pytest                                     # 193 tests: parsing, mechanics, planner, constraints, verifiers, retrieval, threat board, team completer, speed tiers, replays, MetaFlash, storage, frozen set integrity
+pytest                                     # 203 tests: parsing, mechanics, planner, constraints, verifiers, retrieval, team building tools, replays, MetaFlash, storage, frozen set integrity
 
 python bench/extraction/score.py           # question understanding: slot F1 on the dev half (--split test for the held out half)
 python bench/rag/score.py                  # retrieval: recall@k, MRR and strict hits through the production path
+python bench/recommender/score.py --teams 0   # Team Completer vs usage baselines on real ladder teams (needs local replays)
 
 python bench/run.py --arm raw              # bare model with the team pasted in
 python bench/run.py --arm metamatch        # full pipeline
@@ -374,7 +394,7 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 | Path                                             | What it does                                                                                                 |
 | :----------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
 | `src/metamatch/app.py`, `tabs/`              | Streamlit app, one module per tab                                                                            |
-| `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, constraint parser, solvers, shared mechanics, name matching, Threat Board, Team Completer, Speed Tiers |
+| `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, constraint parser, solvers, shared mechanics, name matching, Threat Board, Team Completer, Speed Tiers, Spread Lab, Matchup Preview, Team Check |
 | `src/metamatch/agents/`                        | Router, manager, grounded answerer and verifier, the three agents ([details](src/metamatch/agents/README.md)) |
 | `src/metamatch/rag/`                           | Analyses for every SV format, usage cards, guides, chunking, hybrid ChromaDB + BM25 store ([details](src/metamatch/rag/README.md)) |
 | `src/metamatch/team.py`                        | Showdown parser, role detection, type math, Mega handling                                                    |
