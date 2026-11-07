@@ -2,7 +2,7 @@ from html import escape
 
 import streamlit as st
 from metamatch import config, strategy_data
-from metamatch.utils import get_pokemon_sprite
+from metamatch.sprites import get_sprite
 
 
 def _options(value):
@@ -75,7 +75,7 @@ def render(get_strat_data_fn, get_usage_data_fn):
                     st.markdown("#### 📘 Verified Strategy Sets")
                     for res in strat_results:
                         poke_name = res['pokemon']
-                        sprite_url = get_pokemon_sprite(poke_name) or ""
+                        sprite_url = get_sprite(poke_name) or ""
 
                         fmt_badges = ""
                         for fmt in res.get('formats', []):
@@ -138,7 +138,7 @@ def render(get_strat_data_fn, get_usage_data_fn):
                     for i, res in enumerate(filtered_usage):
                         with cols[i % 2]:
                             poke_name = res['pokemon']
-                            sprite_url = get_pokemon_sprite(poke_name) or ""
+                            sprite_url = get_sprite(poke_name) or ""
                             fmt = res['format']
 
                             color = "#444"

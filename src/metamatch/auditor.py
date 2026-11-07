@@ -103,11 +103,14 @@ def audit_team(team_data):
             reports[name]["moves"][move] = pct
             
             if pct < USAGE_THRESHOLD:
-                top_moves = sorted(move_stats.items(), key=lambda x:x[1], reverse=True)[:2]
+                # The two most used moves this set doesn't already run
+                owned = {normalize(m) for m in user_moves}
+                top_moves = [(k, v) for k, v in sorted(move_stats.items(), key=lambda x: x[1], reverse=True)
+                             if normalize(k) not in owned and k][:2]
                 suggestion = ", ".join([f"{display(k, 'move')} ({(v/total_weight)*100:.1f}%)" for k,v in top_moves])
                 warnings.append({
                     "pokemon": name, "category": "Move", "current": move, "usage": pct,
-                    "suggestion": f"Common: {suggestion}"
+                    "suggestion": suggestion
                 })
 
     return {"reports": reports, "warnings": warnings}

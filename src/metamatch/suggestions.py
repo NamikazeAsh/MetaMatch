@@ -14,12 +14,22 @@ ITEM_ABILITY_SYNERGIES = {
     "Snow Warning": {"must": ["Icy Rock"],               "reason": "Icy Rock extends snow from 5 to 8 turns"},
     "Guts":         {"must": ["Flame Orb", "Toxic Orb"], "reason": "Guts requires a status condition to activate the Atk boost"},
     "Poison Heal":  {"must": ["Toxic Orb"],              "reason": "Toxic Orb is required to trigger Poison Heal recovery"},
-    "Magic Guard":  {"prefer": ["Life Orb"],             "reason": "Life Orb recoil is negated by Magic Guard — free 1.3x power"},
+    "Magic Guard":  {"prefer": ["Life Orb"],             "reason": "Magic Guard ignores Life Orb recoil, so the 1.3x boost is free"},
 }
 
 # Roles nearly every singles team wants. Cleric and Speed Control were dropped: Heal Bell and
 # Aromatherapy are gone in SV, and "Speed Control" had no consistent definition across modules.
-CORE_ROLES = {"Hazard Setter", "Hazard Remover", "Pivot"}
+ROLE_TEXT = {
+    "Hazard Setter": ("Hazard setter", "Stealth Rock or Spikes on one member wears down everything that switches in."),
+    "Hazard Remover": ("Hazard removal", "Rapid Spin or Defog stops rocks from chipping your team on every switch."),
+    "Pivot": ("Pivot", "U-turn, Volt Switch or Flip Turn lets you deal damage and switch out safely."),
+}
+CORE_ROLES = set(ROLE_TEXT)
+
+
+def _and(names):
+    names = list(names)
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
 
 
 def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) -> list[dict]:
@@ -152,46 +162,35 @@ def get_suggestions(team):
     """
     audit_res = auditor_module.audit_team(team)
 
-    # --- Team-level analysis ---
+    # Team level: one line per core role plus type coverage, each marked ok or missing
     team_analysis = []
-
-    team_roles = {r for p in team.values() for r in p.get("Roles", [])}
-    missing_roles = CORE_ROLES - team_roles
-    if missing_roles:
-        team_analysis.append(f"Missing core roles: {', '.join(sorted(missing_roles))}. Consider adding a Pokemon that can fill these.")
-
+    for role, (label, why) in ROLE_TEXT.items():
+        who = [p["Pokemon"] for p in team.values() if role in p.get("Roles", [])]
+        team_analysis.append({"label": label, "ok": bool(who),
+                              "text": f"{_and(who)}." if who else f"Missing. {why}"})
     try:
-        coverage = coverageCheck(team)
-        uncovered = [t for t, covered in coverage.items() if not covered]
-        if uncovered:
-            team_analysis.append(f"No offensive coverage against: {', '.join(sorted(uncovered))} types.")
+        uncovered = sorted(t for t, covered in coverageCheck(team).items() if not covered)
+        team_analysis.append({"label": "Coverage", "ok": not uncovered,
+                              "text": f"Nothing on the team hits {_and(uncovered)} super effectively." if uncovered
+                              else "Something on the team hits every type super effectively."})
     except Exception:
         pass
 
-    if not team_analysis:
-        team_analysis.append("Team has solid role distribution and type coverage.")
-
-    # --- Per-Pokemon analysis ---
+    # Per member: a list of findings, empty when the set looks standard
     pokemon_specific = {}
-
     for p in team.values():
         name = p["Pokemon"]
         issues = []
-
-        # Item-ability synergy check
         rule = ITEM_ABILITY_SYNERGIES.get(p.get("Ability", ""))
         if rule:
             allowed = rule.get("must") or rule.get("prefer", [])
             if p.get("Item") not in allowed:
-                preferred = " or ".join(allowed)
-                issues.append(f"Item mismatch: {p['Ability']} works best with {preferred} — {rule['reason']}.")
-
-        # Smogon usage warnings (low-usage item or moves)
+                issues.append(f"{p['Ability']} works best with {' or '.join(allowed)}: {rule['reason']}.")
         for w in audit_res.get("warnings", []):
             if w["pokemon"] == name:
-                issues.append(f"Low-usage {w['category'].lower()}: '{w['current']}' ({w['usage']:.1f}% on ladder). {w['suggestion']}.")
-
-        pokemon_specific[name] = " ".join(issues) if issues else "No issues detected."
+                more = f" Most run {w['suggestion']}." if w["category"] == "Item" else                     (f" More common: {w['suggestion']}." if w["suggestion"] else "")
+                issues.append(f"{w['current']} is on only {w['usage']:.1f}% of {name} sets.{more}")
+        pokemon_specific[name] = issues
 
     threats = compute_threats(team)
 

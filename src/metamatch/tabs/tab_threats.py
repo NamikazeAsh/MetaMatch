@@ -6,7 +6,7 @@ import streamlit as st
 
 from metamatch import config
 from metamatch.engine import threat_board as tb
-from metamatch.utils import get_pokemon_sprite
+from metamatch.sprites import get_sprite
 
 N_THREATS = 12
 VERDICT_WORD = {"win": "beats", "lose": "loses to", "even": "trades evenly with"}
@@ -114,7 +114,7 @@ def _cards(names, threat, row, kind):
             chips.append(f'<span class="tb-chip {"good" if p["priority"].startswith("Finishes") else "bad"}">{escape(p["priority"])}</span>')
         chips.append(f'<span class="tb-chip good">Hits: {escape(p["dealt"])}{" · " + p["dealt_ko"] if p["dealt_ko"] else ""}</span>')
         chips.append(f'<span class="tb-chip bad">Takes: {escape(p["taken"])}{" · " + p["taken_ko"] if p["taken_ko"] else ""}</span>')
-        sprite = escape(get_pokemon_sprite(m) or "")
+        sprite = escape(get_sprite(m) or "")
         out.append(f'<div class="tb-card {kind}"><img src="{sprite}" alt=""><div><div class="nm">{escape(m)}</div>'
                    f'<div class="tb-chips">{"".join(chips)}</div></div></div>')
     return '<div class="tb-cards">' + "".join(out) + "</div>"

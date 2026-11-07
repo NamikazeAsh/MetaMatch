@@ -215,9 +215,6 @@ class TestTeamCheck(unittest.TestCase):
         self.assertNotIn("Tera Type", out)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class TestCoachGuideGrounding(unittest.TestCase):
     def test_broken_promises_and_wrong_tera_are_removed(self):
@@ -233,3 +230,39 @@ class TestCoachGuideGrounding(unittest.TestCase):
         self.assertEqual([x["scenario"] for x in out["lead_options"]], ["Lead to spin away hazards with Rapid Spin."])
         self.assertEqual([x["name"] for x in out["key_combos"]], ["Tusk + Kingambit"])
         self.assertIn("Ground", out["tera_strategy"])
+
+
+class TestAudit(unittest.TestCase):
+    def test_roles_coverage_and_rare_moves_read_plainly(self):
+        from metamatch.suggestions import get_suggestions
+        from metamatch.team import detectRole
+        team, _ = readTeam(TEAM.replace("- Iron Head", "- Toxic"), "gen9ou")
+        detectRole(team)
+        out = get_suggestions(team)
+        cards = {c["label"]: c for c in out["team_analysis"]}
+        self.assertTrue(cards["Hazard removal"]["ok"])
+        self.assertIn("Great Tusk", cards["Hazard removal"]["text"])
+        self.assertFalse(cards["Hazard setter"]["ok"])
+        rare = " ".join(out["pokemon_specific"]["Kingambit"])
+        self.assertIn("Toxic is on only", rare)
+        self.assertNotIn("Kowtow Cleave", rare)      # never suggests a move the set already runs
+        self.assertEqual(out["pokemon_specific"]["Gholdengo"], [])
+
+
+class TestMatchupMatrices(unittest.TestCase):
+    def test_weak_spots_and_coverage_gaps_are_flagged(self):
+        from metamatch.tabs.tab_matrix import defense, defense_summary, offense, offense_summary
+        team, _ = readTeam(TEAM, "gen9ou")
+        d = defense_summary(defense(team))
+        weak, res, imm, flag = d["Ground"]                 # Gholdengo and Kingambit weak, nobody takes it well
+        self.assertEqual(set(weak), {"Gholdengo", "Kingambit"})
+        self.assertTrue(flag)
+        self.assertIn("Great Tusk", d["Electric"][2])      # Ground types are immune to Electric
+        self.assertFalse(d["Electric"][3])
+        o = offense_summary(offense(team))
+        self.assertIn("Great Tusk", o["Steel"])            # Headlong Rush
+        self.assertEqual(o["Water"], [])
+
+
+if __name__ == "__main__":
+    unittest.main()

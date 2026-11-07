@@ -6,7 +6,7 @@ import streamlit as st
 
 from metamatch import config
 from metamatch.engine import completer
-from metamatch.utils import get_pokemon_sprite
+from metamatch.sprites import get_sprite
 
 STYLE = """
 <style>
@@ -115,7 +115,7 @@ def _pair_chip(c):
 
 
 def _card(c, holes, dim=False, current=None):
-    sprite = get_pokemon_sprite(c["name"]) or ""
+    sprite = get_sprite(c["name"]) or ""
     mine = '<span class="tc-chip role">Your current pick</span>' if c["name"] == current else ""
     line = _coverage_line(c["covers"], holes)
     count = _coverage_count(c["covers"], holes)

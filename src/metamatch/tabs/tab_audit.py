@@ -1,7 +1,7 @@
 from html import escape
 
 import streamlit as st
-from metamatch.utils import get_pokemon_sprite
+from metamatch.sprites import get_sprite
 
 
 CHECK_STYLE = """
@@ -10,6 +10,25 @@ CHECK_STYLE = """
   border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); }
 .ck b { font-size: .95rem; }
 .ck.ok b { color: #34d399; } .ck.fix b { color: #f87171; } .ck.note b { color: #facc15; }
+.au-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 4px 0 8px; }
+.au-card { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); }
+.au-card.ok { border-color: rgba(52,211,153,.28); } .au-card.note { border-color: rgba(250,204,21,.32); background: rgba(250,204,21,.04); }
+.au-head { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px; }
+.au-mark { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-size: .8rem; flex-shrink: 0; }
+.ok .au-mark { background: rgba(52,211,153,.16); color: #34d399; } .note .au-mark { background: rgba(250,204,21,.16); color: #facc15; }
+.au-card span { color: #c8ccd4; font-size: .9rem; line-height: 1.45; }
+.au-clean { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0 10px; color: #9aa3b2; font-size: .9rem; }
+.au-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px 2px 2px; border-radius: 999px;
+  background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.25); color: #d1fae5; font-size: .85rem; }
+.au-chip img { width: 28px; height: 28px; object-fit: contain; }
+.au-mons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.au-mon { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 12px 14px; border-radius: 12px;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(250,204,21,.28); }
+.au-mon img { width: 64px; height: 64px; object-fit: contain; }
+.au-mon .au-name { font-weight: 700; color: #00d4ff; margin-bottom: 4px; }
+.au-mon .ck { margin: 0 0 4px; padding: 6px 8px; grid-template-columns: 18px 1fr; font-size: .88rem; }
+@media (max-width: 900px) { .au-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .au-mons { grid-template-columns: 1fr; } }
 </style>
 """
 MARKS = {"ok": "✓", "fix": "✗", "note": "!"}
@@ -51,46 +70,45 @@ def render_team_check():
     st.markdown("---")
 
 
+def _team_audit(items):
+    st.subheader("🛡️ Team Audit")
+    st.caption("The jobs most teams cover, and whether every type has something that hits it hard.")
+    cards = "".join(
+        f'<div class="au-card {"ok" if it["ok"] else "note"}"><div class="au-head"><span class="au-mark">'
+        f'{MARKS["ok" if it["ok"] else "note"]}</span>{escape(it["label"])}</div><span>{escape(it["text"])}</span></div>'
+        for it in items)
+    st.markdown(CHECK_STYLE + f'<div class="au-grid">{cards}</div>', unsafe_allow_html=True)
+
+
+def _per_member(findings):
+    st.subheader("🔍 Per Pokémon Findings")
+    st.caption("Each set compared with what ladder players run on that Pokémon.")
+    clean = [name for name, issues in findings.items() if not issues]
+    flagged = {name: issues for name, issues in findings.items() if issues}
+    html = ""
+    if clean:
+        chips = "".join(f'<span class="au-chip"><img src="{escape(get_sprite(n) or "")}" alt="">{escape(n)}</span>'
+                        for n in clean)
+        lead = "Every set looks standard:" if not flagged else "Look standard:"
+        html += f'<div class="au-clean">{lead}{chips}</div>'
+    if flagged:
+        html += '<div class="au-mons">' + "".join(
+            f'<div class="au-mon"><img src="{escape(get_sprite(name) or "")}" alt=""><div>'
+            f'<div class="au-name">{escape(name)}</div>'
+            + "".join(f'<div class="ck note"><b>{MARKS["note"]}</b><span>{escape(i)}</span></div>' for i in issues)
+            + '</div></div>' for name, issues in flagged.items()) + '</div>'
+    st.markdown(CHECK_STYLE + html, unsafe_allow_html=True)
+
+
 def render():
-    if st.session_state.analysis.get('team'):
-        render_team_check()
-    if st.session_state.analysis.get('suggestions'):
-        sugg = st.session_state.analysis['suggestions']
-
-        # --- Team Analysis Section ---
-        st.subheader("🛡️ Team Audit")
-        if 'team_analysis' in sugg and isinstance(sugg['team_analysis'], list):
-            for p in sugg['team_analysis']:
-                st.markdown(f"""
-                <div style="background: rgba(0, 212, 255, 0.05); border-left: 4px solid #00d4ff; padding: 12px 16px; margin-bottom: 12px; border-radius: 0 8px 8px 0;">
-                    <span style="font-size: 1.1rem; margin-right: 8px;">💡</span>
-                    <span style="color: #e0e0e0; font-size: 0.95rem;">{escape(str(p))}</span>
-                </div>
-                """, unsafe_allow_html=True)
-
-        st.markdown("---")
-
-        # --- Pokemon Specific Section ---
-        st.subheader("🔍 Per-Pokemon Findings")
-        if 'pokemon_specific' in sugg and isinstance(sugg['pokemon_specific'], dict):
-            for pk, adv in sugg['pokemon_specific'].items():
-                advice_text = str(adv)
-                if isinstance(adv, dict):
-                    advice_text = ", ".join([str(v) for v in adv.values()])
-
-                sprite_url = get_pokemon_sprite(pk) or ""
-
-                st.markdown(f"""
-                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; align-items: start; gap: 15px; transition: all 0.2s;">
-                    <div style="flex-shrink: 0; background: rgba(255, 255, 255, 0.05); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                        <img src="{sprite_url}" width="50" style="filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));">
-                    </div>
-                    <div>
-                        <div style="font-weight: 700; font-size: 1.1rem; color: #00d4ff; margin-bottom: 4px;">{escape(str(pk))}</div>
-                        <div style="color: #ccc; font-size: 0.9rem; line-height: 1.5;">{escape(advice_text)}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-    else:
+    analysis = st.session_state.analysis
+    if not analysis.get("team"):
         st.info("Run analysis to see the audit.")
+        return
+    render_team_check()
+    sugg = analysis.get("suggestions") or {}
+    if sugg.get("team_analysis"):
+        _team_audit(sugg["team_analysis"])
+        st.markdown("---")
+    if sugg.get("pokemon_specific"):
+        _per_member(sugg["pokemon_specific"])

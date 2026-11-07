@@ -8,7 +8,7 @@ from metamatch import config
 from metamatch.engine import preview as pv
 from metamatch.tabs.tab_threats import STYLE, _cards, _grid
 from metamatch.team import readTeam
-from metamatch.utils import get_pokemon_sprite
+from metamatch.sprites import get_sprite
 
 EXAMPLE = "Samurott-Hisui, Slowking-Galar, Dragapult, Golisopod-Mega, Aegislash, Rillaboom"
 BRING_STYLE = """
@@ -110,7 +110,7 @@ def _load_sample(format_id, sample_team, has_team, mine_names):
 
 
 def _vs_banner(mine, theirs):
-    img = lambda names: "".join(f'<img src="{escape(get_pokemon_sprite(n) or "")}" alt="{escape(n)}" title="{escape(n)}">' for n in names)
+    img = lambda names: "".join(f'<img src="{escape(get_sprite(n) or "")}" alt="{escape(n)}" title="{escape(n)}">' for n in names)
     return (f'<div class="pv-vs"><div class="pv-side"><div class="lbl">Your team</div><div class="pv-mons">{img(mine)}</div></div>'
             f'<div class="pv-vsword">VS</div>'
             f'<div class="pv-side them"><div class="lbl">Their team</div><div class="pv-mons">{img(theirs)}</div></div></div>')
@@ -180,7 +180,7 @@ def render(team=None, sample_team=None):
         if picks:
             trio, worst, avg = picks[0]
             alts = ", ".join(" / ".join(t) for t, _, _ in picks[1:3])
-            sprites = "".join(f'<div><img src="{escape(get_pokemon_sprite(m) or "")}" alt="">{escape(m)}</div>' for m in trio)
+            sprites = "".join(f'<div><img src="{escape(get_sprite(m) or "")}" alt="">{escape(m)}</div>' for m in trio)
             st.markdown(BRING_STYLE + f'<div class="pv-bring"><div class="sub">Bring these three</div>'
                         f'<div class="pv-trio">{sprites}</div>'
                         f'<div class="sub">Whatever three they bring, at least {worst} of them have an answer here '

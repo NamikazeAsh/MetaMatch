@@ -7,7 +7,7 @@ from metamatch import config
 from metamatch.auditor import load_chaos_data
 from metamatch.engine.completer import core_partners
 from metamatch.tabs.tab_recommender import STYLE as CARD_STYLE
-from metamatch.utils import get_pokemon_sprite
+from metamatch.sprites import get_sprite
 
 QM_STYLE = """
 <style>
@@ -85,7 +85,7 @@ def render(get_strat_data_fn):
         cols = st.columns(4)
         for col, r in zip(cols, partners[i:i + 4]):
             with col:
-                sprite = escape(get_pokemon_sprite(r["name"]) or "")
+                sprite = escape(get_sprite(r["name"]) or "")
                 core_word = "your core" if len(core) > 1 else escape(core[0])
                 st.markdown(
                     CARD_STYLE + QM_STYLE +

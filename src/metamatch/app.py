@@ -18,7 +18,8 @@ from pathlib import Path
 # Adds the 'src' directory to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from metamatch.utils import is_pokepaste_url, fetch_pokepaste, extract_pokemon_names, get_pokemon_sprite
+from metamatch.utils import is_pokepaste_url, fetch_pokepaste, extract_pokemon_names
+from metamatch.sprites import get_sprite
 from metamatch.team import readTeam, detectRole, addComments, coverageCheck, looks_like_champions
 from metamatch.suggestions import get_suggestions
 from metamatch import config
@@ -424,16 +425,17 @@ def render_team_sidebar():
         audit_warnings = audit_results.get("warnings", [])
         if audit_warnings:
             st.markdown("---")
-            with st.expander(f"⚠️ Meta Audit ({len(audit_warnings)} Warnings)", expanded=True):
-                st.caption("We detected some statistically unusual choices compared to the current high-ladder meta.")
+            n = len(audit_warnings)
+            with st.expander(f"Meta Audit ({n} {'warning' if n == 1 else 'warnings'})", icon=":material/insights:",
+                             expanded=True):
+                st.caption("Choices few ladder players make. Not always wrong, just worth a second look.")
                 for w in audit_warnings:
+                    lead = "Most run" if w['category'] == "Item" else "More common:"
+                    more = f'<br><span style="opacity: 0.8;">{lead} {escape(str(w["suggestion"]))}</span>' if w['suggestion'] else ""
                     st.markdown(f"""
-                    <div style="background: rgba(255, 165, 0, 0.1); border-left: 4px solid #ffa500; padding: 10px; margin-bottom: 8px; border-radius: 4px;">
-                        <div style="font-weight: bold; color: #ffa500;">{escape(str(w['pokemon']))} - {escape(str(w['category']))}</div>
-                        <div style="font-size: 0.9rem;">
-                            You are running <b>{escape(str(w['current']))}</b> (Used by only {w['usage']:.1f}%).<br>
-                            <span style="opacity: 0.8;">Standard: {escape(str(w['suggestion']))}</span>
-                        </div>
+                    <div style="background: rgba(255, 165, 0, 0.08); border: 1px solid rgba(255, 165, 0, 0.25); padding: 10px 12px; margin-bottom: 8px; border-radius: 10px;">
+                        <div style="font-weight: 700; color: #ffa500;">{escape(str(w['pokemon']))} <span style="opacity: 0.7; font-weight: 500;">· {escape(str(w['category']))}</span></div>
+                        <div style="font-size: 0.9rem;"><b>{escape(str(w['current']))}</b> is on only {w['usage']:.1f}% of sets.{more}</div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -648,7 +650,7 @@ def team_page():
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <div style="flex-shrink: 0; position: relative;">
                         <div style="position: absolute; width: 60px; height: 60px; background: {type_color}; filter: blur(30px); opacity: 0.4; z-index: 0; top: 10px; left: 10px;"></div>
-                        <img src="{get_pokemon_sprite(name) or ''}" width="90" style="position: relative; z-index: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
+                        <img src="{get_sprite(name) or ''}" width="90" style="position: relative; z-index: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
                     </div>
                     <div style="flex-grow: 1;">
                         <div class="poke-name">{escape(name)}</div>
@@ -689,7 +691,7 @@ def team_page():
         (tab3, tab_audit.render),
         (tab4, lambda: tab_threats.render(team_data)),
         (tab_rec, lambda: tab_recommender_mod.render(team_data, st.session_state.pokemon_names)),
-        (tab_matrix, lambda: tab_matrix_mod.render(team_data)),
+        (tab_matrix, lambda: tab_matrix_mod.render(team_data, TYPE_MAP)),
         (tab7, lambda: tab_speed_tiers.render(team_data)),
         (tab8, tab_coach_guide.render),
         (tab_chat, tab_chat_mod.render),

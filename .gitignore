@@ -158,3 +158,6 @@ docs/research/
 node_modules/
 bench/results/
 data/replays/
+
+# Sprites downloaded on first use
+src/metamatch/static/sprites/

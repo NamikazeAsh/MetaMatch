@@ -424,5 +424,6 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 
 * **[Smogon University](https://www.smogon.com/)**: usage statistics, strategy analyses and [`@smogon/calc`](https://github.com/smogon/damage-calc).
 * **[PokeAPI](https://pokeapi.co/)**: Pokémon relational data.
+* **[Pokémon Showdown](https://pokemonshowdown.com/)**: Pokémon HOME sprites, served from its sprite server.
 * **[Ollama](https://ollama.com/)**: local LLM runtime.
 * **[Streamlit](https://streamlit.io/)**: dashboard framework.

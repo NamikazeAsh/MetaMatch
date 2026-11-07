@@ -9,7 +9,7 @@ from metamatch.engine.dex import dex_for_format
 from metamatch.engine.sets import likely_set
 from metamatch.engine.spread_lab import (LABELS, STATS, Benchmark, Lab, _budget, check_spread, ladder_spreads,
                                          showdown_block, spread_text)
-from metamatch.utils import get_pokemon_sprite
+from metamatch.sprites import get_sprite
 
 KINDS = {"Outspeed": "outspeed", "Knock out": "ko", "Survive a hit": "survive"}
 KIND_TAG = {"outspeed": ("SPEED", "#22d3ee"), "ko": ("KNOCKOUT", "#34d399"), "survive": ("SURVIVE", "#fbbf24")}
@@ -147,7 +147,7 @@ def _select(label, options, key, default_index=0, **kw):
 def _mon_card(name, base, moves, source, dex):
     species = dex.species(base["name"]) or dex.species(name) or {}
     types = " / ".join(species.get("types", []))
-    sprite = escape(get_pokemon_sprite(name) or "")
+    sprite = escape(get_sprite(name) or "")
     meta = " · ".join(x for x in (types, base.get("item") or "No item", base.get("ability") or "") if x)
     chips = "".join(f'<span class="sl-chip">{escape(m)}</span>' for m in moves)
     return (f'<div class="sl-mon"><img src="{sprite}" alt=""><div><div class="nm">{escape(name)}</div>'
