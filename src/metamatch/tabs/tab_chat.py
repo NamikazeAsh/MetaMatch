@@ -1,6 +1,7 @@
 import streamlit as st
 from metamatch import config, storage
 from metamatch.suggestions import get_chat_response
+from metamatch.ui import section_header
 
 
 def _persist(role, content, name=None, avatar=None):
@@ -11,7 +12,7 @@ def _persist(role, content, name=None, avatar=None):
 
 
 def render():
-    st.subheader("💬 Ask the Coach")
+    section_header("Ask anything", "Ask the Coach")
     st.caption("Ask about counters, speed, damage or strategy. Answers use this month's ladder data and the real damage calculator.")
     try:
         from metamatch.rag import store

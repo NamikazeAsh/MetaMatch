@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 from metamatch import replay
 from metamatch.replay.protocol import STATUS_DAMAGE
+from metamatch.ui import section_header
 
 
 def _faint_cause(battle, f):
@@ -149,7 +150,7 @@ def render():
         st.markdown("---")
         head = st.columns([8, 1])
         with head[0]:
-            st.markdown("### 📈 Team Health")
+            section_header("How it went", "Team Health")
         with head[1]:
             with st.popover("ℹ️"):
                 st.markdown("Each line is a team's total HP at the end of every turn, as a share of its "
@@ -161,7 +162,7 @@ def render():
     st.markdown("---")
     flags = analysis.flags[me]
     if flags:
-        st.markdown("### ⚠️ Mistakes and Notes")
+        section_header("Review", "Mistakes and Notes")
         st.caption("Mistakes are clear from the log. Notes are worth knowing but not necessarily wrong.")
         for flag in flags:
             color = "#ff4444" if flag.kind == "mistake" else "#00d4ff"
@@ -183,7 +184,7 @@ def render():
     hazard = {m.species: m.hazard_damage for m in battle.mons[me].values() if m.hazard_damage}
     if hazard:
         st.markdown("---")
-        st.markdown("### 🪨 Hazard Damage Taken")
+        section_header("Hazards", "Hazard Damage Taken")
         haz_cols = st.columns(min(len(hazard), 4))
         for i, (poke, dmg) in enumerate(sorted(hazard.items(), key=lambda x: -x[1])):
             with haz_cols[i % len(haz_cols)]:
@@ -198,7 +199,7 @@ def render():
         st.caption(f"Total hazard damage: **{sum(hazard.values())}%**")
 
     st.markdown("---")
-    st.markdown("### 🔍 Opponent's Revealed Sets")
+    section_header("Scouting", "Opponent's Revealed Sets")
     rows = []
     for m in battle.mons[them].values():
         rows.append({
@@ -211,7 +212,7 @@ def render():
     st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 
     st.markdown("---")
-    st.markdown("### 📊 Final Team States")
+    section_header("End of game", "Final Team States")
     tcol1, tcol2 = st.columns(2)
     with tcol1:
         st.markdown(f"**Your Team ({user_name})**")
@@ -221,7 +222,7 @@ def render():
         st.markdown(_team_states(battle, them), unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("### Faint Timeline")
+    section_header("Timeline", "Faint Timeline")
     if not battle.faints:
         st.info("No Pokémon fainted during this battle.")
         return

@@ -1,6 +1,7 @@
 from html import escape
 
 import streamlit as st
+from metamatch.ui import section_header
 
 
 def render(coverage: dict, weakness: dict, team_data: dict, type_map: dict):
@@ -8,7 +9,7 @@ def render(coverage: dict, weakness: dict, team_data: dict, type_map: dict):
 
     c1, c2 = st.columns(2)
     with c1:
-        st.subheader("Offensive Coverage")
+        section_header("Coverage", "Offensive Coverage")
         st.metric("Type Coverage", f"{covered_count}/18 types")
         covered_html = ""
         for t, is_covered in coverage.items():
@@ -20,7 +21,7 @@ def render(coverage: dict, weakness: dict, team_data: dict, type_map: dict):
             st.warning("⚠️ Missing offensive coverage for several types.")
 
     with c2:
-        st.subheader("Defensive Vulnerabilities")
+        section_header("Weaknesses", "Defensive Vulnerabilities")
         for t_n, counts in weakness.items():
             cap_t = t_n.capitalize()
             if counts['weak'] >= 2:

@@ -27,6 +27,7 @@ from metamatch import storage
 from metamatch import auditor
 from metamatch import strategy_data
 from metamatch import meta_pulse
+from metamatch.ui import page_header, section_header
 from metamatch.tabs import (
     tab_quick_match, tab_move_search, tab_replay,
     tab_overview as tab_overview_mod, tab_audit, tab_threats,
@@ -519,11 +520,6 @@ def format_picker():
         )
 
 
-def page_header(title, blurb):
-    st.markdown(f"## {title}")
-    st.caption(blurb)
-
-
 def home_page():
     render_home_sidebar()
     render_logo()
@@ -557,7 +553,7 @@ def home_page():
 
 
 def team_empty_state(message):
-    st.markdown("## 📊 Team Dashboard")
+    page_header("Your team", "Team Dashboard")
     st.info(message)
     st.page_link(HOME_PAGE, label="Paste a team on Home", icon=":material/home:")
 
@@ -579,7 +575,8 @@ def team_page():
     render_team_sidebar()
 
     # --- Metrics Dashboard ---
-    st.markdown("## 📊 Team Dashboard")
+    page_header("Your team", "Team Dashboard", "Every number below comes from the damage calculator and this month's ladder data.",
+                config.team_format(st.session_state.analysis['team']))
 
     coverage = st.session_state.analysis['coverage']
     weakness = st.session_state.analysis['weakness']
@@ -640,7 +637,7 @@ def team_page():
         m3.metric("Top Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="off")
 
     # --- Squad Section ---
-    st.markdown("## 🦸 Your Squad")
+    section_header("Your team", "Your Squad")
     st.markdown("<br>", unsafe_allow_html=True) # Spacer
     names = st.session_state.pokemon_names
 
@@ -692,7 +689,7 @@ def team_page():
     st.markdown("---")
 
     # --- Detailed Analysis Tabs ---
-    st.header("Detailed Analysis")
+    section_header("Go deeper", "Detailed Analysis")
     # Only the open tab runs: the Threat Board, Team Completer and Speed Tiers each run the damage calc,
     # and hidden tabs would otherwise compute on every load
     (tab_overview, tab3, tab4, tab_rec, tab_matrix, tab7, tab8, tab_chat) = st.tabs([
@@ -716,25 +713,30 @@ def team_page():
 
 
 def quick_match_page():
-    page_header("🤝 Quick Match", "No team yet? Pick a core and get the partners that pair best with it on the ladder.")
+    page_header("Team building", "Quick Match", "No team yet? Pick a core and get the partners that pair best with it on the ladder.",
+                st.session_state.get("format_id"))
     format_picker()
     tab_quick_match.render(get_master_strategy_data)
 
 
 def move_search_page():
-    page_header("🔎 Move Search", "Find sets that run a combination of moves, from the Strategy Dex and ladder usage.")
+    page_header("Research", "Move Search", "Find sets that run a combination of moves, from the Strategy Dex and ladder usage.",
+                st.session_state.get("format_id"))
     format_picker()
     tab_move_search.render(get_master_strategy_data, get_usage_data, TYPE_MAP)
 
 
 def spread_lab_page():
-    page_header("📐 Spread Lab", "The smallest spread that hits every benchmark you need, checked by the damage calculator.")
+    page_header("Team building", "Spread Lab", "The smallest spread that hits every benchmark you need, checked by the damage calculator.",
+                st.session_state.get("format_id"))
     format_picker()
     tab_spread_lab.render((st.session_state.get("analysis") or {}).get("team"))
 
 
 def matchup_preview_page():
-    page_header("⚔️ Matchup Preview", "Your team against the one you're about to face, every matchup worked out by the damage calculator.")
+    page_header("Before the battle", "Matchup Preview",
+                "Your team against the one you're about to face, every matchup worked out by the damage calculator.",
+                st.session_state.get("format_id"))
     team = (st.session_state.get("analysis") or {}).get("team")
     if not team:
         format_picker()
@@ -742,7 +744,7 @@ def matchup_preview_page():
 
 
 def replay_page():
-    page_header("📼 Replay Auditor", "Paste a Showdown replay for a turn by turn post mortem of your battle.")
+    page_header("After the battle", "Replay Auditor", "Paste a Showdown replay for a turn by turn review of your battle.")
     tab_replay.render()
 
 

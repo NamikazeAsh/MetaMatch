@@ -7,6 +7,7 @@ import streamlit as st
 from metamatch import config
 from metamatch.engine import threat_board as tb
 from metamatch.sprites import get_sprite
+from metamatch.ui import section_header
 
 N_THREATS = 12
 VERDICT_WORD = {"win": "beats", "lose": "loses to", "even": "trades evenly with"}
@@ -123,6 +124,7 @@ def _cards(names, threat, row, kind):
 def render(team_data):
     format_id = config.team_format(team_data)
     label = config.format_info(format_id)["label"]
+    section_header("Your matchups", "Threat Board")
     st.caption(f"Your team against the {N_THREATS} most used Pokémon in {label}, each on its most common set. "
                "Every verdict comes from the damage calculator.")
     with st.spinner("Running the matchups..."):

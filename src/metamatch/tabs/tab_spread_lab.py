@@ -10,6 +10,7 @@ from metamatch.engine.sets import likely_set
 from metamatch.engine.spread_lab import (LABELS, STATS, Benchmark, Lab, _budget, check_spread, ladder_spreads,
                                          showdown_block, spread_text)
 from metamatch.sprites import get_sprite
+from metamatch.ui import section_header
 
 KINDS = {"Outspeed": "outspeed", "Knock out": "ko", "Survive a hit": "survive"}
 KIND_TAG = {"outspeed": ("SPEED", "#22d3ee"), "ko": ("KNOCKOUT", "#34d399"), "survive": ("SURVIVE", "#fbbf24")}
@@ -218,7 +219,7 @@ def render(team=None):
     base = {**base, "item": dex.item_name(item) if item and dex.item_name(item) else None}
     st.markdown(STYLE + _mon_card(name, base, moves, source, dex), unsafe_allow_html=True)
 
-    st.markdown("#### What does it need to do?")
+    section_header("Benchmarks", "What does it need to do?")
     targets = [n for n in options if n != name][:80]
     attacks = _attacks(moves, dex)
     benchmarks = []

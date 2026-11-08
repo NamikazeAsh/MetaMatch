@@ -7,6 +7,7 @@ import streamlit as st
 
 from metamatch import config
 from metamatch.engine import speed_board as sb
+from metamatch.ui import section_header
 
 N_META = 25
 MIN_SHARE = 0.03   # spreads below 3% of a Pokemon's sets are left off the chart
@@ -85,7 +86,7 @@ LEGEND = """
 def render(team_data, type_map=None):
     format_id = config.team_format(team_data)
     label = config.format_info(format_id)["label"]
-    st.subheader("Speed Tiers", help="Your team's Speed against the spreads players actually run.")
+    section_header("Speed", "Speed Tiers")
     st.caption(f"The {N_META} most used Pokémon in {label}, at the Speed of each spread players run this month. "
                "Your Speed includes your item.")
     with st.spinner("Working out Speeds..."):

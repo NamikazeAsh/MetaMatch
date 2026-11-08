@@ -2,6 +2,7 @@ from html import escape
 
 import streamlit as st
 from metamatch.sprites import get_sprite
+from metamatch.ui import section_header
 
 
 CHECK_STYLE = """
@@ -41,7 +42,7 @@ def render_team_check():
     team = st.session_state.analysis["team"]
     format_id = config.team_format(team)
     checks = team_check.check(team, format_id)
-    st.subheader("✅ Team Check")
+    section_header("Legality", "Team Check")
     st.markdown(CHECK_STYLE + "".join(
         f'<div class="ck {level}"><b>{MARKS[level]}</b><span>{escape(msg)}</span></div>' for level, msg in checks),
         unsafe_allow_html=True)
@@ -71,7 +72,7 @@ def render_team_check():
 
 
 def _team_audit(items):
-    st.subheader("🛡️ Team Audit")
+    section_header("Roles and coverage", "Team Audit")
     st.caption("The jobs most teams cover, and whether every type has something that hits it hard.")
     cards = "".join(
         f'<div class="au-card {"ok" if it["ok"] else "note"}"><div class="au-head"><span class="au-mark">'
@@ -81,7 +82,7 @@ def _team_audit(items):
 
 
 def _per_member(findings):
-    st.subheader("🔍 Per Pokémon Findings")
+    section_header("Sets", "Per Pokémon Findings")
     st.caption("Each set compared with what ladder players run on that Pokémon.")
     clean = [name for name, issues in findings.items() if not issues]
     flagged = {name: issues for name, issues in findings.items() if issues}

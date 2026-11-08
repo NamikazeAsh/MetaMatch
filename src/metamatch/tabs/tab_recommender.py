@@ -7,6 +7,7 @@ import streamlit as st
 from metamatch import config
 from metamatch.engine import completer
 from metamatch.sprites import get_sprite
+from metamatch.ui import section_header
 
 STYLE = """
 <style>
@@ -131,7 +132,7 @@ def _card(c, holes, dim=False, current=None):
 
 
 def render(team_data: dict, pokemon_names: list):
-    st.subheader("Team Completer")
+    section_header("Your next teammate", "Team Completer")
     format_id = config.team_format(team_data)
     st.caption("Picks for your next teammate: Pokémon that beat the top threats your team struggles with, "
                "and that players actually pair with your team, not just the most popular ones.")

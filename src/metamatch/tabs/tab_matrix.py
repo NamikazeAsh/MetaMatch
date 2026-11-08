@@ -5,6 +5,7 @@ import streamlit as st
 
 from metamatch.sprites import get_sprite
 from metamatch.type_chart import get_multiplier
+from metamatch.ui import section_header
 
 ALL_TYPES = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison",
              "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
@@ -205,7 +206,7 @@ def render_defense(team, type_map):
     immunities = sum(1 for _, d in rows for t in ALL_TYPES if d[t] == 0)
     imm_types = [t for t in ALL_TYPES if summary[t][2]]
     walled = [t for t in ALL_TYPES if len(summary[t][1]) + len(summary[t][2]) == len(rows)]
-    st.subheader("Defense")
+    section_header("Matchup Matrices", "Defense")
     st.caption("How hard each attacking type hits each member. Read down a column to see how the whole team takes that type.")
     cards = _cards([
         ("Weak spots", len(spots), _and(spots) if spots else "No type hits more of you than you can take", bool(spots)),
@@ -241,7 +242,7 @@ def render_offense(team, type_map):
     summary = offense_summary(rows)
     gaps = [t for t in ALL_TYPES if not summary[t]]
     widest = max(rows, key=lambda r: sum((r[1][t][0] or 0) >= 2 for t in ALL_TYPES), default=None)
-    st.subheader("Offense")
+    section_header("Matchup Matrices", "Offense")
     st.caption("The best hit each member has on each type, from the attacking moves it runs.")
     cards = _cards([
         ("Types you hit for 2×", f"{N - len(gaps)} of {N}", "Something on the team hits each of these super effectively", False),
