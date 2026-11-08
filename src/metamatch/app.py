@@ -365,13 +365,20 @@ def team_strip(t):
     return f'<div class="mm-strip">{"".join(icons)}</div>'
 
 
+def sidebar_rule():
+    """A slim divider between sidebar sections (Markdown's --- leaves tall empty gaps)."""
+    st.html('<div style="height:1px;margin:2px 0;background:linear-gradient(90deg, rgba(0,212,255,0.35), '
+            'rgba(255,255,255,0.06) 60%, transparent)"></div>')
+
+
 def recent_teams_sidebar(exclude=None):
-    """'Pick up where you left off': the last few analysed teams, each a link to its /team page."""
+    """'Pick up where you left off': the last few analysed teams, each a link to its /team page.
+    True when it showed anything, so callers only draw a divider between sections that exist."""
     if not config.LOCAL_MODE:
-        return
+        return False
     recents = [t for t in storage.recent_teams(limit=5) if t['id'] != exclude][:4]
     if not recents:
-        return
+        return False
     st.markdown("**Pick up where you left off**")
     for t in recents:
         with st.container(border=True, key=f"recent_{t['id']}"):
@@ -386,15 +393,18 @@ def recent_teams_sidebar(exclude=None):
                              help="Remove from recent" + (" (stays in Saved teams)" if t['name'] else "")):
                     storage.forget_team(t['id'])
                     st.rerun()
-    st.markdown("---")
+    return True
 
 
 def render_home_sidebar():
     """Recent teams, saved teams (each opens as a /team link) and paste help."""
     with st.sidebar:
-        recent_teams_sidebar()
+        shown = recent_teams_sidebar()
         saved_teams_data = get_cached_teams() if config.LOCAL_MODE else []
         if saved_teams_data:
+            if shown:
+                sidebar_rule()
+            shown = True
             team_names = [t['name'] for t in saved_teams_data]
             selected_name = st.selectbox("Saved teams", ["Select..."] + team_names)
             selected_team = next((t for t in saved_teams_data if t['name'] == selected_name), None)
@@ -410,7 +420,8 @@ def render_home_sidebar():
                         get_cached_teams.clear()
                         st.success(f"Deleted {selected_name}")
                         st.rerun()
-            st.markdown("---")
+        if shown:
+            sidebar_rule()
         paste_help()
 
 
@@ -418,13 +429,15 @@ def render_team_sidebar():
     """Back to Home, the meta audit and the save box for the team on screen."""
     with st.sidebar:
         st.page_link(HOME_PAGE, label="Analyze another team", icon=":material/edit_note:", width="stretch")
-        st.markdown("---")
-        recent_teams_sidebar(exclude=st.session_state.get("team_id"))
+        # Each section draws its own divider only when it renders, so empty ones never leave a double line
+        if config.LOCAL_MODE and [t for t in storage.recent_teams(limit=5) if t['id'] != st.session_state.get("team_id")]:
+            sidebar_rule()
+            recent_teams_sidebar(exclude=st.session_state.get("team_id"))
 
         audit_results = auditor.audit_team(st.session_state.analysis['team'])
         audit_warnings = audit_results.get("warnings", [])
         if audit_warnings:
-            st.markdown("---")
+            sidebar_rule()
             n = len(audit_warnings)
             with st.expander(f"Meta Audit ({n} {'warning' if n == 1 else 'warnings'})", icon=":material/insights:",
                              expanded=True):
@@ -440,7 +453,7 @@ def render_team_sidebar():
                     """, unsafe_allow_html=True)
 
         if config.LOCAL_MODE:
-            st.markdown("---")
+            sidebar_rule()
             with st.expander("💾 Save Team", expanded=True):
                 saved = storage.get_team(st.session_state.team_id) or {}
                 team_name = st.text_input("Team Name:", value=saved.get("name") or "", placeholder="e.g. My Rain Team v1")
@@ -692,7 +705,7 @@ def team_page():
         (tab4, lambda: tab_threats.render(team_data)),
         (tab_rec, lambda: tab_recommender_mod.render(team_data, st.session_state.pokemon_names)),
         (tab_matrix, lambda: tab_matrix_mod.render(team_data, TYPE_MAP)),
-        (tab7, lambda: tab_speed_tiers.render(team_data)),
+        (tab7, lambda: tab_speed_tiers.render(team_data, TYPE_MAP)),
         (tab8, tab_coach_guide.render),
         (tab_chat, tab_chat_mod.render),
     ]
@@ -711,7 +724,7 @@ def quick_match_page():
 def move_search_page():
     page_header("🔎 Move Search", "Find sets that run a combination of moves, from the Strategy Dex and ladder usage.")
     format_picker()
-    tab_move_search.render(get_master_strategy_data, get_usage_data)
+    tab_move_search.render(get_master_strategy_data, get_usage_data, TYPE_MAP)
 
 
 def spread_lab_page():

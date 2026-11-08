@@ -292,6 +292,7 @@ def pulse(format_id, n=8, history=None, month=None, with_sets=True):
         prev_rank, prev_usage = prev.get(name, (None, None))
         long_series = [(m, (_table(history, format_id, m).get(name) or (None, None))[1]) for m in months[-FEATURE_MONTHS:]]
         series = long_series[-SPARK_MONTHS:]
+        rank_series = [(m, (_table(history, format_id, m).get(name) or (None,))[0]) for m in months[-SPARK_MONTHS:]]
         best = None
         for m in months:
             row = _table(history, format_id, m).get(name)
@@ -308,7 +309,7 @@ def pulse(format_id, n=8, history=None, month=None, with_sets=True):
             "name": name, "kind": kind, "badge": BADGES[kind], "rank": rank, "usage": usage,
             "prev_rank": prev_rank, "prev_usage": prev_usage,
             "delta": round(usage - prev_usage, 2) if prev_usage is not None else None,
-            "series": series, "long_series": long_series, "streak": streak, "peak": best,
+            "series": series, "long_series": long_series, "rank_series": rank_series, "streak": streak, "peak": best,
         }
         if with_sets:
             card.update(sets.get(name) or _set_summary(name, format_id, now_month))

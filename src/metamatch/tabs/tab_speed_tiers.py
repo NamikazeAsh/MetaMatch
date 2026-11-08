@@ -32,46 +32,72 @@ def _meta_obj(m):
     return sb.MetaSpeed(m["name"], m["usage"], [tuple(x) for x in m["speeds"]], m["scarf"])
 
 
-def _chart(mine, meta):
+def _chart(mine, meta, colors):
+    """Dots per spread (bigger = more common, amber = Choice Scarf), your team in type colours with a speed
+    line each, so everything left of a line is a spread that member outspeeds."""
     points = []
     for m in meta:
         for spe, share in m["speeds"]:
             if share >= MIN_SHARE:
                 points.append({"Pokemon": m["name"], "Speed": spe, "Share": round(share * 100, 1), "Kind": "Ladder spread",
-                               "Note": f"{share * 100:.0f}% of {m['name']} sets"})
+                               "Note": f"{share * 100:.0f}% of {m['name']} sets", "Color": "#7d879b"})
         if m["scarf"] >= 0.05 and m["speeds"]:
             points.append({"Pokemon": m["name"], "Speed": int(m["speeds"][0][0] * 1.5), "Share": round(m["scarf"] * 100, 1),
-                           "Kind": "With Choice Scarf", "Note": f"{m['scarf'] * 100:.0f}% hold Choice Scarf"})
+                           "Kind": "With Choice Scarf", "Note": f"{m['scarf'] * 100:.0f}% hold Choice Scarf", "Color": "#f5b13d"})
     for name, spe in mine.items():
-        points.append({"Pokemon": f"{name} (yours)", "Speed": spe, "Share": 100.0, "Kind": "Your team", "Note": "with your item"})
+        points.append({"Pokemon": f"{name} (yours)", "Speed": spe, "Share": 100.0, "Kind": "Your team",
+                       "Note": "your Speed, with your item", "Color": colors.get(name, "#22d3ee")})
     df = pd.DataFrame(points)
-    order = (df.groupby("Pokemon")["Speed"].max().sort_values(ascending=False).index.tolist())
-    base = alt.Chart(df).encode(
-        y=alt.Y("Pokemon:N", sort=order, axis=alt.Axis(title=None, labelLimit=180)),
-        x=alt.X("Speed:Q", axis=alt.Axis(title="Speed stat"), scale=alt.Scale(zero=False)),
-        tooltip=["Pokemon", "Speed", "Note"])
-    dots = base.mark_circle(opacity=.85).encode(
-        size=alt.Size("Share:Q", scale=alt.Scale(range=[40, 380]), legend=None),
-        color=alt.Color("Kind:N", scale=alt.Scale(domain=["Your team", "Ladder spread", "With Choice Scarf"],
-                                                  range=["#22d3ee", "#8b98b0", "#f59e0b"]),
-                        legend=alt.Legend(title=None, orient="top")))
-    labels = base.transform_filter(alt.datum.Kind == "Your team").mark_text(align="left", dx=12, color="#22d3ee",
-                                                                             fontWeight="bold").encode(text="Speed:Q")
-    return (dots + labels).properties(height=max(420, 22 * len(order)))
+    order = df.groupby("Pokemon")["Speed"].max().sort_values(ascending=False).index.tolist()
+    yours = "indexof(datum.label, '(yours)') >= 0"
+    y = alt.Y("Pokemon:N", sort=order, axis=alt.Axis(
+        title=None, labelLimit=200, labelPadding=10, labelFontSize=12,
+        labelColor=alt.condition(yours, alt.value("#ffffff"), alt.value("#9aa4b6")),
+        labelFontWeight=alt.condition(yours, alt.value(800), alt.value(500))))
+    x = alt.X("Speed:Q", scale=alt.Scale(zero=False, nice=True),
+              axis=alt.Axis(title="Speed stat", titleColor="#8a93a6", titleFontWeight=600, labelColor="#8a93a6"))
+    base = alt.Chart(df).encode(y=y, x=x, tooltip=["Pokemon", "Speed", "Note"])
+    team = df[df.Kind == "Your team"]
+    lines = alt.Chart(team).mark_rule(strokeWidth=2, opacity=0.28, strokeDash=[4, 4]).encode(
+        x="Speed:Q", color=alt.Color("Color:N", scale=None))
+    dots = base.transform_filter(alt.datum.Kind != "Your team").mark_circle(opacity=0.75, stroke="#0f1219", strokeWidth=1).encode(
+        size=alt.Size("Share:Q", scale=alt.Scale(range=[40, 420]), legend=None), color=alt.Color("Color:N", scale=None))
+    mine_dots = base.transform_filter(alt.datum.Kind == "Your team").mark_circle(size=260, opacity=1, stroke="#ffffff",
+                                                                                  strokeWidth=2).encode(color=alt.Color("Color:N", scale=None))
+    labels = base.transform_filter(alt.datum.Kind == "Your team").mark_text(
+        align="left", dx=14, fontWeight=800, fontSize=12).encode(text="Speed:Q", color=alt.Color("Color:N", scale=None))
+    return (lines + dots + mine_dots + labels).properties(height=max(440, 24 * len(order))).configure(
+        background="transparent", font="Inter").configure_view(strokeWidth=0).configure_axis(
+        gridColor="rgba(255,255,255,0.05)", domain=False, ticks=False)
 
 
-def render(team_data):
+LEGEND = """
+<style>.st-key-speed_chart_card { background:linear-gradient(160deg, rgba(0,212,255,0.05), rgba(255,255,255,0.015) 60%); border-radius:16px !important; border-color:rgba(255,255,255,0.08) !important; box-shadow:0 8px 24px rgba(0,0,0,0.25); }</style>
+<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:0.8rem;color:#aab3c5;margin:2px 4px 6px">
+  <span><i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#22d3ee;border:2px solid #fff;margin-right:6px;vertical-align:-2px"></i>Your team, in type colours</span>
+  <span><i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#7d879b;margin-right:6px;vertical-align:-2px"></i>Ladder spread (bigger is more common)</span>
+  <span><i style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#f5b13d;margin-right:6px;vertical-align:-2px"></i>With Choice Scarf</span>
+  <span><i style="display:inline-block;width:16px;border-top:2px dashed rgba(255,255,255,0.35);margin-right:6px;vertical-align:3px"></i>Your speed lines: everything left of one is slower</span>
+</div>
+"""
+
+
+def render(team_data, type_map=None):
     format_id = config.team_format(team_data)
     label = config.format_info(format_id)["label"]
     st.subheader("Speed Tiers", help="Your team's Speed against the spreads players actually run.")
     st.caption(f"The {N_META} most used Pokémon in {label}, at the Speed of each spread players run this month. "
-               "Bigger dots are more common spreads; orange dots are Choice Scarf sets. Your Speed includes your item.")
+               "Your Speed includes your item.")
     with st.spinner("Working out Speeds..."):
         mine, meta = _data(json.dumps(team_data, sort_keys=True, default=str), format_id, _stats_month())
     if not meta:
         st.info("No usage stats for this format yet. Run `python scripts/update_meta.py` to download them.")
         return
-    st.altair_chart(_chart(mine, meta), width="stretch")
+    colors = {p["Pokemon"]: (type_map or {}).get((p.get("Type") or ["Normal"])[0], {}).get("color", "#22d3ee")
+              for p in team_data.values()}
+    with st.container(border=True, key="speed_chart_card"):
+        st.html(LEGEND)
+        st.altair_chart(_chart(mine, meta, colors), width="stretch")
 
     st.markdown("**What if?**")
     c1, c2 = st.columns([1, 2])

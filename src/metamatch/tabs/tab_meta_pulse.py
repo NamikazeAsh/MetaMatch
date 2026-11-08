@@ -160,6 +160,15 @@ CSS = """
 }
 @media (prefers-reduced-motion: reduce) { .mp-card { transition:none; } .mp-card:hover { transform:none; } }
 
+/* Rank path for months with no stored set */
+.mp-path { display:flex; flex-wrap:wrap; gap:4px; }
+.mp-step { display:flex; flex-direction:column; align-items:center; min-width:38px; padding:5px 5px; border-radius:10px;
+  background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.07); font-size:0.66rem; color:#8a93a6; text-transform:uppercase; letter-spacing:0.5px; }
+.mp-step b { font-size:0.88rem; color:#fff; letter-spacing:0; text-transform:none; }
+.mp-step.up { border-color:rgba(95,211,141,0.35); } .mp-step.up b { color:#5fd38d; }
+.mp-step.down { border-color:rgba(255,123,123,0.3); } .mp-step.down b { color:#ff9b9b; }
+.mp-step.off b { color:#5a6375; }
+
 /* Section headings below the magazine */
 .mp-sec { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin:30px 2px 12px; }
 .mp-sec-kicker { font-size:0.66rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#00d4ff; }
@@ -359,6 +368,29 @@ def _moves(card):
     return "".join(f'<span class="mp-move">{escape(m)}</span>' for m in card.get("moves", []))
 
 
+def _rank_path(card):
+    """Rank month by month, for months without a stored set: '#5 Oct · #4 Nov · ... · #3 Mar'."""
+    steps = []
+    prev = None
+    for m, rank in card.get("rank_series") or []:
+        if rank is None:
+            steps.append(f'<span class="mp-step off"><b>out</b>{MONTHS[int(m[5:7]) - 1]}</span>')
+        else:
+            cls = "" if prev is None or rank == prev else (" up" if rank < prev else " down")
+            steps.append(f'<span class="mp-step{cls}"><b>#{rank}</b>{MONTHS[int(m[5:7]) - 1]}</span>')
+        prev = rank if rank is not None else prev
+    return ('<div class="mp-f-kicker" style="margin-bottom:8px">Rank, month by month</div>'
+            f'<div class="mp-path">{"".join(steps)}</div>')
+
+
+def _f_left(card, mates_html):
+    """The featured story's left column: its standard set, or its rank path when no set is on record for the month."""
+    if card.get("item") or card.get("moves"):
+        return (f'<div class="mp-f-set"><div class="mp-set">{_set_bits(card)}</div><div class="mp-moves">{_moves(card)}</div>'
+                f'{mates_html}</div>')
+    return f'<div class="mp-f-set">{_rank_path(card)}</div>'
+
+
 def _feature(card, type_map, label_fmt=""):
     color = _color(card.get("types"), type_map)
     icon, label = card["badge"]
@@ -370,6 +402,8 @@ def _feature(card, type_map, label_fmt=""):
         pills.append(f'<span class="mp-pill"><b>{arrow} {abs(card["delta"]):.1f}</b>points this month</span>')
     if card.get("speed"):
         pills.append(f'<span class="mp-pill"><b>{card["speed"]}</b>Speed</span>')
+    if card.get("lead"):
+        pills.append(f'<span class="mp-pill"><b>#{card["lead"][0]}</b>lead, {card["lead"][1]:.1f}% of games</span>')
     # The all time peak, when it was a better rank than now
     if card.get("peak") and card["peak"][0] < card["rank"]:
         best, when = card["peak"]
@@ -389,7 +423,7 @@ def _feature(card, type_map, label_fmt=""):
     </div>
   </div>
   <div class="mp-f-body">
-    <div class="mp-f-set"><div class="mp-set">{_set_bits(card)}</div><div class="mp-moves">{_moves(card)}</div>{mates_html}</div>
+    {_f_left(card, mates_html)}
     {_chart(card.get('long_series') or card['series'], color)}
   </div>
 </div>"""
@@ -453,8 +487,13 @@ def _card(card, type_map, label_fmt=""):
 
 @st.cache_data(show_spinner=False)
 def _section(format_id, month):
-    """(cards, leaderboard) for a format and month, cached since both read the chaos file."""
-    return meta_pulse.pulse(format_id, n=7, month=month), meta_pulse.leaderboard(format_id, month=month)
+    """(cards, leaderboard) for a format and month, cached since both read the chaos file. Each card also gets
+    its lead rank and share that month when it is among the 30 most common leads."""
+    cards = meta_pulse.pulse(format_id, n=7, month=month)
+    leads = {r["name"]: r for r in meta_trends.leads(format_id, month, n=meta_trends.LEADS_TOP)}
+    for c in cards:
+        c["lead"] = (leads[c["name"]]["rank"], leads[c["name"]]["share"]) if c["name"] in leads else None
+    return cards, meta_pulse.leaderboard(format_id, month=month)
 
 
 @st.cache_data(show_spinner=False)
