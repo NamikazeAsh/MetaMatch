@@ -142,6 +142,9 @@ data/json/*
 !data/json/dex_sv.json
 !data/json/dex_champions.json
 !data/json/usage_history.json
+!data/json/leads_history.json
+!data/json/sets_history.json
+!data/json/wide_usage_history.json
 data/stats/
 data/user/
 

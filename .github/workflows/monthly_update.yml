@@ -35,6 +35,6 @@ jobs:
         git config user.email "bot@metamatch.ai"
         # data/stats/ is gitignored, so force add; topPoke and speed tiers are already tracked
         git add -f data/stats/
-        git add data/json/topPoke.json data/json/meta_speeds.json data/json/meta_speeds_champions.json data/json/usage_history.json
+        git add data/json/topPoke.json data/json/meta_speeds.json data/json/meta_speeds_champions.json data/json/usage_history.json data/json/leads_history.json data/json/sets_history.json data/json/wide_usage_history.json
         git commit -m "Update Smogon stats [skip ci]" || exit 0
         git push

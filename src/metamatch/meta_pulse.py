@@ -17,6 +17,7 @@ HISTORY_PATH = config.JSON_DIR / "usage_history.json"
 MANIFEST_PATH = config.STATS_DIR / "manifest.json"
 KEEP_TOP = 100
 SPARK_MONTHS = 6
+FEATURE_MONTHS = 12   # the featured story's chart
 RISER_FLOOR = 3.0      # usage % a riser must have now (a faller had last month), so tiny tiers can't headline
 NEWCOMER_TOP = 30
 FASTEST_POOL = 20
@@ -43,10 +44,27 @@ def load_history(path=HISTORY_PATH):
         return {}
 
 
+def write_json(path, data, **dump_args):
+    """Writes through a temp file and swaps it in, retrying briefly: on Windows a reader (the app, a virus
+    scan) can hold the file for a moment, and a half written history would lose months."""
+    import os
+    import time
+    tmp = str(path) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, **dump_args)
+    for attempt in range(10):
+        try:
+            os.replace(tmp, path)
+            return
+        except OSError:
+            if attempt == 9:
+                raise
+            time.sleep(0.3)
+
+
 def save_history(history, path=HISTORY_PATH):
     ordered = {fid: dict(sorted(months.items())) for fid, months in sorted(history.items())}
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(ordered, f, indent=1)
+    write_json(path, ordered, indent=1)
 
 
 def record_month(history, format_id, month, rows):
@@ -121,8 +139,29 @@ def _table(history, format_id, month):
     return {n: (i + 1, u) for i, (n, u) in enumerate(rows)}
 
 
-def _set_summary(name, format_id):
-    """Standard set, teammates and common speed from the current chaos file, or {} without data."""
+def _past_set(name, format_id, month):
+    """A past month's standard set from the stored moveset history (no Speed: spreads aren't kept)."""
+    from metamatch.meta_trends import sets_history
+    entry = (sets_history().get(format_id, {}).get(month) or {}).get(name)
+    dex = dex_for_format(format_id)
+    species = dex.species(name) if dex else None
+    if not entry:
+        return {"types": species["types"] if species else []}
+    top = lambda key: entry[key][0][0] if entry.get(key) else None
+    return {
+        "item": top("items"), "ability": top("abilities"),
+        "tera": top("tera") if config.format_game(format_id) != "champions" else None,
+        "moves": [m for m, _ in entry.get("moves", [])[:4]],
+        "teammates": [m for m, _ in entry.get("teammates", [])[:3]],
+        "speed": None, "types": species["types"] if species else [],
+    }
+
+
+def _set_summary(name, format_id, month=None):
+    """Standard set, teammates and common speed from the current chaos file, or {} without data.
+    For an earlier month the set comes from that month's stored moveset history instead."""
+    if month and month != current_month():
+        return _past_set(name, format_id, month)
     from metamatch.engine.sets import chaos_entry, likely_set
     s = likely_set(name, format_id)
     if not s:
@@ -142,12 +181,12 @@ def _set_summary(name, format_id):
     }
 
 
-def _partner(name, format_id, now):
+def _partner(name, format_id, now, month=None):
     """What a partner hover card shows: types, this month's rank and usage, and its most common item."""
     from metamatch.engine.sets import likely_set
     dex = dex_for_format(format_id)
     species = dex.species(name) if dex else None
-    s = likely_set(name, format_id) or {}
+    s = (_past_set(name, format_id, month) if month and month != current_month() else likely_set(name, format_id)) or {}
     rank, usage = now.get(name, (None, None))
     return {"name": name, "types": species["types"] if species else [], "rank": rank, "usage": usage,
             "item": s.get("item"), "ability": s.get("ability")}
@@ -235,7 +274,7 @@ def pulse(format_id, n=8, history=None, month=None, with_sets=True):
     if with_sets:
         pool = ranked[:FASTEST_POOL]
         for nm in pool:
-            sets[nm] = _set_summary(nm, format_id)
+            sets[nm] = _set_summary(nm, format_id, now_month)
         shown = {p[0] for p in picks}
         speeds = sorted(((sets[nm].get("speed") or 0, nm) for nm in pool if nm not in shown), reverse=True)
         if speeds and speeds[0][0]:
@@ -251,10 +290,13 @@ def pulse(format_id, n=8, history=None, month=None, with_sets=True):
     for name, kind in picks[:n]:
         rank, usage = now[name]
         prev_rank, prev_usage = prev.get(name, (None, None))
-        series = []
-        for m in months[-SPARK_MONTHS:]:
+        long_series = [(m, (_table(history, format_id, m).get(name) or (None, None))[1]) for m in months[-FEATURE_MONTHS:]]
+        series = long_series[-SPARK_MONTHS:]
+        best = None
+        for m in months:
             row = _table(history, format_id, m).get(name)
-            series.append((m, row[1] if row else None))
+            if row and (best is None or row[0] < best[0]):
+                best = (row[0], m)
         streak = 0
         for m in reversed(months):
             t = _table(history, format_id, m)
@@ -266,11 +308,11 @@ def pulse(format_id, n=8, history=None, month=None, with_sets=True):
             "name": name, "kind": kind, "badge": BADGES[kind], "rank": rank, "usage": usage,
             "prev_rank": prev_rank, "prev_usage": prev_usage,
             "delta": round(usage - prev_usage, 2) if prev_usage is not None else None,
-            "series": series, "streak": streak,
+            "series": series, "long_series": long_series, "streak": streak, "peak": best,
         }
         if with_sets:
-            card.update(sets.get(name) or _set_summary(name, format_id))
-            card["partners"] = [_partner(m, format_id, now) for m in card.get("teammates") or []]
+            card.update(sets.get(name) or _set_summary(name, format_id, now_month))
+            card["partners"] = [_partner(m, format_id, now, now_month) for m in card.get("teammates") or []]
         card["headline"] = _headline(card, label)
         cards.append(card)
     return cards

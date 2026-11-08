@@ -110,9 +110,13 @@ def main():
     logging.info(f"Stats updated to {args.month}.")
 
     # Month over month history for the Meta Pulse on the start screen
-    from metamatch import meta_pulse
+    from metamatch import meta_pulse, meta_trends
     history = meta_pulse.record_local_stats(meta_pulse.load_history(), args.month)
     meta_pulse.save_history(history)
+    # Leads, sets and 1500+ usage for MetaFlash's trend sections (parsed straight into small histories)
+    done, histories = meta_trends.fetch_month(args.month)
+    meta_trends.save_all(histories)
+    logging.info(f"MetaFlash trends for {args.month}: {done}")
 
     if args.rebuild_index:
         from metamatch.rag import build_index

@@ -31,7 +31,7 @@ Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is com
 * 🔌 **Works offline:** every analysis tab runs on the engine alone. The LLM is an upgrade, not a dependency.
 * 🔒 **Private:** your teams never leave your machine. No API keys, no cloud, no paid models.
 * 🛡️ **Regression tested:** every push replays the benchmark through CI against a pinned stats snapshot.
-* 📡 **Always current:** MetaFlash turns six months of Smogon ladder data into a live meta front page, refreshed every month by CI.
+* 📡 **Always current:** MetaFlash turns every month of Smogon ladder data since Gen 9 began into a live meta front page, refreshed every month by CI.
 * 🔗 **Every team has a link:** dashboards live at their own URL, so refresh, bookmarks, Back and a second tab all just work.
 
 ![MetaMatch Dashboard](showcase/images/dashboard.webp)
@@ -162,12 +162,18 @@ The home screen opens on a magazine style front page of what the ladder is doing
 
 ![MetaFlash](showcase/images/metaflash.webp)
 
-* **Story of the month:** the biggest move in the top 10, with its usage, rank change, standard set, common partners and a six month chart.
+* **Story of the month:** the biggest move in the top 10, with its usage, rank change, standard set, common partners, a 12 month chart and its all time peak.
 * **Top 10 leaderboard:** usage bars in each Pokémon's type colour and rank changes versus last month.
 * **Story cards:** the #1, the biggest risers and fallers, newcomers breaking into the top 30, and the fastest common threat, each with its standard set and a trend line.
+* **Every month on record:** a month picker goes back to November 2022 (Champions formats since launch), so you can open any past meta.
+* **Leads to expect:** the Pokémon that open games most often, with rank changes, for planning team preview.
+* **Top players' picks:** what the top of the ladder runs more than players at 1500+.
+* **How sets changed:** the biggest shift in item, Tera, moves or ability among the top 25 each month, like Tera Ghost Cinderace jumping from 9% to 34%.
+* **Rising cores:** pairs more teams are building together than last month.
+* **Your teams this month:** each saved team against this month's 12 most used Pokémon, flagging threats that just entered the top 12 and climbing ones it barely answers.
 * **Written by code, not an LLM:** every card and headline (*"Raging Bolt climbs 8 ranks to #5"*) is picked by fixed rules from the data, with usage floors so tiny tiers can't fake a headline.
 * **Honest charts:** every axis starts at zero, so a dip looks as big as it really was.
-* **Self updating:** the monthly stats workflow appends each new month to a compact usage history, so the page is always current with no manual step.
+* **Self updating:** the monthly stats workflow appends each new month's usage, leads, sets and 1500+ usage to compact histories, so the page is always current with no manual step.
 
 ### 🧭 Pages, Links & Memory
 
@@ -272,7 +278,7 @@ Paste a Showdown replay link (shared `?p2` links and private links work) and get
 
 ### Self Updating Data
 
-A GitHub Action pulls new Smogon usage stats every month, rebuilds top Pokémon and speed tiers, appends the month to the MetaFlash usage history, and commits them. Downloads are all or nothing, so months never mix. The benchmark gate answers from a pinned stats snapshot, so a new month of data can never break CI or silently shift the answer keys.
+A GitHub Action pulls new Smogon usage stats every month, rebuilds top Pokémon and speed tiers, appends the month to MetaFlash's histories (usage, leads, sets and 1500+ usage), and commits them. Downloads are all or nothing, so months never mix. The benchmark gate answers from a pinned stats snapshot, so a new month of data can never break CI or silently shift the answer keys.
 
 ---
 
@@ -359,7 +365,7 @@ cd src/metamatch/engine && npm install && cd ../../..
 python scripts/update_meta.py              # usage stats, top Pokémon, speed tiers
 python scripts/build_strategy_cache.py     # Smogon sets for move search
 python src/metamatch/rag/build_index.py    # vector index for the coach
-python scripts/backfill_usage_history.py   # optional: rebuild MetaFlash's six month history (it ships in the repo)
+python scripts/backfill_usage_history.py   # optional: rebuild MetaFlash's history since Nov 2022 (it ships in the repo)
 
 streamlit run src/metamatch/app.py        # run from the repo root so the dark theme loads
 ```
@@ -371,7 +377,7 @@ Ollama and Node are both optional. Without Ollama, every analysis tab still work
 ## 🧪 Tests & Benchmark
 
 ```bash
-pytest                                     # 203 tests: parsing, mechanics, planner, constraints, verifiers, retrieval, team building tools, replays, MetaFlash, storage, frozen set integrity
+pytest                                     # parsing, mechanics, planner, constraints, verifiers, retrieval, team building tools, replays, MetaFlash, storage, frozen set integrity
 
 python bench/extraction/score.py           # question understanding: slot F1 on the dev half (--split test for the held out half)
 python bench/rag/score.py                  # retrieval: recall@k, MRR and strict hits through the production path
@@ -402,8 +408,9 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 | `src/metamatch/recommender.py`, `auditor.py` | Teammate synergy and usage checks from chaos data                                                            |
 | `src/metamatch/replay/`                        | Showdown protocol parser, team health, mistake and note rules                                                |
 | `src/metamatch/meta_pulse.py`                  | MetaFlash: usage history, story selection rules, leaderboard, template headlines                             |
+| `src/metamatch/meta_trends.py`                 | MetaFlash trends: leads, set changes, top players' picks, rising cores, saved team report                    |
 | `src/metamatch/storage.py`                     | SQLite store for teams, per team chats and preferences, with a one time import of the old JSON saves         |
-| `scripts/update_meta.py`                       | Monthly stats pipeline (also run by GitHub Actions), including the MetaFlash usage history                   |
+| `scripts/update_meta.py`                       | Monthly stats pipeline (also run by GitHub Actions), including the MetaFlash histories                   |
 | `bench/`                                       | MetaBench question generators, runner, grader, report, and pinned stats snapshots in `bench/fixtures/`       |
 | `bench/extraction/`, `bench/rag/`              | Question understanding benchmark (260 labelled questions) and retrieval benchmark                           |
 
