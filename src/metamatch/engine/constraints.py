@@ -49,8 +49,10 @@ SCREENS = {"reflect": "isReflect", "light screen": "isLightScreen", "aurora veil
 
 GLUE_RE = re.compile(r"^[\s/+,()]*(?:(?:my|your|the|a|an|their|opposing|enemy)\s+)?[\s/+,()]*$", re.I)
 NO_RE = r"(?:no|without|not holding|minus)\s+(?:an?\s+|any\s+|its\s+|the\s+)?"
-# "Ignore items", "no items or abilities": bare stats for both sides
-RAW_RE = re.compile(r"\b(?:ignor\w*|without|disregard\w*)\s+(?:all\s+|any\s+|held\s+)?(?:items?|abilities)\b|"
+NO_BOOSTS_RE = re.compile(r"\b(?:no|without|ignor\w*)\s+(?:any\s+|stat\s+)?boosts?\b", re.I)
+# "Ignore items", "not counting items", "no items or abilities": bare stats for both sides
+RAW_RE = re.compile(r"\b(?:ignor\w*|without|disregard\w*|not\s+counting|not\s+including|excluding|leaving\s+out)\s+"
+                    r"(?:all\s+|any\s+|held\s+|the\s+)?(?:items?|abilities)\b|"
                     r"\bno\s+(?:held\s+)?items\b", re.I)
 
 
@@ -61,6 +63,7 @@ class Constraints:
     conditions: dict = field(default_factory=dict)  # calc Field: weather, terrain
     screens: dict = field(default_factory=dict)    # "user" | "opponent" | "defender" -> set of calc Side flags
     raw_stats: bool = False                        # compare bare stats: no items or abilities
+    no_boosts: bool = False                        # "assume no boosts": no stat stages, Protosynthesis or Quark Drive
     strongest: bool = False                        # "uses its strongest (listed) move"
     consumed: list = field(default_factory=list)   # (start, end) spans the constraints came from
 
@@ -265,6 +268,7 @@ def extract(query, spans, dex, user_item=None, subject="user", survive=False):
     subject: side of the question's subject; survive: a survive question (see _owner)."""
     out = Constraints()
     out.raw_stats = bool(RAW_RE.search(query))
+    out.no_boosts = bool(NO_BOOSTS_RE.search(query))
     out.strongest = bool(re.search(r"\b(strongest|best|most damaging|hardest hitting)\s+(?:listed\s+)?(?:attack|move)", query, re.I))
     _field(query, out)
     # Nothing inside a field phrase or a Pokemon name is a set detail
@@ -310,7 +314,9 @@ def extract(query, spans, dex, user_item=None, subject="user", survive=False):
     return out
 
 
-# Conditions players state that the engine does not model yet: reported, never silently dropped
+# Battle conditions players state. Each one found is credited to a side and counted by the questions it
+# changes (Tailwind in a speed question, a crit in a KO question); the rest are reported in the answer as
+# not counted, never silently dropped
 UNHANDLED_RE = re.compile(
     r"\b(tailwind|trick room|sticky web|stealth rock|spikes|burn(?:ed|t)?|paraly[sz]ed|poisoned|frostbit\w*|"
     r"critical hits?|crits?|helping hand|friend guard|protosynthesis active|quark drive active|"
@@ -319,10 +325,76 @@ UNHANDLED_RE = re.compile(
 NEGATED_RE = re.compile(r"\b(?:no|not|without|ignor\w*|assume no|assuming no)\b[^.?;]*$", re.I)
 
 
-def unhandled(query, consumed, spans):
-    """Phrases stating a condition the solvers can't apply ("under Tailwind", "burned", "at 50% HP").
+@dataclass
+class Condition:
+    text: str                 # as the question says it: "Tailwind", "burned", "50% HP"
+    kind: str | None          # tailwind, trick_room, status, hp, stealth_rock, spikes, crit, qp; None if not modelled
+    value: object = None      # status code ("brn"), HP percent, Spikes layers
+    side: str | None = None   # "user", "opponent", "both", or None when the question doesn't say
+    span: tuple = (0, 0)
+
+
+# Which question types each condition changes. Status is keyed by code: burn and poison change damage
+# and KO counts, paralysis changes Speed.
+COUNTS_FOR = {"tailwind": {"speed"}, "trick_room": {"speed"}, "brn": {"ko", "damage"}, "psn": {"ko", "damage"},
+              "par": {"speed"}, "hp": {"ko", "damage"}, "stealth_rock": {"ko", "damage"}, "spikes": {"ko", "damage"},
+              "crit": {"ko", "damage"}, "qp": {"speed", "ko", "damage"}}
+LAYER_WORDS = {"1": 1, "2": 2, "3": 3, "one": 1, "two": 2, "three": 3, "single": 1, "double": 2, "triple": 3}
+MY_RE = re.compile(r"\b(?:my|our)\s+(?:own\s+)?$", re.I)
+THEIR_RE = re.compile(r"\b(?:their|opposing|enemy|the opponent'?s?|the foe'?s?)\s+$", re.I)
+SIDE_TAIL_RE = re.compile(r"^\s+(?:up\s+)?(?:on|for)\s+(my|our|their|the opposing|the enemy|the opponent'?s?)\s+side\b", re.I)
+# "Dragapult has Tailwind", "Dragapult's Tailwind": the side of the mention right before
+SETTER_RE = re.compile(r"^(?:'s|\s+(?:has|have|had|gets|got|sets?|set up|uses?|used)(?:\s+up)?)\s+(?:a\s+|the\s+)?$", re.I)
+
+
+def _kind(text):
+    t = text.lower()
+    for word, kind in (("tailwind", "tailwind"), ("trick room", "trick_room"), ("stealth rock", "stealth_rock"),
+                       ("spikes", "spikes"), ("crit", "crit"), ("active", "qp")):
+        if word in t:
+            return kind, None
+    if t.startswith("burn"):
+        return "status", "brn"
+    if t.startswith("paraly"):
+        return "status", "par"
+    if t == "poisoned":
+        return "status", "psn"
+    m = re.search(r"(\d{1,2})\s*%", t)
+    if m:
+        return "hp", int(m.group(1))
+    return None, None   # Sticky Web, frostbite, Helping Hand, Friend Guard
+
+
+def _condition_side(query, a, b, kind, marks):
+    """Side a condition belongs to, or None when the question leaves it to the solver's default."""
+    lead = query[max(_sentence_start(query, a), a - 30):a]
+    tail = SIDE_TAIL_RE.match(query[b:b + 40])
+    if tail:
+        return "user" if tail.group(1).lower() in ("my", "our") else "opponent"
+    if MY_RE.search(lead):
+        return "user"
+    if THEIR_RE.search(lead):
+        return "opponent"
+    if kind in ("crit", "trick_room"):
+        return None
+    if kind == "tailwind" and re.search(r"\bboth\b[^.?;,]*$", lead, re.I):
+        return "both"
+    sentence = _sentence_start(query, a)
+    prev = next((s for s in reversed(marks) if sentence <= s[0] and s[1] <= a), None)
+    if kind in ("tailwind", "stealth_rock", "spikes"):
+        return prev[3] if prev and SETTER_RE.match(query[prev[1]:a]) else None
+    nxt = next((s for s in marks if s[0] >= b), None)
+    glued = nxt and GLUE_RE.match(query[b:nxt[0]])
+    if kind == "hp":
+        return prev[3] if prev else (nxt[3] if glued else None)
+    return nxt[3] if glued else (prev[3] if prev else None)
+
+
+def conditions(query, consumed, spans):
+    """Every battle condition the question states ("under Tailwind", "burned", "at 50% HP"), with its side.
     A negated mention ("no crits") is an assumption the engine already makes, so it is skipped."""
-    out = []
+    marks = sorted(spans + [(m.start(), m.end(), "", side) for rx, side in SIDE_WORDS for m in re.finditer(rx, query, re.I)])
+    out, seen = [], set()
     for m in UNHANDLED_RE.finditer(query):
         a, b = m.span()
         if any(x <= a and b <= y for x, y in consumed) or any(a < s[1] and s[0] < b for s in spans):
@@ -330,8 +402,51 @@ def unhandled(query, consumed, spans):
         lead = query[max(_sentence_start(query, a), a - 40):a]
         if NEGATED_RE.search(lead):
             continue
-        out.append(re.sub(r"^(?:at|from)\s+", "", m.group(0).strip(), flags=re.I))
-    return list(dict.fromkeys(out))
+        text = re.sub(r"^(?:at|from)\s+", "", m.group(0).strip(), flags=re.I)
+        if text.lower() in seen:
+            continue
+        seen.add(text.lower())
+        kind, value = _kind(text)
+        if kind == "spikes" and lead.lower().rstrip().endswith("toxic"):
+            kind = None   # Toxic Spikes poison on entry; not modelled
+        if kind == "spikes":
+            layers = re.search(r"\b(\d|one|two|three|single|double|triple)\s+(?:layers?\s+(?:of\s+)?)?$", lead, re.I)
+            value = LAYER_WORDS[layers.group(1).lower()] if layers else 1
+        out.append(Condition(text, kind, value, _condition_side(query, a, b, kind, marks) if kind else None, (a, b)))
+    return out
+
+
+def counts_for(cond, intent):
+    """True when the condition changes the answer to this kind of question."""
+    key = cond.value if cond.kind == "status" else cond.kind
+    return bool(cond.kind) and intent in COUNTS_FOR.get(key, ())
+
+
+def unhandled(query, consumed, spans):
+    """Stated conditions as plain phrases, for callers that only report them."""
+    return [c.text for c in conditions(query, consumed, spans)]
+
+
+def describe(cond, names):
+    """'Tailwind on your side', 'a burned Great Tusk', 'Kingambit at 50% HP'. names: side -> Pokemon shown."""
+    who = names.get(cond.side, "")
+    if cond.kind == "tailwind":
+        return {"user": "Tailwind on your side", "opponent": "Tailwind on their side"}.get(cond.side, "Tailwind on both sides")
+    if cond.kind == "trick_room":
+        return "Trick Room"
+    if cond.kind == "crit":
+        return "a critical hit"
+    if cond.kind == "status":
+        return f"a {({'brn': 'burned', 'par': 'paralyzed', 'psn': 'poisoned'})[cond.value]} {who}"
+    if cond.kind == "hp":
+        return f"{who} at {cond.value}% HP"
+    if cond.kind == "stealth_rock":
+        return f"Stealth Rock on {who}'s side"
+    if cond.kind == "spikes":
+        return f"{cond.value} {'layer' if cond.value == 1 else 'layers'} of Spikes on {who}'s side"
+    if cond.kind == "qp":
+        return f"{cond.text.lower().replace(' active', '').title()} active on {who}"
+    return cond.text
 
 
 def apply(spec, details, dex, game):

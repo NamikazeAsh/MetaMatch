@@ -80,7 +80,8 @@ Players don't ask textbook questions. They say *"can my tusk tank a specs bundle
 | Details made up that you never said | none | **none** |
 
 * **Tested fairly:** tuned on one half of a 260 question set and scored once on the half it had never seen.
-* **Honest about limits:** if you mention something it can't model yet, like Tailwind or a burn, the answer tells you instead of quietly ignoring it.
+* **Counts the battle you describe:** Tailwind, Trick Room, a burn or paralysis, a critical hit, Stealth Rock or Spikes, and a Pokémon's remaining HP all change the answer, and the answer lists what it counted.
+* **Honest about limits:** anything it can't model yet, like Sticky Web, is named in the answer instead of quietly ignored.
 
 ### It Finds the Right Advice
 
@@ -200,6 +201,7 @@ Three specialist agents, each with its own persona and temperature:
 * The official **`@smogon/calc`** runs as a lightweight Node sidecar the app talks to over JSON.
 * Species, moves, items, abilities and the type chart are exported from the same package, so the app and the calc **never disagree**.
 * Speed answers consider the opponent's whole ladder speed distribution, not just one spread.
+* Booster Energy, Protosynthesis and Quark Drive boosts apply whenever they would trigger in battle.
 
 ### 🔍 Team Audit (Fully Deterministic)
 
@@ -428,7 +430,7 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 
 * **Strategy is the frontier.** Facts are solved and Oak's matchup claims are verified, but open ended advice is not benchmarked yet, and the verifier can't catch every strategic mistake a 3B model makes. A rubric graded strategy benchmark is next.
 * **Fresh set results.** The first run of the [201 question frozen set](#frozen-fresh-test-set) showed MetaMatch skipping details people stated, like a given spread or Tera, which is what the new detail reader fixes. A second blind set comes next to measure it.
-* **Assumed sets.** Anything you don't state comes from the most common ladder set. Tailwind, status and partial HP aren't modelled yet, and the answer says so.
+* **Assumed sets.** Anything you don't state comes from the most common ladder set. Sticky Web, doubles effects like Helping Hand, and plans over several turns aren't modelled yet, and the answer says so.
 * **Champions data.** Smogon has no Champions analyses yet, so its retrieval uses usage cards and community guides, and verified sets are SV only.
 
 **The bet:** you should not need a frontier model to calculate a Speed stat. Code is perfect for rules, language models are good at explaining them, and keeping everything local means your teams stay private. MetaMatch is a proof that a small model that knows how to use tools can beat a raw model at the same size by a wide margin.

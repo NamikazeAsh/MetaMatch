@@ -105,9 +105,18 @@ class TestExtraction(unittest.TestCase):
         p = self.plan("what's the speed stat of a max speed timid dragapult")
         self.assertEqual((p.intent, p.stat_target, p.opp_overrides.get("max")), ("stat", "opponent", ["spe"]))
 
-    def test_unmodelled_conditions_are_reported(self):
+    def test_conditions_count_only_where_they_matter(self):
+        # Tailwind changes a speed answer, a burn doesn't, so the burn is reported as not counted
         p = self.plan("Under Tailwind, does my burned Great Tusk outspeed Dragapult?")
-        self.assertEqual(p.unhandled, ["Tailwind", "burned"])
+        self.assertEqual((p.counted, p.unhandled), (["Tailwind"], ["burned"]))
+        self.assertEqual(self.plan("is my rillaboom faster than dragapult with sticky web up").unhandled, ["sticky web"])
+
+    def test_conditions_go_to_the_right_side(self):
+        sides = lambda q: [(c.kind, c.side) for c in self.plan(q).situation]
+        self.assertEqual(sides("if Dragapult has tailwind does it outspeed my Rillaboom"), [("tailwind", "opponent")])
+        self.assertEqual(sides("Does my Great Tusk outspeed a paralyzed Dragapult?"), [("status", "opponent")])
+        self.assertEqual(sides("Does my Great Tusk OHKO Kingambit at 50% HP?"), [("hp", "opponent")])
+        self.assertEqual(sides("Can my Corviknight Brave Bird OHKO Rillaboom with a crit?"), [("crit", None)])
         # Negated assumptions are what the engine already does
         self.assertEqual(self.plan("Assume no crits and no hazards: does Great Tusk OHKO Kingambit?").unhandled, [])
 
@@ -151,6 +160,39 @@ class TestStatedAnswers(unittest.TestCase):
     def test_stat_off_the_team(self):
         v = self.solve("what's the speed stat of a max speed timid dragapult")
         self.assertEqual(v.answer, "421")
+
+
+@unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+class TestCountedConditions(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.team, _ = readTeam(TEAM, "gen9ou")
+
+    def solve(self, q):
+        return solve(plan_query(q, self.team))
+
+    def test_tailwind_and_trick_room_change_who_moves_first(self):
+        v = self.solve("Under Tailwind, does my Corviknight outspeed Dragapult?")
+        self.assertIn("340 Speed", v.statement)            # 170 doubled; still below Dragapult's 421
+        self.assertNotIn("Leftovers", v.statement)
+        self.assertEqual(v.answer, "no")
+        v = self.solve("Under Trick Room does my Corviknight outspeed Kingambit?")
+        self.assertEqual(v.answer, "no")                  # 170 Speed is the faster one, so it moves second
+        self.assertIn("Trick Room", v.statement)
+
+    def test_hp_crits_and_hazards_reach_the_calc(self):
+        plain = self.solve("How much does my Corviknight's Brave Bird do to Rillaboom?")
+        crit = self.solve("How much does my Corviknight's Brave Bird do to Rillaboom on a crit?")
+        self.assertGreater(float(crit.answer.split("-")[0]), float(plain.answer.split("-")[0]) * 1.4)
+        v = self.solve("Does my Great Tusk's Headlong Rush OHKO Kingambit at 50% HP? Assume no boosts.")
+        self.assertEqual(v.answer, "yes")                 # 83-98% of max HP is more than the 50% it has left
+        # Stealth Rock breaks Focus Sash, so the Sash no longer saves Glimmora
+        self.assertEqual(self.solve("Can a Focus Sash Glimmora survive my Great Tusk's Headlong Rush after Stealth Rock?").answer, "no")
+
+    def test_booster_energy_is_active_unless_told_otherwise(self):
+        on = self.solve("Does my Great Tusk's Headlong Rush OHKO Kingambit?")
+        off = self.solve("Does my Great Tusk's Headlong Rush OHKO Kingambit? Assume no boosts.")
+        self.assertEqual((on.answer, off.answer), ("yes", "no"))
 
 
 if __name__ == "__main__":

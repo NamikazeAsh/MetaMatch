@@ -28,8 +28,9 @@ def final_speed(spec, game, move, field=None, side="attacker"):
 
 
 def opponent_speed_spec(spec, stated_item):
-    """The opponent spec for Speed: its likely Speed item is dropped unless the question named one."""
-    if stated_item or spec.get("item") not in OPP_SPEED_ITEMS:
+    """The opponent spec for Speed: its likely Speed item is dropped unless the question named one.
+    Booster Energy counts as one, since it raises Speed whenever Speed is the holder's best stat."""
+    if stated_item or spec.get("item") not in OPP_SPEED_ITEMS | {"Booster Energy"}:
         return spec
     return {k: v for k, v in spec.items() if k != "item"}
 
@@ -48,14 +49,17 @@ def _hits_in_move(result):
     return int(m.group(1)) if m else 1
 
 
-def survival_effect(result, attacker, defender, move):
-    """'Sturdy', 'Focus Sash', 'Disguise' or None: what stops a full HP defender being OHKOed."""
+def survival_effect(result, attacker, defender, move, full_hp=True):
+    """'Sturdy', 'Focus Sash', 'Disguise' or None: what stops a full HP defender being OHKOed.
+    Sturdy and Focus Sash need full HP; Disguise breaks only on a hit, so chip doesn't remove it."""
     if _hits_in_move(result) > 1:
         return None
     breaks = attacker.get("ability") in ABILITY_BREAKERS or move in ABILITY_IGNORING_MOVES
     ability, item = defender.get("ability"), defender.get("item")
     if ability == "Disguise" and not breaks:
         return "Disguise"
+    if not full_hp:
+        return None
     if ability == "Sturdy" and not breaks:
         return "Sturdy"
     if item == "Focus Sash":
@@ -83,10 +87,11 @@ def _text_hits(ko_text):
     return (1 if m.group(2) == "O" else int(m.group(2))), m.group(1) == "guaranteed"
 
 
-def ko_answer(result, n, attacker, defender, move):
-    """('yes' | 'no' | 'sometimes', effect) for 'does this move nHKO', from damage rolls."""
-    effect = survival_effect(result, attacker, defender, move)
-    hp = result["defender_stats"]["hp"]
+def ko_answer(result, n, attacker, defender, move, full_hp=True):
+    """('yes' | 'no' | 'sometimes', effect) for 'does this move nHKO', from damage rolls.
+    full_hp=False when the defender is chipped first (stated HP, hazards), so Sturdy and Sash can't save it."""
+    effect = survival_effect(result, attacker, defender, move, full_hp)
+    hp = result.get("defender_cur_hp") or result["defender_stats"]["hp"]
     if effect != "Disguise" and result["range"][1] < hp:
         effect = None    # the hit never threatens a full HP KO, so Sturdy or Sash changes nothing
     if hp <= 0 or result["range"][1] <= 0:

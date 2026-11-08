@@ -3,10 +3,10 @@
 // Pokemon:  {"name", "level", "nature", "evs", "ivs", "item", "ability", "teraType", "boosts", "status", "curHP"}
 //           In Champions "evs" holds stat points (0 to 32 per stat), which is what the calc expects for gen 0.
 // Response: {"id", "ok": true, "range": [min, max], "percent": [min, max], "ko": "guaranteed 2HKO", "desc": "...",
-//            "attacker_stats": {...}, "defender_stats": {...}} or {"id", "ok": false, "error": "..."}
+//            "attacker_stats": {...}, "defender_stats": {...}, "defender_cur_hp"} or {"id", "ok": false, "error": "..."}
 const readline = require('readline');
 const calc = require('@smogon/calc');
-const {getFinalSpeed} = require('@smogon/calc/dist/mechanics/util');
+const {getFinalSpeed, getQPBoostedStat} = require('@smogon/calc/dist/mechanics/util');
 
 const GENS = {sv: calc.Generations.get(9), champions: calc.Generations.get(0)};
 
@@ -28,11 +28,20 @@ function resolveSpecies(gen, name) {
   return formeCache.get(key);
 }
 
+// Spec extras on top of the calc's own options:
+//   hpPercent: current HP as a percent of max ("at 50% HP")
+//   qpActive:  Protosynthesis or Quark Drive active without sun, terrain or Booster Energy
+// Without a boostedStat the calc never activates Protosynthesis or Quark Drive, even with Booster Energy,
+// so 'auto' is the default: the boost then applies exactly when the item, weather or terrain triggers it.
 function makePokemon(gen, spec) {
-  const {name, ...options} = spec;
+  const {name, hpPercent, qpActive, ...options} = spec;
   const resolved = resolveSpecies(gen, name);
   if (!resolved) throw new Error(`Unknown Pokemon: ${name}`);
-  return new calc.Pokemon(gen, resolved, options);
+  if (options.boostedStat === undefined) options.boostedStat = 'auto';
+  const p = new calc.Pokemon(gen, resolved, options);
+  if (qpActive && p.hasAbility('Protosynthesis', 'Quark Drive')) p.boostedStat = getQPBoostedStat(p, gen);
+  if (hpPercent != null && hpPercent < 100) p.originalCurHP = Math.max(1, Math.floor(p.maxHP() * hpPercent / 100));
+  return p;
 }
 
 function run(req) {
@@ -58,6 +67,7 @@ function run(req) {
     desc,
     attacker_stats: attacker.stats,
     defender_stats: defender.stats,
+    defender_cur_hp: defender.curHP(),
     attacker_speed: getFinalSpeed(gen, attacker, field, field.attackerSide),
     defender_speed: getFinalSpeed(gen, defender, field, field.defenderSide),
   };

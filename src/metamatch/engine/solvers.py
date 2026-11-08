@@ -4,7 +4,7 @@ Each solver returns a Verdict: the short answer, a templated sentence stating it
 the supporting facts. The LLM only ever explains a Verdict, it never produces one.
 """
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from metamatch import config
 from metamatch.engine import calc, constraints, mechanics
@@ -82,13 +82,73 @@ def _mine(plan, dex, game):
     return user_spec(plan.user, game, plan.user_overrides, dex)
 
 
-def _calc_field(plan, defender_side=None):
-    """calc Field for the stated weather and terrain, plus screens on the defender's side."""
+def _calc_field(plan, defender_side=None, situation=()):
+    """calc Field for the stated weather and terrain, plus screens and hazards on the defender's side."""
     f = dict(plan.conditions)
-    flags = set(plan.screens.get("defender", ())) | set(plan.screens.get(defender_side, ()))
+    flags = {flag: True for flag in set(plan.screens.get("defender", ())) | set(plan.screens.get(defender_side, ()))}
+    for c in situation:
+        if c.side == defender_side and c.kind == "stealth_rock":
+            flags["isSR"] = True
+        elif c.side == defender_side and c.kind == "spikes":
+            flags["spikes"] = c.value
     if defender_side and flags:
-        f["defenderSide"] = {flag: True for flag in flags}
+        f["defenderSide"] = flags
     return f or None
+
+
+QP_ABILITIES = {"Protosynthesis", "Quark Drive"}
+
+
+def _situation(plan, specs):
+    """The counted conditions with every side the question left unsaid filled in for this question:
+    Tailwind and paralysis go to the subject, a burn to the attacker, HP, poison and hazards to the defender.
+    specs: side -> calc spec, so a stated Protosynthesis lands on the side that has it."""
+    attacker = "opponent" if plan.attacker == "opponent" or not plan.user else "user"
+    defender = "user" if attacker == "opponent" else "opponent"
+    defaults = {"tailwind": plan.subject, "hp": defender, "stealth_rock": defender, "spikes": defender,
+                "brn": attacker, "psn": defender, "par": plan.subject,
+                "qp": plan.subject if plan.intent == "speed" else attacker}
+    out = []
+    for c in plan.situation:
+        side = c.side or defaults.get(c.value if c.kind == "status" else c.kind)
+        if c.kind == "qp" and specs.get(side, {}).get("ability") not in QP_ABILITIES:
+            side = next((s for s in ("user", "opponent") if specs.get(s, {}).get("ability") in QP_ABILITIES), side)
+        out.append(replace(c, side=side))
+    return out
+
+
+def _with_state(spec, side, situation, plan):
+    """A spec with this side's stated status, HP and boost switches applied (a copy)."""
+    if not spec:
+        return spec
+    spec = dict(spec)
+    if plan.no_boosts:
+        spec["boostedStat"] = None   # "no boosts": Booster Energy, sun or terrain don't trigger Protosynthesis either
+    for c in situation:
+        if c.side not in (side, "both"):
+            continue
+        if c.kind == "status":
+            spec["status"] = c.value
+        elif c.kind == "hp":
+            spec["hpPercent"] = c.value
+        elif c.kind == "qp":
+            spec["qpActive"] = True
+            spec.pop("boostedStat", None)
+    return spec
+
+
+def _speed_field(plan, side, situation):
+    """calc Field for one side's Speed: the stated weather and terrain, plus that side's Tailwind."""
+    f = dict(_calc_field(plan) or {})
+    if any(c.kind == "tailwind" and c.side in (side, "both") for c in situation):
+        f["attackerSide"] = {"isTailwind": True}
+    return f or None
+
+
+def _counting(situation, names):
+    """' Counted from the question: a critical hit and Kingambit at 50% HP.' or ''."""
+    said = [constraints.describe(c, names) for c in situation]
+    return f" Counted from the question: {_join(said)}." if said else ""
 
 
 def _spread_text(spec, game):
@@ -134,41 +194,61 @@ def solve_speed(plan, dex, game):
         return None
     move = _any_move([m["name"] for m in p.get("Moves", [])], dex)
     mine = _mine(plan, dex, game)
+    situation = _situation(plan, {"user": mine, "opponent": spec})
+    mine = _with_state(mine, "user", situation, plan)
+    spec = _with_state(spec, "opponent", situation, plan)
     stated = plan.opp_overrides.get("item")
+    opp_speed_spec = mechanics.opponent_speed_spec(spec, stated)
     if plan.raw_stats:
         stated = None
         us = (_stats(game, mine, move) or {}).get("spe")
         them = (_stats(game, spec, move) or {}).get("spe")
     else:
-        us = mechanics.final_speed(mine, game, move, _calc_field(plan))
-        them = mechanics.final_speed(mechanics.opponent_speed_spec(spec, stated), game, move, _calc_field(plan))
+        us = mechanics.final_speed(mine, game, move, _speed_field(plan, "user", situation))
+        them = mechanics.final_speed(opp_speed_spec, game, move, _speed_field(plan, "opponent", situation))
     if not us or not them:
         return None
     name = display_name(name)
-    order = "yes" if us > them else "no" if us < them else "tie"
-    verb = {"yes": "outspeeds", "no": "is slower than", "tie": "speed ties with"}[order]
+    # Under Trick Room the slower Pokemon moves first, and "outspeed" means "moves first"
+    trick_room = any(c.kind == "trick_room" for c in situation)
+    first = us < them if trick_room else us > them
+    order = "tie" if us == them else "yes" if first else "no"
+    words = ({"yes": "moves before", "no": "moves after"} if trick_room else {"yes": "outspeeds", "no": "is slower than"})
+    verb = {**words, "tie": "speed ties with"}[order]
     label = _spread_label(plan, s, spec, game)
-    held = f" with {mine['item']}" if mine.get("item") and us != (_stats(game, mine, move) or {}).get("spe") else ""
+    # "with Choice Scarf" only when the item itself moved the number, not Tailwind or paralysis
+    plain_us = us if plan.raw_stats or not situation else mechanics.final_speed(
+        {k: v for k, v in mine.items() if k not in ("status", "qpActive")}, game, move, _calc_field(plan))
+    held = f" with {mine['item']}" if mine.get("item") and plain_us != (_stats(game, mine, move) or {}).get("spe") else ""
     theirs = f" @ {stated}" if stated in mechanics.OPP_SPEED_ITEMS else ""
     statement = f"{_user_name(p)} ({us} Speed{held}) {verb} {name}{theirs} {label}, {them} Speed)."
     # The answer is about the question's subject and comparison: "Does Dragapult outspeed my Tusk?"
-    subject, other, faster = _user_name(p), name, us > them
+    subject, other, faster = _user_name(p), name, first and us != them
     if plan.subject == "opponent":
-        subject, other, faster = name, _user_name(p), them > us
-        verb = {"yes": "is slower than", "no": "outspeeds", "tie": "speed ties with"}[order]
+        subject, other, faster = name, _user_name(p), not first and us != them
+        verb = {"yes": words["no"], "no": words["yes"], "tie": "speed ties with"}[order]
         statement = (f"{name}{theirs} {label}, {them} Speed) {verb} "
                      f"{_user_name(p)} ({us} Speed{held}).")
-    slower = (them > us) if plan.subject == "user" else (us > them)
+    if trick_room:
+        statement = "Under Trick Room the slower Pokémon moves first: " + statement
+    statement += _counting([c for c in situation if c.kind != "trick_room"], {"user": _user_name(p), "opponent": name})
+    slower = (not first) if plan.subject == "user" else first
     answer = "tie" if us == them else ("yes" if (slower if plan.speed_ask == "slower" else faster) else "no")
     told = constraints.stated_spread(plan.opp_overrides)
     which = "the stated spread" if told else "its most common spread"
     facts = [f"{_user_name(p)} Speed: {us}.", f"{name} Speed with {which}: {them}."]
-    if s and s["speeds"] and not told:
+    # Ladder shares compare against plain spreads, so they only hold when nothing changes the opponent's Speed
+    plain = not trick_room and not any(c.side in ("opponent", "both") for c in situation)
+    if s and s["speeds"] and not told and plain:
         faster = sum(share for spe, share in s["speeds"] if spe < us)
         tied = sum(share for spe, share in s["speeds"] if spe == us)
         facts.append(f"Across all {name} sets on the ladder, {_user_name(p)} outspeeds {_pct(faster)} and ties {_pct(tied)}.")
     if s and s.get("item") == "Choice Scarf" and "item" not in plan.opp_overrides and not plan.opp_overrides.get("no_speed_item"):
         facts.append(f"{_pct(s['item_share'])} of {name} carry Choice Scarf, reaching {int(them * 1.5)} Speed.")
+    if s and s.get("item") == "Booster Energy" and not stated and not plan.raw_stats and opp_speed_spec is not spec:
+        boosted = mechanics.final_speed(spec, game, move, _speed_field(plan, "opponent", situation))
+        if boosted and boosted != them:
+            facts.append(f"{_pct(s['item_share'])} of {name} carry Booster Energy, which raises its Speed to {boosted}.")
     # Contradiction checks read the answer as "subject is faster than other", inverted when ask_slower
     return Verdict("speed", answer, statement, facts, subject=subject, other=other,
                    ask_slower=plan.speed_ask == "slower", subject_is_player=plan.subject != "opponent")
@@ -184,6 +264,9 @@ def _attack(plan, dex, game):
     if plan.raw_stats:  # "ignoring items and abilities": both sides bare
         bare = lambda spec: {k: v for k, v in spec.items() if k not in ("item", "ability")} if spec else spec
         mine, opp_spec = bare(mine), bare(opp_spec)
+    situation = _situation(plan, {"user": mine or {}, "opponent": opp_spec})
+    mine = _with_state(mine, "user", situation, plan)
+    opp_spec = _with_state(opp_spec, "opponent", situation, plan)
     shown = display_name(name)
     if plan.attacker == "opponent" or not p:
         attacker, defender, defender_side = (shown, opp_spec), ((_user_name(p), mine) if p else None), "user"
@@ -196,14 +279,52 @@ def _attack(plan, dex, game):
     moves = [m for m in moves if m == plan.move or (dex.move(m) or {}).get("category") != "Status"]
     if not defender or not moves:
         return None
-    f = _calc_field(plan, defender_side)
+    f = _calc_field(plan, defender_side, situation)
+    crit = {"moveOptions": {"isCrit": True}} if any(c.kind == "crit" for c in situation) else {}
     results = calc.calculate_many([{"game": game, "attacker": attacker[1], "defender": defender[1], "move": m,
-                                    **({"field": f} if f else {})} for m in moves])
+                                    **({"field": f} if f else {}), **crit} for m in moves])
     scored = [(m, r) for m, r in zip(moves, results) if r]
     if not scored:
         return None
     move, result = max(scored, key=lambda x: x[1]["percent"][1])
-    return attacker[0], defender[0], move, result, s, attacker[1], defender[1]
+    # Only conditions on the side that matters stay counted: rocks on the attacker's side change nothing here
+    situation = [c for c in situation if c.kind not in ("stealth_rock", "spikes") or c.side == defender_side]
+    names = {defender_side: defender[0], ("opponent" if defender_side == "user" else "user"): attacker[0]}
+    return Attack(attacker[0], defender[0], move, result, s, attacker[1], defender[1], situation, names,
+                  _chipped(defender[1], defender_side, situation, dex))
+
+
+@dataclass
+class Attack:
+    attacker: str
+    defender: str
+    move: str
+    result: dict
+    opp_set: dict | None
+    attacker_spec: dict
+    defender_spec: dict
+    situation: list
+    names: dict           # side -> Pokemon shown, for describing the counted conditions
+    chipped: bool         # the defender starts below full HP (stated HP, or hazards it takes)
+
+
+def _chipped(spec, side, situation, dex):
+    """True when the defender isn't at full HP when hit, so Sturdy and Focus Sash can't save it."""
+    if spec.get("hpPercent", 100) < 100:
+        return True
+    if spec.get("item") == "Heavy-Duty Boots" or spec.get("ability") in ("Magic Guard", "Mountaineer"):
+        return False
+    types = (dex.species(spec["name"]) or {}).get("types", []) if dex else []
+    grounded = "Flying" not in types and spec.get("ability") != "Levitate" and spec.get("item") != "Air Balloon"
+    return any(c.side == side and (c.kind == "stealth_rock" or (c.kind == "spikes" and grounded)) for c in situation)
+
+
+def _hp_facts(attack):
+    pct = attack.defender_spec.get("hpPercent")
+    if not pct or pct >= 100:
+        return []
+    return [f"Damage percentages are of max HP; {attack.defender} starts at {pct}% "
+            f"({attack.result.get('defender_cur_hp')} of {attack.result['defender_stats']['hp']} HP)."]
 
 
 def _ko_hits(ko_text):
@@ -218,9 +339,10 @@ def solve_ko(plan, dex, game):
     attack = _attack(plan, dex, game)
     if not attack:
         return None
-    att, dfn, move, r, s, att_spec, dfn_spec = attack
+    att, dfn, move, r, s = attack.attacker, attack.defender, attack.move, attack.result, attack.opp_set
     lo, hi = r["percent"]
-    answer, effect = mechanics.ko_answer(r, plan.ko_hits, att_spec, dfn_spec, move)
+    answer, effect = mechanics.ko_answer(r, plan.ko_hits, attack.attacker_spec, attack.defender_spec, move,
+                                         full_hp=not attack.chipped)
     if plan.survive:
         answer = {"yes": "no", "no": "yes", "sometimes": "sometimes"}[answer]
         outcome = {"yes": f"{dfn} survives", "no": f"{dfn} does not survive", "sometimes": f"{dfn} survives only some rolls"}[answer]
@@ -228,9 +350,10 @@ def solve_ko(plan, dex, game):
         n = "OHKO" if plan.ko_hits == 1 else f"{plan.ko_hits}HKO"
         outcome = {"yes": f"it {n}s", "no": f"it does not {n}", "sometimes": f"it {n}s only on some damage rolls"}[answer]
     held = f" (it survives a full HP hit at 1 HP with {effect})" if effect and effect != "Disguise" else         " (Disguise takes the first hit)" if effect else ""
-    statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{held}, so {outcome}."
+    statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{held}, so {outcome}." + _counting(attack.situation, attack.names)
     facts = [f"Calc: {r['desc']}"] if r["desc"] else []
-    if effect:
+    facts += _hp_facts(attack)
+    if effect and effect != "Disguise":
         facts.append(f"{dfn} at full HP keeps {effect}; hazards or earlier chip would remove it.")
     if s and not constraints.stated_spread(plan.opp_overrides) and "item" not in plan.opp_overrides:
         facts.append(f"{s['name']} assumed on its most common set: {describe_spread(s, game)} @ {s['item']}, {s['ability']}.")
@@ -241,11 +364,12 @@ def solve_damage(plan, dex, game):
     attack = _attack(plan, dex, game)
     if not attack:
         return None
-    att, dfn, move, r, s, _, _ = attack
+    att, dfn, move, r, s = attack.attacker, attack.defender, attack.move, attack.result, attack.opp_set
     lo, hi = r["percent"]
     ko = f" ({r['ko']})" if r["ko"] else ""
-    statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{ko}."
+    statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{ko}." + _counting(attack.situation, attack.names)
     facts = [f"Calc: {r['desc']}"] if r["desc"] else []
+    facts += _hp_facts(attack)
     if s and not constraints.stated_spread(plan.opp_overrides) and "item" not in plan.opp_overrides:
         facts.append(f"{s['name']} assumed on its most common set: {describe_spread(s, game)} @ {s['item']}, {s['ability']}.")
     return Verdict("damage", f"{lo}-{hi}%", statement, facts)

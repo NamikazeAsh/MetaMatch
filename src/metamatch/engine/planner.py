@@ -64,9 +64,12 @@ class Plan:
     screens: dict = field(default_factory=dict)         # "user" | "opponent" | "defender" -> calc Side screen flags
     strongest: bool = False         # "assume it uses its strongest listed move"
     stat_target: str = "user"       # stat questions: whose stat ("opponent" for a Pokemon off the team)
-    unhandled: list = field(default_factory=list)  # stated conditions the engine can't apply ("Tailwind", "burned")
+    situation: list = field(default_factory=list)  # stated battle conditions the solver counts (constraints.Condition)
+    counted: list = field(default_factory=list)    # ... as the question phrased them ("Tailwind", "50% HP")
+    unhandled: list = field(default_factory=list)  # stated conditions this answer can't count ("Sticky Web")
     team: dict = field(default_factory=dict, repr=False)  # the whole team, for team wide answers ("what checks X")
     raw_stats: bool = False         # "ignore items/abilities": compare bare stats, no Scarf or field
+    no_boosts: bool = False         # "assume no boosts": Booster Energy and friends stay off too
 
     @property
     def opponent(self):
@@ -212,7 +215,7 @@ def plan_query(query, team):
                                  bool(SURVIVE_RE.search(query)))
     plan.user_overrides, plan.opp_overrides = stated.user, stated.opponent
     plan.conditions, plan.screens, plan.strongest = stated.conditions, stated.screens, stated.strongest
-    plan.unhandled = constraints.unhandled(query, stated.consumed, spans)
+    found = constraints.conditions(query, stated.consumed, spans)
 
     # Text with Pokemon names removed, for move, type and keyword scans
     scrubbed = query
@@ -260,7 +263,7 @@ def plan_query(query, team):
     if re.search(r"\b(slower|outsped)\b", query, re.I):
         plan.speed_ask = "slower"
 
-    plan.raw_stats = stated.raw_stats
+    plan.raw_stats, plan.no_boosts = stated.raw_stats, stated.no_boosts
 
     # Usage goes last: speed and KO questions also say "most common spread"
     q = query
@@ -292,4 +295,9 @@ def plan_query(query, team):
     elif USAGE_RE.search(q) and (plan.opponent or plan.user):
         plan.intent = "usage"
         plan.usage_field = _usage_field(names_only)
+
+    # Stated battle conditions: counted when they change this kind of answer, otherwise reported as not counted
+    plan.situation = [c for c in found if not plan.raw_stats and constraints.counts_for(c, plan.intent)]
+    plan.counted = list(dict.fromkeys(c.text for c in plan.situation))
+    plan.unhandled = list(dict.fromkeys(c.text for c in found if c not in plan.situation))
     return plan

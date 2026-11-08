@@ -136,7 +136,8 @@ def plan_slots(plan):
         "conditions": getattr(plan, "conditions", {}) or {},
         "screens": screens,
         "raw_stats": bool(getattr(plan, "raw_stats", False)),
-        "unhandled": getattr(plan, "unhandled", []) or [],
+        # Stated conditions the planner found, whether the answer counts them or reports them as not counted
+        "unhandled": (getattr(plan, "unhandled", []) or []) + (getattr(plan, "counted", []) or []),
     }
 
 
