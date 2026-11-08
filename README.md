@@ -258,6 +258,14 @@ Paste the team you're about to face, even just the six names from team preview.
 * **Every matchup:** the same win or lose grid and hover detail as the Threat Board, using their sets exactly when you paste them.
 * **Champions bring 3:** picks the three that hold up best against any three they could bring, checked against all 20 of their options. No win chances and no guesses about their picks.
 
+### Coach Guide
+
+A game plan for your team, written by the engine instead of a chatbot.
+
+* **Built from your matchups:** every line comes from the Threat Board, Speed Tiers and type chart, so it only names moves your team actually runs.
+* **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions), pairs that cover each other, and the threats to watch.
+* **Works offline:** no language model needed, so it appears instantly.
+
 ### 🌐 Multi Format
 
 Gen 9 **OU, UU, National Dex**, plus **Pokémon Champions OU and UU** with Level 50 stats, stat points instead of EVs, and full Mega Evolution support (Mega Stone holders map to their Mega forme's stats, ability and usage data).
@@ -370,7 +378,7 @@ python scripts/backfill_usage_history.py   # optional: rebuild MetaFlash's histo
 streamlit run src/metamatch/app.py        # run from the repo root so the dark theme loads
 ```
 
-Ollama and Node are both optional. Without Ollama, every analysis tab still works and chat answers with the engine's facts; the pilot guide and Oak's prose come back as soon as Ollama starts. Without Node, chat falls back to type matchups instead of real damage numbers.
+Ollama and Node are both optional. Without Ollama, every analysis tab still works and chat answers with the engine's facts; Oak's prose comes back as soon as Ollama starts. Without Node, chat falls back to type matchups instead of real damage numbers.
 
 ---
 
@@ -400,11 +408,11 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 | Path                                             | What it does                                                                                                 |
 | :----------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
 | `src/metamatch/app.py`, `tabs/`              | Streamlit app, one module per tab                                                                            |
-| `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, constraint parser, solvers, shared mechanics, name matching, Threat Board, Team Completer, Speed Tiers, Spread Lab, Matchup Preview, Team Check |
+| `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, constraint parser, solvers, shared mechanics, name matching, Threat Board, Team Completer, Speed Tiers, Spread Lab, Matchup Preview, Team Check, Coach Guide |
 | `src/metamatch/agents/`                        | Router, manager, grounded answerer and verifier, the three agents ([details](src/metamatch/agents/README.md)) |
 | `src/metamatch/rag/`                           | Analyses for every SV format, usage cards, guides, chunking, hybrid ChromaDB + BM25 store ([details](src/metamatch/rag/README.md)) |
 | `src/metamatch/team.py`                        | Showdown parser, role detection, type math, Mega handling                                                    |
-| `src/metamatch/suggestions.py`                 | Team audit, threat scoring, team guide                                                                       |
+| `src/metamatch/suggestions.py`                 | Team audit and threat scoring                                                                                |
 | `src/metamatch/recommender.py`, `auditor.py` | Teammate synergy and usage checks from chaos data                                                            |
 | `src/metamatch/replay/`                        | Showdown protocol parser, team health, mistake and note rules                                                |
 | `src/metamatch/meta_pulse.py`                  | MetaFlash: usage history, story selection rules, leaderboard, template headlines                             |

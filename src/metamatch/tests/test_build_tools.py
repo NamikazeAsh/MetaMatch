@@ -216,20 +216,23 @@ class TestTeamCheck(unittest.TestCase):
 
 
 
-class TestCoachGuideGrounding(unittest.TestCase):
-    def test_broken_promises_and_wrong_tera_are_removed(self):
-        from metamatch.suggestions import ground_guide
+@unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+class TestEngineGuide(unittest.TestCase):
+    def test_guide_names_only_the_team_and_moves_it_runs(self):
+        import re
+        from metamatch.engine.dex import dex_for_format
+        from metamatch.engine.guide import team_guide
         team, _ = readTeam(TEAM.replace("Jolly Nature", "Tera Type: Ground\nJolly Nature", 1), "gen9ou")
-        guide = {"lead_options": [{"pokemon": "Great Tusk", "scenario": "Lead to guarantee rocks."},
-                                  {"pokemon": "Great Tusk", "scenario": "Lead to spin away hazards with Rapid Spin."},
-                                  {"pokemon": "Garchomp", "scenario": "Lead to set Spikes."}],
-                 "key_combos": [{"name": "Tusk + Kingambit", "description": "Tusk uses Knock Off, Kingambit cleans with Kowtow Cleave."},
-                                {"name": "Tusk + Gholdengo", "description": "Gholdengo sets up with Nasty Plot."}],
-                 "tera_strategy": "Great Tusk Teras Fire to beat Corviknight."}
-        out = ground_guide(guide, team, is_champions=False)
-        self.assertEqual([x["scenario"] for x in out["lead_options"]], ["Lead to spin away hazards with Rapid Spin."])
-        self.assertEqual([x["name"] for x in out["key_combos"]], ["Tusk + Kingambit"])
-        self.assertIn("Ground", out["tera_strategy"])
+        g = team_guide(team, "gen9ou")
+        moves = {p["Pokemon"]: {m["name"] for m in p["Moves"]} for p in team.values()}
+        self.assertTrue(set(g.named_members()) <= set(moves))
+        dex = dex_for_format("gen9ou")
+        for card in [g.win] + g.leads:
+            said = {m for m in dex.move_data if len(m) > 4 and re.search(rf"\b{re.escape(m)}\b", " ".join(card["points"]))}
+            self.assertTrue(said <= moves[card["name"]], (card["name"], said))
+        tusk = next(x for x in g.tera if x["name"] == "Great Tusk")
+        self.assertTrue({"Flying", "Psychic", "Fairy"} <= set(tusk["removed"]))   # pure Ground after Tera
+        self.assertIn("2x STAB", tusk["note"])                                     # Headlong Rush
 
 
 class TestAudit(unittest.TestCase):

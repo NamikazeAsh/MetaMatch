@@ -283,7 +283,6 @@ def load_team(pokemon_data, fmt_id):
             'weakness': team_weakness,
             'coverage': coverageCheck(team),
             'suggestions': get_suggestions(team),
-            'guide': None,  # written on demand in the Coach Guide tab, it's a slow LLM call
         }
 
     # The id is a hash of format + paste, so the same team always gets the same link
@@ -703,7 +702,7 @@ def team_page():
         (tab_rec, lambda: tab_recommender_mod.render(team_data, st.session_state.pokemon_names)),
         (tab_matrix, lambda: tab_matrix_mod.render(team_data, TYPE_MAP)),
         (tab7, lambda: tab_speed_tiers.render(team_data, TYPE_MAP)),
-        (tab8, tab_coach_guide.render),
+        (tab8, lambda: tab_coach_guide.render(TYPE_MAP)),
         (tab_chat, tab_chat_mod.render),
     ]
     for tab, draw in tabs:
