@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from metamatch.utils import is_pokepaste_url, fetch_pokepaste, extract_pokemon_names
-from metamatch.sprites import get_sprite
+
 from metamatch.team import readTeam, detectRole, addComments, coverageCheck, looks_like_champions
 from metamatch.suggestions import get_suggestions
 from metamatch import config
@@ -29,6 +29,7 @@ from metamatch import strategy_data
 from metamatch import meta_pulse
 from metamatch.ui import page_header, section_header
 from metamatch.tabs import (
+    tab_banner,
     tab_quick_match, tab_move_search, tab_replay,
     tab_overview as tab_overview_mod, tab_audit, tab_threats,
     tab_coach_guide, tab_recommender as tab_recommender_mod, tab_matrix as tab_matrix_mod,
@@ -573,118 +574,12 @@ def team_page():
 
     render_team_sidebar()
 
-    # --- Metrics Dashboard ---
-    page_header("Your team", "Team Dashboard", "Every number below comes from the damage calculator and this month's ladder data.",
-                config.team_format(st.session_state.analysis['team']))
-
     coverage = st.session_state.analysis['coverage']
     weakness = st.session_state.analysis['weakness']
     team_data = st.session_state.analysis['team']
-
-    covered_count = sum(1 for v in coverage.values() if v)
-    most_weak_type = max(weakness.items(), key=lambda x: x[1]['weak'])
-
-    roles = []
-    for p in team_data.values():
-        roles.extend(p['Roles'])
-
-    archetype = "Balanced"
-    arch_icon = "⚖️"
-
-    # Count Pokemon, not role labels: one mon can be both a Wall and a Tank
-    mon_roles = [set(p.get("Roles", [])) for p in team_data.values() if isinstance(p, dict)]
-    wall_tank_count = sum(1 for r in mon_roles if r & {"Wall", "Tank"})
-    sweeper_count = sum(1 for r in mon_roles if any("Sweeper" in x or "Breaker" in x for x in r))
-    weather_count = roles.count("Weather Setter") + roles.count("Weather Abuser")
-    setter_count = roles.count("Weather Setter")
-    pivot_count = roles.count("Pivot")
-    tr_count = roles.count("Trick Room Setter")
-    bulky_offense_count = sum(1 for r in mon_roles if r & {"Bulky Attacker", "Tank"})
-
-    if tr_count >= 1:
-        archetype = "Trick Room"
-        arch_icon = "🌀"
-    elif setter_count >= 1 and weather_count >= 2:
-        archetype = "Weather Offense"
-        arch_icon = "🌦️"
-    elif pivot_count >= 3:
-        archetype = "Volt-Turn / Pivot"
-        arch_icon = "🔄"
-    elif wall_tank_count >= 4: # Increased threshold for pure stall
-        archetype = "Stall"
-        arch_icon = "🐢"
-    elif sweeper_count >= 4:
-        archetype = "Hyper Offense"
-        arch_icon = "⚔️"
-    elif bulky_offense_count >= 3:
-        archetype = "Bulky Offense"
-        arch_icon = "🛡️⚔️"
-
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Archetype", f"{arch_icon} {archetype}")
-    with m2:
-        st.metric("Type Coverage", f"{covered_count}/18")
-        st.progress(covered_count / 18)
-
-    weak_type_name = most_weak_type[0].capitalize()
-    t_info_m = TYPE_MAP.get(weak_type_name, {'color': '#777', 'icon': '❓'})
-    weak_label = f"{t_info_m['icon']} {weak_type_name}"
-
-    if most_weak_type[1]['weak'] >= 3:
-        m3.metric("Critical Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="normal")
-    else:
-        m3.metric("Top Weakness", weak_label, f"-{most_weak_type[1]['weak']} Mons", delta_color="off")
-
-    # --- Squad Section ---
-    section_header("Your team", "Your Squad")
-    st.markdown("<br>", unsafe_allow_html=True) # Spacer
-    names = st.session_state.pokemon_names
-
-    for i in range(0, len(names), 3):
-        cols = st.columns(3)
-        batch = names[i:i+3]
-        for j, name in enumerate(batch):
-            idx = i + j
-            # Handle potential key mismatch (int vs string) from JSON loading
-            poke = team_data.get(idx) or team_data.get(str(idx))
-            if not poke: continue
-
-            # Get Type Color for Glow
-            primary_type = poke['Type'][0] if poke['Type'] else 'Normal'
-            type_color = TYPE_MAP.get(primary_type, {'color': '#777'})['color']
-
-            # Construct Glassmorphism Card HTML
-            card_html = f"""
-            <div class="pokemon-card" style="border: 1px solid {type_color}44; box-shadow: 0 0 15px -5px {type_color}, inset 0 0 20px -15px {type_color};">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div style="flex-shrink: 0; position: relative;">
-                        <div style="position: absolute; width: 60px; height: 60px; background: {type_color}; filter: blur(30px); opacity: 0.4; z-index: 0; top: 10px; left: 10px;"></div>
-                        <img src="{get_sprite(name) or ''}" width="90" style="position: relative; z-index: 1; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));">
-                    </div>
-                    <div style="flex-grow: 1;">
-                        <div class="poke-name">{escape(name)}</div>
-                        <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px;">
-                            {''.join([f'<span style="background:{TYPE_MAP.get(t, {}).get("color", "#555")}; color:white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);">{TYPE_MAP.get(t, {}).get("icon", "")} {t}</span>' for t in poke['Type']])}
-                        </div>
-                    </div>
-                </div>
-                <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
-                    <div class="stat-text" style="margin-bottom: 6px;">
-                        {' '.join([f'<span class="role-badge">🛡️ {escape(r)}</span>' for r in poke['Roles'][:3]]) if poke['Roles'] else '<span style="opacity:0.5; font-size:0.8rem">No specific roles</span>'}
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #ddd; margin-top: 8px;">
-                        <span>🎒 {escape(str(poke['Item']))}</span>
-                        <span style="opacity: 0.8;">✨ {escape(str(poke['Ability']))}</span>
-                    </div>
-                     <div class="stat-text" style="font-size: 0.75rem; margin-top:8px; color: {type_color}; opacity: 0.9; font-family: monospace;">
-                        {escape(str(poke['Nature']))} Nature • {', '.join([f'{v} {k}' for k, v in sorted((poke.get('SP') or poke['EVs']).items(), key=lambda x: x[1], reverse=True)[:2]])}
-                     </div>
-                </div>
-            </div>
-            """
-
-            with cols[j]:
-                st.markdown(card_html, unsafe_allow_html=True)
+    # The team banner: archetype and jobs, one card per Pokemon with its set, and the team's numbers this month
+    saved = (storage.get_team(st.session_state.get("team_id")) or {}) if config.LOCAL_MODE else {}
+    tab_banner.render(team_data, coverage, weakness, TYPE_MAP, team_name=saved.get("name"))
     st.markdown("---")
 
     # --- Detailed Analysis Tabs ---

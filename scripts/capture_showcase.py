@@ -180,7 +180,7 @@ def open_sample(page):
     page.wait_for_selector(".mp-card", timeout=120000)
     idle(page)
     page.get_by_role("button", name="Try a sample team").click()
-    page.wait_for_selector("text=Team Dashboard", timeout=120000)
+    page.wait_for_selector(".bn-tile", timeout=180000)
     idle(page)
 
 
@@ -310,7 +310,7 @@ def capture_chat(b):
                            ("Does it outspeed my Dragapult?", "chat_clarify")]:
         storage.clear_chat(tid)
         page.goto(team_url)
-        page.wait_for_selector("text=Team Dashboard", timeout=120000)
+        page.wait_for_selector(".bn-tile", timeout=180000)
         idle(page)
         collapse_sidebar(page)
         tab(page, "Coach Chat")
@@ -410,13 +410,13 @@ def capture_extras(b, user_dir):
         page = new_page(b)
         wait_home(page, f"http://localhost:{OFFLINE_PORT}")
         page.get_by_role("button", name="Try a sample team").click()
-        page.wait_for_selector("text=Team Dashboard", timeout=120000)
+        page.wait_for_selector(".bn-tile", timeout=180000)
         idle(page)
         # Same store as the chat shots: start from an empty conversation
         from metamatch import storage
         storage.clear_chat(re.search(r"[?&]t=([0-9a-f]+)", page.url).group(1))
         page.reload()
-        page.wait_for_selector("text=Team Dashboard", timeout=120000)
+        page.wait_for_selector(".bn-tile", timeout=180000)
         idle(page)
         collapse_sidebar(page)
         tab(page, "Coach Chat")
@@ -434,7 +434,7 @@ def capture_extras(b, user_dir):
     scroll_to(phone, ".mp-head", offset=75)
     shots.append(phone.screenshot())
     phone.get_by_role("button", name="Try a sample team").click()
-    phone.wait_for_selector("text=Team Dashboard", timeout=120000)
+    phone.wait_for_selector(".bn-tile", timeout=180000)
     idle(phone)
     phone.wait_for_timeout(1000)
     shots.append(phone.screenshot())
