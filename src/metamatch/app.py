@@ -24,7 +24,6 @@ from metamatch.team import readTeam, detectRole, addComments, coverageCheck, loo
 from metamatch.suggestions import get_suggestions
 from metamatch import config
 from metamatch import storage
-from metamatch import auditor
 from metamatch import strategy_data
 from metamatch import meta_pulse
 from metamatch.ui import page_header, section_header
@@ -427,31 +426,13 @@ def render_home_sidebar():
 
 
 def render_team_sidebar():
-    """Back to Home, the meta audit and the save box for the team on screen."""
+    """Back to Home, recent teams and the save box for the team on screen."""
     with st.sidebar:
         st.page_link(HOME_PAGE, label="Analyze another team", icon=":material/edit_note:", width="stretch")
         # Each section draws its own divider only when it renders, so empty ones never leave a double line
         if config.LOCAL_MODE and [t for t in storage.recent_teams(limit=5) if t['id'] != st.session_state.get("team_id")]:
             sidebar_rule()
             recent_teams_sidebar(exclude=st.session_state.get("team_id"))
-
-        audit_results = auditor.audit_team(st.session_state.analysis['team'])
-        audit_warnings = audit_results.get("warnings", [])
-        if audit_warnings:
-            sidebar_rule()
-            n = len(audit_warnings)
-            with st.expander(f"Meta Audit ({n} {'warning' if n == 1 else 'warnings'})", icon=":material/insights:",
-                             expanded=True):
-                st.caption("Choices few ladder players make. Not always wrong, just worth a second look.")
-                for w in audit_warnings:
-                    lead = "Most run" if w['category'] == "Item" else "More common:"
-                    more = f'<br><span style="opacity: 0.8;">{lead} {escape(str(w["suggestion"]))}</span>' if w['suggestion'] else ""
-                    st.markdown(f"""
-                    <div style="background: rgba(255, 165, 0, 0.08); border: 1px solid rgba(255, 165, 0, 0.25); padding: 10px 12px; margin-bottom: 8px; border-radius: 10px;">
-                        <div style="font-weight: 700; color: #ffa500;">{escape(str(w['pokemon']))} <span style="opacity: 0.7; font-weight: 500;">· {escape(str(w['category']))}</span></div>
-                        <div style="font-size: 0.9rem;"><b>{escape(str(w['current']))}</b> is on only {w['usage']:.1f}% of sets.{more}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
 
         if config.LOCAL_MODE:
             sidebar_rule()

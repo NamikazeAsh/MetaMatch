@@ -115,6 +115,7 @@ STYLE = """
 .bn-lbl { font-size:0.7rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#8a93a6; }
 .bn-txt { font-size:0.84rem; color:#d6dbe6; margin-top:2px; }
 .bn-wk { display:inline-flex; align-items:center; gap:5px; font-size:0.74rem; font-weight:700; color:#e6eaf2; margin:4px 8px 0 0; }
+.bn-wk.in { margin:0 2px; }
 .bn-fast { display:flex; flex-shrink:0; }
 .bn-fast img { width:34px; height:34px; object-fit:contain; margin-right:-6px; }
 @media (max-width: 1100px) { .bn-team { grid-template-columns:repeat(2, minmax(0, 1fr)); } .bn-stats { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
@@ -217,7 +218,7 @@ def _stats(team, rows, facts, coverage, weakness, type_map):
                    else f"{total - answered} of the {total} most used Pokémon have no answer on the team")
     missing = [t.capitalize() for t, ok in coverage.items() if not ok]
     covered = len(coverage) - len(missing)
-    cov_txt = ("Nothing hits " + "".join(f'<span class="bn-wk">{_type_icon(t, type_map, True)}{escape(t)}</span>' for t in missing)
+    cov_txt = ("Nothing hits " + "".join(f'<span class="bn-wk in">{_type_icon(t, type_map, True)}{escape(t)}</span>' for t in missing)
                + " super effectively") if missing else "Something hits every type super effectively"
     worst = max((v["weak"] for v in weakness.values()), default=0)
     shared = [t.capitalize() for t, v in weakness.items() if v["weak"] == worst and worst >= 2]
