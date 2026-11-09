@@ -267,6 +267,7 @@ A game plan for your team, written by the engine instead of a chatbot.
 * **Built from your matchups:** every line comes from the Threat Board, Speed Tiers and type chart, so it only names moves your team actually runs.
 * **Knows what your team is built around:** finds your sun, rain, sand, snow, terrain, Trick Room, Tailwind or screens core and measures it with the calc, like a Chlorophyll Venusaur going from 284 to 568 Speed behind Torkoal's sun, and notices when a core is missing its setter.
 * **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions), pairs that cover each other, and the threats to watch.
+* **Leads checked against real games:** leads weigh hazards, weather setters and pivots alongside how often ladder players open with each Pokémon. On held out ladder replays the two picks include the player's actual lead 51% of the time, against 45% for lead popularity alone and 33% by chance.
 * **Works offline:** no language model needed, so it appears instantly.
 
 ### 🌐 Multi Format
@@ -393,6 +394,7 @@ pytest                                     # parsing, mechanics, planner, constr
 python bench/extraction/score.py           # question understanding: slot F1 on the dev half (--split test for the held out half)
 python bench/rag/score.py                  # retrieval: recall@k, MRR and strict hits through the production path
 python bench/recommender/score.py --teams 0   # Team Completer vs usage baselines on real ladder teams (needs local replays)
+python bench/guide/leads.py --format gen9ou  # Coach Guide leads vs what players led with in real games (--tune picks the lead rate weight)
 
 python bench/run.py --arm raw              # bare model with the team pasted in
 python bench/run.py --arm metamatch        # full pipeline
@@ -424,6 +426,7 @@ python bench/report.py --compare raw_paraphrase2 metamatch_paraphrase2   # paire
 | `scripts/update_meta.py`                       | Monthly stats pipeline (also run by GitHub Actions), including the MetaFlash histories                   |
 | `bench/`                                       | MetaBench question generators, runner, grader, report, and pinned stats snapshots in `bench/fixtures/`       |
 | `bench/extraction/`, `bench/rag/`              | Question understanding benchmark (260 labelled questions) and retrieval benchmark                           |
+| `bench/guide/`                                 | Coach Guide lead check against the leads in local ladder replays                                            |
 
 ---
 

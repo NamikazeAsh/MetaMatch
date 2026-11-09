@@ -235,6 +235,20 @@ class TestEngineGuide(unittest.TestCase):
         self.assertIn("2x STAB", tusk["note"])                                     # Headlong Rush
 
 
+class TestGuideLeads(unittest.TestCase):
+    def test_ladder_lead_rate_nudges_and_is_shown_but_unknown_stays_neutral(self):
+        from metamatch.engine.guide import Member, _leads
+        mk = lambda name, **kw: Member(**dict(dict(name=name, beats=[], loses=[], speed=100, outspeeds=0.5, setup=[],
+                                                    priority=[], hazards=[], removal=[], pivots=[], attacks=[],
+                                                    types=[], weak=[]), **kw))
+        members = [mk("Rare"), mk("Popular"), mk("Shy"), mk("Setter", hazards=["Stealth Rock"])]
+        rates = {"Popular": (0.6, True), "Shy": (0.02, False), "Rare": (None, False)}
+        leads = _leads(members, 12, None, rates=rates)
+        self.assertEqual([l["name"] for l in leads], ["Popular", "Setter"])
+        self.assertIn("Leads 60% of the ladder games it's in", leads[0]["points"])
+        self.assertEqual([l["name"] for l in _leads(members[:1] + members[2:3], 12, None, rates=rates)], ["Rare", "Shy"])
+
+
 class TestAudit(unittest.TestCase):
     def test_roles_coverage_and_rare_moves_read_plainly(self):
         from metamatch.suggestions import get_suggestions

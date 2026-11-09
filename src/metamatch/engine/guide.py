@@ -6,7 +6,7 @@ a member doesn't run or a mechanic that doesn't exist, and it works with Ollama 
 """
 from dataclasses import dataclass, field, replace
 
-from metamatch import config
+from metamatch import config, meta_trends
 from metamatch.engine import speed_board
 from metamatch.engine import threat_board as tb
 from metamatch.engine import synergy
@@ -24,6 +24,9 @@ N_THREATS = 12
 SETUP = set(SETUP_MOVES) | {"Growth", "Coil", "Work Up", "Shift Gear", "Curse", "Tail Glow", "Geomancy",
                             "Clangorous Soul", "No Retreat", "Fillet Away", "Rock Polish"}
 N_SPEED = 25
+# Lead score weight on how often ladder players lead with a member (bench/guide/leads.py --tune picks it)
+LEAD_RATE_WEIGHT = 10.0
+LEAD_PRIOR = meta_trends.LEAD_PRIOR
 STAT_LABELS = {"hp": "HP", "atk": "Atk", "def": "Def", "spa": "SpA", "spd": "SpD", "spe": "Spe"}
 
 
@@ -160,12 +163,16 @@ def _win(members, n, boosts=None):
     return {"name": m.name, "text": text, "points": points, "keep": keep, "threats": m.loses[:3]}
 
 
-def _leads(members, n, win_name, setters=None):
+def _leads(members, n, win_name, setters=None, rates=None):
     """Two leads: weather and terrain setters (they set it on entry) and hazard setters first, then pivots, then
-    whoever wins the most matchups and moves first. setters: {member: 'Sets sun on entry with Drought'}."""
-    setters = setters or {}
+    whoever wins the most matchups and moves first, nudged by how often ladder players lead with it.
+    setters: {member: 'Sets sun on entry with Drought'}; rates: meta_trends.lead_rates, {member: (rate, listed)}."""
+    setters, rates = setters or {}, rates or {}
     pool = [m for m in members if m.name != win_name] or members
-    score = lambda m: 3 * bool(m.hazards) + 2.5 * (m.name in setters) + 1.5 * bool(m.pivots) + len(m.beats) / max(n, 1) + m.outspeeds
+    def score(m):
+        rate = rates.get(m.name, (None, False))[0]
+        return (3 * bool(m.hazards) + 2.5 * (m.name in setters) + 1.5 * bool(m.pivots) + len(m.beats) / max(n, 1)
+                + m.outspeeds + LEAD_RATE_WEIGHT * ((LEAD_PRIOR if rate is None else rate) - LEAD_PRIOR))
     out = []
     for m in sorted(pool, key=score, reverse=True)[:2]:
         jobs = [setters[m.name]] if m.name in setters else []
@@ -176,6 +183,9 @@ def _leads(members, n, win_name, setters=None):
         if m.removal and not jobs:
             jobs.append(f"Clears hazards with {_and(m.removal)}")
         points = jobs + [f"Beats {len(m.beats)} of the {n} most used Pokémon one on one"]
+        rate, listed = rates.get(m.name, (None, False))
+        if listed:
+            points.append(f"Leads {_pct(rate)} of the ladder games it's in")
         if m.outspeeds >= 0.5:
             points.append(f"Outspeeds {_pct(m.outspeeds)} of the top {N_SPEED} Pokémon's ladder sets")
         out.append({"name": m.name, "points": points})
@@ -315,7 +325,11 @@ def team_guide(team, format_id=None, rows=None):
         for st in e.setters:
             if st["ability"] and st["name"] not in entry:
                 entry[st["name"]] = f"Sets {synergy._label(e)} on entry with {st['how'][0].replace(' on entry', '')}"
-    guide.leads = _leads(members, n, guide.win["name"] if guide.win else None, entry)
+    try:
+        rates = meta_trends.lead_rates(format_id, [m.name for m in members])
+    except Exception:
+        rates = {}
+    guide.leads = _leads(members, n, guide.win["name"] if guide.win else None, entry, rates)
     if config.format_game(format_id) == "champions":
         guide.mega = _mega(team, format_id)
     else:

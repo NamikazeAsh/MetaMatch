@@ -163,6 +163,36 @@ def leads(format_id, month, n=8, history=None):
     return rows
 
 
+LEAD_PRIOR = 1 / 6   # a team of six leads with each member this often when nothing is known
+
+
+def lead_rates(format_id, names, history=None):
+    """
+    How often each Pokemon leads the ladder games it's on a team in, from the latest month of Smogon leads over
+    the usage file: {name: (rate, listed)}. listed is True when it's one of the top leads, so the rate is measured.
+    A well used Pokemon outside the top leads gets an estimate (it rarely leads). A rare one, or one with no usage
+    in the format, gets (None, False): too little data to push it or hold it back.
+    """
+    from metamatch.engine.sets import chaos_entry
+    history = load(LEADS_PATH) if history is None else history
+    months = _months(history, format_id, None)
+    table = dict(history.get(format_id, {}).get(months[-1], [])) if months else {}
+    floor = min(table.values()) if table else 0.0
+    out = {}
+    for name in names:
+        key, entry = chaos_entry(name, format_id)
+        usage = (entry or {}).get("usage") or 0.0
+        if not table or usage <= 0:
+            out[name] = (None, False)
+        elif key in table:
+            out[name] = (min(1.0, table[key] / 100 / usage), True)
+        elif floor / 100 / usage < LEAD_PRIOR:
+            out[name] = (floor / 100 / usage / 2, False)   # below the smallest listed lead share: halfway to 0
+        else:
+            out[name] = (None, False)
+    return out
+
+
 def _share(entry, key, option):
     return next((p for o, p in (entry or {}).get(key, []) if o == option), None)
 

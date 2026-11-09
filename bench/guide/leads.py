@@ -7,14 +7,15 @@ player actually led with. Players' leads are not ground truth for the best lead,
 
 Reported against baselines:
   * random: any two of the six (2 in 6)
-  * lead rate: the two members that lead most often when they are on a team (Smogon leads / usage)
+  * lead rate: the two members that lead most often when they are on a team (Smogon leads / usage, the same
+    meta_trends.lead_rates the guide uses; too little data counts as the 1 in 6 prior)
 plus an ablation that drops each term of the guide's lead score, and the teams with a weather or terrain setter.
 
   python bench/guide/leads.py                    # gen9ou
   python bench/guide/leads.py --format gen9uu
+  python bench/guide/leads.py --tune             # lead rate weight: picked on even replay ids, tested on odd ones
 """
 import argparse
-import collections
 import glob
 import json
 import math
@@ -25,8 +26,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-WEIGHTS = {"hazards": 3.0, "setter": 2.5, "pivots": 1.5, "beats": 1.0, "outspeeds": 1.0}
-STATS_KEY = {"gen9nationaldex": "gen9natdex"}
+WEIGHTS = {"hazards": 3.0, "setter": 2.5, "pivots": 1.5, "beats": 1.0, "outspeeds": 1.0, "rate": 0.0}
+RATE_GRID = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16]
 LOWER = {"gen9ou": "gen9uu", "gen9championsou": "gen9championsuu"}
 
 
@@ -86,7 +87,7 @@ def rebuild(members, format_id):
     from metamatch.engine.sets import likely_set
     from metamatch.team import detectRole
     from metamatch.auditor import load_chaos_data
-    team, usage, alias, fallbacks = {}, {}, {}, 0
+    team, alias, fallbacks = {}, {}, 0
     for i, (species, mon) in enumerate(members):
         known = {}
         if mon:
@@ -98,27 +99,15 @@ def rebuild(members, format_id):
                        key=lambda k: -(load_chaos_data(format_id)[k].get("usage") or 0))
         names += megas[:1]
         s = next((x for x in (likely_set(n, format_id, known) for n in names) if x), None)
-        own_tier = bool(s)
         if not s and LOWER.get(format_id):
             s = likely_set(species, LOWER[format_id], known)   # a rare pick: its set from the tier it is common in
             fallbacks += bool(s)
         if not s:
-            return None, None, None, 0
+            return None, None, 0
         team[i] = dict(member_from_set(s, format_id), Roles=[])
-        usage[s["name"]] = (s.get("usage") or 0.0) if own_tier else 0.0
         alias[s["name"]] = species
     detectRole(team)
-    return team, usage, alias, fallbacks
-
-
-def lead_rates(format_id, usage):
-    """P(leads | on the team) per member from the latest month of Smogon leads; 0 outside the top leads."""
-    from metamatch import meta_trends
-    hist = meta_trends.load(meta_trends.LEADS_PATH).get(STATS_KEY.get(format_id, format_id), {})
-    if not hist:
-        return {}
-    table = dict(hist[sorted(hist)[-1]])
-    return {name: (table.get(name, 0.0) / 100) / u if u else 0.0 for name, u in usage.items()}
+    return team, alias, fallbacks
 
 
 def pick(features, win, weights):
@@ -132,11 +121,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--format", default="gen9ou")
     ap.add_argument("--limit", type=int, default=0, help="games to score (0 = all)")
+    ap.add_argument("--tune", action="store_true", help="pick the lead rate weight from the saved results files")
     args = ap.parse_args()
+    if args.tune:
+        return tune()
     fmt = args.format
 
-    from metamatch.engine import synergy
+    from metamatch import meta_trends
+    from metamatch.engine import guide
     from metamatch.engine.guide import board_rows, member_facts, team_guide
+    WEIGHTS["rate"] = guide.LEAD_RATE_WEIGHT
+    prior = meta_trends.LEAD_PRIOR
 
     rows_out, seen, skipped, fallbacks, t0 = [], set(), 0, 0, time.time()
     all_games = games(fmt)
@@ -145,7 +140,7 @@ def main():
         if key in seen:            # the same player leading the same team the same way counts once
             continue
         seen.add(key)
-        team, usage, alias, fb = rebuild(members, fmt)
+        team, alias, fb = rebuild(members, fmt)
         if not team:
             skipped += 1
             continue
@@ -156,14 +151,17 @@ def main():
         name = lambda x: alias.get(x, x)       # back to the team preview species the lead is named by
         setters = {name(st["name"]) for e in g.engines for st in e.setters if st["ability"]}
         n = max(len(rows), 1)
+        rates = meta_trends.lead_rates(fmt, [m.name for m in facts])     # the same call the guide makes
+        filled = {name(k): (prior if r is None else r) for k, (r, _) in rates.items()}
+        listed = {name(k) for k, (_, ok) in rates.items() if ok}
         features = [{"name": name(m.name), "hazards": float(bool(m.hazards)), "setter": float(name(m.name) in setters),
-                     "pivots": float(bool(m.pivots)), "beats": len(m.beats) / n, "outspeeds": m.outspeeds}
-                    for m in facts]
-        rates = lead_rates(fmt, usage)
+                     "pivots": float(bool(m.pivots)), "beats": len(m.beats) / n, "outspeeds": m.outspeeds,
+                     "rate": filled[name(m.name)] - prior} for m in facts]
         win = name(g.win["name"]) if g.win else None
         rows_out.append({"id": rid, "side": side, "rating": rating, "lead": lead, "win": win,
                          "guide": [name(l["name"]) for l in g.leads], "features": features, "setters": sorted(setters),
-                         "rate_pick": [name(x) for x in sorted(rates, key=rates.get, reverse=True)[:2]] if rates else []})
+                         "lead_listed": any(to_id(lead) == to_id(x) for x in listed),
+                         "rate_pick": sorted(filled, key=filled.get, reverse=True)[:2]})
         if args.limit and len(rows_out) >= args.limit:
             break
 
@@ -218,6 +216,39 @@ def main():
         for r in rows_out:
             f.write(json.dumps(r) + "\n")
     print(f"\nPer game rows: {out.relative_to(ROOT)}")
+
+
+def tune():
+    """Lead rate weight for the guide: the best hit rate on even numbered replays (ties go to the smaller weight),
+    then reported once on the odd numbered ones it never saw, against the weight 0 guide."""
+    rows = []
+    for path in sorted((ROOT / "bench" / "results").glob("guide_leads_*.jsonl")):
+        rows += [dict(json.loads(l), fmt=path.stem.replace("guide_leads_", "")) for l in open(path, encoding="utf-8")]
+    if not rows:
+        print("No results yet: run leads.py for each format first")
+        return
+    split = lambda r: int(r["id"].rsplit("-", 1)[-1]) % 2
+    dev, test = [r for r in rows if split(r) == 0], [r for r in rows if split(r) == 1]
+    hit = lambda r, picks: any(to_id(r["lead"]) == to_id(p) for p in picks)
+    rate = lambda part, w: sum(hit(r, pick(r["features"], r["win"], dict(WEIGHTS, rate=w))) for r in part)
+    print(f"{len(rows)} games: {len(dev)} to pick the weight, {len(test)} to test it")
+    print("  weight  dev hit@2")
+    for w in RATE_GRID:
+        print(f"  {w:6g}  {rate(dev, w) / len(dev):.1%}")
+    best = max(RATE_GRID, key=lambda w: (rate(dev, w), -w))
+    print(f"\nPicked weight {best:g}. Held out test:")
+    parts = [("all formats", test)] + [(f, [r for r in test if r["fmt"] == f]) for f in sorted({r["fmt"] for r in test})]
+    parts.append(("lead has no measured rate", [r for r in test if not r.get("lead_listed")]))
+    for label, part in parts:
+        if not part:
+            continue
+        w0 = [hit(r, pick(r["features"], r["win"], dict(WEIGHTS, rate=0))) for r in part]
+        wb = [hit(r, pick(r["features"], r["win"], dict(WEIGHTS, rate=best))) for r in part]
+        gain, loss = sum(b and not a for a, b in zip(w0, wb)), sum(a and not b for a, b in zip(w0, wb))
+        base = sum(hit(r, r["rate_pick"]) for r in part)
+        print(f"  {label:26s} {len(part):4d} games: weight 0 {sum(w0) / len(part):.1%}, weight {best:g} "
+              f"{sum(wb) / len(part):.1%}, baseline {base / len(part):.1%} (gained {gain}, lost {loss}, "
+              f"McNemar p = {mcnemar(gain, loss):.2f})")
 
 
 if __name__ == "__main__":

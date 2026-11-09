@@ -73,6 +73,20 @@ class TestMetaTrends(unittest.TestCase):
         self.assertEqual([t["name"] for t in report["new"]], ["T13"])      # #14 last month, #1 now
         self.assertEqual(report["new"][0]["answers"], [])
 
+    def test_lead_rates_measure_estimate_or_stay_neutral(self):
+        from unittest.mock import patch
+        leads = {"gen9ou": {"2026-10": [["Glimmora", 6.0], ["Torkoal", 2.0]]}}
+        usage = {"Glimmora": 0.12, "Torkoal": 0.04, "Kingambit": 0.30, "Lurantis": 0.001}
+        fake = lambda name, fmt: (name, {"usage": usage[name]}) if name in usage else (None, None)
+        with patch("metamatch.engine.sets.chaos_entry", side_effect=fake):
+            r = mt.lead_rates("gen9ou", ["Glimmora", "Torkoal", "Kingambit", "Lurantis", "Missingno"], history=leads)
+        self.assertAlmostEqual(r["Glimmora"][0], 0.5)            # 6% of leads, on 12% of teams
+        self.assertTrue(r["Glimmora"][1])
+        self.assertAlmostEqual(r["Kingambit"][0], 0.02 / 0.30 / 2)  # common but never a top lead: rarely leads
+        self.assertFalse(r["Kingambit"][1])
+        self.assertEqual(r["Lurantis"], (None, False))           # too rare to tell
+        self.assertEqual(r["Missingno"], (None, False))          # no usage in the format
+
 
 if __name__ == "__main__":
     unittest.main()
