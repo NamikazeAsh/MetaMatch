@@ -370,12 +370,15 @@ def sidebar_rule():
             'rgba(255,255,255,0.06) 60%, transparent)"></div>')
 
 
+SIDEBAR_RECENT = 3   # recent teams shown in the sidebar (the store keeps more)
+
+
 def recent_teams_sidebar(exclude=None):
     """'Pick up where you left off': the last few analysed teams, each a link to its /team page.
     True when it showed anything, so callers only draw a divider between sections that exist."""
     if not config.LOCAL_MODE:
         return False
-    recents = [t for t in storage.recent_teams(limit=5) if t['id'] != exclude][:4]
+    recents = [t for t in storage.recent_teams(limit=SIDEBAR_RECENT + 1) if t['id'] != exclude][:SIDEBAR_RECENT]
     if not recents:
         return False
     st.markdown("**Pick up where you left off**")
@@ -429,7 +432,7 @@ def render_team_sidebar():
     with st.sidebar:
         st.page_link(HOME_PAGE, label="Analyze another team", icon=":material/edit_note:", width="stretch")
         # Each section draws its own divider only when it renders, so empty ones never leave a double line
-        if config.LOCAL_MODE and [t for t in storage.recent_teams(limit=5) if t['id'] != st.session_state.get("team_id")]:
+        if config.LOCAL_MODE and [t for t in storage.recent_teams(limit=2) if t['id'] != st.session_state.get("team_id")]:
             sidebar_rule()
             recent_teams_sidebar(exclude=st.session_state.get("team_id"))
 
