@@ -46,7 +46,8 @@ class CalcClient:
 
     def calculate_many(self, requests):
         """Runs a batch of calc requests. Returns one result dict (or None on error) per request.
-        Large batches go in chunks: writing everything before reading fills the pipes and stalls on Windows."""
+        Requests are written on a separate thread while this one reads the answers: writing a whole batch before
+        reading deadlocks once Node's answers fill its stdout pipe (answers with long descriptions did it at 32)."""
         if not requests:
             return []
         if len(requests) > CHUNK:
@@ -58,18 +59,32 @@ class CalcClient:
             proc = self._ensure()
             if proc is None:
                 return [None] * len(requests)
-            ids = []
+            ids = [next(self._ids) for _ in requests]
+            lines = "".join(json.dumps({**req, "id": rid}) + "\n" for req, rid in zip(requests, ids))
+            failed = []
+
+            def write():
+                try:
+                    proc.stdin.write(lines)
+                    proc.stdin.flush()
+                except OSError as e:
+                    failed.append(e)
+
+            writer = threading.Thread(target=write, daemon=True)
+            writer.start()
+            by_id = {}
             try:
-                for req in requests:
-                    rid = next(self._ids)
-                    ids.append(rid)
-                    proc.stdin.write(json.dumps({**req, "id": rid}) + "\n")
-                proc.stdin.flush()
-                by_id = {}
                 for _ in ids:
-                    resp = json.loads(proc.stdout.readline())
+                    line = proc.stdout.readline()
+                    if not line:
+                        raise OSError("calc sidecar closed its output")
+                    resp = json.loads(line)
                     by_id[resp.get("id")] = resp
             except (OSError, ValueError):
+                self.close()
+                return [None] * len(requests)
+            writer.join()
+            if failed:
                 self.close()
                 return [None] * len(requests)
         return [by_id.get(rid) if by_id.get(rid, {}).get("ok") else None for rid in ids]
