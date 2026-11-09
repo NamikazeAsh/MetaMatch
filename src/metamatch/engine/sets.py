@@ -55,23 +55,40 @@ def _stats_twin(name, format_id):
     return base["name"]
 
 
-def speed_distribution(name, format_id, entry=None):
-    """[(speed stat, share of sets)] grouped by final Speed, most common first (ignores Scarf)."""
+def speed_spreads(name, format_id, entry=None):
+    """{speed stat: [(raw spread, share of sets)]}: the ladder spreads behind each final Speed (ignores Scarf)."""
     if entry is None:
         _, entry = chaos_entry(name, format_id)
     dex = dex_for_format(format_id)
     species = dex.species(name) if dex else None
     if not entry or not species:
-        return []
+        return {}
     game = config.format_game(format_id)
     total = sum(entry.get("Abilities", {}).values()) or 1
-    speeds = {}
+    groups = {}
     for spread, weight in entry.get("Spreads", {}).items():
         nature, evs = _parse_spread(spread)
         mod = 1.1 if nature in SPEED_PLUS else 0.9 if nature in SPEED_MINUS else 1.0
         spe = calculate_speed(species["baseStats"]["spe"], evs["spe"], 31, mod, "", game)
-        speeds[spe] = speeds.get(spe, 0) + weight / total
+        groups.setdefault(spe, []).append((spread, weight / total))
+    return groups
+
+
+def speed_distribution(name, format_id, entry=None):
+    """[(speed stat, share of sets)] grouped by final Speed, most common first (ignores Scarf)."""
+    speeds = {spe: sum(share for _, share in spreads) for spe, spreads in speed_spreads(name, format_id, entry).items()}
     return sorted(speeds.items(), key=lambda x: x[1], reverse=True)
+
+
+STAT_LABELS = {"hp": "HP", "atk": "Atk", "def": "Def", "spa": "SpA", "spd": "SpD", "spe": "Spe"}
+
+
+def spread_label(spread, format_id=None):
+    """'Impish:248/0/228/0/0/32' -> 'Impish 248 HP / 228 Def / 32 Spe' (Champions stat points end in ' SP')."""
+    nature, evs = _parse_spread(spread)
+    points = " / ".join(f"{v} {STAT_LABELS[k]}" for k, v in evs.items() if v)
+    unit = " SP" if points and format_id and config.format_game(format_id) == "champions" else ""
+    return f"{nature} {points}{unit}" if points else f"{nature}, no investment"
 
 
 def likely_set(name, format_id, known=None):

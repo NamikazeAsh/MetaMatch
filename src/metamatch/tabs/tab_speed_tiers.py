@@ -19,7 +19,8 @@ def _data(team_json, format_id, stats_month):
     mine = sb.member_speeds(team, format_id)
     exclude = [p["Pokemon"] for p in team.values()]
     meta = sb.meta_speeds(format_id, n=N_META, exclude=exclude)
-    return mine, [{"name": m.name, "usage": m.usage, "speeds": m.speeds, "scarf": m.scarf_share} for m in meta]
+    return mine, [{"name": m.name, "usage": m.usage, "speeds": m.speeds, "scarf": m.scarf_share, "spreads": m.spreads}
+                  for m in meta]
 
 
 def _stats_month():
@@ -30,7 +31,12 @@ def _stats_month():
 
 
 def _meta_obj(m):
-    return sb.MetaSpeed(m["name"], m["usage"], [tuple(x) for x in m["speeds"]], m["scarf"])
+    return sb.MetaSpeed(m["name"], m["usage"], [tuple(x) for x in m["speeds"]], m["scarf"], m.get("spreads", {}))
+
+
+def _spreads(m, spe):
+    """The most run spreads behind one dot, one per line with its share of the Pokemon's sets."""
+    return "\n".join(f"{label} ({share * 100:.0f}%)" for label, share in m.get("spreads", {}).get(spe, []))
 
 
 def _chart(mine, meta, colors):
@@ -42,14 +48,16 @@ def _chart(mine, meta, colors):
             if share >= MIN_SHARE:
                 points.append({"Pokemon": m["name"], "Speed": spe, "Share": round(share * 100, 1), "Kind": "Ladder spread",
                                "Note": f"{share * 100:.0f}% of {m['name']} sets", "Usage": f"on {m['usage']:g}% of teams",
-                               "Color": "#7d879b"})
+                               "Spreads": _spreads(m, spe), "Color": "#7d879b"})
         if m["scarf"] >= 0.05 and m["speeds"]:
             points.append({"Pokemon": m["name"], "Speed": int(m["speeds"][0][0] * 1.5), "Share": round(m["scarf"] * 100, 1),
                            "Kind": "With Choice Scarf", "Note": f"{m['scarf'] * 100:.0f}% hold Choice Scarf",
-                           "Usage": f"on {m['usage']:g}% of teams", "Color": "#f5b13d"})
+                           "Usage": f"on {m['usage']:g}% of teams", "Spreads": _spreads(m, m["speeds"][0][0]),
+                           "Color": "#f5b13d"})
     for name, spe in mine.items():
         points.append({"Pokemon": f"{name} (yours)", "Speed": spe, "Share": 100.0, "Kind": "Your team",
-                       "Note": "your Speed, with your item", "Usage": "your team", "Color": colors.get(name, "#22d3ee")})
+                       "Note": "your Speed, with your item", "Usage": "your team", "Spreads": "the spread you pasted",
+                       "Color": colors.get(name, "#22d3ee")})
     df = pd.DataFrame(points)
     order = df.groupby("Pokemon")["Speed"].max().sort_values(ascending=False).index.tolist()
     yours = "indexof(datum.label, '(yours)') >= 0"
@@ -59,7 +67,9 @@ def _chart(mine, meta, colors):
         labelFontWeight=alt.condition(yours, alt.value(800), alt.value(500))))
     x = alt.X("Speed:Q", scale=alt.Scale(zero=False, nice=True),
               axis=alt.Axis(title="Speed stat", titleColor="#8a93a6", titleFontWeight=600, labelColor="#8a93a6"))
-    base = alt.Chart(df).encode(y=y, x=x, tooltip=["Pokemon", "Speed", "Note", "Usage"])
+    tips = [alt.Tooltip("Pokemon:N", title="Pokémon"), alt.Tooltip("Speed:Q"), alt.Tooltip("Note:N", title="Share"),
+            alt.Tooltip("Spreads:N", title="Spreads"), alt.Tooltip("Usage:N", title="Usage")]
+    base = alt.Chart(df).encode(y=y, x=x, tooltip=tips)
     team = df[df.Kind == "Your team"]
     lines = alt.Chart(team).mark_rule(strokeWidth=2, opacity=0.28, strokeDash=[4, 4]).encode(
         x="Speed:Q", color=alt.Color("Color:N", scale=None))

@@ -96,6 +96,19 @@ class TestSpeedBoard(unittest.TestCase):
         self.assertAlmostEqual(outspeed_share(460, m), 1.0)
         self.assertAlmostEqual(outspeed_share(260, m), 0.1)     # only the unscarfed 250s
 
+    def test_spread_labels_read_like_a_paste(self):
+        from metamatch.engine.sets import spread_label
+        self.assertEqual(spread_label("Impish:248/0/228/0/0/32", "gen9ou"), "Impish 248 HP / 228 Def / 32 Spe")
+        self.assertEqual(spread_label("Jolly:2/32/0/0/0/32", "gen9championsou"), "Jolly 2 HP / 32 Atk / 32 Spe SP")
+
+    def test_each_speed_lists_the_spreads_that_make_it(self):
+        from metamatch.engine.sets import speed_distribution, speed_spreads
+        groups = speed_spreads("Corviknight", "gen9ou")
+        if not groups:
+            self.skipTest("No OU usage stats downloaded")
+        for spe, share in speed_distribution("Corviknight", "gen9ou"):
+            self.assertAlmostEqual(share, sum(s for _, s in groups[spe]))
+
 
 @unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
 class TestCompleter(unittest.TestCase):
