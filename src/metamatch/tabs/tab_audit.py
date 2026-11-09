@@ -29,6 +29,10 @@ CHECK_STYLE = """
 .au-mon img { width: 64px; height: 64px; object-fit: contain; }
 .au-mon .au-name { font-weight: 700; color: #00d4ff; margin-bottom: 4px; }
 .au-mon .ck { margin: 0 0 4px; padding: 6px 8px; grid-template-columns: 18px 1fr; font-size: .88rem; }
+.au-conv { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; }
+.au-conv span { padding: 3px 10px; border-radius: 999px; background: rgba(0,212,255,.06); border: 1px solid rgba(0,212,255,.2);
+  color: #c8d3e0; font-size: .8rem; }
+.au-conv b { color: #7fe6ff; }
 @media (max-width: 900px) { .au-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .au-mons { grid-template-columns: 1fr; } }
 </style>
 """
@@ -57,17 +61,30 @@ def render_team_check():
         with c2:
             st.markdown("**As Champions stat points**" if not champions else "**As SV EVs**")
             st.code(team_check.convert_paste(paste, to_champions=not champions).strip(), language=None)
-            st.caption("1 stat point is about 8 EVs: 252 EVs becomes 32 points, and 4 EVs becomes 1."
-                       + (" Tera Type lines are dropped, since Champions has no Tera." if not champions else ""))
+            chips = (["<b>8</b> EVs is about <b>1</b> stat point", "<b>252</b> EVs → <b>32</b>", "<b>4</b> EVs → <b>1</b>",
+                      "Tera lines dropped: Champions has no Tera"] if not champions else
+                     ["<b>1</b> stat point is about <b>8</b> EVs", "<b>32</b> → <b>252</b> EVs", "<b>1</b> → <b>8</b> EVs"])
+            st.markdown(CHECK_STYLE + '<div class="au-conv">' + "".join(f"<span>{c}</span>" for c in chips) + "</div>",
+                        unsafe_allow_html=True)
         try:
             from metamatch.tabs.tab_threats import _board, _stats_month
             import json
-            board = _board(json.dumps(team, sort_keys=True, default=str), format_id, _stats_month())
+            month = _stats_month()
+            board = _board(json.dumps(team, sort_keys=True, default=str), format_id, month)
         except Exception:
-            board = None
-        report = team_check.report_markdown(team, format_id, paste, checks, board)
-        st.download_button("Download team report (Markdown)", report, file_name="metamatch_team_report.md",
-                           mime="text/markdown")
+            month, board = "", None
+        try:
+            from metamatch import meta_pulse
+            pdf = team_check.report_pdf(team, format_id, checks, board, meta_pulse.month_label(month) if month else "")
+        except Exception:
+            pdf = None   # fpdf2 missing: the Markdown report still works
+        b1, b2, _ = st.columns([1.3, 1, 2])
+        if pdf:
+            b1.download_button("Download team report", pdf, file_name="metamatch_team_report.pdf", mime="application/pdf",
+                               icon=":material/picture_as_pdf:", type="primary", width="stretch")
+        (b2 if pdf else b1).download_button("Markdown", team_check.report_markdown(team, format_id, paste, checks, board),
+                                            file_name="metamatch_team_report.md", mime="text/markdown",
+                                            icon=":material/description:", width="stretch")
     st.markdown("---")
 
 
@@ -90,7 +107,7 @@ def _per_member(findings):
     if clean:
         chips = "".join(f'<span class="au-chip"><img src="{escape(get_sprite(n) or "")}" alt="">{escape(n)}</span>'
                         for n in clean)
-        lead = "Every set looks standard:" if not flagged else "Look standard:"
+        lead = "Every set matches what ladder players run:" if not flagged else "Match what ladder players run:"
         html += f'<div class="au-clean">{lead}{chips}</div>'
     if flagged:
         html += '<div class="au-mons">' + "".join(

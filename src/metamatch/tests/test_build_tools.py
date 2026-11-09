@@ -214,6 +214,23 @@ class TestTeamCheck(unittest.TestCase):
         self.assertIn("EVs: 32 Atk / 1 SpD / 32 Spe", out)
         self.assertNotIn("Tera Type", out)
 
+    def test_pdf_report_carries_the_sets_checks_and_board(self):
+        from io import BytesIO
+        from metamatch.engine.team_check import check, report_pdf
+        team, _ = readTeam(TEAM, "gen9ou")
+        board = [{"name": "Great Tusk", "usage": 30.1, "answers": []}, {"name": "Raging Bolt", "usage": 20.4, "answers": ["Kingambit"]}]
+        pdf = report_pdf(team, "gen9ou", check(team, "gen9ou"), board, "October 2026")
+        self.assertTrue(pdf.startswith(b"%PDF"))
+        try:
+            from pypdf import PdfReader   # dev only: reading the text back
+        except ImportError:
+            return
+        reader = PdfReader(BytesIO(pdf))
+        text = " ".join(page.extract_text() for page in reader.pages)
+        self.assertEqual(len(reader.pages), 1)
+        for said in ("Kingambit @", "Kowtow Cleave", "Legal for OU", "Nobody on the team", "October 2026"):
+            self.assertIn(said, text)
+
 
 
 @unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")

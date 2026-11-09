@@ -8,3 +8,4 @@ altair
 chromadb
 sentence-transformers
 Pillow
+fpdf2

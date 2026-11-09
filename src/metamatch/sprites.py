@@ -66,6 +66,16 @@ def get_sprite(name: str) -> str | None:
     return None if forme in _missing else f"{REMOTE}home-centered/{forme}.png"
 
 
+def sprite_file(name: str) -> Path | None:
+    """The local sprite file for `name` (downloaded on first use), for documents that embed the image itself."""
+    if not name:
+        return None
+    for sprite_id in dict.fromkeys(sprite_ids(name)):
+        if _on_disk(sprite_id):
+            return SPRITE_DIR / f"{sprite_id}.png"
+    return None
+
+
 # --- Item, Tera and type icons -------------------------------------------------------------------
 # Same idea as the sprites: downloaded once into the gitignored static/sprites folder, never shipped in the repo.
 ITEM_DIR = SPRITE_DIR / "items"
