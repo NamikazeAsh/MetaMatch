@@ -520,13 +520,42 @@ def format_picker():
         )
 
 
+def _icon(paths):
+    """A small cyan line icon as a data URI image (st.html strips inline SVG)."""
+    import base64
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" '
+           f'stroke-linecap="round" stroke-linejoin="round">{paths}</svg>')
+    return f'<img alt="" src="data:image/svg+xml;base64,{base64.b64encode(svg.encode()).decode()}">'
+HERO_HEAD = """
+<style>
+.th-row { display:flex; align-items:center; justify-content:space-between; gap:12px 16px; flex-wrap:wrap; margin:2px 0 4px; }
+.th-t { font-size:1.35rem; font-weight:700; color:#e8ecf3; letter-spacing:-0.2px; line-height:1.3; }
+.th-pills { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.th-lbl { font-size:0.72rem; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:#7f8aa0; }
+.th-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 11px 4px 9px; border-radius:999px;
+  font-size:0.8rem; font-weight:600; color:#bdefff; background:rgba(0,212,255,0.08);
+  border:1px solid rgba(0,212,255,0.32); box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); white-space:nowrap; }
+.th-pill img { width:14px; height:14px; flex-shrink:0; }
+@media (max-width: 520px) { .th-lbl { display:none; } }
+</style>
+<div class="th-row"><div class="th-t">Paste your team to get the full dashboard</div>
+<div class="th-pills"><span class="th-lbl">Accepts</span>
+<span class="th-pill">""" + _icon('<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14'
+                                   'a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 12h8M8 16h5"/>') + \
+    """Showdown export</span>
+<span class="th-pill">""" + _icon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
+                                   '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>') + \
+    """PokéPaste link</span></div></div>
+"""
+
+
 def home_page():
     render_home_sidebar()
     render_logo()
     # Start screen: the team input is the hero, this month's MetaFlash sits under it; recent teams live in the sidebar
     format_picker()
     with st.container(border=True, key="team_hero"):
-        st.markdown("#### Paste your team to get the full dashboard")
+        st.html(HERO_HEAD)
         with st.form("team_form", border=False):
             pokemon_data = st.text_area(
                 "Team",
