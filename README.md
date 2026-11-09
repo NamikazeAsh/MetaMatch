@@ -266,6 +266,7 @@ A game plan for your team, written by the engine instead of a chatbot.
 
 * **Built from your matchups:** every line comes from the Threat Board, Speed Tiers and type chart, so it only names moves your team actually runs.
 * **Knows what your team is built around:** finds your sun, rain, sand, snow, terrain, Trick Room, Tailwind or screens core and measures it with the calc, like a Chlorophyll Venusaur going from 284 to 568 Speed behind Torkoal's sun, and notices when a core is missing its setter.
+* **Reads abilities:** says what an ability does for the plan, measured with the calc when it can be, like the extra 2HKOs Supreme Overlord gives Kingambit with three teammates down or Guts gives Ursaluna once Flame Orb burns it, and names entry abilities like Intimidate and Magic Bounce on lead cards.
 * **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions), pairs that cover each other, and the threats to watch.
 * **Leads checked against real games:** leads weigh hazards, weather setters and pivots alongside how often ladder players open with each Pokémon. On held out ladder replays the two picks include the player's actual lead 51% of the time, against 45% for lead popularity alone and 33% by chance.
 * **Works offline:** no language model needed, so it appears instantly.

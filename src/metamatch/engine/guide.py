@@ -7,7 +7,7 @@ a member doesn't run or a mechanic that doesn't exist, and it works with Ollama 
 from dataclasses import dataclass, field, replace
 
 from metamatch import config, meta_trends
-from metamatch.engine import speed_board
+from metamatch.engine import abilities, speed_board
 from metamatch.engine import threat_board as tb
 from metamatch.engine import synergy
 from metamatch.engine.constraints import SETUP_MOVES
@@ -311,6 +311,24 @@ def _watch(rows, n=3):
     return out
 
 
+def _add_abilities(guide, team, format_id):
+    """One ability line on the win condition card (what it does for the sweep, measured where the calc can) and on
+    a lead card when the ability acts the moment it comes in (Intimidate, Magic Bounce, Prankster...)."""
+    cards = ([guide.win] if guide.win else []) + guide.leads
+    try:
+        lines = abilities.ability_lines(team, format_id, names={c["name"] for c in cards})
+    except Exception:
+        return
+    for card in cards:
+        line = lines.get(card["name"])
+        if not line or (card is not guide.win and not line.lead):
+            continue
+        at = next((i for i, pt in enumerate(card["points"]) if pt.startswith("Beats ")), len(card["points"]))
+        card["points"].insert(at, line.text)
+    if guide.win:
+        guide.win["text"] = f"{guide.win['name']} is your best route to a win. " + " ".join(p + "." for p in guide.win["points"])
+
+
 def team_guide(team, format_id=None, rows=None):
     """The whole guide for a team. rows: Threat Board rows as dicts (board_rows), computed when not given."""
     format_id = format_id or config.team_format(team)
@@ -330,6 +348,7 @@ def team_guide(team, format_id=None, rows=None):
     except Exception:
         rates = {}
     guide.leads = _leads(members, n, guide.win["name"] if guide.win else None, entry, rates)
+    _add_abilities(guide, team, format_id)
     if config.format_game(format_id) == "champions":
         guide.mega = _mega(team, format_id)
     else:
