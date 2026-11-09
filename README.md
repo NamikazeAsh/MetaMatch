@@ -265,6 +265,7 @@ Paste the team you're about to face, even just the six names from team preview.
 A game plan for your team, written by the engine instead of a chatbot.
 
 * **Built from your matchups:** every line comes from the Threat Board, Speed Tiers and type chart, so it only names moves your team actually runs.
+* **Knows what your team is built around:** finds your sun, rain, sand, snow, terrain, Trick Room, Tailwind or screens core and measures it with the calc, like a Chlorophyll Venusaur going from 284 to 568 Speed behind Torkoal's sun, and notices when a core is missing its setter.
 * **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions), pairs that cover each other, and the threats to watch.
 * **Works offline:** no language model needed, so it appears instantly.
 

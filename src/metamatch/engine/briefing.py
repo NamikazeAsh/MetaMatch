@@ -178,6 +178,24 @@ def win_conditions(team):
             if "Setup Sweeper" in r or ("Weather Abuser" in r and has_setter)]
 
 
+def _engine_facts(team, format_id, per_engine=3):
+    """Plain lines about each team engine for the coach's facts block; [] without the calc or a core."""
+    from metamatch.engine import synergy
+    try:
+        engines = synergy.team_engines(team, format_id)
+    except Exception:
+        return []
+    lines = []
+    for e in engines[:3]:
+        lines.append(synergy.describe(e))
+        detail = [f"{u.name}: {pt}" for u in e.users if u.major for pt in u.points[:2]][:per_engine]
+        detail += e.drawbacks[:2]
+        if e.partners:
+            detail.append(f"Ladder players pair it with {', '.join(e.partners)}")
+        lines += [f"  {d}" for d in detail]
+    return lines
+
+
 @dataclass
 class Briefing:
     facts: str = ""                                  # ENGINE FACTS block for the LLM prompt
@@ -204,6 +222,12 @@ def strategy_briefing(team, opponents=(), n_threats=3):
     if wincons:
         sections.append("Likely win conditions (setup sweepers and weather abusers): " + ", ".join(wincons) + ".")
         bullets.append(f"**Likely win conditions:** {', '.join(wincons)}")
+
+    # The cores the team is built around (sun, rain, Trick Room...), measured with the calc
+    engine_lines = _engine_facts(team, format_id)
+    if engine_lines:
+        sections.append("Team engines:\n" + "\n".join(f"  - {l.strip()}" if l.startswith("  ") else f"- {l}" for l in engine_lines))
+        bullets.append("**Team engines:** " + "; ".join(l for l in engine_lines if not l.startswith("  ")))
 
     # Threat verdicts only when no opponent was named, to keep the prompt short
     if not opponents:

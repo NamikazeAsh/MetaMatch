@@ -70,9 +70,11 @@ def member_from_set(s, format_id):
     for m, _ in s.get("moves", []):
         data = dex.move(m) if dex else None
         moves.append({"name": m, "category": (data or {}).get("category"), "type": (data or {}).get("type")})
+    species = (dex.species(s["name"]) if dex else None) or {}
     return {"Pokemon": s["name"], "Item": s.get("item") or "", "Ability": s.get("ability") or "",
             "Nature": s.get("nature"), ("SP" if champions else "EVs"): spread, "EVs" if champions else "SP": {},
-            "Moves": moves, "Format": format_id, "Speed": (s.get("speeds") or [(0, 0)])[0][0]}
+            "Moves": moves, "Format": format_id, "Speed": (s.get("speeds") or [(0, 0)])[0][0],
+            "Type": list(species.get("types") or [])}
 
 
 def _missing_roles(team):

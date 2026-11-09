@@ -51,6 +51,42 @@ STYLE = """
 .cg-threat small { color: #fca5a5; font-size: .82rem; }
 @media (max-width: 900px) { .cg-combos, .cg-watch { grid-template-columns: 1fr; } .cg-win { grid-template-columns: 80px 1fr; }
   .cg-win img { width: 80px; height: 80px; } }
+.cg-engs { display:grid; gap:14px; margin:4px 0 6px; }
+.cg-eng { border-radius:18px; padding:16px 18px; min-width:0;
+  background:radial-gradient(circle at 4% 0%, color-mix(in srgb, var(--c) 22%, transparent), transparent 45%), linear-gradient(145deg, #1c2232, #141924);
+  border:1px solid color-mix(in srgb, var(--c) 35%, transparent);
+  box-shadow:10px 10px 24px rgba(0,0,0,0.45), -6px -6px 16px rgba(255,255,255,0.025), inset 1px 1px 0 rgba(255,255,255,0.05); }
+.cg-eng.half { border:1px dashed rgba(255,216,102,0.5); background:linear-gradient(145deg, #1c2030, #151924); }
+.cg-eng-head { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.cg-eng-ico { width:46px; height:46px; border-radius:50%; display:grid; place-items:center; flex-shrink:0;
+  background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 75%, #fff), var(--c) 60%);
+  box-shadow:0 0 18px -3px var(--c), inset 0 -3px 5px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.3); }
+.cg-eng.half .cg-eng-ico { filter:grayscale(0.6); }
+.cg-eng-ico i { display:block; width:24px; height:24px; background-size:contain; background-repeat:no-repeat; background-position:center; }
+.cg-eng-k { font-size:0.62rem; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:#8a93a6; }
+.cg-eng-t { font-size:1.25rem; font-weight:900; color:#fff; line-height:1.1; }
+.cg-eng-setters { display:flex; flex-wrap:wrap; align-items:center; gap:8px; flex:1 1 260px; min-width:0; }
+.cg-eng-setter { display:inline-flex; align-items:center; gap:6px; padding:3px 12px 3px 3px; border-radius:999px;
+  background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); font-size:0.8rem; color:#d6dbe6; }
+.cg-eng-setter img { width:30px; height:30px; object-fit:contain; }
+.cg-eng-setter b { color:#fff; }
+.cg-eng-ladder { margin-left:auto; font-size:0.72rem; font-weight:700; color:#7fe6ff; padding:3px 10px; border-radius:999px;
+  background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.25); }
+.cg-eng-users { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; margin-top:14px; }
+.cg-eng-user { display:grid; grid-template-columns:56px minmax(0, 1fr); gap:12px; align-items:start; padding:10px 12px; border-radius:14px;
+  background:rgba(0,0,0,0.22); border:1px solid rgba(255,255,255,0.06); }
+.cg-eng-user img { width:56px; height:56px; object-fit:contain; filter:drop-shadow(0 0 8px color-mix(in srgb, var(--c) 55%, transparent)); }
+.cg-eng-user .nm { font-weight:800; color:#fff; margin-bottom:4px; }
+.cg-eng-user .cg-point { font-size:0.82rem; }
+.cg-eng-minor { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:10px; font-size:0.74rem; color:#8a93a6; }
+.cg-eng-chip { display:inline-flex; align-items:center; gap:5px; padding:2px 10px 2px 2px; border-radius:999px; color:#d6dbe6;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); }
+.cg-eng-chip img { width:24px; height:24px; object-fit:contain; }
+.cg-eng-foot { display:flex; flex-direction:column; gap:4px; margin-top:12px; }
+.cg-eng-line { display:grid; grid-template-columns:18px 1fr; gap:6px; font-size:0.8rem; color:#c8ccd4; }
+.cg-eng-line b.bad { color:#ffd866; } .cg-eng-line b.ok { color:#5fd38d; }
+.cg-eng-half { font-size:0.9rem; color:#e6eaf2; margin-top:10px; }
+@media (max-width: 900px) { .cg-eng-users { grid-template-columns:minmax(0, 1fr); } .cg-eng-ladder { margin-left:0; } }
 </style>
 """
 
@@ -136,6 +172,60 @@ def _watch(watch):
     return f'<div class="cg-head">Watch out for</div><div class="cg-watch">{cards}</div>'
 
 
+def _cond_icon(icon_type, type_map):
+    from metamatch.sprites import get_type_icon
+    glyph = get_type_icon(icon_type)
+    inner = f'<i style="background-image:url({glyph})"></i>' if glyph else ""
+    return f'<span class="cg-eng-ico">{inner}</span>'
+
+
+def _minor_chip(u):
+    """'Dragapult · Flamethrower 5 to 7 2HKOs' when the calc found a gain, else its first rule."""
+    if u.damage:
+        move, off, on, _ = u.damage
+        label = f"{move} {off} → {on} 2HKOs"
+    else:
+        label = u.points[0] if u.points else ""
+    return f'<span class="cg-eng-chip">{_img(u.name)}<b>{escape(u.name)}</b> · {escape(label)}</span>'
+
+
+def _engine(e, type_map):
+    from metamatch.engine import synergy
+    color = type_map.get(e.icon, {}).get("color", "#00d4ff")
+    if not e.setters:
+        partners = "".join(f'<span class="cg-eng-chip">{_img(n)}{escape(n)}</span>' for n in e.partners)
+        partner_line = (f'<div class="cg-eng-minor">Ladder players pair it with {partners}</div>' if partners else "")
+        return (f'<div class="cg-eng half" style="--c:{color}"><div class="cg-eng-head">{_cond_icon(e.icon, type_map)}'
+                f'<div><div class="cg-eng-k">Half built</div><div class="cg-eng-t">{escape(e.label)}</div></div></div>'
+                f'<div class="cg-eng-half">{escape(synergy.describe(e))}.</div>'
+                + "".join(f'<div class="cg-eng-line"><b class="bad">!</b><span>{escape(u.name)}: {escape(u.points[0])}</span></div>'
+                          for u in e.users if u.major)
+                + partner_line + "</div>")
+    setters = "".join(f'<span class="cg-eng-setter">{_img(st["name"])}<b>{escape(st["name"])}</b> {escape(" · ".join(st["how"]))}</span>'
+                      for st in e.setters)
+    ladder = f'<span class="cg-eng-ladder">{escape(e.ladder)}</span>' if e.ladder else ""
+    major = [u for u in e.users if u.major]
+    minor = [u for u in e.users if not u.major]
+    rows = "".join(f'<div class="cg-eng-user">{_img(u.name)}<div style="min-width:0"><div class="nm">{escape(u.name)}</div>'
+                   f'{_points(u.points[:4])}</div></div>' for u in major)
+    users = f'<div class="cg-eng-users">{rows}</div>' if rows else ""
+    side = (f'<div class="cg-eng-minor">Also boosted {"".join(_minor_chip(u) for u in minor)}</div>' if minor else "")
+    foot = "".join(f'<div class="cg-eng-line"><b class="bad">!</b><span>{escape(d)}</span></div>' for d in e.drawbacks)
+    foot += "".join(f'<div class="cg-eng-line"><b class="ok">✓</b><span>{escape(d)}</span></div>' for d in e.defense)
+    kicker = "Always on" if e.always_on else "Team engine"
+    return (f'<div class="cg-eng" style="--c:{color}"><div class="cg-eng-head">{_cond_icon(e.icon, type_map)}'
+            f'<div><div class="cg-eng-k">{kicker}</div><div class="cg-eng-t">{escape(e.label)}</div></div>'
+            f'<div class="cg-eng-setters">{setters}</div>{ladder}</div>{users}{side}'
+            + (f'<div class="cg-eng-foot">{foot}</div>' if foot else "") + "</div>")
+
+
+def _engines(engines, type_map):
+    if not engines:
+        return ""
+    return ('<div class="cg-head">Team engines</div><div class="cg-engs">'
+            + "".join(_engine(e, type_map) for e in engines) + "</div>")
+
+
 def render(type_map=None):
     from metamatch.tabs.tab_threats import _stats_month
     type_map = type_map or {}
@@ -151,6 +241,8 @@ def render(type_map=None):
         st.info("The guide needs the damage calc and this format's usage data.")
         return
     st.markdown(STYLE + _win(g.win), unsafe_allow_html=True)
+    if g.engines:
+        st.markdown(STYLE + _engines(g.engines, type_map), unsafe_allow_html=True)
     left, right = st.columns(2)
     with left:
         st.markdown(STYLE + _leads(g.leads) + _watch(g.watch), unsafe_allow_html=True)
