@@ -7,6 +7,10 @@ from html import escape
 
 import streamlit as st
 
+# The team page's analysis tabs, in order (the guided tour opens them by these labels)
+DASHBOARD_TABS = ("Team Overview", "Audit", "Threat Board", "Recommendations", "Matchup Matrices", "Speed Tiers",
+                  "Coach Guide", "Coach Chat")
+
 CSS = """
 <style>
 .ui-ph { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding-bottom:14px; margin:6px 2px 14px;

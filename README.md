@@ -178,6 +178,7 @@ The home screen opens on a magazine style front page of what the ladder is doing
 * **Pick up where you left off:** your last teams sit in the sidebar as sprite cards, one click from reopening.
 * **A coach chat per team:** each team keeps its own conversation, and it survives a refresh.
 * **Always fresh analysis:** saved and recent teams store only the paste, so reopening one runs the current engine and this month's stats.
+* **Guided tour:** first time visitors get a one minute spotlight walkthrough of the real app on the sample team, and it is always one click away in the sidebar.
 * **Crash safe storage:** teams, chats and preferences live in a local SQLite database with atomic writes, so two tabs saving at once can never lose your saved teams. Everything stays on your machine.
 
 ### 🤖 Multi Agent Chat

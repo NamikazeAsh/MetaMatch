@@ -23,9 +23,10 @@ from metamatch.team import readTeam, detectRole, addComments, coverageCheck, loo
 from metamatch.suggestions import get_suggestions
 from metamatch import config
 from metamatch import storage
+from metamatch import tour
 from metamatch import strategy_data
 from metamatch import meta_pulse
-from metamatch.ui import page_header, section_header
+from metamatch.ui import DASHBOARD_TABS, page_header, section_header
 from metamatch.tabs import (
     tab_banner,
     tab_quick_match, tab_move_search, tab_replay,
@@ -425,6 +426,7 @@ def render_home_sidebar():
         if shown:
             sidebar_rule()
         paste_help()
+        tour.start_button()
 
 
 def render_team_sidebar():
@@ -448,6 +450,8 @@ def render_team_sidebar():
                         st.success(f"Saved '{team_name.strip()}'!")
                     else:
                         st.error("Please enter a name for the team.")
+        sidebar_rule()
+        tour.start_button()
 
 
 @st.cache_resource
@@ -532,8 +536,21 @@ HERO_HEAD = """
 """
 
 
+def _tour_home():
+    st.switch_page(HOME_PAGE)
+
+
+def _tour_team():
+    """The tour's team steps run on the team already open, else on the sample team."""
+    if st.session_state.get("analysis") and st.session_state.get("team_id"):
+        st.switch_page(TEAM_PAGE, query_params={"t": st.session_state.team_id})
+    open_team(SAMPLE_TEAM, "gen9ou")
+
+
 def home_page():
+    tour.redirect("home", _tour_home, _tour_team)
     render_home_sidebar()
+    tour.offer()
     render_logo()
     # Start screen: the team input is the hero, this month's MetaFlash sits under it; recent teams live in the sidebar
     format_picker()
@@ -562,6 +579,7 @@ def home_page():
 
     # MetaFlash: this month's featured story, top 10 and movers on the ladder
     tab_meta_pulse.render(st.session_state.format_id, TYPE_MAP)
+    tour.render()
 
 
 def team_empty_state(message):
@@ -580,6 +598,7 @@ def team_page():
             return
         if not load_team(stored['raw_text'], stored['format']):
             return
+    tour.redirect("team", _tour_home, _tour_team, has_team=bool(st.session_state.get("analysis")))
     if not st.session_state.get("analysis") or not st.session_state.get("pokemon_names"):
         team_empty_state("No team yet. Paste a Showdown export on Home to build the dashboard.")
         return
@@ -597,10 +616,12 @@ def team_page():
     section_header("Go deeper", "Detailed Analysis")
     # Only the open tab runs: the Threat Board, Team Completer and Speed Tiers each run the damage calc,
     # and hidden tabs would otherwise compute on every load
-    (tab_overview, tab3, tab4, tab_rec, tab_matrix, tab7, tab8, tab_chat) = st.tabs([
-        "Team Overview", "Audit", "Threat Board", "Recommendations", "Matchup Matrices", "Speed Tiers",
-        "Coach Guide", "Coach Chat"
-    ], on_change="rerun", key="dashboard_tab")
+    # A tour step can ask for a tab; it has to be set before the tabs are drawn
+    asked = tour.pending_tab(st.session_state)
+    if asked:
+        st.session_state["dashboard_tab"] = asked
+    (tab_overview, tab3, tab4, tab_rec, tab_matrix, tab7, tab8, tab_chat) = st.tabs(
+        list(DASHBOARD_TABS), on_change="rerun", key="dashboard_tab")
     tabs = [
         (tab_overview, lambda: tab_overview_mod.render(coverage, weakness, team_data, TYPE_MAP)),
         (tab3, tab_audit.render),
@@ -615,6 +636,7 @@ def team_page():
         if tab.open:
             with tab:
                 draw()
+    tour.render()
 
 
 def quick_match_page():
