@@ -6,7 +6,7 @@ verdicts and real answers from the local model. Nothing is mocked or edited.
 The app runs against a throwaway user store (METAMATCH_USER_DIR), so no personal saved teams or
 history ever appear. Demo teams are built from this month's most common ladder sets.
 
-Needs (dev only, not in requirements.txt): playwright + `playwright install chromium`, Pillow, and Ollama with the coach model pulled for the chat and guide shots (it is started if it isn't running;
+Needs (dev only, not in requirements.txt): playwright + `playwright install chromium`, Pillow, and Ollama with the coach model pulled for the chat shots (it is started if it isn't running;
 set OLLAMA_MODELS if your models live outside the default folder).
 
 Usage:
@@ -62,8 +62,12 @@ def ladder_team(names, format_id):
     return "\n\n".join(blocks)
 
 
+SUN_TEAM = ["Torkoal", "Venusaur", "Walking Wake", "Great Tusk", "Gholdengo", "Dragapult"]
+
+
 def seed_store(user_dir):
-    """Recent and saved demo teams for the sidebar shots, in the throwaway store."""
+    """Recent and saved demo teams for the sidebar and MetaFlash shots, in the throwaway store.
+    Returns the sun team's id, whose Coach Guide shows a team engine."""
     os.environ["METAMATCH_USER_DIR"] = str(user_dir)
     from metamatch import storage
     storage.DB_PATH = Path(user_dir) / "metamatch.db"
@@ -71,8 +75,10 @@ def seed_store(user_dir):
     storage.save_team("Champions Core", ladder_team(
         ["Samurott-Hisui", "Corviknight", "Garchomp", "Slowking-Galar", "Glimmora", "Hatterene"], "gen9championsou"),
         "gen9championsou")
+    sun = storage.remember_team(ladder_team(SUN_TEAM, "gen9ou"), "gen9ou")
     storage.remember_team(ladder_team(
         ["Great Tusk", "Raging Bolt", "Ogerpon-Wellspring", "Dragonite", "Iron Valiant", "Samurott-Hisui"], "gen9ou"), "gen9ou")
+    return sun
 
 
 def wait_http(url, timeout=90):
@@ -221,9 +227,11 @@ def send(page, question, typed=False):
     return msgs.nth(before), reply
 
 
-def ask(page, question, tries=3):
-    """Asks the coach; retries (fresh question each time) until the reply passed the fact check."""
+def ask(page, question, fresh, tries=3):
+    """Asks the coach until the reply passed the fact check. `fresh()` empties the chat before each try,
+    so a failed attempt never stays on screen above the one that's kept."""
     for attempt in range(1, tries + 1):
+        fresh()
         q, reply = send(page, question)
         text = reply.inner_text()
         if "didn't pass the fact check" not in text and "offline" not in text.lower():
@@ -255,6 +263,13 @@ def capture_home(b):
     page.wait_for_timeout(400)
     frame(page, "metaflash_hover")
     page.mouse.move(5, 5)
+    frame(page, "metaflash_leads", page.locator(".mp-sec", has_text="Leads and the top of the ladder"), offset=90)
+    frame(page, "metaflash_trends", page.locator(".mp-sec", has_text="How sets changed this month"), offset=90)
+    # Your teams this month: the demo teams against this month's top threats, run on request
+    page.get_by_role("button", name="Check my teams against this month").click()
+    page.wait_for_selector(".mp-teams", timeout=240000)
+    idle(page)
+    frame(page, "metaflash_teams", page.locator(".mp-sec", has_text="Your teams this month"), offset=90)
     page.locator("[data-testid=stButtonGroup] button", has_text="Champions OU").click()
     idle(page)
     page.wait_for_timeout(1500)
@@ -265,16 +280,25 @@ def capture_home(b):
     page.close()
 
 
-def capture_dashboard(b, llm=False):
+def capture_dashboard(b, sun_id):
     page = new_page(b)
     open_sample(page)
     check(page, "dashboard")
     frame(page, "dashboard")
-    frame(page, "squad", "text=Your Squad", offset=90)
     collapse_sidebar(page)
+    # The team banner: a member's matchup hover, then an ability's description
+    scroll_to(page, ".bn-tile", offset=150)
+    kingambit = page.locator(".bn-tile", has_text="Kingambit").first
+    kingambit.locator(".bn-nm").hover()   # the name, not the ability pill: its own tip hides the matchup card
+    page.wait_for_timeout(500)
+    frame(page, "banner_hover")
+    kingambit.locator(".bn-abw").first.hover()
+    page.wait_for_timeout(500)
+    frame(page, "ability_hover")
+    page.mouse.move(5, 5)
     for name, slug in [("Team Overview", "tab_overview"), ("Audit", "tab_audit"), ("Threat Board", "tab_threats"),
                        ("Recommendations", "tab_recommendations"), ("Matchup Matrices", "tab_matrices"),
-                       ("Speed Tiers", "tab_speed")]:
+                       ("Speed Tiers", "tab_speed"), ("Coach Guide", "tab_guide")]:
         tab(page, name)
         page.wait_for_timeout(800)
         check(page, name)
@@ -293,7 +317,17 @@ def capture_dashboard(b, llm=False):
             page.wait_for_timeout(500)
             frame(page, "completer_hover")
             page.mouse.move(5, 5)
-    # No Coach Guide shot: the guide is still free model writing that the engine doesn't check
+        if slug == "tab_guide":
+            frame(page, "guide_leads", page.locator(".cg-head", has_text="Leads"), offset=100)
+    # A sun team's guide, for the team engine card
+    page.goto(f"{URL}/team?t={sun_id}")
+    page.wait_for_selector(".bn-tile", timeout=180000)
+    idle(page)
+    tab(page, "Coach Guide")
+    page.wait_for_selector(".cg-engs", timeout=240000)
+    idle(page)
+    check(page, "sun guide")
+    frame(page, "guide_engine", page.locator(".cg-head", has_text="Team engines"), offset=100)
     page.close()
 
 
@@ -304,17 +338,21 @@ def capture_chat(b):
     open_sample(page)
     team_url = page.url
     tid = re.search(r"[?&]t=([0-9a-f]+)", team_url).group(1)
-    for question, slug in [("Does my Great Tusk outspeed Iron Valiant?", "chat_clemont"),
-                           ("How do I beat Raging Bolt?", "chat_oak"),
-                           ("What item does Kingambit usually run?", "chat_brock"),
-                           ("Does it outspeed my Dragapult?", "chat_clarify")]:
+
+    def fresh():
         storage.clear_chat(tid)
         page.goto(team_url)
         page.wait_for_selector(".bn-tile", timeout=180000)
         idle(page)
         collapse_sidebar(page)
         tab(page, "Coach Chat")
-        q, _ = ask(page, question)
+
+    for question, slug in [("Does my Great Tusk outspeed Iron Valiant?", "chat_clemont"),
+                           ("Does my Great Tusk outspeed Dragapult under Tailwind?", "chat_conditions"),
+                           ("How do I beat Raging Bolt?", "chat_oak"),
+                           ("What item does Kingambit usually run?", "chat_brock"),
+                           ("Does it outspeed my Dragapult?", "chat_clarify")]:
+        ask(page, question, fresh)
         check(page, slug)
         frame(page, slug, "text=Ask the Coach", offset=85)
     page.close()
@@ -339,7 +377,7 @@ def capture_tools(b):
     pick(page, ["Great Tusk", "Kingambit"])
     page.wait_for_timeout(1500)
     check(page, "quick match")
-    frame(page, "quick_match", "h2", offset=80)
+    frame(page, "quick_match", ".ui-ph", offset=80)
 
     page.goto(URL + "/move-search")
     idle(page)
@@ -348,14 +386,14 @@ def capture_tools(b):
     idle(page)
     page.wait_for_timeout(1000)
     check(page, "move search")
-    frame(page, "move_search", "h2", offset=80)
+    frame(page, "move_search", ".ui-ph", offset=80)
 
     page.goto(URL + f"/replay-auditor?id={REPLAY_ID}")
     page.wait_for_selector("text=Team Health", timeout=120000)
     idle(page)
     page.wait_for_timeout(1500)
     check(page, "replay")
-    frame(page, "replay_auditor", "h2", offset=80)
+    frame(page, "replay_auditor", ".ui-ph", offset=80)
     frame(page, "replay_details", "text=Mistakes", offset=90)
 
     # Spread Lab: the example benchmarks, then the result
@@ -369,7 +407,7 @@ def capture_tools(b):
     idle(page)
     page.wait_for_timeout(1200)
     check(page, "spread lab")
-    frame(page, "spread_lab", "h2", offset=80)
+    frame(page, "spread_lab", ".ui-ph", offset=80)
     frame(page, "spread_lab_result", "text=Smallest spread that does it", offset=110)
 
     # Matchup Preview on Champions OU with the sample teams, so the bring 3 pick shows
@@ -436,6 +474,7 @@ def capture_extras(b, user_dir):
     phone.get_by_role("button", name="Try a sample team").click()
     phone.wait_for_selector(".bn-tile", timeout=180000)
     idle(phone)
+    phone.mouse.move(0, 0)   # the pointer is left where the button was, over the first member's hover card
     phone.wait_for_timeout(1000)
     shots.append(phone.screenshot())
     phone.close()
@@ -464,7 +503,7 @@ def main():
     if not args.no_llm and not llm:
         print("Ollama isn't reachable: skipping the model shots (run with --no-llm to silence this)")
     user_dir = Path(tempfile.mkdtemp(prefix="metamatch_showcase_"))
-    seed_store(user_dir)
+    sun_id = seed_store(user_dir)
     app = start_app(PORT, user_dir)
     try:
         with sync_playwright() as p:
@@ -476,7 +515,7 @@ def main():
                 if section == "home":
                     capture_home(b)
                 elif section == "dashboard":
-                    capture_dashboard(b, llm)
+                    capture_dashboard(b, sun_id)
                 elif section == "chat" and llm:
                     capture_chat(b)
                 elif section == "tools":

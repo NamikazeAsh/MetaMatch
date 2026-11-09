@@ -16,13 +16,13 @@ Everything MetaMatch does, without installing anything. Every screen is the real
 
 ### Home
 
-A paste box for a Showdown export or pokepast.es link, and a format picker that drives the whole app.
+A paste box that takes a Showdown export or a PokéPaste link, and a format picker that drives the whole app.
 
 ![Home screen with the format picker and paste box](images/home.webp)
 
 ### MetaFlash
 
-Six months of Smogon usage stats turned into a front page that rewrites itself every month: the story of the month with a six month chart, and the top 10 with rank changes.
+Smogon usage stats turned into a front page that rewrites itself every month: the story of the month with its usual set and a year of usage, and the top 10 with rank changes. Any month since the format started can be opened as a back issue.
 
 ![MetaFlash: story of the month and the top 10 leaderboard](images/metaflash.webp)
 
@@ -38,6 +38,24 @@ Hover any partner to see its types, ladder rank, usage and usual item.
 
 ![A partner hover card on a story card](images/metaflash_hover.webp)
 
+### Leads and top players
+
+Which Pokémon open games, and what players at the top of the ladder run more than everyone else.
+
+![Leads to expect and top players' picks](images/metaflash_leads.webp)
+
+### Set trends and rising cores
+
+The biggest shift in item, Tera, moves or ability among the top 25, and the pairs more teams are running together than last month.
+
+![How sets changed this month and rising cores](images/metaflash_trends.webp)
+
+### Your teams this month
+
+Your recent teams against this month's 12 most used Pokémon, with the threats that just arrived and who on the team beats them.
+
+![Two recent teams checked against this month's top threats](images/metaflash_teams.webp)
+
 ### Every format
 
 Switch the format and the page rebuilds for that ladder, here Pokémon Champions OU with Mega Evolution.
@@ -48,15 +66,21 @@ Switch the format and the page rebuilds for that ladder, here Pokémon Champions
 
 ## The Team Dashboard
 
-### Squad
+### Team banner
 
-Every member parsed, typed, statted and given competitive roles.
+The team's archetype and the jobs it covers, one card per member with its types, Tera, item, ability and moves, and the team's numbers against this month's ladder.
 
-![Squad cards with type glow, roles, item, ability and spread](images/squad.webp)
+Hover a member to see its set, who it beats one on one among the 12 most used Pokémon and how fast it really is.
+
+![A member's hover card: its set, who it beats and loses to, and its Speed](images/banner_hover.webp)
+
+Hover an ability for what it does, in Pokémon Showdown's own words.
+
+![An ability's description on hover](images/ability_hover.webp)
 
 ### Team Overview
 
-Which types you hit and which ones hit you, counted per member.
+Every type your team hits super effectively, and every type that hits two or more members hard, with who can switch in on it.
 
 ![Team Overview: offensive coverage and defensive weaknesses](images/tab_overview.webp)
 
@@ -102,6 +126,17 @@ Your true Speed, with items and IVs, against every spread the format's top Poké
 
 ![Speed Tiers: the team against real ladder spreads](images/tab_speed.webp)
 
+### Coach Guide
+
+A game plan built from the Threat Board, Speed Tiers and type matchups, with no language model in the loop. It names the win condition and what its ability does for it, the leads (checked against real ladder games), the Tera plan, the threats to watch and the pairs that cover each other.
+
+![Coach Guide: Kingambit as the win condition, with the leads and Tera plan](images/tab_guide.webp)
+
+![Coach Guide: leads, a threat to watch, the Tera plan and pairs that cover each other](images/guide_leads.webp)
+
+When a team is built around weather or terrain, the guide measures what it does for each member, here a sun team.
+
+![Coach Guide: a sun team engine with each member's gain in sun](images/guide_engine.webp)
 
 ---
 
@@ -114,6 +149,10 @@ Questions are planned by code first. Facts (speed, damage, KOs, types, usage) ar
 The verdict comes from the engine, the explanation from the model, checked against it.
 
 ![Clemont answering a speed question with an engine verdict](images/chat_clemont.webp)
+
+Conditions stated in the question, like Tailwind, Trick Room, burns, hazards or partial HP, are counted in the numbers and said back.
+
+![Clemont counting Tailwind in a speed check](images/chat_conditions.webp)
 
 ### Professor Oak, strategy
 
