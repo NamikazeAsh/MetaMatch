@@ -77,6 +77,13 @@ STYLE = """
   padding:3px 10px 3px 8px; border-radius:999px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); margin-top:8px;
   max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .bn-ability::before { content:""; width:6px; height:6px; border-radius:50%; background:#7fe6ff; flex-shrink:0; }
+.bn-abw { align-self:flex-start; max-width:100%; margin-top:8px; }
+.bn-abw .bn-ability { margin-top:0; }
+.bn-abw:hover .bn-ability, .bn-abw:focus .bn-ability { border-color:rgba(127,230,255,0.45); color:#fff; }
+.bn-tip.wide { left:0; transform:translateY(3px); width:230px; white-space:normal; font-weight:500; line-height:1.4;
+  padding:7px 10px; color:#d6dbe6; }
+.bn-tip.wide b { display:block; color:#fff; font-weight:800; margin-bottom:2px; }
+.bn-abw:hover .bn-tip.wide, .bn-abw:focus .bn-tip.wide { transform:translateY(0); }
 .bn-moves { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:4px; margin-top:auto; padding-top:10px; }
 .bn-mv { font-size:0.72rem; color:#e6eaf2; padding:4px 8px; border-radius:8px; background:rgba(255,255,255,0.045);
   border:1px solid rgba(255,255,255,0.06); border-left:3px solid var(--mc); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -187,8 +194,20 @@ def _tile(p, facts, type_map, game):
             f'<div class="bn-ped"><img src="{escape(get_sprite(name) or "")}" alt="">{item}</div>'
             f'<div class="bn-body"><div class="bn-nm">{escape(name)}</div>'
             f'<div class="bn-icons">{"".join(_type_icon(t, type_map) for t in p.get("Type") or [])}{tera}</div>'
-            + (f'<span class="bn-ability" title="Ability">{escape(p["Ability"])}</span>' if p.get("Ability") else "")
+            + _ability_pill(p.get("Ability"))
             + f'<div class="bn-moves">{moves}</div></div>{hover}</div>')
+
+
+def _ability_pill(ability):
+    """The ability pill, with Showdown's description of the ability on hover."""
+    if not ability:
+        return ""
+    from metamatch.engine.abilities import describe
+    text = describe(ability)
+    if not text:
+        return f'<span class="bn-ability">{escape(ability)}</span>'
+    return (f'<span class="bn-ico bn-abw" tabindex="0"><span class="bn-ability">{escape(ability)}</span>'
+            f'<span class="bn-tip wide"><b>{escape(ability)}</b>{escape(text)}</span></span>')
 
 
 def _stats(team, rows, facts, coverage, weakness, type_map):
