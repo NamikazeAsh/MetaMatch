@@ -31,3 +31,6 @@ Hyper Offense overwhelms the opponent quickly with high damage threats, trading 
 
 ## When to Terastallize
 Each team can Terastallize one Pokemon once per battle, changing its type to its Tera type. Use it defensively to turn a weakness into a resistance at the moment that matters (Tera Fairy to stop a Dragon or Dark attack), or offensively to boost same type attacks and break a check. Saving Tera for the endgame usually wins more games than spending it on turn one, because the opponent has to respect it all game. Tera Blast becomes the Tera type, and Stellar Tera boosts every type once.
+
+## Snow Teams
+Snow Warning, Snowscape and Chilly Reception start snow for 5 turns, or 8 with Icy Rock. In Scarlet and Violet snow does no chip damage; instead it raises the Defense of Ice types by 50%. Slush Rush doubles Speed, Blizzard cannot miss, Weather Ball becomes an Ice move, and Aurora Veil, which halves both physical and special damage, can only be used in snow. Chilly Reception is also a pivot move, so a team can run it without building around snow.

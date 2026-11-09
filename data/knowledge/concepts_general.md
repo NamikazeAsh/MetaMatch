@@ -22,3 +22,24 @@ A counter can switch into a threat safely and then beat it one on one. A check b
 
 ## Double Switching and Prediction
 A double switch is switching when you expect the opponent to switch too, so your new Pokemon lands on the Pokemon they bring in. It wins big when right and loses momentum when wrong. Safer plays, like attacking with a move that hits both likely switch ins, are usually better unless you know the opponent's habits.
+
+## Sun Teams
+Drought, Orichalcum Pulse and Sunny Day set harsh sunlight for 5 turns, or 8 with Heat Rock. In sun, Fire moves deal 1.5x damage and Water moves deal half, except Hydro Steam, which deals 1.5x instead. Chlorophyll doubles Speed, Solar Power raises Special Attack by 50% at the cost of a little HP each turn, and Protosynthesis boosts the holder's best stat. Solar Beam and Solar Blade fire without charging, Weather Ball becomes a 100 power Fire move, Growth raises Attack and Special Attack by two stages, and Synthesis, Morning Sun and Moonlight heal two thirds. Thunder and Hurricane drop to 50% accuracy. A sun team pairs a bulky setter like Torkoal or Ninetales with abusers like Venusaur, which outspeeds almost everything once Chlorophyll kicks in, and keeps the setter healthy so it can reset the sun.
+
+## Rain Teams
+Drizzle and Rain Dance set rain for 5 turns, or 8 with Damp Rock. In rain, Water moves deal 1.5x damage and Fire moves deal half. Swift Swim doubles Speed, Thunder, Hurricane and the Storm moves cannot miss, Electro Shot fires without charging, Weather Ball becomes a 100 power Water move, and Rain Dish and Dry Skin heal every turn. Solar Beam loses half its power and still charges, and sun healing moves only restore a quarter. Pelipper is the usual setter, often with U-turn to bring abusers like Barraskewda, Kingdra or Basculegion in safely.
+
+## Sand Teams
+Sand Stream and Sandstorm start a sandstorm for 5 turns, or 8 with Smooth Rock. Rock types get 50% more Special Defense, and every Pokemon that is not Rock, Ground or Steel loses a sixteenth of its HP each turn unless it has Overcoat, Magic Guard, Safety Goggles or a sand ability. Sand Rush doubles Speed, Sand Force powers Rock, Ground and Steel moves by 30%, Shore Up heals two thirds, and Weather Ball becomes a Rock move. Tyranitar and Hippowdon set sand; Excadrill with Sand Rush is the classic partner.
+
+## Terrains
+Electric, Grassy, Psychic and Misty Terrain last 5 turns, or 8 with Terrain Extender, and only affect grounded Pokemon, so Flying types, Levitate and Air Balloon holders ignore them. Electric Terrain powers Electric moves by 30%, stops sleep, activates Quark Drive and doubles Surge Surfer's Speed, and Rising Voltage doubles in power. Grassy Terrain powers Grass moves by 30%, heals a sixteenth each turn, halves Earthquake and Bulldoze, and gives Grassy Glide +1 priority. Psychic Terrain powers Psychic moves by 30%, blocks priority moves against grounded Pokemon and powers up Expanding Force. Misty Terrain halves Dragon damage, prevents status and powers up Misty Explosion. The Surge abilities set them on entry.
+
+## Trick Room Teams
+Trick Room makes slower Pokemon move first for 5 turns, counting the turn it is used, though priority moves still go first. A Trick Room team has bulky setters like Hatterene or Farigiraf and slow, strong attackers like Ursaluna, Iron Hands or Kingambit, often with a Speed lowering nature and 0 Speed IVs so they move first against almost everything while the room is up. The setter should be able to set it twice, and the attackers should do as much as they can in the four turns that follow.
+
+## Tailwind
+Tailwind doubles the Speed of the user's side for 4 turns, counting the turn it is used. It turns medium Speed attackers into fast ones for a short window, so it pairs with strong attackers that are just a little too slow. Setters like Whimsicott and Tornadus are usually fast themselves and use the window to bring a teammate in.
+
+## Screens
+Reflect halves physical damage and Light Screen halves special damage to your side for 5 turns, or 8 with Light Clay. Aurora Veil does both at once but only works in snow. Screens buy setup sweepers free turns, so a screens setter like Grimmsnarl or Klefki leads into a Dragon Dance, Swords Dance or Shell Smash user. Brick Break, Psychic Fangs, Defog and Infiltrator get around them.
