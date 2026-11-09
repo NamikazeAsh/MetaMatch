@@ -20,6 +20,14 @@ A paste box that takes a Showdown export or a PokéPaste link, and a format pick
 
 ![Home screen with the format picker and paste box](images/home.webp)
 
+### Guided tour
+
+First time visitors are offered a one minute tour of the real app. Each step lights up one part of a page and explains it, then moves on by itself: from the paste box and MetaFlash to the team banner, the dashboard tabs and the tools.
+
+![The guided tour's first step, lighting up the paste box](images/tour_home.webp)
+
+![The guided tour on the Threat Board](images/tour_threats.webp)
+
 ### MetaFlash
 
 Smogon usage stats turned into a front page that rewrites itself every month: the story of the month with its usual set and a year of usage, and the top 10 with rank changes. Any month since the format started can be opened as a back issue.

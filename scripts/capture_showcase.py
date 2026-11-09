@@ -429,7 +429,32 @@ def capture_tools(b):
     page.close()
 
 
+def capture_tour(b):
+    """The guided tour from its first visit offer: the first step on Home, then the Threat Board step."""
+    from metamatch import tour
+    page = new_page(b)
+    wait_home(page)
+    page.get_by_role("button", name="New here? Take the 1 minute tour").click()
+    page.wait_for_selector("text=Step 1 of", timeout=60000)
+    idle(page)
+    page.wait_for_timeout(1500)   # the spotlight scrolls to its target
+    frame(page, "tour_home")
+    board = next(i for i, s in enumerate(tour.STEPS) if s.tab == "Threat Board")
+    for _ in range(board):
+        page.get_by_role("button", name="Next").click()
+        idle(page, timeout=240000)
+    page.wait_for_selector(f"text=Step {board + 1} of", timeout=240000)
+    page.wait_for_selector("table.tb", timeout=240000)
+    page.wait_for_timeout(1500)
+    check(page, "tour")
+    frame(page, "tour_threats")
+    page.get_by_role("button", name="Skip tour").click()
+    idle(page)
+    page.close()
+
+
 def capture_extras(b, user_dir):
+    capture_tour(b)
     # Sidebar memory: recent teams and a saved team's set cards
     page = new_page(b)
     wait_home(page)
