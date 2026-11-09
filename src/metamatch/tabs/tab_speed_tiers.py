@@ -1,5 +1,6 @@
 """Speed Tiers tab: your team's real Speed against the Speed of every spread the format's top Pokemon run."""
 import json
+from html import escape
 
 import altair as alt
 import pandas as pd
@@ -7,6 +8,7 @@ import streamlit as st
 
 from metamatch import config
 from metamatch.engine import speed_board as sb
+from metamatch.sprites import get_sprite
 from metamatch.ui import section_header
 
 N_META = 25
@@ -39,7 +41,7 @@ def _spreads(m, spe):
     return "\n".join(f"{label} ({share * 100:.0f}%)" for label, share in m.get("spreads", {}).get(spe, []))
 
 
-def _chart(mine, meta, colors):
+def _chart(mine, meta, colors, test=None):
     """Dots per spread (bigger = more common, amber = Choice Scarf), your team in type colours with a speed
     line each, so everything left of a line is a spread that member outspeeds."""
     points = []
@@ -79,7 +81,11 @@ def _chart(mine, meta, colors):
                                                                                   strokeWidth=2).encode(color=alt.Color("Color:N", scale=None))
     labels = base.transform_filter(alt.datum.Kind == "Your team").mark_text(
         align="left", dx=14, fontWeight=800, fontSize=12).encode(text="Speed:Q", color=alt.Color("Color:N", scale=None))
-    return (lines + dots + mine_dots + labels).properties(height=max(440, 24 * len(order))).configure(
+    layers = lines + dots + mine_dots + labels
+    if test:
+        layers += alt.Chart(pd.DataFrame([{"Speed": test}])).mark_rule(
+            color="#ffffff", strokeWidth=2, strokeDash=[6, 3], opacity=0.85).encode(x="Speed:Q")
+    return layers.properties(height=max(440, 24 * len(order))).configure(
         background="transparent", font="Inter").configure_view(strokeWidth=0).configure_axis(
         gridColor="rgba(255,255,255,0.05)", domain=False, ticks=False)
 
@@ -93,6 +99,8 @@ LEGEND = """
   <span><i style="display:inline-block;width:16px;border-top:2px dashed rgba(255,255,255,0.35);margin-right:6px;vertical-align:3px"></i>Your speed lines: everything left of one is slower</span>
 </div>
 """
+TEST_KEY = ('<div style="font-size:0.8rem;color:#aab3c5;margin:-2px 4px 6px"><i style="display:inline-block;width:16px;'
+            'border-top:2px dashed #fff;margin-right:6px;vertical-align:3px"></i>The Speed you are testing below</div>')
 
 
 def render(team_data, type_map=None):
@@ -108,29 +116,115 @@ def render(team_data, type_map=None):
         return
     colors = {p["Pokemon"]: (type_map or {}).get((p.get("Type") or ["Normal"])[0], {}).get("color", "#22d3ee")
               for p in team_data.values()}
+    # The What if? Speed below draws as a white line here: the widgets sit under the chart, but Streamlit has
+    # already stored their new values when the rerun starts
+    who = st.session_state.get("speed_who") if st.session_state.get("speed_who") in mine else next(iter(mine))
+    test = st.session_state.get(f"speed_test_{who}")
+    test = test if test and test != int(mine[who]) else None
     with st.container(border=True, key="speed_chart_card"):
-        st.html(LEGEND)
-        st.altair_chart(_chart(mine, meta, colors), width="stretch")
+        st.html(LEGEND + (TEST_KEY if test else ""))
+        st.altair_chart(_chart(mine, meta, colors, test), width="stretch")
 
     st.markdown("**What if?**")
-    c1, c2 = st.columns([1, 2])
+    c1, c2 = st.columns([1, 2], gap="large")
     with c1:
         who = st.selectbox("Your Pokémon", list(mine), key="speed_who")
+        member = next(p for p in team_data.values() if p["Pokemon"] == who)
+        curve = _curve(json.dumps(member, sort_keys=True, default=str), format_id)
         base = int(mine[who])
-        test = st.slider("Speed to test", max(1, base - 80), base + 120, base, key=f"speed_test_{who}",
-                         help="Drag to see who you would outspeed with more or less Speed investment.")
+        lo, hi = _slider_range(curve, base)
+        key = f"speed_test_{who}"
+        st.session_state[key] = min(max(st.session_state.get(key, base), lo), hi)
+        test = st.slider("Speed to test", lo, hi, key=key,
+                         help="Drag, or pick a benchmark, to see who you would outspeed and what the Speed costs.")
+        st.html(PLAN_STYLE + _cost_line(who, base, test, curve))
     with c2:
-        rows = []
-        for m in meta:
-            obj = _meta_obj(m)
-            now, then = sb.outspeed_share(base, obj), sb.outspeed_share(test, obj)
-            rows.append({"Pokémon": m["name"], "Usual Speed": obj.usual,
-                         "You outspeed now": f"{now * 100:.0f}%", "At test Speed": f"{then * 100:.0f}%",
-                         "_gain": then - now})
-        df = pd.DataFrame(rows).sort_values(["_gain", "Usual Speed"], ascending=[False, False]).drop(columns="_gain")
-        st.dataframe(df, hide_index=True, width="stretch", height=320)
-    if test != base:
-        gained = [r["Pokémon"] for r in rows if r["_gain"] > 0.2]
-        if gained:
-            st.caption(f"At {test} Speed, {who} newly outspeeds most {', '.join(gained[:6])} sets.")
-    st.caption("Shares mix in each Pokémon's Choice Scarf usage. Speed ties count as not outspeeding.")
+        objs = [_meta_obj(m) for m in meta]
+        st.html(PLAN_STYLE + _changes(objs, base, test))
+        options = [b for b in _benchmarks(objs, test) if b[1] + 1 <= hi]
+        if options:
+            st.pills(f"Next benchmarks above {test}", options, key=f"speed_bench_{who}", on_change=_jump, args=(who,),
+                     format_func=lambda b: f"{b[0]} {b[1]} · {sb.price_text(curve, sb.price(curve, b[1] + 1), short=True)}")
+    st.caption("Benchmarks are the Speeds at least 10% of a Pokémon's sets run. Costs come from the damage calculator "
+               "with your item and ability. Shares mix in Choice Scarf usage, and Speed ties count as not outspeeding.")
+
+
+PLAN_STYLE = """<style>
+.sp-cost { margin: 2px 0 6px; padding: 10px 12px; border-radius: 12px; background: rgba(0,212,255,.06);
+  border: 1px solid rgba(0,212,255,.2); font-size: .88rem; line-height: 1.45; color: #d6dbe6; }
+.sp-cost b { color: #7fe6ff; }
+.sp-cost.far { background: rgba(248,113,113,.06); border-color: rgba(248,113,113,.28); }
+.sp-cost.far b { color: #fca5a5; }
+.sp-k { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #8a93a6; margin: 2px 0 6px; }
+.sp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.sp-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px 2px 2px; border-radius: 999px; font-size: .84rem;
+  background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.28); color: #d1fae5; }
+.sp-chip.lost { background: rgba(248,113,113,.08); border-color: rgba(248,113,113,.3); color: #fde2e2; }
+.sp-chip img { width: 26px; height: 26px; object-fit: contain; }
+.sp-chip small { color: #9aa3b2; margin-left: 2px; }
+.sp-sum { color: #c8ccd4; font-size: .88rem; margin-bottom: 10px; }
+.sp-sum b { color: #fff; }
+[class*="st-key-speed_bench_"] [data-testid="stButtonGroup"] div:has(> button) { flex-wrap: wrap !important;
+  overflow-x: visible !important; row-gap: 6px; }
+</style>"""
+
+
+@st.cache_data(show_spinner=False, max_entries=48)
+def _curve(member_json, format_id):
+    return sb.speed_curve(json.loads(member_json), format_id)
+
+
+def _slider_range(curve, base):
+    """From a little under the slowest the member can be to well past the fastest EVs and nature can make it."""
+    reach = [s for _, s in (curve or {}).get("own", [])] + [s for _, s in ((curve or {}).get("fast") or (None, []))[1]]
+    return max(1, min(reach + [base]) - 20), max(reach + [base]) + 60
+
+
+def _cost_line(who, base, test, curve):
+    if test == base:
+        return f'<div class="sp-cost"><b>{escape(who)}</b> runs <b>{base}</b> Speed now. Drag the slider or pick a benchmark.</div>'
+    if not curve:
+        return f'<div class="sp-cost"><b>{test}</b> Speed</div>'
+    cost = sb.price(curve, test)
+    far = "" if cost else " far"
+    return f'<div class="sp-cost{far}"><b>{test}</b> Speed: {escape(sb.price_text(curve, cost))}.</div>'
+
+
+def _chip(o, before, after, lost=False):
+    sprite = get_sprite(o.name) or ""
+    return (f'<span class="sp-chip{" lost" if lost else ""}"><img src="{escape(sprite)}" alt="">{escape(o.name)}'
+            f'<small>{before * 100:.0f}% → {after * 100:.0f}%</small></span>')
+
+
+def _changes(objs, base, test, min_shift=0.10):
+    """Who the test Speed outspeeds more (or fewer) of, by at least 10 points of their sets, and how many of the
+    top Pokemon it outspeeds most sets of."""
+    now = {o.name: sb.outspeed_share(base, o) for o in objs}
+    then = {o.name: sb.outspeed_share(test, o) for o in objs}
+    most = sum(v >= 0.5 for v in then.values())
+    summary = (f'<div class="sp-sum">Outspeeds most sets of <b>{most}</b> of the top {len(objs)} at {test} Speed'
+               + (f', {sum(v >= 0.5 for v in now.values())} now' if test != base else "") + ".</div>")
+    if test == base:
+        return summary
+    lost = test < base
+    moved = [o for o in objs if abs(then[o.name] - now[o.name]) >= min_shift]
+    if not moved:
+        return summary + '<div class="sp-sum">No Pokémon moves by 10 points or more at this Speed.</div>'
+    head = "Outspeeds fewer of its sets" if lost else "Outspeeds more of its sets"
+    chips = "".join(_chip(o, now[o.name], then[o.name], lost) for o in sorted(moved, key=lambda o: o.usual))
+    return f'<div class="sp-k">{head}</div><div class="sp-chips">{chips}</div>' + summary
+
+
+def _benchmarks(objs, test, n=6, min_share=0.10):
+    """The next common Speeds at or above the test Speed: (name, speed), slowest first."""
+    seen = sorted({(o.name, spe) for o in objs for spe, share in o.speeds if share >= min_share and spe >= test},
+                  key=lambda b: (b[1], b[0]))
+    return seen[:n]
+
+
+def _jump(who):
+    """Moves the slider just past the picked benchmark, then clears the pick so the pills never go stale."""
+    picked = st.session_state.get(f"speed_bench_{who}")
+    if picked:
+        st.session_state[f"speed_test_{who}"] = picked[1] + 1
+    st.session_state[f"speed_bench_{who}"] = None

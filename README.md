@@ -241,7 +241,7 @@ Speed against what players actually run, not a guess.
 
 * **Real spreads for your format:** every spread the top 25 Pokémon run this month, with Choice Scarf sets marked.
 * **Your true Speed:** worked out with your item and IVs, so Choice Scarf and Trick Room sets are right.
-* **What if?:** slide your Speed and see exactly which threats you'd start outspeeding.
+* **What if?:** pick a Speed or a benchmark and see who you'd outspeed more of, and what it costs in EVs or nature.
 
 ### Spread Lab
 

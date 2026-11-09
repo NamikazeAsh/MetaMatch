@@ -122,7 +122,7 @@ The full type chart for your six, on defence and on offence.
 
 ### Speed Tiers
 
-Your true Speed, with items and IVs, against every spread the format's top Pokémon really run, with Choice Scarf sets marked and a slider to test more Speed.
+Your true Speed, with items and IVs, against every spread the format's top Pokémon really run, with Choice Scarf sets marked. Hover a dot for the spreads behind it, or test a Speed to see what it costs and who it beats.
 
 ![Speed Tiers: the team against real ladder spreads](images/tab_speed.webp)
 

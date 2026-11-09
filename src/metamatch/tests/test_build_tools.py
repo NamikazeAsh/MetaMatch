@@ -96,6 +96,19 @@ class TestSpeedBoard(unittest.TestCase):
         self.assertAlmostEqual(outspeed_share(460, m), 1.0)
         self.assertAlmostEqual(outspeed_share(260, m), 0.1)     # only the unscarfed 250s
 
+    def test_a_target_speed_is_priced_in_evs_then_nature(self):
+        from metamatch.engine.speed_board import price, price_text
+        curve = {"unit": "EVs", "current": 0, "free": 4, "item": "", "own": [(0, 170), (4, 171), (8, 172)],
+                 "fast": ("Jolly", [(0, 187), (4, 188)])}
+        text = lambda target: price_text(curve, price(curve, target))
+        self.assertEqual(text(170), "Your current spread")
+        self.assertEqual(text(171), "+4 Spe EVs")
+        self.assertEqual(text(172), "+8 Spe EVs, 4 taken from other stats")
+        self.assertEqual(text(188), "Needs a Jolly nature and 4 Spe EVs")
+        self.assertIn("Choice Scarf", text(300))
+        self.assertNotIn("Choice Scarf", price_text(dict(curve, item="Choice Scarf"), None))
+        self.assertEqual(price_text(dict(curve, current=8), price(curve, 171)), "4 fewer Spe EVs than you run would still do it")
+
     def test_spread_labels_read_like_a_paste(self):
         from metamatch.engine.sets import spread_label
         self.assertEqual(spread_label("Impish:248/0/228/0/0/32", "gen9ou"), "Impish 248 HP / 228 Def / 32 Spe")
