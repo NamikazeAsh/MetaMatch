@@ -64,6 +64,12 @@ class TestLikelySet(unittest.TestCase):
     def test_unknown_pokemon(self):
         self.assertIsNone(likely_set("Pikachu", "gen9ou"))
 
+    def test_formes_smogon_files_under_the_base(self):
+        chaos = {"Keldeo": CHAOS["Kingambit"], "Rotom": CHAOS["Kingambit"]}
+        with patch("metamatch.engine.sets.load_chaos_data", return_value=chaos):
+            self.assertEqual(likely_set("Keldeo-Resolute", "gen9ou")["name"], "Keldeo")
+            self.assertIsNone(likely_set("Rotom-Heat", "gen9ou"))     # a different Pokemon in battle
+
 
 class TestTeamFormes(unittest.TestCase):
     @patch("metamatch.team.get_move_metadata", return_value={"category": "Status", "type": "Normal"})

@@ -34,7 +34,25 @@ def chaos_entry(name, format_id):
     for key, entry in data.items():
         if to_id(key) == target:
             return key, entry
-    return None, None
+    twin = _stats_twin(name, format_id)
+    return chaos_entry(twin, format_id) if twin else (None, None)
+
+
+def _stats_twin(name, format_id):
+    """The base species Smogon files a forme under when the two are the same Pokemon in battle: cosmetic formes
+    (Gastrodon-East) and formes with the base's types and stats (Keldeo-Resolute, Maushold-Four). None otherwise,
+    so Rotom-Heat never borrows Rotom's set."""
+    dex = dex_for_format(format_id)
+    if not dex or "-" not in (name or ""):
+        return None
+    forme = dex.species(name)
+    base_name = forme.get("baseSpecies") if forme else name.split("-")[0]
+    base = dex.species(base_name) if base_name else None
+    if not base or to_id(base["name"]) == to_id(name):
+        return None
+    if forme and (forme.get("types") != base.get("types") or forme.get("baseStats") != base.get("baseStats")):
+        return None
+    return base["name"]
 
 
 def speed_distribution(name, format_id, entry=None):
