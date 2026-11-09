@@ -4,18 +4,12 @@
 
 <h1 align="center">MetaMatch</h1>
 
-[![Visual Tour](https://img.shields.io/badge/Visual%20Tour-see%20every%20screen-00d4ff)](showcase/)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![Ollama](https://img.shields.io/badge/AI-Ollama-000000?logo=ollama&logoColor=white)](https://ollama.com/)
-[![Node.js](https://img.shields.io/badge/Calc-%40smogon%2Fcalc-339933?logo=nodedotjs&logoColor=white)](https://github.com/smogon/damage-calc)
-[![ChromaDB](https://img.shields.io/badge/RAG-ChromaDB-FF6F00)](https://www.trychroma.com/)
-[![MetaBench](<https://img.shields.io/badge/MetaBench-97.5%25%20held%20out-brightgreen>)](#-metabench-the-metamatch-benchmarker)
-[![Frozen Test Set](<https://img.shields.io/badge/Frozen%20test%20set-201%20questions-blueviolet>)](#frozen-fresh-test-set)
-[![Understands Your Question](<https://img.shields.io/badge/Understands%20your%20question-93%25%20blind%20test-brightgreen>)](#it-understands-what-you-actually-asked)
-[![Finds the Right Advice](<https://img.shields.io/badge/Finds%20the%20right%20advice-94%25-brightgreen>)](#it-finds-the-right-advice)
 [![Tests](https://github.com/NamikazeAsh/MetaMatch/actions/workflows/tests.yml/badge.svg)](https://github.com/NamikazeAsh/MetaMatch/actions/workflows/tests.yml)
+[![MetaBench](<https://img.shields.io/badge/MetaBench-97.5%25%20held%20out-brightgreen>)](#-metabench-the-metamatch-benchmarker)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Built with [Streamlit](https://streamlit.io/), [Ollama](https://ollama.com/), the [Smogon damage calc](https://github.com/smogon/damage-calc) and [ChromaDB](https://www.trychroma.com/).
 
 **[Take the visual tour](showcase/)**, every screen of the app with real data and real coach answers.
 
