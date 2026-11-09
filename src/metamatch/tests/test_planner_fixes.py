@@ -1,4 +1,5 @@
-"""Regression tests for the planner audit bugs (written from the bug descriptions, not benchmark items)."""
+"""Planner regression tests: who attacks, whose set details are whose, and name matching. Written from the bug
+reports, not from benchmark questions."""
 import unittest
 
 from metamatch.agents.grounded import verify
@@ -18,26 +19,22 @@ class TestAttackerAndSubject(unittest.TestCase):
     def plan(self, q):
         return plan_query(q, self.sv)
 
-    # Bug 1
     def test_opponent_subject_attacks_without_move(self):
         self.assertEqual(self.plan("Does Dragapult OHKO Gholdengo?").attacker, "opponent")
         self.assertEqual(self.plan("Does Kingambit OHKO my Gholdengo?").attacker, "opponent")
         self.assertEqual(self.plan("Does Gholdengo OHKO Kingambit?").attacker, "user")
 
-    # Bug 2
     def test_survive_without_move_attacks_the_subject(self):
         p = self.plan("Can Gholdengo survive Kingambit?")
         self.assertEqual((p.attacker, p.survive, p.subject), ("opponent", True, "user"))
         self.assertEqual(self.plan("Can Kingambit survive Headlong Rush?").attacker, "user")
 
-    # Bug 3
     def test_subject_skips_lead_in_and_pronouns(self):
         self.assertEqual(self.plan("Does Dragapult outspeed my Great Tusk?").subject, "opponent")
         self.assertEqual(self.plan("Against Dragapult, is my Great Tusk faster?").subject, "user")
         self.assertEqual(self.plan("Dragapult is on its usual set. Does my Great Tusk outspeed it?").subject, "user")
         self.assertEqual(self.plan("my Great Tusk vs a Dragapult, do I outspeed it?").subject, "user")
 
-    # Bug 5
     def test_nickname_possessive(self):
         p = self.plan("how much damage does Gambit's Knock Off do to Great Tusk?")
         self.assertEqual((p.attacker, p.opponent, p.move), ("opponent", "Kingambit", "Knock Off"))
@@ -49,7 +46,6 @@ class TestSetScoping(unittest.TestCase):
     def setUpClass(cls):
         cls.sv, _ = readTeam(SV_TEAM, "gen9ou")
 
-    # Bug 4
     def test_user_details_stay_off_opponent(self):
         p = plan_query("Does my Jolly 252 Atk Great Tusk OHKO Kingambit with Headlong Rush?", self.sv)
         self.assertEqual(p.opp_overrides, {})
@@ -62,7 +58,6 @@ class TestSetScoping(unittest.TestCase):
         p = plan_query("Assuming 252 HP / 4 Def, does Great Tusk OHKO Kingambit with Headlong Rush?", self.sv)
         self.assertEqual(p.opp_overrides, {"evs": {"hp": 252, "def": 4}})
 
-    # Bug 8
     def test_item_mid_sentence_and_usage_words(self):
         p = plan_query("Does Kingambit @ Leftovers survive Great Tusk's Headlong Rush?", self.sv)
         self.assertEqual(p.opp_overrides.get("item"), "Leftovers")
@@ -71,7 +66,6 @@ class TestSetScoping(unittest.TestCase):
 
 
 class TestNames(unittest.TestCase):
-    # Bug 6
     def test_english_words_are_not_nicknames(self):
         for q in ["that team is gross", "I hate moth balls", "crown my king", "drill into it"]:
             self.assertEqual(find_pokemon(q), [], q)
@@ -82,7 +76,6 @@ class TestNames(unittest.TestCase):
         self.assertEqual(find_pokemon("does pult outspeed gambit"), ["Dragapult", "Kingambit"])
         self.assertEqual(find_pokemon("corv vs pex"), ["Corviknight", "Toxapex"])
 
-    # Bug 7
     def test_regional_and_appliance_formes(self):
         cases = {"Alolan Ninetales": "Ninetales-Alola", "Hisuian Zoroark": "Zoroark-Hisui",
                  "Galarian Moltres": "Moltres-Galar", "Rotom W": "Rotom-Wash", "Wash Rotom": "Rotom-Wash",

@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
 
-# Base project directory
+# The repository root, three levels above this file
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# Data Directories
+# Data folders
 DATA_DIR = BASE_DIR / "data"
 JSON_DIR = DATA_DIR / "json"
 # METAMATCH_STATS_DIR pins usage stats to a snapshot (MetaBench answer keys are frozen against one month)
@@ -12,7 +12,7 @@ STATS_DIR = Path(os.environ["METAMATCH_STATS_DIR"]) if os.environ.get("METAMATCH
 # METAMATCH_USER_DIR points saved teams, chats and prefs elsewhere (scripts/capture_showcase.py uses a throwaway store)
 USER_DIR = Path(os.environ["METAMATCH_USER_DIR"]) if os.environ.get("METAMATCH_USER_DIR") else DATA_DIR / "user"
 
-# Assets Directory
+# Logo and other images
 ASSETS_DIR = BASE_DIR / "assets"
 IMAGES_DIR = ASSETS_DIR / "images"
 
@@ -67,7 +67,7 @@ def team_format(team):
     return DEFAULT_FORMAT
 
 
-# Ensure directories exist
+# Created on import so every module can write without checking first
 JSON_DIR.mkdir(parents=True, exist_ok=True)
 STATS_DIR.mkdir(parents=True, exist_ok=True)
 USER_DIR.mkdir(parents=True, exist_ok=True)

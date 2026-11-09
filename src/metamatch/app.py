@@ -3,7 +3,7 @@ from html import escape
 import warnings
 import logging
 
-# --- Suppress Startup Warnings ---
+# Keep the TensorFlow and library notices the ML imports print at startup out of the console
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 warnings.filterwarnings('ignore', category=UserWarning, module='triton')
@@ -14,8 +14,7 @@ import streamlit as st
 import sys
 from pathlib import Path
 
-# Fix path to allow importing from the metamatch package
-# Adds the 'src' directory to sys.path
+# `streamlit run src/metamatch/app.py` runs this file as a script, so src goes on the path for the package imports
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from metamatch.utils import is_pokepaste_url, fetch_pokepaste, extract_pokemon_names
@@ -37,15 +36,15 @@ from metamatch.tabs import (
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
 
-# --- Global CSS ---
+# App wide styles
 st.html(r'''
 <style>
 
-    /* Global Base */
+    /* Page spacing, background and font */
     .main .block-container { padding-top: 2rem; padding-bottom: 0rem; }
     .stApp { background: radial-gradient(circle at 50% 50%, #1a1f2e 0%, #0f1219 100%); color: #e0e0e0; font-family: 'Inter', sans-serif; }
 
-    /* Transparent Header */
+    /* Streamlit's header bar blends into the page */
     .stApp > header { background-color: transparent; }
 
     /* Loading: the MetaMatch logo spins in place of Streamlit's default spinner */
@@ -58,11 +57,11 @@ st.html(r'''
     @media (prefers-reduced-motion: reduce) { [data-testid="stSpinnerIcon"] { animation: mm-pulse 1.6s ease-in-out infinite !important; } }
     @keyframes mm-pulse { 50% { opacity: .45; } }
 
-    /* Sidebar Glassmorphism */
+    /* Sidebar: translucent panel with a blurred backdrop */
     [data-testid="stSidebar"] { background: rgba(255, 255, 255, 0.02) !important; backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); }
     [data-testid="stSidebar"] .stMarkdown h1, [data-testid="stSidebar"] .stMarkdown h2 { color: #00d4ff; text-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
 
-    /* Metrics Glowing Style */
+    /* st.metric cards */
     div[data-testid="stMetric"] { background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     div[data-testid="stMetricValue"] { font-family: 'Inter', sans-serif; font-weight: 800 !important; color: #fff !important; text-shadow: 0 0 15px rgba(255,255,255,0.2); font-size: clamp(1.4rem, 2.2vw, 2.1rem) !important; }
     div[data-testid="stMetricLabel"] { color: #888 !important; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem !important; }
@@ -79,7 +78,7 @@ st.html(r'''
         background: transparent !important; border: none !important; color: #6b7487 !important; box-shadow: none !important; }
     [class*="st-key-forget_"] button:hover { color: #ff7b7b !important; transform: none !important; }
 
-    /* Glass Buttons */
+    /* Buttons: translucent cyan */
     .stButton > button { background: rgba(0, 212, 255, 0.1) !important; color: #00d4ff !important; border: 1px solid #00d4ff !important; backdrop-filter: blur(5px); border-radius: 8px !important; font-weight: 600 !important; transition: all 0.3s ease !important; width: 100%; }
     .stButton > button:hover { background: rgba(0, 212, 255, 0.2) !important; box-shadow: 0 0 20px rgba(0, 212, 255, 0.4) !important; transform: scale(1.02); }
 
@@ -124,41 +123,41 @@ st.html(r'''
     /* Logo glow */
     [data-testid="stMarkdownContainer"] img[alt="MetaMatch logo"], .st-key-brand_logo img { display: block; margin: 0 auto; width: 210px; max-width: 60vw; height: auto; filter: drop-shadow(0 0 22px rgba(0, 212, 255, 0.35)) drop-shadow(0 0 6px rgba(0, 212, 255, 0.25)); }
 
-    /* Futuristic Tabs */
+    /* Tabs */
     .stTabs [data-baseweb="tab-list"] { gap: 10px; background-color: transparent; }
     .stTabs [data-baseweb="tab"] { background: rgba(255, 255, 255, 0.02) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; border-radius: 8px 8px 0 0 !important; color: #888 !important; padding: 10px 20px !important; }
     .stTabs [aria-selected="true"] { background: rgba(0, 212, 255, 0.05) !important; border-color: #00d4ff !important; color: #00d4ff !important; box-shadow: 0 -4px 10px rgba(0, 212, 255, 0.1); }
 
-    /* Text Area / Inputs */
+    /* Paste box */
     .stTextArea textarea { background: rgba(0, 0, 0, 0.2) !important; color: #00ffcc !important; font-family: 'JetBrains Mono', monospace !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 10px !important; }
     .stTextArea textarea:focus { border-color: #00d4ff !important; box-shadow: 0 0 10px rgba(0, 212, 255, 0.2) !important; }
 
-    /* Pokemon Card Glassmorphism */
+    /* Pokemon cards */
     .pokemon-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 16px; padding: 20px; margin-bottom: 20px; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden; }
     .pokemon-card:hover { transform: translateY(-5px); }
     .poke-name { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; color: #fff; }
     .role-badge { display: inline-block; background: rgba(255, 255, 255, 0.05); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; margin-right: 4px; border: 1px solid rgba(255,255,255,0.1); color: #ddd; }
 
-    /* Custom Scrollbar */
+    /* Scrollbars */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.3); }
 
-    /* Animations */
+    /* Card entrance animation */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
     @keyframes pulseGlow { 0% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); } 50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); } 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); } }
 
     .pokemon-card { animation: fadeInUp 0.6s ease-out forwards; }
 
-    /* Progress Bar Overhaul */
+    /* Progress bars: cyan gradient */
     div[data-testid="stProgress"] > div > div > div > div { background-image: linear-gradient(90deg, #00d4ff, #00ffcc) !important; box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
 
-    /* Neon Dividers */
+    /* Dividers fade out at both ends */
     hr { border: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent); margin: 2rem 0; }
 
-    /* Background Atmospheric Particles */
+    /* Two faint glows behind the page */
     .stApp::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background:
             radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.05) 0%, transparent 20%),
             radial-gradient(circle at 80% 70%, rgba(0, 255, 204, 0.05) 0%, transparent 20%);
@@ -182,7 +181,7 @@ TYPE_MAP = {
 def get_cached_teams():
     return storage.list_teams_detailed()
 
-# Initialize Session State. The analysed team lives in session; /team?t=<id> can rebuild it from the local store
+# Session state. The analysed team lives in session; /team?t=<id> can rebuild it from the local store
 if 'pokemon_names' not in st.session_state:
     st.session_state.pokemon_names = []
 if 'default_input' not in st.session_state:
@@ -592,7 +591,6 @@ def team_page():
     tab_banner.render(team_data, coverage, weakness, TYPE_MAP, team_name=saved.get("name"))
     st.markdown("---")
 
-    # --- Detailed Analysis Tabs ---
     section_header("Go deeper", "Detailed Analysis")
     # Only the open tab runs: the Threat Board, Team Completer and Speed Tiers each run the damage calc,
     # and hidden tabs would otherwise compute on every load

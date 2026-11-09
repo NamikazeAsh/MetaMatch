@@ -38,7 +38,7 @@ def audit_team(team_data):
         # Chaos keys are slugs ('heavydutyboots'); show the real name when the dex knows it
         name = (dex.item_name(slug) if kind == 'item' else dex.move_name(slug)) if dex else None
         return name or slug.title()
-    USAGE_THRESHOLD = 5.0 # Percent
+    USAGE_THRESHOLD = 5.0   # percent of sets: anything rarer is flagged
 
     for idx, pokemon in team_data.items():
         name = pokemon['Pokemon']
@@ -70,7 +70,7 @@ def audit_team(team_data):
                     return s_name, s_val
             return None, 0
 
-        # Audit Item
+        # Held item
         user_item = pokemon.get('Item', '')
         if user_item:
             item_stats = p_data.get('Items', {})
@@ -86,7 +86,7 @@ def audit_team(team_data):
                     "suggestion": f"{display(top_name, 'item')} ({(top_val/item_weight*100):.1f}%)"
                 })
         
-        # Audit Ability
+        # Ability
         user_ability = pokemon.get('Ability', '')
         if user_ability:
             ability_stats = p_data.get('Abilities', {})
@@ -94,7 +94,7 @@ def audit_team(team_data):
             pct = (count / total_weight * 100)
             reports[name]["ability"] = {"name": user_ability, "usage": pct}
 
-        # Audit Moves
+        # Moves
         user_moves = [m['name'] for m in pokemon.get('Moves', [])]
         move_stats = p_data.get('Moves', {})
         for move in user_moves:

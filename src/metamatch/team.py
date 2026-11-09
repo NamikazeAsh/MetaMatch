@@ -30,7 +30,7 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
     types = ["normal", "fire", "water", "electric", "grass", "ice","fighting", "poison", "ground", "flying", "psychic", "bug","rock", "ghost", "dragon", "dark", "steel", "fairy"]
     team_weakness = {t: {"weak": 0, "resist": 0, "immune": 0, "pokemon": []} for t in types}
     
-    # Speed Nature Modifiers
+    # Natures that raise or lower Speed
     speed_plus = ["Timid", "Jolly", "Hasty", "Naive"]
     speed_minus = ["Brave", "Relaxed", "Quiet", "Sassy"]
 
@@ -39,8 +39,8 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
         poke_data = {
             'Pokemon': '',
             'Type': [],
-            'Base Stats': {}, # New
-            'Speed': 0,       # New
+            'Base Stats': {},
+            'Speed': 0,       # final Speed stat, item included
             'Item': '',
             'Ability': '',
             'Shiny': False,
@@ -57,7 +57,7 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
             'Damage From': {}
         }
 
-        # 1. Parse Raw Text
+        # The paste, line by line
         poke_data['Pokemon'], poke_data['Item'] = parse_header(lines[0])
         for line in lines[1:]:
             line = line.strip()
@@ -100,7 +100,7 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
                     **move_data
                 })
 
-        # 2. Types and Base Stats from the bundled dex (PokeAPI as fallback).
+        # Types and base stats from the bundled dex (PokeAPI as fallback).
         # A held Mega Stone means the Pokemon battles as its Mega forme, with that forme's ability.
         species = dex.species(poke_data['Pokemon']) if dex else None
         if species:
@@ -117,7 +117,7 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
             poke_data['Type'] = api_data['types']
             poke_data['Base Stats'] = api_data['stats']
 
-            # 3. Calculate Real Speed
+            # Real Speed from base, investment, IVs, nature and item
             base_spe = api_data['stats'].get('speed', 100)
             ev_spe = poke_data['SP' if game == "champions" else 'EVs'].get('Spe', 0)
             nature_mod = 1.0
@@ -127,37 +127,30 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
             iv_spe = poke_data['IVs'].get('Spe', 31)
             poke_data['Speed'] = calculate_speed(base_spe, ev_spe, iv_spe, nature_mod, poke_data['Item'], game)
         else:
-            # Fallback if API fails
+            # Neither the dex nor PokeAPI knows it
             poke_data['Type'] = [] 
             poke_data['Speed'] = 0
 
-        # 4. Calculate Weaknesses (Resisting existing logic)
+        # Type matchups, then the immunities abilities and Air Balloon add
         dmg_from, dmg_to = damageRelations(poke_data['Type'])
-        
-        # --- Apply Ability/Item Immunities ---
+
         ability = (poke_data.get('Mega Ability') or poke_data['Ability']).lower()
         item = poke_data['Item'].lower()
 
-        # Ground Immunities
         if 'levitate' in ability or 'earth eater' in ability or item == 'air balloon':
             dmg_from['ground'] = 0.0
-            
-        # Electric Immunities
+
         if ability in ['volt absorb', 'lightning rod', 'motor drive']:
             dmg_from['electric'] = 0.0
-            
-        # Water Immunities
+
         if ability in ['water absorb', 'storm drain', 'dry skin']:
             dmg_from['water'] = 0.0
-            
-        # Fire Immunities
+
         if ability in ['flash fire', 'well-baked body']:
             dmg_from['fire'] = 0.0
-            
-        # Grass Immunities
+
         if ability == 'sap sipper':
             dmg_from['grass'] = 0.0
-        # -------------------------------------
 
         poke_data['Damage From'] = dmg_from
         poke_data['Damage To'] = dmg_to
@@ -235,18 +228,18 @@ def detectRole(team):
         if any(move in moves for move in pivot_moves):
             team[poke]["Roles"].append("Pivot")
         
-        # New: Forced Switcher (Phazer)
+        # Phazers
         phazing_moves = {"Roar", "Whirlwind", "Dragon Tail", "Circle Throw", "Yawn", "Perish Song", "Red Card"}
         if any(move in moves for move in phazing_moves) or item == "red card":
             team[poke]["Roles"].append("Forced Switcher")
 
-        # New: Stallbreaker (Taunt/Encore + Offense)
+        # Stallbreakers: Taunt, Encore and the like on a set with real attacking investment
         stallbreak_moves = {"Taunt", "Encore", "Substitute", "Disable", "Torment"}
         if any(move in moves for move in stallbreak_moves):
-            # Must have some offensive presence to be a stallbreaker, otherwise it's just support
             if evs.get("Atk", 0) > 100 or evs.get("SpA", 0) > 100:
                 team[poke]["Roles"].append("Stallbreaker")
-                # Defensive roles
+
+        # Defensive roles
         if any(move in moves for move in recovery_moves):
             if evs.get('HP', 0) > 100 or evs.get('Def', 0) > 200 or evs.get('SpD', 0) > 200:
                 team[poke]["Roles"].append("Wall")
@@ -312,7 +305,7 @@ def detectRole(team):
         if evs.get("Atk", 0) >= 100 and evs.get("SpA", 0) >= 100:
             team[poke]["Roles"].append("Mixed Attacker")
             
-        # Weather abusers
+        # Weather abusers, then roles that come from typing, items and abilities
         if ability in weather_abilities:
             team[poke]["Roles"].append("Weather Abuser")
         if "ghost" in ptypes:
@@ -320,7 +313,7 @@ def detectRole(team):
         if item == "heavy-duty boots" or "magic guard" in ability:
             team[poke]["Roles"].append("Hazard Immune")
         if "regenerator" in ability:
-            team[poke]["Roles"].append("Pivot")  # Natural pivoting ability
+            team[poke]["Roles"].append("Pivot")  # Regenerator rewards switching out
         if "guts" in ability or "quick feet" in ability:
             team[poke]["Roles"].append("Status Absorber")
         if evs.get("HP", 0) <= 4 and evs.get("Def", 0) <= 4 and evs.get("SpD", 0) <= 4:
@@ -330,7 +323,7 @@ def detectRole(team):
         if item in utility_items:
             team[poke]["Roles"].append("Utility")
             
-        # Z-Move/Tera
+        # Z-Crystals (older generations only)
         if item.startswith("z-"):
             team[poke]["Roles"].append("Z-Move User")
             

@@ -2,9 +2,9 @@ import unittest
 from unittest.mock import patch
 from metamatch.team import readTeam
 
-# Mock API response to avoid hitting PokeAPI during tests
+# PokeAPI stand in, so the tests never touch the network
 def mock_fetch_pokemon_data(name):
-    # Minimal data structure required for readTeam to proceed
+    # Just what readTeam reads
     base_data = {
         'types': [],
         'stats': {'speed': 100},
@@ -14,15 +14,12 @@ def mock_fetch_pokemon_data(name):
     
     n = name.lower()
     
-    # --- Existing Mocks ---
     if n == 'rotom-wash': base_data['types'] = ['Electric', 'Water']
     elif n == 'heatran': base_data['types'] = ['Fire', 'Steel']
     elif n == 'scizor': base_data['types'] = ['Bug', 'Steel']
     elif n == 'toxicroak': base_data['types'] = ['Poison', 'Fighting']
     elif n == 'swampert': base_data['types'] = ['Water', 'Ground']
     elif n == 'thundurus': base_data['types'] = ['Electric', 'Flying']
-    
-    # --- New Mocks for Expanded Tests ---
     elif n == 'azumarill': base_data['types'] = ['Water', 'Fairy']
     elif n == 'electivire': base_data['types'] = ['Electric']
     elif n == 'vaporeon': base_data['types'] = ['Water']
@@ -37,7 +34,7 @@ def mock_fetch_pokemon_data(name):
     elif n == 'torterra': base_data['types'] = ['Grass', 'Ground']
     elif n == 'goodra': base_data['types'] = ['Dragon']
     elif n == 'raichu': base_data['types'] = ['Electric']
-    elif n == 'shedinja': base_data['types'] = ['Bug', 'Ghost'] # Edge case
+    elif n == 'shedinja': base_data['types'] = ['Bug', 'Ghost']
         
     return base_data
 
@@ -47,9 +44,8 @@ class TestMechanics(unittest.TestCase):
     @patch('metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
     def test_ability_immunities(self, mock_move, mock_fetch):
         """
-        Test ability-based immunities supported by team.py logic.
+        Immunities readTeam adds for abilities and Air Balloon.
         """
-        # Batch 1: Ability Immunities
         raw_team = """
 Rotom-Wash @ Leftovers
 Ability: Levitate
@@ -98,23 +94,23 @@ EVs: 252 Def
 """
         team, _ = readTeam(raw_team)
         
-        # 1. Rotom-Wash (Levitate) -> Ground Immune
+        # Rotom-Wash (Levitate) -> Ground Immune
         self.assertEqual(team[0]['Damage From'].get('ground'), 0.0)
-        # 2. Heatran (Flash Fire) -> Fire Immune
+        # Heatran (Flash Fire) -> Fire Immune
         self.assertEqual(team[1]['Damage From'].get('fire'), 0.0)
-        # 3. Swampert (Ground Type) -> Electric Immune
+        # Swampert (Ground Type) -> Electric Immune
         self.assertEqual(team[2]['Damage From'].get('electric'), 0.0)
-        # 4. Thundurus (Volt Absorb) -> Electric Immune
+        # Thundurus (Volt Absorb) -> Electric Immune
         self.assertEqual(team[3]['Damage From'].get('electric'), 0.0)
-        # 5. Azumarill (Sap Sipper) -> Grass Immune
+        # Azumarill (Sap Sipper) -> Grass Immune
         self.assertEqual(team[4]['Damage From'].get('grass'), 0.0)
-        # 6. Raichu (Lightning Rod) -> Electric Immune
+        # Raichu (Lightning Rod) -> Electric Immune
         self.assertEqual(team[5]['Damage From'].get('electric'), 0.0)
-        # 7. Gastrodon (Storm Drain) -> Water Immune
+        # Gastrodon (Storm Drain) -> Water Immune
         self.assertEqual(team[6]['Damage From'].get('water'), 0.0)
-        # 8. Orthworm (Earth Eater) -> Ground Immune
+        # Orthworm (Earth Eater) -> Ground Immune
         self.assertEqual(team[7]['Damage From'].get('ground'), 0.0)
-        # 9. Dachsbun (Well-Baked Body) -> Fire Immune
+        # Dachsbun (Well-Baked Body) -> Fire Immune
         self.assertEqual(team[8]['Damage From'].get('fire'), 0.0)
 
     @patch('metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
@@ -127,14 +123,14 @@ EVs: 252 HP
 - Magma Storm
 """
         team, _ = readTeam(raw_team)
-        # 10. Air Balloon -> Ground Immune
+        # Air Balloon -> Ground Immune
         self.assertEqual(team[0]['Damage From'].get('ground'), 0.0)
 
     @patch('metamatch.team.fetch_pokemon_data', side_effect=mock_fetch_pokemon_data)
     @patch('metamatch.team.get_move_metadata', return_value={'category': 'Status', 'type': 'Normal'})
     def test_type_chart_extremes(self, mock_move, mock_fetch):
         """
-        Test 4x weaknesses and Natural Type Immunities.
+        4x weaknesses and the immunities typing alone gives.
         """
         raw_team = """
 Scizor @ Band
@@ -179,44 +175,44 @@ EVs: 252 Atk
 """
         team, _ = readTeam(raw_team)
         
-        # 11. Scizor (Bug/Steel) vs Fire -> 4x Weak
+        # Scizor (Bug/Steel) vs Fire -> 4x Weak
         self.assertEqual(team[0]['Damage From'].get('fire'), 4.0)
         
-        # 12. Toxicroak (Dry Skin) vs Water -> Immune
+        # Toxicroak (Dry Skin) vs Water -> Immune
         self.assertEqual(team[1]['Damage From'].get('water'), 0.0)
         
-        # 13. Gyarados (Water/Flying) vs Electric -> 4x Weak
+        # Gyarados (Water/Flying) vs Electric -> 4x Weak
         self.assertEqual(team[2]['Damage From'].get('electric'), 4.0)
-        # 14. Gyarados (Water/Flying) vs Ground -> Immune (Flying)
+        # Gyarados (Water/Flying) vs Ground -> Immune (Flying)
         self.assertEqual(team[2]['Damage From'].get('ground'), 0.0)
         
-        # 15. Ferrothorn (Grass/Steel) vs Fire -> 4x Weak
+        # Ferrothorn (Grass/Steel) vs Fire -> 4x Weak
         self.assertEqual(team[3]['Damage From'].get('fire'), 4.0)
-        # 16. Ferrothorn (Grass/Steel) vs Poison -> Immune (Steel)
+        # Ferrothorn (Grass/Steel) vs Poison -> Immune (Steel)
         self.assertEqual(team[3]['Damage From'].get('poison'), 0.0)
         
-        # 17. Garchomp (Dragon/Ground) vs Ice -> 4x Weak
+        # Garchomp (Dragon/Ground) vs Ice -> 4x Weak
         self.assertEqual(team[4]['Damage From'].get('ice'), 4.0)
-        # 18. Garchomp (Dragon/Ground) vs Electric -> Immune (Ground)
+        # Garchomp (Dragon/Ground) vs Electric -> Immune (Ground)
         self.assertEqual(team[4]['Damage From'].get('electric'), 0.0)
         
-        # 19. Sableye (Dark/Ghost) vs Normal -> Immune (Ghost)
+        # Sableye (Dark/Ghost) vs Normal -> Immune (Ghost)
         self.assertEqual(team[5]['Damage From'].get('normal'), 0.0)
-        # 20. Sableye (Dark/Ghost) vs Fighting -> Immune (Ghost)
+        # Sableye (Dark/Ghost) vs Fighting -> Immune (Ghost)
         self.assertEqual(team[5]['Damage From'].get('fighting'), 0.0)
-        # 21. Sableye (Dark/Ghost) vs Psychic -> Immune (Dark)
+        # Sableye (Dark/Ghost) vs Psychic -> Immune (Dark)
         self.assertEqual(team[5]['Damage From'].get('psychic'), 0.0)
         
-        # 22. Kingambit (Dark/Steel) vs Fighting -> 4x Weak
+        # Kingambit (Dark/Steel) vs Fighting -> 4x Weak
         self.assertEqual(team[6]['Damage From'].get('fighting'), 4.0)
-        # 23. Kingambit (Dark/Steel) vs Psychic -> Immune (Dark)
+        # Kingambit (Dark/Steel) vs Psychic -> Immune (Dark)
         self.assertEqual(team[6]['Damage From'].get('psychic'), 0.0)
-        # 24. Kingambit (Dark/Steel) vs Poison -> Immune (Steel)
+        # Kingambit (Dark/Steel) vs Poison -> Immune (Steel)
         self.assertEqual(team[6]['Damage From'].get('poison'), 0.0)
         
-        # 25. Torterra (Grass/Ground) vs Electric -> Immune (Ground)
+        # Torterra (Grass/Ground) vs Electric -> Immune (Ground)
         self.assertEqual(team[7]['Damage From'].get('electric'), 0.0)
-        # 26. Torterra (Grass/Ground) vs Ice -> 4x Weak
+        # Torterra (Grass/Ground) vs Ice -> 4x Weak
         self.assertEqual(team[7]['Damage From'].get('ice'), 4.0)
 
 from metamatch.team import detectRole
@@ -224,9 +220,9 @@ from metamatch.team import detectRole
 class TestRoles(unittest.TestCase):
     def test_weather_roles(self):
         """
-        Test detection of Weather Setters and Abusers.
+        Weather setters and abusers.
         """
-        # Mock team dict structure expected by detectRole
+        # Only the fields detectRole reads
         team = {
             0: {"Pokemon": "Pelipper", "Ability": "Drizzle", "Item": "Damp Rock", "Moves": ["Surf"], "EVs": {}, "Roles": []},
             1: {"Pokemon": "Barraskewda", "Ability": "Swift Swim", "Item": "Choice Band", "Moves": ["Liquidation"], "EVs": {}, "Roles": []},
@@ -253,7 +249,7 @@ class TestRoles(unittest.TestCase):
 
     def test_sweeper_roles(self):
         """
-        Test detection of Sweeper sub-types.
+        Physical, special and fast sweepers.
         """
         team = {
             0: {"Pokemon": "Garchomp", "Ability": "Rough Skin", "Item": "Life Orb", "Moves": ["Swords Dance"], "EVs": {"Atk": 252, "Spe": 252}, "Roles": []},
@@ -274,7 +270,7 @@ class TestRoles(unittest.TestCase):
 
     def test_utility_roles(self):
         """
-        Test detection of Phazers (Forced Switcher) and Stallbreakers.
+        Phazers (Forced Switcher) and stallbreakers.
         """
         team = {
             0: {"Pokemon": "Dragonite", "Ability": "Multiscale", "Item": "Heavy-Duty Boots", "Moves": ["Dragon Tail"], "EVs": {}, "Roles": []},

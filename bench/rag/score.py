@@ -9,8 +9,8 @@ A hit is gold when its metadata matches one entry (e.g. {"pokemon": "Kingambit"}
 must also contain the term (strict). Queries with gold [] have no right answer: the score counts how many
 references Oak would still be served for them. "oak@2" follows Oak's real path: 4 hits, then the
 relevance filter, keep 2.
-Caveat: the 65 queries were written by the same agent that designed the retrieval variants, so they are
-a development set, not a held out one.
+Caveat: the 65 queries were written while the retrieval variants were being designed, so they are a
+development set, not a held out one.
 """
 import argparse
 import json

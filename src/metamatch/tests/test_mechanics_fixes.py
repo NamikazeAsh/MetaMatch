@@ -1,7 +1,7 @@
 """
 Regression tests for the shared mechanics fixes: final Speed with items, survival effects (Sturdy, Focus Sash,
-Disguise), KO counts from raw rolls, priority in one on one verdicts, and item immunities. Each case comes from
-the engine audit's reproduction, through the real planner, solvers and damage calc.
+Disguise), KO counts from raw rolls, priority in one on one verdicts, and item immunities. Each case reproduces a
+reported bug through the real planner, solvers and damage calc.
 """
 import unittest
 

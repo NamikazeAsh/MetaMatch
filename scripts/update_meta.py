@@ -109,7 +109,7 @@ def main():
         }, f, indent=2)
     logging.info(f"Stats updated to {args.month}.")
 
-    # Month over month history for the Meta Pulse on the start screen
+    # Month over month usage history for MetaFlash on the start screen
     from metamatch import meta_pulse, meta_trends
     history = meta_pulse.record_local_stats(meta_pulse.load_history(), args.month)
     meta_pulse.save_history(history)

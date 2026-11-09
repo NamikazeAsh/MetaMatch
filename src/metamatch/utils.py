@@ -85,18 +85,18 @@ API_CACHE = load_cache()
 
 def pokeSlugify(name):
     """
-    Normalize Pokemon names for API/Smogon usage.
-    Handles tricky forms like Ogerpon, Urshifu, and Paradox mons.
+    A Showdown name as a PokeAPI slug, including the formes PokeAPI names differently (Ogerpon's masks,
+    Urshifu's default style, Paldean Tauros breeds, default formes like Aegislash-Shield).
     """
     name = name.lower().strip()
-    # Remove gender
+    # Drop a trailing gender marker: 'Indeedee (F)'
     name = re.sub(r'\s*\([mf]\)$', '', name)
     name = name.replace(" ", "-")
     name = name.replace(".", "")
     name = name.replace("'", "")
     name = name.replace("%", "")
     
-    # Explicit Mappings for PokeAPI quirks
+    # Showdown name -> PokeAPI slug where the two differ
     special_cases = {
         # Ogerpon
         "ogerpon-wellspring": "ogerpon-wellspring-mask",
@@ -106,7 +106,7 @@ def pokeSlugify(name):
         
         # Urshifu
         "urshifu-rapid-strike": "urshifu-rapid-strike",
-        "urshifu": "urshifu-single-strike", # Default if unspecified
+        "urshifu": "urshifu-single-strike",   # the default style
         
         # Paldean Tauros
         "tauros-paldea-water": "tauros-paldea-aqua-breed",
@@ -119,8 +119,8 @@ def pokeSlugify(name):
         "basculegion": "basculegion-male",
         "basculegion-f": "basculegion-female",
         
-        # Paradox / Others
-        "iron-valiant": "iron-valiant", # Already correct but good to be explicit
+        # Paradox and Ruin names already match; listed so the hyphenated names are never altered later
+        "iron-valiant": "iron-valiant",
         "roaring-moon": "roaring-moon",
         "great-tusk": "great-tusk",
         "scream-tail": "scream-tail",
@@ -138,7 +138,7 @@ def pokeSlugify(name):
         "ting-lu": "ting-lu",
         "chi-yu": "chi-yu",
         
-        # Megas / Forms (if you ever add Gen 6/7)
+        # Species PokeAPI only knows by a default forme
         "mimikyu": "mimikyu-disguised",
         "aegislash": "aegislash-shield",
         "giratina": "giratina-altered",
@@ -157,7 +157,7 @@ def fetch_pokemon_data(name):
     """
     slug = pokeSlugify(name)
 
-    # Check cache — support both new {data, ts} and legacy flat entries
+    # Cache entries are {data, ts}, or a bare dict in caches written by older versions
     if slug in API_CACHE:
         cached = _entry_data(API_CACHE[slug])
         if isinstance(cached, dict) and 'stats' in cached:
@@ -203,7 +203,7 @@ def calculate_speed(base_speed, ev=0, iv=31, nature_mod=1.0, item="", game="sv")
         stat = int(((2 * base_speed + iv + (ev / 4)) * level / 100) + 5)
     stat = int(stat * nature_mod)
     
-    # Apply Items
+    # Speed items
     if item.lower() == "choice scarf":
         stat = int(stat * 1.5)
     elif item.lower() == "iron ball":
@@ -245,33 +245,30 @@ def fetch_move_data(move_name):
         return default
 
 
-# --- Pokepaste Integration ---
+# PokéPaste links
 POKEPASTE_PATTERN = re.compile(r'pokepast\.es/([a-zA-Z0-9]+)')
 
 def is_pokepaste_url(text: str) -> bool:
-    """Check if text contains a pokepast.es URL."""
+    """True when the text contains a pokepast.es link."""
     return bool(POKEPASTE_PATTERN.search(text.strip()))
 
 def fetch_pokepaste(url_or_id: str) -> str | None:
     """
-    Fetch raw team export from pokepast.es.
-    Accepts full URL or just the paste ID.
-    Returns the raw Showdown export text, or None on failure.
+    The Showdown export behind a pokepast.es link or bare paste id, or None when it can't be fetched.
     """
     text = url_or_id.strip()
     
-    # Extract ID from URL if needed
     match = POKEPASTE_PATTERN.search(text)
     if match:
         paste_id = match.group(1)
     else:
-        paste_id = text  # Assume it's just the ID
+        paste_id = text   # a bare paste id
     
     try:
         raw_url = f"https://pokepast.es/{paste_id}/raw"
         resp = requests.get(raw_url, timeout=5)
         if resp.status_code == 200:
-            # Normalize line endings (pokepaste returns \r\n)
+            # PokéPaste serves Windows line endings
             return resp.text.replace('\r\n', '\n').strip()
         return None
     except Exception:

@@ -32,16 +32,16 @@ def _and(names):
 
 def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) -> list[dict]:
     """
-    Identifies top meta threats using STAB type coverage vs the team.
-    Scoring: members_hit^2 * usage_pct (prioritises breadth of coverage over mere usage).
-    Returns list of dicts matching the existing threats render format.
+    The format's most threatening Pokemon by STAB typing alone: how many members its types hit super effectively,
+    squared, times its usage, so hitting more of the team outranks being more common. Each comes with who hits it
+    back and who resists both its types. Returns the top_n as dicts.
     """
     format_id = format_id or config.team_format(team)
     poke_stats = auditor_module.load_chaos_data(format_id)
     if not poke_stats:
         return []
 
-    # Load types
+    # Types of every ranked Pokemon, from the usage list
     try:
         with open(config.JSON_DIR / "topPoke.json") as f:
             type_map = json.load(f)
@@ -65,7 +65,7 @@ def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) ->
         if not types:
             continue
 
-        # Which team members are hit super-effectively by this Pokemon's STAB types?
+        # Members its STAB types hit super effectively
         threatened = []
         for p in team.values():
             damage_from = p.get("Damage From", {})
@@ -77,10 +77,10 @@ def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) ->
         if not threatened:
             continue
 
-        # Improvement 2: weight members_hit heavily so breadth beats usage
+        # Squared, so breadth beats raw usage
         score = (len(threatened) ** 2) * usage_pct
 
-        # Improvement 1: which team members can hit back super-effectively?
+        # Members with a super effective hit back on one of its types
         offensive_answers = []
         for p in team.values():
             damage_to = p.get("Damage To", {})
@@ -89,15 +89,14 @@ def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) ->
                     offensive_answers.append(p["Pokemon"])
                     break
 
-        # Defensive checks: resist all STAB types
+        # Members that resist all of its STAB types
         defensive_checks = []
         for p in team.values():
             damage_from = p.get("Damage From", {})
             if all(damage_from.get(t.lower(), 1.0) <= 0.5 for t in types):
                 defensive_checks.append(p["Pokemon"])
 
-        # Improvement 4: top moves from chaos data (>10% usage, prettified)
-        # Moves sum to ~4x the Pokemon's weight (one per slot), so divide by the ability total instead
+        # Its three most used moves on at least 10% of sets. Moves sum to ~4x the Pokemon's weight (one per slot), so divide by the ability total instead
         raw_moves = data.get("Moves", {})
         total_move_weight = sum(data.get("Abilities", {}).values()) or 1
         top_moves = sorted(raw_moves.items(), key=lambda x: x[1], reverse=True)[:3]
@@ -112,12 +111,10 @@ def compute_threats(team: dict, format_id: str | None = None, top_n: int = 5) ->
         stab_str = "/".join(types)
         threatens_str = ", ".join(threatened)
 
-        # Build explanation
         explanation = f"{stab_str} STAB coverage hits {len(threatened)}/{len(team)} team members ({threatens_str}). Present on {usage_pct:.1f}% of ladder teams."
         if move_strs:
             explanation += f" Key moves: {', '.join(move_strs)}."
 
-        # Build counter_play combining offensive + defensive answers
         counter_parts = []
         if offensive_answers:
             counter_parts.append(f"{', '.join(offensive_answers)} can hit back super-effectively.")

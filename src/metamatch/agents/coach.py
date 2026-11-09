@@ -195,7 +195,7 @@ Rules:
                 *(history or [])[-6:],
                 {"role": "user", "content": context},
             ],
-            temperature=0.4,  # BALANCED
+            temperature=0.4,
             max_tokens=350,
             stream=False,
         )

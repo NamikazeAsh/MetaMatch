@@ -126,7 +126,7 @@ STYLE = """
 
 
 def archetype(team):
-    """The team's archetype from member roles (kept from the old dashboard metric)."""
+    """The team's archetype from member roles."""
     roles = [r for p in team.values() for r in p.get("Roles", [])]
     mon_roles = [set(p.get("Roles", [])) for p in team.values() if isinstance(p, dict)]
     if roles.count("Trick Room Setter") >= 1:

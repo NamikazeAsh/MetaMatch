@@ -72,8 +72,8 @@ def species_info(name, game="sv"):
 
 def generate_speed_tiers(pokemon_names, game="sv"):
     """
-    Generates speed benchmarks for the top meta Pokemon.
-    Returns a sorted list of tiers.
+    Speed benchmarks for the format's top 30: each one's max Speed, and its Choice Scarf Speed when its base
+    Speed is 80 or more. Returns [{label, speed, owner}], fastest first.
     """
     print(f"Generating Speed Tiers ({game})...")
     tiers = []
@@ -83,32 +83,31 @@ def generate_speed_tiers(pokemon_names, game="sv"):
         max_invest, min_speed = config.CHAMPIONS_SP_MAX, 100
     else:
         max_invest, min_speed = 252, 200
-        # Common fixed benchmarks
+        # Two benchmarks players quote by name
         tiers.append({'label': 'Choice Scarf Gholdengo', 'speed': 447, 'owner': 'Gholdengo'})
         tiers.append({'label': 'Max Speed Dragapult', 'speed': 421, 'owner': 'Dragapult'})
     
     seen_speeds = set()
     
-    for name in pokemon_names[:30]: # Limit to top 30 to save time/clutter
+    for name in pokemon_names[:30]:
         info = species_info(name, game)
         if not info: continue
         
         base_spe = info[1]
         
-        # 1. Max Speed (+Nature, full investment)
+        # Max Speed: full investment and a Speed nature
         max_spe = calculate_speed(base_spe, ev=max_invest, nature_mod=1.1, game=game)
         if max_spe > min_speed and max_spe not in seen_speeds:
             tiers.append({'label': f"Max {name}", 'speed': max_spe, 'owner': name})
             seen_speeds.add(max_spe)
             
-        # 2. Scarf User (if base speed is decent > 80). Megas hold their stone, so never Scarf
+        # Choice Scarf only for base 80 or faster; a Mega holds its stone, so it never has one
         if base_spe >= 80 and "-Mega" not in name:
             scarf_spe = int(max_spe * 1.5)
             if scarf_spe not in seen_speeds:
                 tiers.append({'label': f"Scarf {name}", 'speed': scarf_spe, 'owner': name})
                 seen_speeds.add(scarf_spe)
 
-    # Sort by speed descending
     return sorted(tiers, key=lambda x: x['speed'], reverse=True)
 
 def speed_tiers_path(game):

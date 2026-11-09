@@ -12,23 +12,19 @@ class AuditorAgent:
 
     def run(self, query: str, team_context: dict, history: list = None, named_context: str = ""):
         """
-        Executes the Builder Agent.
-        Focus: Sets, Items, EVs, Teammates, Usage Stats.
-        Temperature: 0.2 (Data-driven)
+        Brock, the building agent: sets, items, EVs, teammates and usage. The usage audit, teammate
+        recommendations and one matching reference go in the prompt, so answers quote real ladder numbers.
         """
-        
-        # 1. Run Statistical Audits (Real Code)
+        # Usage audit and teammate picks, computed before the model sees anything
         audit_res = auditor.audit_team(team_context)
         reports = audit_res.get("reports", {})
         warnings = audit_res.get("warnings", [])
-        
-        # 2. Run Recommender (Real Code)
+
         team_names = [p['Pokemon'] for p in team_context.values()]
         team_items = [p.get('Item', '') for p in team_context.values()]
         recommendations = recommender.get_recommendations(team_names, top_n=3, format_id=config.team_format(team_context), team_items=team_items)
 
-        # 3. Retrieve RAG Context for 'Why' (Grounded Reasoning)
-        # Same filters as Oak: only references about Pokemon in play, trimmed to one prompt slot
+        # One reference for the why, with the same filters as Oak: only references about Pokemon in play, trimmed to one prompt slot
         asked = find_pokemon(query)
         focus = set(asked) | set(find_pokemon(named_context)) | {p.get("Forme") or p["Pokemon"] for p in team_context.values()}
         rag_hits = [h for h in store.query_strategies(query, n_results=3, format_id=config.team_format(team_context), names=asked)
@@ -36,8 +32,7 @@ class AuditorAgent:
         rag_context = ""
         if rag_hits:
             rag_context = f"### STRATEGY CONTEXT (EXPLAINER)\n{_trim(rag_hits[0]['text'])}\n"
-        
-        # 4. Format Data for LLM
+
         audit_str = "### METAGAME USAGE REPORT\n"
         for p_name, report in reports.items():
             parts = [f"{label} '{report[key]['name']}' ({report[key]['usage']:.1f}%)"
@@ -62,8 +57,7 @@ class AuditorAgent:
                     entry += f" [{reason}]"
                 parts.append(entry)
             rec_str += ", ".join(parts)
-        
-        # 5. Builder Prompt
+
         system_content = f"""
         You are Brock, the experienced Pokemon breeder and analyst.
         You have a keen eye for team synergy and metagame trends!
@@ -93,7 +87,7 @@ class AuditorAgent:
                 *(history or [])[-6:],
                 {"role": "user", "content": query}
             ],
-            temperature=0.2, # DATA DRIVEN
+            temperature=0.2,
             stream=True
         )
         

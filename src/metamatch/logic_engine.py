@@ -16,14 +16,10 @@ ABILITY_IMMUNITY = {
     "grass": ("sap sipper",),
 }
 
-# --- INTENT ROUTER ---
-
-# --- ENTITY EXTRACTION ---
 def find_pokemon_in_query(query):
     """Returns Pokemon named in the query (exact names, nicknames, Mega names, small typos), in order."""
     return find_pokemon(query)
 
-# --- MATH ENGINE ---
 def get_type_effectiveness(attack_type, defender_types):
     multiplier = 1.0
     for dtype in defender_types:
@@ -112,17 +108,16 @@ def _damage_facts(user_pokemon, opp_set, game, dex):
 
 def analyze_matchup(user_pokemon, opponent_name, opp_set=None):
     """
-    Compares a User Pokemon (dict) vs an Opponent Pokemon (name string).
-    opp_set is the opponent's likely set (engine.sets.likely_set); without it only
-    type and max speed facts are produced.
-    Returns a list of 'Hard Facts' about the matchup.
+    Fact lines for one team member (a readTeam entry) against an opponent by name: Speed, type matchups and,
+    with the opponent's likely set (engine.sets.likely_set) and the calc, real damage both ways. Without the
+    set only type and max Speed facts are produced.
     """
     facts = []
     format_id = user_pokemon.get('Format')
     game = config.format_game(format_id)
     dex = dex_for_format(format_id)
 
-    # 1. Opponent types and base Speed, from the bundled dex when possible
+    # Opponent types and base Speed, from the bundled dex when possible
     species = dex.species(opp_set['name'] if opp_set else opponent_name) if dex else None
     if species:
         opp_types, opp_base_speed = species['types'], species['baseStats']['spe']
@@ -135,7 +130,7 @@ def analyze_matchup(user_pokemon, opponent_name, opp_set=None):
     user_name = user_pokemon['Pokemon']
     facts += _speed_facts(user_name, user_pokemon.get('Speed', 0), opponent_name, opp_set, opp_base_speed, game)
 
-    # 2. Defensive type profile vs the opponent's STAB types
+    # Defensive type profile vs the opponent's STAB types
     user_types = user_pokemon.get('Type', [])
     ability = (user_pokemon.get('Mega Ability') or user_pokemon.get('Ability', '')).lower()
     item = user_pokemon.get('Item', '').lower()
@@ -161,12 +156,12 @@ def analyze_matchup(user_pokemon, opponent_name, opp_set=None):
     if resistances:
         facts.append(f"DEFENSE: {user_name} RESISTS {opponent_name}'s {', '.join(resistances)} moves.")
 
-    # 3. Real damage numbers when we know the opponent's likely set and the calc is running
+    # Real damage numbers when the opponent's likely set is known and the calc is running
     damage = _damage_facts(user_pokemon, opp_set, game, dex) if opp_set and dex else []
     if damage:
         return facts + damage
 
-    # 4. Fallback: type effectiveness of the user's attacks, using the opponent's likely ability
+    # Fallback: type effectiveness of the user's attacks, using the opponent's likely ability
     opp_ability = (opp_set or {}).get('ability') or ''
     super_moves = []
     for move in user_pokemon.get('Moves', []):
@@ -199,9 +194,8 @@ def describe_likely_set(s, format_id):
 
 def generate_mechanics_report(team, subjects):
     """
-    The Orchestrator for Mechanics.
-    Runs matchups for every team member vs each opponent named in `subjects`
-    (assuming each opponent runs its most likely set) and returns a formatted string of Facts.
+    The facts block for Clemont's prompt: every team member against each opponent in `subjects`, each opponent
+    on its most likely set.
     """
     if not subjects:
         return ""
@@ -215,11 +209,9 @@ def generate_mechanics_report(team, subjects):
         if opp_set:
             report += describe_likely_set(opp_set, format_id) + "\n"
 
-        # Calculate matchup for each teammate
         for p in team.values():
             facts = analyze_matchup(p, subject, opp_set)
             if facts:
-                # Combine facts into a dense line
                 line = " | ".join(facts)
                 report += f"[{p['Pokemon']}]: {line}\n"
         report += "\n"

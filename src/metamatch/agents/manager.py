@@ -84,7 +84,7 @@ class AgentManager:
             return self.coach.run(query, team_context, history, named, briefing)
 
     def get_active_agent_name(self, query: str, team_context: dict = None) -> str:
-        """Helper for UI to show which agent is working"""
+        """The persona the chat shows for this query, from the same plan the answer uses."""
         if team_context is not None:
             plan, verdict = self._plan(query, team_context)
             if verdict:

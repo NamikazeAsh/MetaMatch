@@ -1,8 +1,8 @@
 """
 MetaFlash section for the start screen (meta_pulse.py picks the cards), laid out like a magazine page: a featured story with a
-6 month chart, a top 10 leaderboard beside it, and a grid of story cards underneath (a swipe strip
+12 month chart, a top 10 leaderboard beside it, and a grid of story cards underneath (a swipe strip
 on phones). Pure HTML and CSS through st.html, so it renders in the page without an iframe.
-st.html sanitizes inline <svg>, so charts ride in as data URI background images like the sprites.
+st.html sanitizes inline <svg>, so charts go in as data URI background images like the sprites.
 """
 import base64
 from html import escape

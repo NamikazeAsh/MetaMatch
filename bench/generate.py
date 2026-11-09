@@ -137,7 +137,7 @@ def calc_one(game, attacker, defender, move):
 
 
 def stats_of(game, mon):
-    # Any legal move works: we only want the computed stats
+    # Any legal move works: only the computed stats are read
     r = calc_one(game, mon.spec(), mon.spec(), mon.attacks()[0])
     return r["attacker_stats"] if r else None
 
@@ -158,7 +158,7 @@ def gen_speed(rng, pool, game, format_id, label, n):
         if not sa or not sb:
             continue
         diff = sa["spe"] - sb["spe"]
-        # Keep it interesting: close races, but not all ties
+        # Close races only, and at most one tie
         if abs(diff) > 40 or (diff == 0 and any(q["answer"]["value"] == "tie" for q in out)):
             continue
         truth = "yes" if diff > 0 else "no" if diff < 0 else "tie"

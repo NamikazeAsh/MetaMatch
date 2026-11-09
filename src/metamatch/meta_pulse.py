@@ -1,5 +1,5 @@
 """
-Meta Pulse: what is moving in a format's ladder this month.
+MetaFlash's usage stories: what is moving in a format's ladder this month.
 
 Usage history lives in data/json/usage_history.json as {format id: {"YYYY-MM": [[name, usage %], ...]}},
 top 100 per month. scripts/backfill_usage_history.py fills past months and scripts/update_meta.py
@@ -233,7 +233,7 @@ BADGES = {
 
 def pulse(format_id, n=8, history=None, month=None, with_sets=True):
     """
-    Cards for the Meta Pulse feed, most newsworthy first. Each card is a dict with name, kind,
+    Story cards for MetaFlash, most newsworthy first. Each card is a dict with name, kind,
     badge, rank, usage, prev_rank, prev_usage, delta (usage points vs last month, None without
     history), series [(month, usage %)] for the sparkline, headline, and the standard set fields.
     """

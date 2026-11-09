@@ -1,7 +1,7 @@
 """
 Shared headers in the MetaFlash style, so every page and tab reads as one product: a page header (kicker,
 gradient title, one line on what the page does, and the format and stats month on the right) and a smaller
-section header for the parts of a page. No emojis in either.
+section header for the parts of a page.
 """
 from html import escape
 

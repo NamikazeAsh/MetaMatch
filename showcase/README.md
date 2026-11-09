@@ -134,7 +134,7 @@ A game plan built from the Threat Board, Speed Tiers and type matchups, with no 
 
 ![Coach Guide: leads, a threat to watch, the Tera plan and pairs that cover each other](images/guide_leads.webp)
 
-When a team is built around weather or terrain, the guide measures what it does for each member, here a sun team.
+When a team is built around weather, a terrain, Trick Room, Tailwind or screens, the guide measures what it does for each member, here a sun team.
 
 ![Coach Guide: a sun team engine with each member's gain in sun](images/guide_engine.webp)
 

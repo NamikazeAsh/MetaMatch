@@ -9,33 +9,24 @@ class TacticianAgent:
 
     def run(self, query: str, team_context: dict, team_weakness: dict = None) -> str:
         """
-        Executes the Mechanics Agent.
-        Focus: Deterministic calculations, Type matchups, Speed tiers.
-        Temperature: 0.0 (Strict)
+        Clemont, the mechanics agent: type matchups, Speed and damage for questions the planner can't turn into a
+        single verdict. The model only restates the computed matchups and the team's defensive profile.
         """
-        
-        # 1. Opponents are the Pokemon named in the question that aren't on the user's team
+        # Opponents are the Pokemon named in the question that aren't on the user's team
         team_names = {p['Pokemon'].lower() for p in team_context.values()}
         subjects = [n for n in find_pokemon_in_query(query) if n.lower() not in team_names]
 
-        # 2. Generate the Hard Facts (Specific Matchups)
         mechanics_str = generate_mechanics_report(team_context, subjects)
-        
-        # 3. Generate General Defensive Profile (from Team Weakness Map)
+
+        # Each member's immunities (and what grants them) and 2x or worse weaknesses, from its Damage From table
         defensive_str = ""
         if team_weakness:
             defensive_str = "### GENERAL DEFENSIVE PROFILE (TYPE CHART + ABILITIES)\n"
-            # Invert the map to show Pokemon -> Weaknesses/Immunities
-            # team_weakness structure: {type: {'weak': count, 'resist': count, 'immune': count, 'pokemon': [list of weak ones]}}
-            # We need to dig a bit deeper or just list the known immunities for the team
-            
-            # Since team_weakness is type-centric, let's iterate through team_context to get per-pokemon defensive facts
             for p in team_context.values():
                 p_name = p['Pokemon']
                 p_immunities = []
                 p_weaknesses = []
-                
-                # Check the pre-calculated 'Damage From' if available (it is added in team.py readTeam)
+
                 dmg_from = p.get('Damage From', {})
                 ability = p.get('Ability', '').lower()
                 item = p.get('Item', '').lower()
@@ -43,7 +34,7 @@ class TacticianAgent:
                 for t, mult in dmg_from.items():
                     if mult == 0.0:
                         reason = ""
-                        # Detect source of immunity
+                        # An immunity the typing alone doesn't explain comes from the ability or Air Balloon
                         if t == 'ground' and ('levitate' in ability or 'earth eater' in ability):
                             reason = f" (via {p['Ability']})"
                         elif t == 'ground' and item == 'air balloon':
@@ -69,7 +60,6 @@ class TacticianAgent:
         if not mechanics_str and not defensive_str:
             mechanics_str = "No specific matchup data calculated."
 
-        # 4. Strict System Prompt
         system_content = f"""
         You are Clemont, the brilliant engineer and logic expert.
         The future is now thanks to science! You function as a deterministic Battle Mechanics Calculator.
@@ -93,7 +83,7 @@ class TacticianAgent:
                 {"role": "system", "content": system_content},
                 {"role": "user", "content": query}
             ],
-            temperature=0.0, # STRICT
+            temperature=0.0,
             stream=True
         )
         

@@ -69,7 +69,7 @@ class Plan:
     unhandled: list = field(default_factory=list)  # stated conditions this answer can't count ("Sticky Web")
     team: dict = field(default_factory=dict, repr=False)  # the whole team, for team wide answers ("what checks X")
     raw_stats: bool = False         # "ignore items/abilities": compare bare stats, no Scarf or field
-    no_boosts: bool = False         # "assume no boosts": Booster Energy and friends stay off too
+    no_boosts: bool = False         # "assume no boosts": Booster Energy and other boost triggers stay off too
 
     @property
     def opponent(self):
