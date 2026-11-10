@@ -71,8 +71,9 @@ class SemanticRouter:
 
     def route_query(self, query: str) -> Tuple[str, float]:
         """
-        (route, best similarity): 'mechanics' when the query matches the mechanics pattern or sits close to one
-        of its examples, 'fallback' when nothing is similar enough.
+        (route, best similarity): 'mechanics', 'strategy' or 'builder', whichever route has the example closest to
+        the query ('mechanics' outright when it names a damage, KO or Speed word), or 'fallback' when nothing is
+        similar enough.
         """
         # The chat tab asks for the persona before the response, so reuse the last result
         if getattr(self, "_last", (None,))[0] == query:
