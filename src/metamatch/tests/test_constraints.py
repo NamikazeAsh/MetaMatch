@@ -47,6 +47,16 @@ class TestExtraction(unittest.TestCase):
     def plan(self, q):
         return plan_query(q, self.team)
 
+    def test_setup_moves_count_and_go_to_the_side_that_runs_them(self):
+        # "my Corviknight after a Swords Dance": Corviknight doesn't run it, Kingambit's ladder set does
+        p = self.plan("Does Kingambit OHKO my Corviknight after a Swords Dance?")
+        self.assertEqual(p.opp_overrides.get("boosts"), {"atk": 2})
+        self.assertNotIn("boosts", p.user_overrides)
+        p = self.plan("Does Kingambit OHKO my Corviknight after two Swords Dances?")
+        self.assertEqual(p.opp_overrides.get("boosts"), {"atk": 4})
+        p = self.plan("After using Dragon Dance twice, does Dragonite outspeed my Great Tusk?")
+        self.assertEqual(p.opp_overrides.get("boosts"), {"atk": 2, "spe": 2})
+
     def test_conditional_spread_goes_to_the_opponent(self):
         p = self.plan("Is my Rillaboom faster than Iron Bundle if Iron Bundle is Timid with 252 Spe and no speed item?")
         self.assertEqual(p.opp_overrides.get("nature"), "Timid")

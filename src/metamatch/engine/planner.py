@@ -179,6 +179,21 @@ def _possessor(query, move, plan):
     return "user" if plan.user is not None else None
 
 
+def _move_boosts(plan, src, dst, boosts):
+    """Moves stat boosts the question gave one side over to the other."""
+    sides = {"user": plan.user_overrides, "opponent": plan.opp_overrides}
+    a, b = sides[src], sides[dst]
+    for stat, n in boosts.items():
+        left = a.get("boosts", {}).get(stat, 0) - n
+        if left > 0:
+            a["boosts"][stat] = left
+        else:
+            a.get("boosts", {}).pop(stat, None)
+        b.setdefault("boosts", {})[stat] = min(6, b.get("boosts", {}).get(stat, 0) + n)
+    if "boosts" in a and not a["boosts"]:
+        del a["boosts"]
+
+
 def plan_query(query, team):
     """Builds a Plan for a chat question about `team` (readTeam output)."""
     team = team or {}
@@ -233,6 +248,13 @@ def plan_query(query, team):
     user_moves = [m["name"] for p in members for m in p.get("Moves", [])]
     opp_set = likely_set(plan.opponent, format_id) if plan.opponent else None
     opp_moves = [m for m, _ in opp_set["moves"]] if opp_set else []
+    # A setup move credited to a Pokemon that doesn't run it belongs to the other side when that one does:
+    # "does Kingambit OHKO Great Tusk after a Swords Dance" is Kingambit's Swords Dance
+    for setup_move, owner, boosts in stated.setups:
+        runs = {"user": setup_move in user_moves, "opponent": setup_move in opp_moves}
+        other_side = "opponent" if owner == "user" else "user"
+        if not runs[owner] and runs[other_side]:
+            _move_boosts(plan, owner, other_side, boosts)
     plan.move = _find_move(scrubbed, user_moves + opp_moves, dex)
     if plan.move:
         scrubbed = _blank(scrubbed, plan.move)

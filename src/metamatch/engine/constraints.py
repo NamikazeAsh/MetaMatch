@@ -66,6 +66,7 @@ class Constraints:
     no_boosts: bool = False                        # "assume no boosts": no stat stages, Protosynthesis or Quark Drive
     strongest: bool = False                        # "uses its strongest (listed) move"
     consumed: list = field(default_factory=list)   # (start, end) spans the constraints came from
+    setups: list = field(default_factory=list)     # (move, side it was credited to, boosts) per setup move phrase
 
 
 def _item_patterns(dex):
@@ -141,10 +142,14 @@ def _hits(query, dex):
                 add(m.start(), m.end(), "tera", m.group(1).capitalize())
     setup = {**{m.lower(): m for m in SETUP_MOVES}, **SETUP_ALIASES}
     names = "|".join(re.escape(k) for k in sorted(setup, key=len, reverse=True))
-    for m in re.finditer(rf"\b(?:after|following)\s+(?:an?\s+|one\s+|a single\s+)?({names})\b", query, re.I):
+    # "after a Swords Dance", "after two Swords Dances", "after using Dragon Dance twice"
+    counts = {"two": 2, "2": 2, "double": 2, "a double": 2, "three": 3, "3": 3, "twice": 2, "x2": 2, "2x": 2}
+    for m in re.finditer(rf"\b(?:after|following)\s+(?:using\s+|setting\s+up\s+)?"
+                         rf"(?:(two|three|2|3|a double|double)\s+|an?\s+|one\s+|a single\s+)?({names})(?:e?s)?"
+                         rf"(?:\s+(twice|x2|2x))?\b", query, re.I):
         if free(m.start(), m.end()):
-            boost = SETUP_MOVES[setup[m.group(1).lower()]]
-            hits.extend((m.start(), m.end(), "boost", (stat, n), "subject") for stat, n in boost.items())
+            count = counts.get((m.group(1) or m.group(3) or "").lower(), 1)
+            hits.append((m.start(), m.end(), "setup", (setup[m.group(2).lower()], count), "subject"))
             taken.append(m.span())
     for nature in NATURES:
         # English words ("calm", "bold", "careful") only count capitalised; never inside "Calm Mind" or "Brave Bird"
@@ -281,7 +286,16 @@ def extract(query, spans, dex, user_item=None, subject="user", survive=False):
     marks = sorted(spans + [(m.start(), m.end(), "", side) for rx, side in SIDE_WORDS for m in re.finditer(rx, query, re.I)])
     loose = {}
     for a, b, key, value, style in sorted(hits, key=lambda h: h[0]):
-        side = getattr(out, _owner(marks, a, b, style, blanked, query, subject, survive))
+        owner = _owner(marks, a, b, style, blanked, query, subject, survive)
+        side = getattr(out, owner)
+        if key == "setup":
+            move, count = value
+            boosts = {stat: min(6, n * count) for stat, n in SETUP_MOVES[move].items()}
+            for stat, n in boosts.items():
+                side.setdefault("boosts", {})[stat] = min(6, side.get("boosts", {}).get(stat, 0) + n)
+            out.setups.append((move, owner, boosts))
+            out.consumed.append((a, b))
+            continue
         # "...? no booster": a negated item with no mention earlier in its sentence goes to whoever holds it
         alone = not any(_sentence_start(query, a) <= s[0] < a for s in marks)
         if key == "no_item" and alone and user_item and value.lower() == user_item.lower():
