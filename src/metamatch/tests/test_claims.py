@@ -84,5 +84,30 @@ class TestCoachRecommendations(unittest.TestCase):
             self.assertIsNone(recommends_loser(s, self.losers, self.members), s)
 
 
+class TestSofterRecommendations(unittest.TestCase):
+    """Oak's real answers to "How do I beat Raging Bolt?" when the engine had Corviknight losing (OHKO'd by
+    Thunderbolt) and only Great Tusk winning."""
+    losers, ohko = {"Corviknight", "Dragapult", "Gholdengo"}, {"Corviknight", "Dragapult"}
+    members = losers | {"Great Tusk", "Kingambit"}
+
+    def test_recommendations_spread_over_clauses_are_caught(self):
+        for s in ["Corviknight, with its high defense and ability to set up Body Press, could be a good option to take on Raging Bolt.",
+                  "Additionally, Corviknight's powerful Body Press can deal significant damage to Raging Bolt, making it a viable option.",
+                  "Corviknight's slower speed actually works to your advantage, as it allows you to set up a Body Press.",
+                  "Additionally, you may want to consider using Corviknight, who can provide a defensive anchor.",
+                  "Corviknight's slower speed might allow it to survive Raging Bolt's initial Thunderbolt."]:
+            self.assertEqual(recommends_loser(s, self.losers, self.members, self.ohko), "Corviknight", s)
+
+    def test_honest_advice_still_passes(self):
+        for s in ["I would recommend using Great Tusk with its powerful Headlong Rush move to take down Raging Bolt.",
+                  "Great Tusk outspeeds and hits Raging Bolt hard, making it the best answer.",
+                  "Corviknight is OHKO'd by Thunderbolt, so it's not a good option.",
+                  "Corviknight can't take a hit from Raging Bolt, so bring Great Tusk instead.",
+                  "Gholdengo can survive a hit from Raging Bolt, but it still loses the matchup.",
+                  "Avoid Corviknight; it is a liability here.",
+                  "Use Great Tusk rather than Corviknight."]:
+            self.assertIsNone(recommends_loser(s, self.losers, self.members, self.ohko), s)
+
+
 if __name__ == "__main__":
     unittest.main()

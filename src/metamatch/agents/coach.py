@@ -30,30 +30,60 @@ NEGATOR = re.compile(r"\b(?:not|never|no|avoid\w*|don't|doesn't|isn't|aren't|won
 LOSS = re.compile(r"\b(?:lose|loses|losing|lost to|struggles?|struggling|weak|vulnerable|threat\w*|careful|risk\w*|ohko\w*|"
                   r"dies|faints?|outclassed|walled|danger\w*|liability|keep \w+ (?:away|out|back)|stay away)\b", re.I)
 CLAUSE = re.compile(r"[;,]|\b(?:but|however|while|whereas|although|though|and|so|instead|rather|because|since|unless)\b", re.I)
+# Softer ways of recommending: "consider using X", "X works to your advantage", "a solid pick"
+RECOMMEND_SOFT = re.compile(r"\b(?:consider\w*|using|rely(?:ing)? on|go with|opt for|choose|pick|works? well|advantage|"
+                            r"solid|excellent|perfect|favou?rable|anchor)\b", re.I)
+# Claims that a member lives through the opponent's attacks: wrong for a member the opponent OHKOs
+SURVIVE_CUE = re.compile(r"\b(?:survives?|surviving|withstands?|withstanding|tanks?|tanking|"
+                         r"take[sn]? (?:a|the|its|one|that) hits?|lives? (?:through|a|the|one))\b", re.I)
+# A clause with no member of its own that still talks about the last one named: "..., making it a viable option",
+# "Corviknight, with its bulk, could be a good option"
+PRONOUN = re.compile(r"\b(?:it|its|it's|they|them|their|who|which)\b", re.I)
+CONTINUES = re.compile(r"^\s*(?:could|can|would|should|will|may|might|is|makes|making|works|provides|gives|offers)\b", re.I)
+NOT_THE_PICK = {"over", "than", "of", "not", "unlike", "except", "avoid", "avoiding"}
 
 
-def recommends_loser(sentence, losers, members):
+def _clauses(sentence):
+    """(start, text) for each clause, so a clause knows where it sits in the sentence."""
+    out, start = [], 0
+    for m in CLAUSE.finditer(sentence):
+        out.append((start, sentence[start:m.start()]))
+        start = m.end()
+    out.append((start, sentence[start:]))
+    return out
+
+
+def recommends_loser(sentence, losers, members, ohko=()):
     """A team member that the sentence recommends against this opponent although it loses the one on one, or None.
-    Each un-negated recommend word is credited to the nearest member in its clause; "over X" or "instead of X"
-    marks X as the alternative, not the pick."""
+    Each un-negated recommend word is credited to the nearest member in its clause, or to the last member named
+    before it when the clause only refers back to one ("making it a viable option"). A claim that a member survives
+    counts when the opponent OHKOs it (`ohko`). "over X" or "instead of X" marks X as the alternative, not the pick."""
     sentence = POSITIVE_IDIOM.sub(" ", sentence)
-    for clause in CLAUSE.split(sentence):
-        low = clause.lower()
-        spots = []
-        for n in members:
-            for m in re.finditer(rf"\b{re.escape(n.lower())}\b", low):
-                before = low[:m.start()].split()[-2:]
-                if not set(before) & {"over", "than", "of", "not", "unlike", "except", "avoid", "avoiding"}:
-                    spots.append((m.start(), n))
-        if not spots or LOSS.search(clause):
+    low_sentence = sentence.lower()
+    named = []
+    for n in members:
+        for m in re.finditer(rf"\b{re.escape(n.lower())}\b", low_sentence):
+            if not set(low_sentence[:m.start()].split()[-2:]) & NOT_THE_PICK:
+                named.append((m.start(), n))
+    for start, clause in _clauses(sentence):
+        if LOSS.search(clause):
             continue
-        for cue in RECOMMEND.finditer(clause):
+        spots = [(p - start, n) for p, n in named if start <= p < start + len(clause)]
+        carried = None
+        if not spots and (PRONOUN.search(clause) or CONTINUES.match(clause)):
+            earlier = [(p, n) for p, n in named if p < start]
+            carried = max(earlier)[1] if earlier else None
+        if not spots and not carried:
+            continue
+        cues = [(c, False) for c in RECOMMEND.finditer(clause)] + [(c, False) for c in RECOMMEND_SOFT.finditer(clause)]
+        cues += [(c, True) for c in SURVIVE_CUE.finditer(clause)]
+        for cue, survives in cues:
             head = clause[:cue.start()].split()[-3:]
             if any(NEGATOR.fullmatch(w.strip(".,!?").lower()) or w.lower().endswith("n't") for w in head):
                 continue
-            nearest = min(spots, key=lambda s: abs(s[0] - cue.start()))[1]
-            if nearest in losers:
-                return nearest
+            who = min(spots, key=lambda s: abs(s[0] - cue.start()))[1] if spots else carried
+            if who in (ohko if survives else losers):
+                return who
     return None
 
 
@@ -117,11 +147,12 @@ def verify(advice, context, briefing, team=None):
     only = len(briefing.matchups) == 1
     for m in briefing.matchups:
         losers = {x["name"] for x in m.losses}
+        ohko = {x["name"] for x in m.losses if x.get("to_be_koed") == 1}
         members = losers | {x["name"] for x in m.wins} | {p["Pokemon"] for p in (team or {}).values()}
         for sentence in re.split(r"(?<=[.!?])\s+", advice):
             if not (only or m.opponent.lower() in sentence.lower()):
                 continue
-            loser = recommends_loser(sentence, losers, members)
+            loser = recommends_loser(sentence, losers, members, ohko)
             if loser:
                 return f"a claim that {loser} handles {m.opponent}, but it loses to {m.opponent} one on one"
     return _move_owner_clash(advice, team or {})
