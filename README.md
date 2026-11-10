@@ -118,22 +118,23 @@ Same model, same team, same question. These are trimmed from the benchmark logs.
 
 ```mermaid
 graph LR
-    Q["Question"] --> P["Planner"]
+    Q["Question"] --> P["Planner + detail reader"]
     P -->|fact question| S["Solver"]
-    S -->|"@smogon/calc + dex + usage"| V["Verdict"]
+    S -->|"@smogon/calc + dex + usage, stated conditions counted"| V["Verdict"]
     V --> L["LLM explains"]
     L --> C{"Verifier"}
     C -->|consistent| A["Answer"]
     C -->|contradiction| R["Retry once, then show facts"]
+    V -->|model offline| F["Verdict and facts only"]
     P -->|opponent unclear| Q2["Ask which Pokémon"]
-    P -->|strategy question| G["Router to Oak or Brock"]
+    P -->|open question| G["Router: Clemont, Oak or Brock"]
 ```
 
 1. **Planner (zero LLM):** works out what the question asks (speed, KO, damage, type, stat or usage) and which Pokémon, move and set are involved. Recognizes all 1,400+ species and formes in the bundled dex, plus nicknames (*Lando*, *Pult*, *Tusk*), regional shorthand (*G Slowking*), typos and Mega names.
-2. **Detail reader (zero LLM):** picks up everything the question says about either side, like *"max speed"*, *"specs"*, *"tera fairy"*, *"+2 after a Dragon Dance"*, Reflect, rain or a pasted set, and knows which Pokémon it belongs to. Mirror matches (*"tusk mirror, theirs is Jolly"*) work too.
+2. **Detail reader (zero LLM):** picks up everything the question says about either side, like *"max speed"*, *"specs"*, *"tera fairy"*, *"+2 after a Dragon Dance"*, Reflect, rain or a pasted set, and knows which Pokémon it belongs to. Mirror matches (*"tusk mirror, theirs is Jolly"*) work too. It also reads battle conditions: Tailwind, Trick Room, a burn or paralysis, an HP percentage, Stealth Rock, Spikes or a critical hit. Each one is counted when it changes the answer, and the answer says so (*"Counted from the question: Tailwind on your side"*). Anything it can't model, like Sticky Web or Helping Hand, is named as not counted instead of being dropped.
 3. **Solver:** computes the answer with the real damage calculator, using what you said and the most common ladder set for everything else, and tells you which is which.
 4. **Verdict:** the headline answer comes from a template, so it is always the engine's answer, never the model's guess.
-5. **Verifier:** the LLM writes a short explanation. Any number not in the facts, or any claim that flips the speed, type or KO verdict, gets rejected. One retry, then MetaMatch shows the raw facts instead.
+5. **Verifier:** the LLM writes a short explanation, read clause by clause, so *"Dragapult can't outspeed Tusk"* counts as agreeing with *"yes, Tusk is faster"*. Any number not in the facts, or any claim that flips the speed, type or KO verdict, gets rejected. One retry, then MetaMatch shows the raw facts instead, and with the model offline the verdict and facts come back on their own.
 6. **Clarify:** if a matchup question names no recognizable opponent, MetaMatch asks rather than answering a different question.
 
 ### 📜 Grounded Strategy Advice
@@ -143,7 +144,8 @@ Strategy questions ("how do I play against Kingambit?", "what are my biggest thr
 * **🧮 One on one verdicts:** for a named opponent, or each of the top meta threats, the calc works out hits to KO both ways plus speed for every team member, then labels who wins and who loses.
 * **📋 Engine check:** those verdicts open the answer, written by code, so the key facts are always right:
   > **Vs Kingambit** answers: Corviknight, Garchomp, Torkoal; loses: Dragapult (OHKO'd by Sucker Punch), Venusaur, Alomomola
-* **🔍 Advice verifier:** Professor Oak's advice is rejected if it invents numbers, mentions Pokémon that appear nowhere in the facts, calls a team member an answer to something it loses to, or gives a member a move it doesn't run. One retry, then only the engine check is shown.
+* **Team engines:** when the team is built around weather, a terrain, Trick Room, Tailwind or screens, what the core does for each member, measured with the calc, goes into Oak's facts too.
+* **🔍 Advice verifier:** Professor Oak's advice is rejected if it invents numbers, mentions Pokémon that appear nowhere in the facts, directly calls a team member an answer to something it loses to, or gives a member a move it doesn't run. One retry, then only the engine check is shown.
 
 ---
 
@@ -292,56 +294,78 @@ A GitHub Action pulls new Smogon usage stats every month, rebuilds top Pokémon 
 
 ```mermaid
 graph TD
-    A["User Input"] -->|"Showdown Export"| B("Streamlit App")
-    B --> C{"Analysis Pipeline"}
-    B <-->|"Teams, chats, prefs"| S["SQLite (local)"]
+    IN["Showdown export or PokéPaste link"] --> APP("Streamlit app")
+    APP <-->|"teams, chats, prefs"| DB[("SQLite, local")]
 
-    subgraph Engine ["Battle Engine"]
-    K["@smogon/calc (Node)"]
-    X["Bundled Dex"]
-    Y["Likely Sets"]
+    subgraph DATA ["Data, refreshed monthly"]
+        CI["GitHub Action"]
+        STATS["Smogon stats: chaos, leads, movesets"]
+        HIST["Usage, lead and set histories"]
     end
+    CI --> STATS
+    STATS --> HIST
 
-    subgraph AI_Core ["Chat Core"]
-    B --> PL["Planner"]
-    PL -->|"Fact question"| SO["Solvers"]
-    SO --> GR["Grounded Answer + Verifier"]
-    PL -->|"Open question"| R["Semantic Router (MiniLM)"]
-    R -->|Mechanics| T["Clemont"]
-    R -->|Strategy| U["Prof. Oak"]
-    R -->|Builder| V["Brock"]
+    subgraph ENGINE ["Battle engine, no LLM"]
+        DEX["Bundled dex"]
+        SETS["Likely sets"]
+        CALC["@smogon/calc sidecar (Node)"]
+        MECH["Mechanics: final Speed, KO counts, priority"]
+        BOARD["One on one verdicts"]
     end
+    STATS --> SETS
+    DEX --> CALC
+    SETS --> CALC
+    CALC --> MECH
+    MECH --> BOARD
 
-    K --> SO
-    X --> SO
-    Y --> SO
-
-    subgraph RAG_Engine ["RAG System"]
-    H["Smogon Analyses, Usage Cards, Concepts, Champions Guides"] --> I["ChromaDB (BGE Small) + BM25"]
-    I --> U
+    subgraph PAGES ["Pages and tabs, no LLM"]
+        FLASH["MetaFlash"]
+        DASH["Team banner, Threat Board, Team Completer, Speed Tiers, matrices, audit"]
+        GUIDE["Coach Guide"]
+        TOOLS["Spread Lab, Matchup Preview, Quick Match, Move Search, Replay Auditor"]
     end
+    APP --> FLASH
+    APP --> DASH
+    APP --> TOOLS
+    HIST --> FLASH
+    BOARD --> DASH
+    BOARD --> GUIDE
+    MECH --> TOOLS
+    STATS -->|"teammate lift"| DASH
 
-    subgraph Statistical_Engine ["Statistical Engine"]
-    M["Smogon Chaos Data"] -->|"Weighted Usage"| N["Meta Auditor"]
-    M -->|"Teammate Lift"| O["Team Completer"]
-    M --> Y
-    M --> V
+    subgraph CHAT ["Coach chat"]
+        PL["Planner and detail reader"]
+        SO["Solvers"]
+        VF["Templated verdict, checked explanation"]
+        RT["Semantic router (MiniLM)"]
+        CL["Clemont"]
+        OAK["Prof. Oak"]
+        BR["Brock"]
     end
+    APP --> PL
+    PL -->|"fact question"| SO
+    SO --> VF
+    MECH --> SO
+    PL -->|"open question"| RT
+    RT -->|"mechanics"| CL
+    RT -->|"strategy"| OAK
+    RT -->|"building"| BR
+    BOARD -->|"engine check"| OAK
+    STATS -->|"usage audit"| BR
 
-    subgraph Static_Analysis ["Static Analysis"]
-    C --> D["Team Parser"]
-    D --> F["Role Detection"]
-    D --> G["Type Calculator"]
+    subgraph RAG ["RAG"]
+        SRC["Smogon analyses, usage cards, concepts, Champions guides"]
+        IDX["ChromaDB (BGE small) + BM25"]
     end
+    SRC --> IDX
+    IDX --> OAK
+    IDX --> BR
 
-    F --> P["Dashboard UI"]
-    G --> P
-    GR --> P
-    T --> P
-    U --> P
-    V --> P
-    N --> P
-    O --> P
+    LLM["Ollama, local 3B model"]
+    LLM -.->|"explains only"| VF
+    LLM -.-> CL
+    LLM -.-> OAK
+    LLM -.-> BR
 ```
 
 ---
