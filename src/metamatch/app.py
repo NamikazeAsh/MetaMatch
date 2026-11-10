@@ -536,19 +536,19 @@ HERO_HEAD = """
 """
 
 
-def _tour_home():
-    st.switch_page(HOME_PAGE)
-
-
-def _tour_team():
-    """The tour's team steps run on the team already open, else on the sample team."""
+def _tour_go(page):
+    """Opens the page a tour step is on. Team steps run on the team already open, else on the sample team."""
+    if page == "home":
+        st.switch_page(HOME_PAGE)
+    if page != "team":
+        st.switch_page(TOOL_PAGES[page])
     if st.session_state.get("analysis") and st.session_state.get("team_id"):
         st.switch_page(TEAM_PAGE, query_params={"t": st.session_state.team_id})
     open_team(SAMPLE_TEAM, "gen9ou")
 
 
 def home_page():
-    tour.redirect("home", _tour_home, _tour_team)
+    tour.redirect("home", _tour_go)
     render_home_sidebar()
     tour.offer()
     render_logo()
@@ -598,7 +598,7 @@ def team_page():
             return
         if not load_team(stored['raw_text'], stored['format']):
             return
-    tour.redirect("team", _tour_home, _tour_team, has_team=bool(st.session_state.get("analysis")))
+    tour.redirect("team", _tour_go, has_team=bool(st.session_state.get("analysis")))
     if not st.session_state.get("analysis") or not st.session_state.get("pokemon_names"):
         team_empty_state("No team yet. Paste a Showdown export on Home to build the dashboard.")
         return
@@ -640,27 +640,34 @@ def team_page():
 
 
 def quick_match_page():
+    tour.redirect("quick-match", _tour_go)
     page_header("Team building", "Quick Match", "No team yet? Pick a core and get the partners that pair best with it on the ladder.",
                 st.session_state.get("format_id"))
     format_picker()
     tab_quick_match.render(get_master_strategy_data)
+    tour.render()
 
 
 def move_search_page():
+    tour.redirect("move-search", _tour_go)
     page_header("Research", "Move Search", "Find sets that run a combination of moves, from the Strategy Dex and ladder usage.",
                 st.session_state.get("format_id"))
     format_picker()
     tab_move_search.render(get_master_strategy_data, get_usage_data, TYPE_MAP)
+    tour.render()
 
 
 def spread_lab_page():
+    tour.redirect("spread-lab", _tour_go)
     page_header("Team building", "Spread Lab", "The smallest spread that hits every benchmark you need, checked by the damage calculator.",
                 st.session_state.get("format_id"))
     format_picker()
     tab_spread_lab.render((st.session_state.get("analysis") or {}).get("team"))
+    tour.render()
 
 
 def matchup_preview_page():
+    tour.redirect("matchup-preview", _tour_go)
     page_header("Before the battle", "Matchup Preview",
                 "Your team against the one you're about to face, every matchup worked out by the damage calculator.",
                 st.session_state.get("format_id"))
@@ -668,24 +675,28 @@ def matchup_preview_page():
     if not team:
         format_picker()
     tab_preview.render(team, sample_team=SAMPLE_TEAM)
+    tour.render()
 
 
 def replay_page():
+    tour.redirect("replay-auditor", _tour_go)
     page_header("After the battle", "Replay Auditor", "Paste a Showdown replay for a turn by turn review of your battle.")
     tab_replay.render()
+    tour.render()
 
 
 # Team is always routable (so /team?t=<id> links work in a fresh session) but only shows in the bar once a team is open
 HOME_PAGE = st.Page(home_page, title="Home", icon=":material/home:", default=True)
 TEAM_PAGE = st.Page(team_page, title="Team", icon=":material/insights:", url_path="team",
                     visibility="visible" if st.session_state.get("analysis") else "hidden")
-nav = st.navigation([
-    HOME_PAGE,
-    TEAM_PAGE,
-    st.Page(quick_match_page, title="Quick Match", icon=":material/group_add:", url_path="quick-match"),
-    st.Page(move_search_page, title="Move Search", icon=":material/search:", url_path="move-search"),
-    st.Page(spread_lab_page, title="Spread Lab", icon=":material/tune:", url_path="spread-lab"),
-    st.Page(matchup_preview_page, title="Matchup Preview", icon=":material/swords:", url_path="matchup-preview"),
-    st.Page(replay_page, title="Replay Auditor", icon=":material/smart_display:", url_path="replay-auditor"),
-], position="top")
+# Keyed by url path, which is also how the guided tour names a step's page
+TOOL_PAGES = {
+    "quick-match": st.Page(quick_match_page, title="Quick Match", icon=":material/group_add:", url_path="quick-match"),
+    "move-search": st.Page(move_search_page, title="Move Search", icon=":material/search:", url_path="move-search"),
+    "spread-lab": st.Page(spread_lab_page, title="Spread Lab", icon=":material/tune:", url_path="spread-lab"),
+    "matchup-preview": st.Page(matchup_preview_page, title="Matchup Preview", icon=":material/swords:",
+                               url_path="matchup-preview"),
+    "replay-auditor": st.Page(replay_page, title="Replay Auditor", icon=":material/smart_display:", url_path="replay-auditor"),
+}
+nav = st.navigation([HOME_PAGE, TEAM_PAGE, *TOOL_PAGES.values()], position="top")
 nav.run()

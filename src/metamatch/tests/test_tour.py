@@ -9,14 +9,15 @@ from metamatch.ui import DASHBOARD_TABS
 class TestSteps(unittest.TestCase):
     def test_every_step_names_a_real_page_and_tab(self):
         for step in tour.STEPS:
-            self.assertIn(step.page, ("home", "team"))
+            self.assertIn(step.page, tour.PAGES)
             self.assertTrue(step.target and step.title and step.text)
             if step.tab:
                 self.assertIn(step.tab, DASHBOARD_TABS)
 
-    def test_home_steps_come_first_so_the_tour_moves_forward(self):
-        pages = [s.page for s in tour.STEPS]
-        self.assertEqual(pages, sorted(pages, key=("home", "team").index))
+    def test_each_page_is_visited_once_in_one_run_of_steps(self):
+        runs = [s.page for i, s in enumerate(tour.STEPS) if i == 0 or tour.STEPS[i - 1].page != s.page]
+        self.assertEqual(len(runs), len(set(runs)))
+        self.assertEqual(set(runs), set(tour.PAGES))
 
 
 class TestState(unittest.TestCase):

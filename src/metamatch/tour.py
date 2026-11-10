@@ -20,7 +20,7 @@ SEEN_KEY = "tour_seen"    # the first visit offer was taken or dismissed
 
 @dataclass(frozen=True)
 class Step:
-    page: str                  # "home" or "team"
+    page: str                  # one of PAGES: "home", "team" or a tool page's url path
     target: str                # CSS selector, every match lit as one area; "A || B" falls back to B when A isn't shown
     title: str
     text: str
@@ -50,11 +50,22 @@ STEPS = (
     Step("team", ".st-key-speed_chart_card", "Speed Tiers",
          "Your real Speed against every spread the top Pokémon run. Hover a dot for the spreads behind it, and test "
          "a Speed under the chart to see what it costs.", tab="Speed Tiers"),
-    Step("team", '[data-testid="stTopNavLinkContainer"] || [data-testid="stExpandSidebarButton"]', "More tools",
-         "Quick Match finds partners for a core, Move Search finds sets, Spread Lab builds a spread, Matchup Preview "
-         "checks a team you're about to face and Replay Auditor reviews a game. On a phone they're in the menu.",
-         top=True),
+    Step("quick-match", '[class*="st-key-quick_match_select_"]', "Quick Match",
+         "The tools live in the top bar (in the menu on a phone). No team yet? Pick one to five Pokémon here and get "
+         "the partners players really build with them in this format."),
+    Step("move-search", ".st-key-move_search_select", "Move Search",
+         "Pick a few moves and find every set that runs all of them, from the Smogon Strategy Dex and ladder usage."),
+    Step("spread-lab", '[class*="st-key-slrow_"]', "Spread Lab",
+         "Say what a Pokémon has to do: outspeed a threat, OHKO or 2HKO a target, survive a hit. It finds the smallest "
+         "spread that does all of it and checks it with the calculator."),
+    Step("matchup-preview", '[class*="st-key-pv_theirs_"]', "Matchup Preview",
+         "Paste the team you're about to face, even just the six names from team preview, to see every matchup. In "
+         "Champions it also picks your three to bring."),
+    Step("replay-auditor", ".st-key-replay_url_input", "Replay Auditor",
+         "Paste a Showdown replay link for a review of the game: team health turn by turn, what made each Pokémon "
+         "faint, and the mistakes worth knowing."),
 )
+PAGES = ("home", "team", "quick-match", "move-search", "spread-lab", "matchup-preview", "replay-auditor")
 
 
 # --- State -------------------------------------------------------------------------------------
@@ -251,16 +262,12 @@ def start_button():
               on_click=begin, args=(st.session_state,))
 
 
-def redirect(page, to_home, to_team, has_team=True):
-    """Moves to the page the current step is on, opening a team for team steps when none is loaded. to_home and
-    to_team switch pages, so they don't return."""
+def redirect(page, go, has_team=True):
+    """Moves to the page the current step is on, or opens a team when a team step finds none loaded.
+    go(page) switches pages, so it doesn't return."""
     cur = current(st.session_state)
-    if not cur:
-        return
-    if cur[1].page == "home" and page != "home":
-        to_home()
-    elif cur[1].page == "team" and (page != "team" or not has_team):
-        to_team()
+    if cur and (cur[1].page != page or (page == "team" and not has_team)):
+        go(cur[1].page)
 
 
 def render():
