@@ -164,9 +164,9 @@ Conditions stated in the question, like Tailwind, Trick Room, burns, hazards or 
 
 ### Professor Oak, strategy
 
-One on one engine verdicts open the answer, then verified advice, with the Smogon references he read listed underneath.
+One on one engine verdicts open every answer, then his advice, with the Smogon references he read listed underneath. Advice that contradicts the verdicts is never shown: here the small model kept recommending Corviknight, which Raging Bolt OHKOs, so only the engine check is shown.
 
-![Professor Oak's engine check and advice against Raging Bolt](images/chat_oak.webp)
+![Professor Oak's engine check against Raging Bolt, with his advice held back by the fact check](images/chat_oak.webp)
 
 ### Brock, building
 
@@ -222,13 +222,17 @@ Every set that runs a combination of moves, from the Smogon Strategy Dex and lad
 
 ### Replay Auditor
 
-A post mortem of any Showdown replay: the result, team health turn by turn and the cause of every faint.
+A post mortem of any Showdown replay: both teams and the result, then team health turn by turn with a dot on every faint.
 
-![Replay Auditor: result and team health chart](images/replay_auditor.webp)
+![Replay Auditor: the versus banner and the team health chart](images/replay_auditor.webp)
 
-Mistakes and notes dated to their turn, and every set the opponent revealed.
+Mistakes and notes dated to their turn, and every faint in order with what caused it.
 
-![Replay Auditor: mistakes and notes, and the opponent's revealed sets](images/replay_details.webp)
+![Replay Auditor: mistakes and notes, and the faint timeline](images/replay_details.webp)
+
+Both teams as the game ended, with every item, ability, Tera type and move the opponent revealed.
+
+![Replay Auditor: both teams at the end of the game](images/replay_teams.webp)
 
 ---
 

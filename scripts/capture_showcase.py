@@ -395,6 +395,7 @@ def capture_tools(b):
     check(page, "replay")
     frame(page, "replay_auditor", ".ui-ph", offset=80)
     frame(page, "replay_details", "text=Mistakes", offset=90)
+    frame(page, "replay_teams", "text=Both Teams", offset=110)
 
     # Spread Lab: the example benchmarks, then the result
     page.goto(URL + "/spread-lab")
