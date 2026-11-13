@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass, field
 
 from metamatch import config
-from metamatch.engine import constraints
+from metamatch.engine import constraints, rules
 from metamatch.engine.dex import dex_for_format, to_id
 from metamatch.engine.sets import likely_set
 from metamatch.engine.names import find_pokemon, find_pokemon_spans
@@ -45,6 +45,15 @@ TEAM_ADVICE_RE = re.compile(r"\bhow\b(?!\s+many)|\b(?:fix|cover|patch|deal with|
                             r"should|recommend|suggest|teammate|why)\b", re.I)
 TEAM_ASKS = (("neutral", re.compile(r"\bneutral", re.I)), ("immune", re.compile(r"\bimmun", re.I)),
              ("weak", re.compile(r"\b(?:weak|super effective|vulnerable)", re.I)))
+# "how does Multiscale work", "does Mold Breaker ignore Levitate", "what does Booster Energy do": a rules question
+RULES_CUE_RE = re.compile(r"\b(?:how does|how do(?!\s+(?:i|we|you)\b)|what does|what do|what is|what's|whats|what happens|"
+                          r"explain|works?|mean|means|boosts?|ignores?|bypass\w*|reflects?|bounces?|halves?|blocks?|"
+                          r"affects?|interacts?|stacks?|activates?|triggers?|weaken\w*|strengthen\w*|stronger|weaker|"
+                          r"change\w*)\b", re.I)
+# ... unless it asks for advice or ladder usage, which the builder and strategy agents answer
+RULES_ADVICE_RE = re.compile(r"\bhow (?:do|can|should) (?:i|we)\b|\b(?:beat|win|play|handle|counter|lead|deal with|standard|"
+                             r"common|usage|popular|usual\w*|good|best|worth|better|should|recommend|suggest|replace|instead|"
+                             r"run|running|plan|strategy|approach|game ?plan|matchup)\b", re.I)
 # "stat boosts" and "stat changes" are assumptions in matchup questions, not stat questions
 STAT_RE = re.compile(r"\bstat\b(?!\s+(?:boost|change|stage|drop|raise))", re.I)
 # "how much Speed does my X have", "what Speed does my X hit": a stat question when no opponent is named
@@ -80,6 +89,8 @@ class Plan:
     raw_stats: bool = False         # "ignore items/abilities": compare bare stats, no Scarf or field
     no_boosts: bool = False         # "assume no boosts": Booster Energy and other boost triggers stay off too
     team_ask: str = "resist"        # team_type questions: which group is asked for (weak, neutral, resist, immune)
+    rules: list = field(default_factory=list)       # rules questions: [(kind, name)] abilities, items, moves, weather named
+    query: str = ""
 
     @property
     def opponent(self):
@@ -209,7 +220,7 @@ def plan_query(query, team):
     team = team or {}
     format_id = config.team_format(team)
     dex = dex_for_format(format_id)
-    plan = Plan(format_id=format_id, team=team)
+    plan = Plan(format_id=format_id, team=team, query=query)
 
     raw_spans = find_pokemon_spans(query)
     names = list(dict.fromkeys(d for _, _, d in raw_spans))
@@ -331,6 +342,10 @@ def plan_query(query, team):
         plan.intent = "speed"
     elif CHECKS_RE.search(q) and plan.opponent and team:
         plan.intent = "checks"
+    elif RULES_CUE_RE.search(q) and not RULES_ADVICE_RE.search(q) and rules.find_named(q, [(a, b) for a, b, _ in raw_spans]):
+        # What an ability, item, move or weather does, from Showdown's rule text
+        plan.intent = "rules"
+        plan.rules = rules.find_named(q, [(a, b) for a, b, _ in raw_spans])
     elif (SPEED_RE.search(q) or KO_RE.search(q) or DAMAGE_RE.search(q)) and not plan.opponents:
         # A matchup question with no recognisable opponent: ask, never answer a different question
         plan.intent = "clarify"

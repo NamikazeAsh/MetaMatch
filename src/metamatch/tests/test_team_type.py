@@ -80,12 +80,12 @@ class TestTeamTypeAnswers(unittest.TestCase):
         plan, v = ask("Which of my Pokemon resist Water?", SUN)
         self.assertEqual(plan.intent, "team_type")
         self.assertEqual(set(v.answer.split(", ")), {"Venusaur", "Dragapult", "Alomomola"})
-        self.assertIn("weak: Torkoal (2x)", v.facts[0])
+        self.assertIn("Torkoal (2x) is weak to it", v.facts[0])
 
     def test_immunity_counts_as_resisting(self):
         _, v = ask("Which of my Pokemon resist Fighting?", SALT)
         self.assertEqual(set(v.answer.split(", ")), {"Gholdengo", "Hatterene", "Dragonite"})
-        self.assertIn("immune: Gholdengo (0x)", v.facts[0])
+        self.assertIn("Gholdengo (0x) is immune", v.facts[0])
 
     def test_weak_immune_and_neutral_asks(self):
         _, weak = ask("Which members of my team are weak to Ground?", SALT)

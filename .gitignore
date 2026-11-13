@@ -146,6 +146,7 @@ data/json/*
 !data/json/sets_history.json
 !data/json/wide_usage_history.json
 !data/json/ability_text.json
+!data/json/rules_text.json
 data/stats/
 data/user/
 

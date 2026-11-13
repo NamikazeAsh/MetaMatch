@@ -39,6 +39,7 @@ class Verdict:
     hits: int = 1                   # KO verdicts: the number of hits the question asked about
     losers: list = field(default_factory=list)  # checks verdicts: members that lose one on one
     members: list = field(default_factory=list)  # checks verdicts: the whole team
+    groups: dict = field(default_factory=dict)   # team_type verdicts: {"immune"|"resist"|"neutral"|"weak": [members]}
 
 
 def _pct(x):
@@ -503,7 +504,6 @@ def solve_checks(plan, dex, game):
                    losers=losses, members=list(row.cells))
 
 
-GROUP_WORDS = {"immune": "immune", "resist": "resisted by", "neutral": "neutral", "weak": "weak"}
 ASK_VERBS = {"immune": ("is immune to {t} attacks", "are immune to {t} attacks"),
              "resist": ("resists {t} attacks", "resist {t} attacks"),
              "neutral": ("takes neutral damage from {t} attacks", "take neutral damage from {t} attacks"),
@@ -541,8 +541,9 @@ def _type_line(t, team, dex, label=None):
     for p in team.values():
         mult, note = _taken(p, t, dex)
         groups[_group(mult)].append((_user_name(p), mult, note))
-    parts = [f"{GROUP_WORDS[g]}{'' if g == 'resist' else ':'} {_members(groups[g])}"
-             for g in ("immune", "resist", "weak", "neutral") if groups[g]]
+    phrases = {"immune": ("is immune", "are immune"), "resist": ("resists it", "resist it"),
+               "weak": ("is weak to it", "are weak to it"), "neutral": ("takes neutral damage", "take neutral damage")}
+    parts = [f"{_members(groups[g])} {phrases[g][len(groups[g]) > 1]}" for g in ("immune", "resist", "weak", "neutral") if groups[g]]
     return f"{label or t}: " + "; ".join(parts) + ".", groups
 
 
@@ -585,7 +586,8 @@ def solve_team_type(plan, dex, game):
         statement = f"{_join(names)} {phrase}." if names else f"Nobody on your team {one.format(t=plan.atk_type)}."
         if ask == "resist" and groups["immune"]:
             statement += f" ({_join(n for n, _, _ in groups['immune'])} {'is' if len(groups['immune']) == 1 else 'are'} immune.)"
-        return Verdict("team_type", ", ".join(names) or "none", statement, [line])
+        return Verdict("team_type", ", ".join(names) or "none", statement, [line],
+                       groups={g: [n for n, _, _ in entries] for g, entries in groups.items()})
     if plan.opponent:
         name, attacks = _usual_attacks(plan.opponent, plan.format_id, dex)
         if not attacks:
@@ -618,8 +620,36 @@ def solve_team_type(plan, dex, game):
     return Verdict("team_type", ", ".join(weak_types) or "none", statement, facts)
 
 
+def solve_rules(plan, dex, game):
+    """What the named abilities, items, moves or weather do, from Showdown's text, and what that means for the team.
+    Yes or no rules questions the data settles exactly (a move flag, a Mold Breaker bypass, a weather or ability
+    multiplier) get that answer first."""
+    from metamatch.engine import rules
+    from metamatch.team import ABILITY_IMMUNITIES, ABILITY_SCALES
+    named = [(k, n) for k, n in plan.rules if rules.entry(k, n)]
+    if not named:
+        return None
+    decided = rules.yes_no(plan.query, named, ABILITY_SCALES, ABILITY_IMMUNITIES)
+    facts = []
+    for kind, name in named:
+        line = rules.text_line(kind, name, full=True)
+        if line:
+            facts.append(line)
+    facts += rules.team_lines(named, plan.team)
+    if decided:
+        answer, reason = decided
+        return Verdict("rules", answer, f"{answer.capitalize()}. {reason}", facts)
+    effect = rules.weather_effect(named)
+    if effect:
+        return Verdict("rules", effect, effect, facts)
+    kind, name = named[0]
+    statement = rules.text_line(kind, name)
+    return Verdict("rules", name, statement, [f for f in facts if f != rules.text_line(kind, name, full=True)
+                                               or rules.entry(kind, name).get("desc")])
+
+
 SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage, "type": solve_type, "stat": solve_stat,
-           "usage": solve_usage, "checks": solve_checks, "team_type": solve_team_type}
+           "usage": solve_usage, "checks": solve_checks, "team_type": solve_team_type, "rules": solve_rules}
 
 
 def solve(plan):
@@ -633,7 +663,8 @@ def solve(plan):
     except (KeyError, TypeError, ValueError, AttributeError) as e:
         print(f"Solver {plan.intent} failed: {e}")
         return None
-    if verdict and plan.intent != "usage":
+    # Rules and team type questions name items and moves as subjects, not as set details for a matchup
+    if verdict and plan.intent not in ("usage", "rules", "team_type"):
         # Stated versus assumed: say what came from the question, and what the engine could not count
         for who, details in (("your Pokemon", plan.user_overrides), ("the opponent", plan.opp_overrides)):
             if constraints.summary(details):

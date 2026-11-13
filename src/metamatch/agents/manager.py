@@ -67,7 +67,7 @@ class AgentManager:
         """
         plan, verdict = self._plan(query, team_context)
         if verdict:
-            return self.grounded.run(query, verdict)
+            return self.grounded.run(query, verdict, team_context)
         if plan.intent == "clarify":
             return iter([CLARIFY])
 

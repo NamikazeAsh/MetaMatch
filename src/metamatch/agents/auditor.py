@@ -1,6 +1,7 @@
 from .client import get_agent_client
 from metamatch import auditor, recommender, config
 from metamatch.rag import store
+from metamatch.engine import rules
 from metamatch.engine.names import find_pokemon
 from .coach import _relevant, _trim
 
@@ -58,6 +59,8 @@ class AuditorAgent:
                 parts.append(entry)
             rec_str += ", ".join(parts)
 
+        rules_str = "### RULES (Pokemon Showdown's own text)\n" + "\n".join(f"- {l}" for l in rules.team_rules(team_context, query))
+
         system_content = f"""
         You are Brock, the experienced Pokemon breeder and analyst.
         You have a keen eye for team synergy and metagame trends!
@@ -69,6 +72,8 @@ class AuditorAgent:
         {warn_str}
 
         {rec_str}
+
+        {rules_str}
 
         {rag_context}
 

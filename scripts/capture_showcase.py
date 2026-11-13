@@ -219,7 +219,7 @@ def send(page, question, typed=False):
     reply, last, steady = msgs.nth(before + 1), None, 0
     while time.time() < end and steady < 4:
         text = reply.inner_text()
-        steady = steady + 1 if text == last and "▌" not in text else 0
+        steady = steady + 1 if text == last and "▌" not in text and "thinking..." not in text else 0
         last = text
         page.wait_for_timeout(400)
     idle(page, timeout=300)

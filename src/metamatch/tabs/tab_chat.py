@@ -11,6 +11,24 @@ def _persist(role, content, name=None, avatar=None):
         storage.add_chat_message(tid, role, content, name=name, avatar=avatar)
 
 
+def _show(content, placeholder=None):
+    """An answer: the voiced part as text, the exact engine result in a collapsed dropdown under it."""
+    from metamatch.agents.grounded import FACTS_MARK
+    target = placeholder.container() if placeholder is not None else st.container()
+    spoken, _, facts = content.partition(FACTS_MARK)
+    with target:
+        st.markdown(spoken)
+        if facts.strip():
+            with st.expander("Engine facts", expanded=False):
+                st.markdown(facts)
+
+
+def _for_model(content):
+    """Chat history as the agents read it: the dropdown marker becomes a plain label."""
+    from metamatch.agents.grounded import FACTS_MARK
+    return content.replace(FACTS_MARK, "\n\nEngine facts:\n")
+
+
 def render():
     section_header("Ask anything", "Ask the Coach")
     st.caption("Ask about counters, speed, damage or strategy. Answers use this month's ladder data and the real damage calculator.")
@@ -33,7 +51,7 @@ def render():
             with st.chat_message(display_name, avatar=msg.get("avatar")):
                 if msg["role"] == "assistant" and "name" in msg:
                     st.markdown(f"**{msg['name']}**")
-                st.markdown(msg["content"])
+                _show(msg["content"])
 
     with st.expander("💡 How to use the AI Coach efficiently", expanded=False):
         st.markdown("""
@@ -56,7 +74,7 @@ def render():
         """)
 
     if prompt := st.chat_input("How do I beat Kingambit?"):
-        history = [{"role": m["role"], "content": m["content"]} for m in st.session_state.chat_messages]
+        history = [{"role": m["role"], "content": _for_model(m["content"])} for m in st.session_state.chat_messages]
         st.session_state.chat_messages.append({"role": "user", "content": prompt})
         _persist("user", prompt)
         with chat_container:
@@ -76,6 +94,8 @@ def render():
             with st.chat_message(agent_name, avatar=avatar):
                 st.markdown(f"**{agent_name}**")
                 response_placeholder = st.empty()
+                # Answers are checked before they show, so say something is happening meanwhile
+                response_placeholder.caption(f"{agent_name.split()[0] if agent_name else 'The coach'} is thinking...")
                 full_response = ""
 
                 try:
@@ -86,13 +106,14 @@ def render():
                         history
                     )
 
+                    from metamatch.agents.grounded import FACTS_MARK
                     for content in stream:
                         full_response += content
-                        response_placeholder.markdown(full_response + "▌")
+                        response_placeholder.markdown(full_response.partition(FACTS_MARK)[0] + "▌")
                 except Exception as e:
                     full_response += f"\n\n⚠️ LLM request failed: {e}"
 
-                response_placeholder.markdown(full_response)
+                _show(full_response, response_placeholder)
 
         st.session_state.chat_messages.append({
             "role": "assistant",

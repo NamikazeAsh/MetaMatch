@@ -1,14 +1,15 @@
 """
 Professor Oak, the strategy agent. Strategy questions get the engine's briefing (one on one
-verdicts vs named opponents and top threats, win conditions, shared weaknesses). For questions
-about threats, opponents or win conditions the verdicts are shown first as an "Engine check";
-the LLM's advice is shown only if it passes a verifier, with one retry.
+verdicts vs named opponents and top threats, win conditions, shared weaknesses). His advice is
+shown only if it passes a verifier, with one retry, and the briefing's "Engine check" goes in the
+Engine facts dropdown under it; without passing advice the Engine check is shown on its own.
 """
 import re
 
 from .client import get_agent_client, ollama_available
 from .grounded import FREE_NUMBERS, _numbers
 from metamatch import config
+from metamatch.engine import rules
 from metamatch.engine.briefing import Briefing
 from metamatch.engine.names import find_pokemon
 from metamatch.rag import store
@@ -16,8 +17,6 @@ from metamatch.rag import store
 # Chunks are 300 to 900 characters plus a header line; the cap guards against odd long ones
 RAG_CHARS = 1000
 OFFLINE_NOTE = "_Professor Oak is offline (Ollama isn't running), so only the engine's numbers are shown. Start Ollama for his advice._"
-# Questions where the engine's verdicts are the core of the answer
-SUMMARY_RE = re.compile(r"\b(threats?|counters?|struggle\w*|win ?con\w*|weakness\w*|weak to)", re.I)
 RECOMMEND = re.compile(r"\b(answer|counter|handle|best|deal with|check|beat|use|great|ideal|recommend|switch|option|"
                        r"take (?:out|down)|viable|good|strong|effective|key|reliable|bring|send|lead with|pivot)", re.I)
 # Double negatives that read like caution but recommend ("don't hesitate", "does not fear"): removed before checking
@@ -197,13 +196,16 @@ class CoachAgent:
         self.sources = [_source_label(h["metadata"]) for h in rag_hits]
         rag_context = ""
         if rag_hits:
-            rag_context = "### REFERENCES (Smogon analyses, ladder stats, community guides, concept notes)\n"
+            rag_context = ("### REFERENCES (general notes from Smogon analyses, ladder stats and guides; they describe these "
+                           "Pokemon on other teams, so check every move and teammate against USER TEAM before using it)\n")
             for hit in rag_hits:
                 rag_context += f"{_trim(hit['text'])}\n\n"
 
+        rules_str = "### RULES (Pokemon Showdown's own text)\n" + "\n".join(f"- {l}" for l in rules.team_rules(team_context, query)) + "\n"
+
         # Context, facts and the question sit together at the end, where a small model pays the most attention
         return (
-            f"{rag_context}{team_str}\n{named_context}\n{facts}\n"
+            f"{rag_context}{team_str}\n{rules_str}\n{named_context}\n{facts}\n"
             f"QUESTION: {query}\n"
             "Answer using the ENGINE FACTS above, naming specific members of my team."
         )
@@ -234,16 +236,15 @@ Rules:
 
     def run(self, query: str, team_context: dict, history: list = None, named_context: str = "",
             briefing: Briefing = None):
-        """Yields the answer as text chunks: the engine check first (when relevant), then verified advice."""
+        """Yields the answer as text chunks: verified advice with the engine check in the dropdown under it
+        (FACTS_MARK), or the engine check on its own when no advice passes."""
+        from .grounded import FACTS_MARK
         briefing = briefing or Briefing()
-        show_summary = bool(briefing.summary) and (bool(briefing.matchups and named_context) or bool(SUMMARY_RE.search(query)))
-        if show_summary:
-            yield briefing.summary + "\n\n"
 
         context = self._context(query, team_context, named_context, briefing.facts)
         if not ollama_available():
             yield OFFLINE_NOTE
-            if not show_summary and briefing.summary:
+            if briefing.summary:
                 yield "\n\n" + briefing.summary
             return
         feedback = None
@@ -253,7 +254,7 @@ Rules:
             except Exception as e:  # LLM down: the engine check still stands on its own
                 print(f"Coach failed: {e}")
                 yield OFFLINE_NOTE
-                if not show_summary and briefing.summary:
+                if briefing.summary:
                     yield "\n\n" + briefing.summary
                 return
             feedback = verify(advice, context, briefing, team_context)
@@ -261,8 +262,10 @@ Rules:
                 yield advice
                 if self.sources:
                     yield "\n\n_References: " + "; ".join(self.sources) + "._"
+                if briefing.summary:
+                    yield FACTS_MARK + briefing.summary
                 return
         # Both drafts failed the fact check: say so rather than show unverified advice
         yield "_Professor Oak's advice didn't pass the fact check this time, so only the engine's numbers are shown._"
-        if not show_summary and briefing.summary:
+        if briefing.summary:
             yield "\n\n" + briefing.summary

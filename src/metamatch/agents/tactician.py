@@ -1,4 +1,5 @@
 from .client import get_agent_client
+from metamatch.engine import rules
 from metamatch.logic_engine import generate_mechanics_report, find_pokemon_in_query
 
 class TacticianAgent:
@@ -59,6 +60,7 @@ class TacticianAgent:
         
         if not mechanics_str and not defensive_str:
             mechanics_str = "No specific matchup data calculated."
+        rules_str = "### RULES (Pokemon Showdown's own text)\n" + "\n".join(f"- {l}" for l in rules.team_rules(team_context, query))
 
         system_content = f"""
         You are Clemont, the brilliant engineer and logic expert.
@@ -68,6 +70,7 @@ class TacticianAgent:
         INPUT DATA (IRREFUTABLE FACTS):
         {defensive_str}
         {mechanics_str}
+        {rules_str}
 
         INSTRUCTIONS:
         1. Answer the user's question using ONLY the calculated data above.

@@ -58,6 +58,8 @@ COMMON_WORDS = {
     "evolves", "running", "assume", "ignore", "item", "items", "stat", "stats", "speed", "level",
     "champions", "against", "should", "would", "could", "which", "where", "there", "their", "about",
     "after", "before", "usage", "smogon", "standard", "pokemon", "team", "teams", "matchup", "switch",
+    # Close enough to a name for the typo matcher ("shared" reads as Sharpedo)
+    "shared", "shares", "sharing",
 }
 
 

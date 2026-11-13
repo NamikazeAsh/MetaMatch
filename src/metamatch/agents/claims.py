@@ -265,3 +265,63 @@ def type_clash(text, verdict):
                 # positive claim of a different answer, or a denial of the right one
                 return f"wording that says {'not ' if neg else ''}{answer} when the result is {verdict.answer}: \"{clause}\""
     return None
+
+
+# ---------------------------------------------------------------- team groups and rules
+GROUP_WORDS = {
+    "immune": re.compile(r"\bimmun\w*|\bno damage\b|\bunaffected\b", re.I),
+    "resist": re.compile(r"\bresist\w*|\bnot very effective\b|\bswitch(?:es|ing)? (?:in|into)\b|\btakes? (?:it|them|those|these) well\b", re.I),
+    "weak": re.compile(r"\bweak(?:ness|nesses)?\b|\bsuper[\s-]effective\b|\bvulnerab\w*", re.I),
+    "neutral": re.compile(r"\bneutral\w*\b", re.I),
+}
+
+
+def group_clash(text, verdict):
+    """A team member placed in a different weak / neutral / resist / immune group than the team type result has it.
+    Resisting includes immunities, so "Gholdengo resists Fighting" is fine for an immune Gholdengo."""
+    groups = verdict.groups or {}
+    if not groups:
+        return None
+    members = [n for names in groups.values() for n in names]
+    name_rx = re.compile("|".join(rf"\b{re.escape(n)}\b" for n in sorted(members, key=len, reverse=True)), re.I)
+    for clause in clauses(text):
+        # "Gholdengo is immune, Hatterene takes 0.25x" is two claims; "Venusaur, Dragapult and Alomomola resist" is one
+        # claim about a list, so a comma part holding only names joins the part after it
+        pending = ""
+        for part in clause.split(","):
+            if not name_rx.sub("", part).strip(" .'\"").lower().replace("and", "").replace("or", "").replace("both", "").replace("all", "").strip():
+                pending += part + ","
+                continue
+            segment, pending = pending + part, ""
+            named = [n for n in members if re.search(rf"\b{re.escape(n)}\b", segment, re.I)]
+            if not named:
+                continue
+            for group, rx in GROUP_WORDS.items():
+                m = rx.search(segment)
+                if not m or not asserted(segment, m.start()):
+                    continue
+                if negated(segment, m.start()):
+                    break
+                ok = set(groups.get(group, [])) | (set(groups.get("immune", [])) if group == "resist" else set())
+                wrong = [n for n in named if n not in ok]
+                if wrong:
+                    return f"a claim that {wrong[0]} is {group}, but the result says otherwise: \"{segment.strip()}\""
+                break
+    return None
+
+
+def yes_no_clash(text, verdict):
+    """For a yes or no rules result, an opening that says the opposite."""
+    if verdict.answer not in ("yes", "no"):
+        return None
+    first = clauses(text)[:1]
+    if not first:
+        return None
+    opening = first[0]
+    says_yes = re.match(r"\s*(?:yes|yep|yeah|absolutely|it does|they do)\b", opening, re.I)
+    says_no = re.match(r"\s*(?:no|nope|not)\b", opening, re.I) or bool(NEG.search(NOT_NEG.sub(" ", opening)))
+    if verdict.answer == "yes" and says_no and not says_yes:
+        return f"an opening that says no when the rule says yes: \"{opening}\""
+    if verdict.answer == "no" and (says_yes or not says_no):
+        return f"an opening that says yes when the rule says no: \"{opening}\""
+    return None
