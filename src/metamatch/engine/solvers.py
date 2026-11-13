@@ -503,8 +503,123 @@ def solve_checks(plan, dex, game):
                    losers=losses, members=list(row.cells))
 
 
-SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage,
-           "type": solve_type, "stat": solve_stat, "usage": solve_usage, "checks": solve_checks}
+GROUP_WORDS = {"immune": "immune", "resist": "resisted by", "neutral": "neutral", "weak": "weak"}
+ASK_VERBS = {"immune": ("is immune to {t} attacks", "are immune to {t} attacks"),
+             "resist": ("resists {t} attacks", "resist {t} attacks"),
+             "neutral": ("takes neutral damage from {t} attacks", "take neutral damage from {t} attacks"),
+             "weak": ("is weak to {t} attacks", "are weak to {t} attacks")}
+TYPE_NAMES = list(PROBE_MOVES)
+# A move counts as one of the opponent's usual attacks when at least this share of its sets run it
+USUAL_MOVE_SHARE = 0.2
+
+
+def _group(mult):
+    return "immune" if mult == 0 else "resist" if mult < 1 else "weak" if mult > 1 else "neutral"
+
+
+def _taken(p, t, dex):
+    """(multiplier, note) a team member takes from type `t`: its Damage From table, which counts immunity abilities,
+    Air Balloon and damage scaling abilities; the note names what changed the plain type chart value."""
+    mult = (p.get("Damage From") or {}).get(t.lower(), 1.0)
+    chart = 1.0
+    for d in p.get("Type", []):
+        chart *= dex.type_chart.get(t, {}).get(d, 1.0)
+    if mult == chart:
+        return mult, ""
+    item = p.get("Item") or ""
+    via = item if t == "Ground" and mult == 0 and item.lower() == "air balloon" else (p.get("Mega Ability") or p.get("Ability"))
+    return mult, f" via {via}" if via else ""
+
+
+def _members(entries):
+    return _join(f"{n} ({m:g}x{note})" for n, m, note in entries)
+
+
+def _type_line(t, team, dex, label=None):
+    """'Water: resisted by A (0.5x) and B (0.5x); weak: C (2x); neutral: D (1x)' plus the groups by name."""
+    groups = {"immune": [], "resist": [], "neutral": [], "weak": []}
+    for p in team.values():
+        mult, note = _taken(p, t, dex)
+        groups[_group(mult)].append((_user_name(p), mult, note))
+    parts = [f"{GROUP_WORDS[g]}{'' if g == 'resist' else ':'} {_members(groups[g])}"
+             for g in ("immune", "resist", "weak", "neutral") if groups[g]]
+    return f"{label or t}: " + "; ".join(parts) + ".", groups
+
+
+def _asked(groups, ask):
+    """Names in the asked group; 'resist' also counts immunities."""
+    keys = ("immune", "resist") if ask == "resist" else (ask,)
+    return [n for k in keys for n, _, _ in groups[k]]
+
+
+def _usual_attacks(name, format_id, dex):
+    """[(move, type)] for the opponent's damaging moves on at least USUAL_MOVE_SHARE of its sets, one per type."""
+    s = likely_set(name, format_id)
+    if not s:
+        return None, []
+    out, seen = [], set()
+    _, entry = chaos_entry(name, format_id)
+    total = sum((entry or {}).get("Abilities", {}).values()) or 1
+    moves = sorted(((dex.move_name(k), v / total) for k, v in (entry or {}).get("Moves", {}).items() if dex.move_name(k)),
+                   key=lambda x: x[1], reverse=True) if entry else [(m, share) for m, share in s["moves"]]
+    for move, share in moves:
+        data = dex.move(move) or {}
+        if share < USUAL_MOVE_SHARE or data.get("category") == "Status" or not data.get("type"):
+            continue
+        if data["type"] not in seen:
+            seen.add(data["type"])
+            out.append((move, data["type"]))
+    return s["name"], out
+
+
+def solve_team_type(plan, dex, game):
+    """Which members are weak to, neutral to, resist or are immune to a type, to an opponent's usual attacks, or
+    (with neither named) the team's shared weaknesses. Straight from the type chart and abilities; no calc."""
+    team = plan.team
+    ask = plan.team_ask
+    if plan.atk_type:
+        line, groups = _type_line(plan.atk_type, team, dex)
+        names = _asked(groups, ask)
+        one, many = ASK_VERBS[ask]
+        phrase = (one if len(names) == 1 else many).format(t=plan.atk_type)
+        statement = f"{_join(names)} {phrase}." if names else f"Nobody on your team {one.format(t=plan.atk_type)}."
+        if ask == "resist" and groups["immune"]:
+            statement += f" ({_join(n for n, _, _ in groups['immune'])} {'is' if len(groups['immune']) == 1 else 'are'} immune.)"
+        return Verdict("team_type", ", ".join(names) or "none", statement, [line])
+    if plan.opponent:
+        name, attacks = _usual_attacks(plan.opponent, plan.format_id, dex)
+        if not attacks:
+            return None
+        name = display_name(name)
+        facts, safe = [], None
+        for move, t in attacks:
+            line, groups = _type_line(t, team, dex, label=f"{move} ({t})")
+            facts.append(line)
+            got = set(_asked(groups, "resist"))
+            safe = got if safe is None else safe & got
+        order = [_user_name(p) for p in team.values()]
+        safe = [n for n in order if n in (safe or set())]
+        listed = _join(f"{m} ({t})" for m, t in attacks)
+        statement = (f"{_join(safe)} {'resists' if len(safe) == 1 else 'resist'} all of {name}'s usual attacks ({listed})." if safe else
+                     f"Nobody on your team resists all of {name}'s usual attacks ({listed}).")
+        facts.append(f"{name}'s usual attacks are its damaging moves on at least {_pct(USUAL_MOVE_SHARE)} of sets.")
+        return Verdict("team_type", ", ".join(safe) or "none", statement, facts, other=name)
+    from metamatch.engine.briefing import team_weaknesses
+    shared = team_weaknesses(team)
+    resisted = {t for p in team.values() for t in TYPE_NAMES if (p.get("Damage From") or {}).get(t.lower(), 1.0) < 1}
+    unresisted = [t for t in TYPE_NAMES if t not in resisted]
+    weak_types = [w.split(":")[0] for w in shared]
+    statement = (f"Your team's shared weaknesses are {_join(weak_types)}." if weak_types else
+                 "No type hits two or more of your Pokemon super effectively without as many of them resisting it.")
+    facts = list(shared)
+    if unresisted:
+        facts.append(f"Nobody on your team resists {_join(unresisted)}.")
+    facts.append("A shared weakness hits at least two members super effectively and more members than resist it.")
+    return Verdict("team_type", ", ".join(weak_types) or "none", statement, facts)
+
+
+SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage, "type": solve_type, "stat": solve_stat,
+           "usage": solve_usage, "checks": solve_checks, "team_type": solve_team_type}
 
 
 def solve(plan):

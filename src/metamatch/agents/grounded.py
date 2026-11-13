@@ -15,6 +15,8 @@ NUMBER = re.compile(r"\d+(?:\.\d+)?")
 ANSWER_LINE = re.compile(r"^\s*\**ANSWER\s*:.*$", re.I | re.M)
 # Numbers that can't mislead even when the facts don't spell them out
 FREE_NUMBERS = {"0", "1", "100"}
+# Verdicts shown with their facts only, no model explanation
+NO_EXPLAIN = {"team_type"}
 def _checks_clash(explanation, verdict):
     """A sentence recommending a member that loses to the opponent one on one."""
     from .coach import recommends_loser
@@ -91,7 +93,8 @@ class GroundedAgent:
     def run(self, query, verdict):
         """Yields the full answer as text chunks (verdict first, so it shows immediately)."""
         yield f"**{verdict.statement}**"
-        explanation = self.explain(query, verdict)
+        # Type chart lists are the whole answer: a model explanation could only add mistakes
+        explanation = "" if verdict.intent in NO_EXPLAIN else self.explain(query, verdict)
         if explanation:
             yield f"\n\n{explanation}"
         elif verdict.facts:

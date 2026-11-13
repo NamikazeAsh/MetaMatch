@@ -36,6 +36,15 @@ SPEED_RE = re.compile(r"\b(outspeed|outspeeds|faster|slower|speed tie|out speed|
                       r"mirror speed|speed (?:check|comparison|matchup))\b", re.I)
 TYPE_ASK_RE = re.compile(r"\b(immune|immunity|weak|weakness|resist|resists|resistant|neutral|super effective|not very effective|"
                          r"type matchup|typing)\b", re.I)
+# "which of my Pokemon resist Water", "who on my team is weak to Ground", "is my team weak to Fairy": the whole team
+TEAM_WIDE_RE = re.compile(r"\b(?:my|our)\s+(?:team|squad|six|pok[eé]mon|mons|members)\b|"
+                          r"\b(?:which|who|any|anyone|anything|none|what)\s+(?:of|on|in)\s+(?:my|our)\b|"
+                          r"\bwhich\s+(?:pok[eé]mon|mons|members)\b", re.I)
+# Asking what to do about a weakness is a strategy question, not a type chart lookup ("how many" is still a lookup)
+TEAM_ADVICE_RE = re.compile(r"\bhow\b(?!\s+many)|\b(?:fix|cover|patch|deal with|improve|beat|handle|play|replace|add|"
+                            r"should|recommend|suggest|teammate|why)\b", re.I)
+TEAM_ASKS = (("neutral", re.compile(r"\bneutral", re.I)), ("immune", re.compile(r"\bimmun", re.I)),
+             ("weak", re.compile(r"\b(?:weak|super effective|vulnerable)", re.I)))
 # "stat boosts" and "stat changes" are assumptions in matchup questions, not stat questions
 STAT_RE = re.compile(r"\bstat\b(?!\s+(?:boost|change|stage|drop|raise))", re.I)
 # "how much Speed does my X have", "what Speed does my X hit": a stat question when no opponent is named
@@ -70,6 +79,7 @@ class Plan:
     team: dict = field(default_factory=dict, repr=False)  # the whole team, for team wide answers ("what checks X")
     raw_stats: bool = False         # "ignore items/abilities": compare bare stats, no Scarf or field
     no_boosts: bool = False         # "assume no boosts": Booster Energy and other boost triggers stay off too
+    team_ask: str = "resist"        # team_type questions: which group is asked for (weak, neutral, resist, immune)
 
     @property
     def opponent(self):
@@ -292,7 +302,17 @@ def plan_query(query, team):
     # A stat question is about the named team member, else a named Pokemon off the team
     target = ("user" if plan.user is not None and (plan.user_named or not plan.opponents)
               else "opponent" if plan.opponents else None)
-    if target and not SPEED_RE.search(q) and (
+    if (team and TEAM_WIDE_RE.search(q) and TYPE_ASK_RE.search(q) and not TEAM_ADVICE_RE.search(q)
+            and not SPEED_RE.search(q)):
+        # A type chart lookup over the whole team: one type, the opponent's usual attacks, or every shared weakness
+        plan.intent = "team_type"
+        plan.atk_type = _attack_type(scrubbed, plan.move, dex)
+        plan.team_ask = next((ask for ask, pattern in TEAM_ASKS if pattern.search(q)), "resist")
+        # "who resists Gholdengo's moves" when the team also runs Gholdengo: the attacks of an opposing one
+        if (not plan.atk_type and not plan.opponents and plan.user_named
+                and re.search(r"['’]s\s+(?:\w+\s+)?(?:moves|attacks|coverage|stabs?)\b", q, re.I)):
+            plan.opponents.append(plan.user["Pokemon"])
+    elif target and not SPEED_RE.search(q) and (
             STAT_RE.search(q) or (STAT_ASK_RE.search(q) and (not plan.opponents or target == "opponent"))):
         plan.intent = "stat"
         plan.stat_target = target

@@ -4,6 +4,23 @@ from .type_chart import TYPE_CHART
 from . import config
 from .engine.dex import dex_for_format, pokeapi_stats
 
+# Abilities that make their holder immune to one attacking type
+ABILITY_IMMUNITIES = {
+    'levitate': 'ground', 'earth eater': 'ground',
+    'volt absorb': 'electric', 'lightning rod': 'electric', 'motor drive': 'electric',
+    'water absorb': 'water', 'storm drain': 'water', 'dry skin': 'water',
+    'flash fire': 'fire', 'well-baked body': 'fire',
+    'sap sipper': 'grass',
+}
+# Defensive abilities that multiply one type's damage (Showdown's ability text)
+ABILITY_SCALES = {
+    'thick fat': {'fire': 0.5, 'ice': 0.5},
+    'heatproof': {'fire': 0.5},
+    'water bubble': {'fire': 0.5},
+    'purifying salt': {'ghost': 0.5},
+    'fluffy': {'fire': 2.0},
+}
+
 def get_move_metadata(move_name):
     return fetch_move_data(move_name)
 
@@ -137,20 +154,14 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
         ability = (poke_data.get('Mega Ability') or poke_data['Ability']).lower()
         item = poke_data['Item'].lower()
 
-        if 'levitate' in ability or 'earth eater' in ability or item == 'air balloon':
+        if ability in ABILITY_IMMUNITIES:
+            dmg_from[ABILITY_IMMUNITIES[ability]] = 0.0
+        if item == 'air balloon':
             dmg_from['ground'] = 0.0
 
-        if ability in ['volt absorb', 'lightning rod', 'motor drive']:
-            dmg_from['electric'] = 0.0
-
-        if ability in ['water absorb', 'storm drain', 'dry skin']:
-            dmg_from['water'] = 0.0
-
-        if ability in ['flash fire', 'well-baked body']:
-            dmg_from['fire'] = 0.0
-
-        if ability == 'sap sipper':
-            dmg_from['grass'] = 0.0
+        # Abilities that scale one type's damage without granting an immunity
+        for scaled, factor in ABILITY_SCALES.get(ability, {}).items():
+            dmg_from[scaled] = dmg_from.get(scaled, 1.0) * factor
 
         poke_data['Damage From'] = dmg_from
         poke_data['Damage To'] = dmg_to
