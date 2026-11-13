@@ -224,11 +224,13 @@ def plan_query(query, team):
 
     raw_spans = find_pokemon_spans(query)
     names = list(dict.fromkeys(d for _, _, d in raw_spans))
-    spans = []
+    spans, owned_names = [], []
     for a, b, name in raw_spans:
         member = _team_member(name, team, dex)
         before = query[max(0, a - 30):a]
         owned = bool(re.search(r"\b(my|our)\s+$", before, re.I))
+        if owned and member is not None:
+            owned_names.append(name)
         # A team species named as a target once the player's Pokemon is known is the opponent's copy:
         # "does my Scizor OHKO a full health Scizor", "how much does rilla wood hammer do to corv"
         if member is not None and plan.user is not None and not owned and OPP_MARK_RE.search(before):
@@ -239,6 +241,14 @@ def plan_query(query, team):
         elif name not in plan.opponents:
             plan.opponents.append(name)
         spans.append((a, b, name, "user" if member is not None else "opponent"))
+    # "Does Kingambit OHKO my Great Tusk" on a team that also runs Kingambit: when only some of the team species named
+    # are marked "my", the unmarked ones are the opponent's copies
+    unmarked = [n for _, _, n, side in spans if side == "user" and n not in owned_names]
+    if owned_names and unmarked and not plan.opponents:
+        spans = [(a, b, n, "opponent" if n in unmarked else side) for a, b, n, side in spans]
+        plan.opponents = list(dict.fromkeys(unmarked))
+        plan.user = _team_member(owned_names[0], team, dex)
+        plan.user_named = True
     # "tusk mirror": the opponent is the same species as the only Pokemon named
     if plan.user is not None and not plan.opponents and MIRROR_RE.search(query):
         plan.opponents.append(plan.user["Pokemon"])

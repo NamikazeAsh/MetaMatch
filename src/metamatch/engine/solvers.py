@@ -368,7 +368,14 @@ def solve_damage(plan, dex, game):
     att, dfn, move, r, s = attack.attacker, attack.defender, attack.move, attack.result, attack.opp_set
     lo, hi = r["percent"]
     ko = f" ({r['ko']})" if r["ko"] else ""
-    statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{ko}." + _counting(attack.situation, attack.names)
+    if not hi:
+        # "does 0-0%" reads like a bug: say it is an immunity, and whose ability grants it when one does
+        from metamatch.team import ABILITY_IMMUNITIES
+        ability = (s or {}).get("ability") if attack.defender != _user_name(plan.user or {"Pokemon": ""}) else (plan.user or {}).get("Ability")
+        why = f", whose {ability} makes it immune" if (ability or "").lower() in ABILITY_IMMUNITIES else ", which is immune to it"
+        statement = f"{att}'s {move} does no damage to {dfn}{why}." + _counting(attack.situation, attack.names)
+    else:
+        statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{ko}." + _counting(attack.situation, attack.names)
     facts = [f"Calc: {r['desc']}"] if r["desc"] else []
     facts += _hp_facts(attack)
     if s and not constraints.stated_spread(plan.opp_overrides) and "item" not in plan.opp_overrides:

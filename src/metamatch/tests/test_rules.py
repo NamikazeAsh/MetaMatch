@@ -100,6 +100,21 @@ class TestVoiceTrim(unittest.TestCase):
                                      "figured out the details."), "Corviknight is immune to Ground attacks.")
 
 
+class TestExampleGaps(unittest.TestCase):
+    """Two gaps found while writing example answers."""
+    TEAM = ("Kingambit @ Black Glasses\nAbility: Supreme Overlord\n- Swords Dance\n- Kowtow Cleave\n\n"
+            "Great Tusk @ Booster Energy\nAbility: Protosynthesis\n- Headlong Rush\n- Ice Spinner")
+
+    def test_unmarked_team_species_is_the_opponents_copy(self):
+        plan, _ = ask("Does Kingambit OHKO my Great Tusk after a Swords Dance?", self.TEAM)
+        self.assertEqual((plan.intent, plan.user["Pokemon"], plan.opponents), ("ko", "Great Tusk", ["Kingambit"]))
+        self.assertEqual(plan.opp_overrides.get("boosts"), {"atk": 2})
+
+    def test_zero_damage_reads_as_an_immunity(self):
+        _, v = ask("How much damage does Weather Ball do to Heatran in sun?", SUN)
+        self.assertEqual(v.statement, "Venusaur's Weather Ball does no damage to Heatran, whose Flash Fire makes it immune.")
+
+
 class TestBuildRulesText(unittest.TestCase):
     def test_parses_text_flags_and_breakable(self):
         texts = {
