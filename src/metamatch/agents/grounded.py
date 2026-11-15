@@ -72,8 +72,10 @@ def verify_voice(text, verdict, team=None):
     invented = [n for n in find_pokemon(text) if n.lower() not in known and n.lower() not in members]
     if invented:
         return f"Pokemon that are not in the result: {', '.join(invented)}"
-    # The result has to be said, not just talked around: every Pokemon in the statement must come up
-    missing = [n for n in find_pokemon(verdict.statement) if n.lower() not in text.lower()]
+    # The result has to be said, not just talked around: every Pokemon in the statement's answer sentence must come up.
+    # Later statement sentences ("Kingambit OHKOs Dragapult") are trimmed from the voice and stay in the dropdown
+    answer = re.split(r"(?<=[.!?])\s+", verdict.statement.strip())[0]
+    missing = [n for n in find_pokemon(answer) if n.lower() not in text.lower()]
     if missing:
         return f"left out {', '.join(missing)}, which the result names"
     return None

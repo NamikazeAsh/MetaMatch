@@ -144,6 +144,30 @@ class TestPlannerReads(unittest.TestCase):
         self.assertEqual(v.persona, "builder")
         self.assertIn("Great Tusk", v.statement)
 
+    def test_team_strategy_intents(self):
+        cases = {"What is my win condition?": "win", "what should i lead": "lead", "what are my biggest threats": "threats",
+                 "what's my game plan": "gameplan", "is my team good": "gameplan", "How do I beat stall?": "open",
+                 "What should I lead against rain?": "open"}
+        for q, intent in cases.items():
+            self.assertEqual(plan_query(q, self.team).intent, intent, q)
+
+    def test_complaint_about_own_species_is_opponent(self):
+        plan = plan_query("gambit keeps sweeping me", self.team)
+        self.assertEqual((plan.intent, plan.opponents, plan.asks_how), ("checks", ["Kingambit"], True))
+
+    @unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+    def test_team_answers_are_verdicts(self):
+        for q in ["What is my win condition?", "what should i lead", "what's my game plan"]:
+            v = solve(plan_query(q, self.team))
+            self.assertIsNotNone(v, q)
+            self.assertEqual(v.persona, "strategy")
+
+    @unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+    def test_checks_use_stated_set(self):
+        plan = plan_query("how do I beat a Choice Scarf Iron Valiant?", self.team)
+        self.assertEqual(plan.opp_overrides.get("item"), "Choice Scarf")
+        self.assertIn("details the question states", " ".join(solve(plan).facts))
+
     def test_typo_with_short_first_word(self):
         self.assertEqual(find_pokemon("how do i beat iron valient"), ["Iron Valiant"])
         self.assertEqual(find_pokemon("does iron head hit hard"), [])

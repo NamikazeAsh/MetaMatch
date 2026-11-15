@@ -44,8 +44,12 @@ class TestChecksIntent(unittest.TestCase):
         for q in ["what checks Kyurem on my team?", "who on my team counters Zamazenta", "answers to raging bolt?"]:
             self.assertEqual(plan_query(q, self.team).intent, "checks", q)
 
-    def test_strategy_questions_stay_open(self):
-        self.assertEqual(plan_query("how do I beat Kingambit?", self.team).intent, "open")
+    def test_beat_questions_get_checks_voiced_by_oak(self):
+        plan = plan_query("how do I beat Kingambit?", self.team)
+        self.assertEqual((plan.intent, plan.asks_how), ("checks", True))
+
+    def test_archetype_questions_stay_open(self):
+        self.assertEqual(plan_query("how do I beat stall?", self.team).intent, "open")
 
     def test_verifier_rejects_a_loser_called_an_answer(self):
         v = Verdict("checks", "Gholdengo", "Gholdengo beats Kyurem one on one.", [], other="Kyurem",

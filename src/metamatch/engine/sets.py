@@ -159,6 +159,10 @@ def calc_spec(s):
         spec["item"] = s["item"]
     if s.get("ability"):
         spec["ability"] = s["ability"]
+    # Details a question stated for this set (solvers._stated_set): Tera, stat boosts, IVs
+    for key in ("teraType", "boosts", "ivs"):
+        if s.get(key):
+            spec[key] = s[key]
     return spec
 
 

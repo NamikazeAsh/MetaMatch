@@ -29,6 +29,28 @@ TEAMMATE_FIELD_RE = re.compile(r"\b(?:teammates?|partners?|pairs?|goes with|runs
 SPREAD_ASK_RE = re.compile(r"\b(?:what|which|how many|how much)\s+(?:speed\s+)?(?:evs?|spreads?|investment|natures?|stat points|sp)\b|"
                            r"\bevs?\s+(?:to|for|needed|do i need|does it need)|\bneeds? to (?:outspeed|survive|live|tank)|"
                            r"\bhow much speed\b", re.I)
+# "how do I beat Kingambit", "Kingambit keeps sweeping me": a checks question asked as advice
+BEAT_RE = re.compile(r"\bhow (?:do|can|should|would|to) (?:i |we |you )?(?:beat|handle|deal with|stop|counter|check|wall|answer|"
+                     r"play (?:against|around|into)|take (?:on|down|out)|get past|break)\b|"
+                     r"\b(?:keeps?|kept) (?:sweeping|beating|destroying|wrecking|killing|winning|walling)\b|"
+                     r"\b(?:struggl\w*|trouble|problems?|issues?|losing) (?:with|against|to)\b|\b(?:scared|afraid) of\b|"
+                     r"\bwhat (?:do|should) i do (?:about|against|vs)\b", re.I)
+# Questions about the whole team's plan, answered from the Coach Guide (engine/team_answers.py) when no opponent is named
+WIN_RE = re.compile(r"\bwin ?con(?:dition)?s?\b|\bhow (?:do|does|can|will) (?:i|we|my team|this team) win\b|"
+                    r"\b(?:main|best|primary) (?:sweeper|win\w*|wincon)\b|\bwho (?:wins|sweeps|should sweep)\b", re.I)
+LEAD_RE = re.compile(r"\b(?:what|who|which|best|good|ideal|should i|do i|to)\b[^.?!]{0,30}\blead(?:s|ing)?\b(?!\s+to\b)|"
+                     r"\blead with\b|\bopen with\b|\bopener\b|\bsend (?:in|out) first\b", re.I)
+THREATS_RE = re.compile(r"\b(?:biggest|main|worst|scariest|top|major|key) threats?\b|\bthreats? (?:to|for) (?:my|our|this) team\b|"
+                        r"\bwhat threatens\b|\bwatch out for\b|\bwhat (?:beats|counters|walls|destroys|wrecks|checks|sweeps) "
+                        r"(?:my|our|this) team\b|\bwhat (?:should|do) i (?:fear|worry about|be worried about)\b|"
+                        r"\b(?:holes?|gaps?) in (?:my|our|this) team\b|\bwhat (?:am i|is my team) (?:struggling|losing) (?:with|to)\b",
+                        re.I)
+GAMEPLAN_RE = re.compile(r"\bgame ?plan\b|\bhow (?:do|should|would) (?:i|we|you) (?:play|pilot|use|run) (?:this|my|our) team\b|"
+                         r"\bhow (?:does|do) (?:this|my|our) team (?:work|play|function)\b|\bstrategy for (?:this|my|our) team\b|"
+                         r"\b(?:is|how good is) (?:this|my|our) team (?:good|any good|viable|decent|strong)\b|"
+                         r"\brate (?:this|my|our) team\b|\bwhat does (?:this|my|our) team (?:do|want)\b", re.I)
+# "What should I lead against rain": a plan against an archetype is still Oak's to discuss
+VERSUS_RE = re.compile(r"\b(?:against|vs\.?|versus|into|facing)\b", re.I)
 # A team species right after one of these is the opponent's copy even when no team member is named yet:
 # "How do I beat Kingambit?" on a team that runs Kingambit asks about an opposing one
 STRONG_OPP_RE = re.compile(r"\b(opposing|enemy|their|opp|beat|handle|counter|stop|check|checks|deal with|answer|answers|"
@@ -51,7 +73,7 @@ SPEED_RE = re.compile(r"\b(outspeed|outspeeds|faster|slower|speed tie|out speed|
 TYPE_ASK_RE = re.compile(r"\b(immune|immunity|weak|weakness|resist|resists|resistant|neutral|super effective|not very effective|"
                          r"type matchup|typing)\b", re.I)
 # "which of my Pokemon resist Water", "who on my team is weak to Ground", "is my team weak to Fairy": the whole team
-TEAM_WIDE_RE = re.compile(r"\b(?:my|our)\s+(?:team|squad|six|pok[eé]mon|mons|members)\b|"
+TEAM_WIDE_RE = re.compile(r"\b(?:my|our)\s+(?:team|squad|six|pok[eé]mon|mons|members)\b|\bwhat (?:am i|are we)\b|"
                           r"\b(?:which|who|any|anyone|anything|none|what)\s+(?:of|on|in)\s+(?:my|our)\b|"
                           r"\bwhich\s+(?:pok[eé]mon|mons|members)\b", re.I)
 # Asking what to do about a weakness is a strategy question, not a type chart lookup ("how many" is still a lookup)
@@ -91,6 +113,7 @@ class Plan:
     stat: str | None = None
     usage_field: str | None = None  # item, ability, move, tera, spread, teammates
     usage_option: str | None = None  # "is Loaded Dice common on Garchomp": the one option asked about
+    asks_how: bool = False          # checks questions asked as advice ("how do I beat X"), voiced by Oak
     opp_overrides: dict = field(default_factory=dict)   # set details the question states for the opponent
     user_overrides: dict = field(default_factory=dict)  # ... and for the player's Pokemon
     conditions: dict = field(default_factory=dict)      # calc Field the question states: weather, terrain
@@ -267,6 +290,11 @@ def plan_query(query, team):
         plan.opponents = list(dict.fromkeys(unmarked))
         plan.user = _team_member(owned_names[0], team, dex)
         plan.user_named = True
+    # "gambit keeps sweeping me" on a team that runs Kingambit: a complaint about a Pokemon is about the opponent's
+    if plan.user is not None and not plan.opponents and not owned_names and BEAT_RE.search(query) and len(names) == 1:
+        plan.opponents = [names[0]]
+        plan.user, plan.user_named = None, False
+        spans = [(a, b, n, "opponent") for a, b, n, _ in spans]
     # "tusk mirror": the opponent is the same species as the only Pokemon named
     if plan.user is not None and not plan.opponents and MIRROR_RE.search(query):
         plan.opponents.append(plan.user["Pokemon"])
@@ -375,8 +403,17 @@ def plan_query(query, team):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:
         plan.intent = "speed"
-    elif CHECKS_RE.search(q) and plan.opponent and team:
+    elif (CHECKS_RE.search(q) or BEAT_RE.search(q)) and plan.opponent and team:
         plan.intent = "checks"
+        plan.asks_how = bool(BEAT_RE.search(q))
+    elif team and not plan.opponents and not VERSUS_RE.search(q) and GAMEPLAN_RE.search(q):
+        plan.intent = "gameplan"
+    elif team and not plan.opponents and not VERSUS_RE.search(q) and WIN_RE.search(q):
+        plan.intent = "win"
+    elif team and not plan.opponents and not VERSUS_RE.search(q) and LEAD_RE.search(q):
+        plan.intent = "lead"
+    elif team and not plan.opponents and THREATS_RE.search(q):
+        plan.intent = "threats"
     elif RULES_CUE_RE.search(q) and not RULES_ADVICE_RE.search(q) and rules.find_named(q, [(a, b) for a, b, _ in raw_spans]):
         # What an ability, item, move or weather does, from Showdown's rule text
         plan.intent = "rules"

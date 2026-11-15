@@ -541,10 +541,32 @@ def _join(names):
     return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1] if names else ""
 
 
+def _stated_set(plan, dex, game):
+    """The opponent's most common set with every detail the question states applied (item, ability, nature, EVs,
+    Tera, boosts, moves), shaped like sets.likely_set so the Threat Board can use it. None without usage data."""
+    s = likely_set(plan.opponent, plan.format_id)
+    if not s or not plan.opp_overrides:
+        return s
+    spec = constraints.apply(calc_spec(s), plan.opp_overrides, dex, game)
+    out = dict(s, nature=spec.get("nature", s["nature"]), evs=spec.get("evs", s["evs"]), item=spec.get("item"),
+               ability=spec.get("ability", s.get("ability")))
+    for key in ("teraType", "boosts", "ivs"):
+        if spec.get(key):
+            out[key] = spec[key]
+    if plan.opp_overrides.get("moves"):
+        out["moves"] = [(m, 1.0) for m in plan.opp_overrides["moves"]]
+    if any(k in plan.opp_overrides for k in ("item", "nature", "evs", "max", "min", "uninvested", "no_speed_item")):
+        # A stated spread or item has one Speed, not the ladder's spread of Speeds
+        speed = mechanics.final_speed(calc_spec(out), game, _any_move([m for m, _ in out["moves"]], dex))
+        out["speeds"], out["scarf_share"] = ([(speed, 1.0)] if speed else []), 0.0
+    return out
+
+
 def solve_checks(plan, dex, game):
-    """'What checks X on my team': every member against X's most common set, one on one (engine/threat_board.py)."""
-    from metamatch.engine.threat_board import threat_row
-    row = threat_row(plan.team, plan.opponent, plan.format_id)
+    """'What checks X on my team': every member against X's most common set (or the set the question states),
+    one on one (engine/threat_board.py)."""
+    from metamatch.engine.threat_board import row_for_set
+    row = row_for_set(plan.team, _stated_set(plan, dex, game), plan.format_id)
     if not row:
         return None
     name, answers, losses = display_name(row.name), row.answers, row.losses
@@ -561,8 +583,11 @@ def solve_checks(plan, dex, game):
     facts = [f"{mine(m)[0].upper() + mine(m)[1:]} vs {them}: {row.cells[m].reason}." for m in answers + losses]
     if row.checks_data:
         facts.append(f"Smogon's checks data also lists {_join(row.checks_data)} as checks to {name}.")
-    facts.append(f"{name} assumed on its most common set; switching, hazards and setup are not counted.")
+    basis = "its most common set, with the details the question states" if plan.opp_overrides else "its most common set"
+    facts.append(f"{name} assumed on {basis}; switching, hazards and setup are not counted.")
+    # "How do I beat X" is Oak's question; "what checks X" is Clemont's
     return Verdict("checks", ", ".join(answers) or "none", statement, facts, other=name,
+                   persona="strategy" if plan.asks_how else "mechanics",
                    losers=losses, members=list(row.cells))
 
 
@@ -718,6 +743,10 @@ SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage, "type":
 def solve(plan):
     """Verdict for a plan, or None when the question is open ended or the engine lacks data."""
     solver = SOLVERS.get(plan.intent)
+    if solver is None:
+        # Team strategy answers (win condition, leads, threats, game plan) live with the Coach Guide
+        from metamatch.engine.team_answers import SOLVERS as TEAM_SOLVERS
+        solver = TEAM_SOLVERS.get(plan.intent)
     dex = dex_for_format(plan.format_id)
     if not solver or not dex:
         return None
@@ -727,7 +756,7 @@ def solve(plan):
         print(f"Solver {plan.intent} failed: {e}")
         return None
     # Rules and team type questions name items and moves as subjects, not as set details for a matchup
-    if verdict and plan.intent not in ("usage", "rules", "team_type"):
+    if verdict and plan.intent not in ("usage", "rules", "team_type", "win", "lead", "threats", "gameplan"):
         # Stated versus assumed: say what came from the question, and what the engine could not count
         for who, details in (("your Pokemon", plan.user_overrides), ("the opponent", plan.opp_overrides)):
             if constraints.summary(details):
