@@ -32,9 +32,14 @@ SPREAD_ASK_RE = re.compile(r"\b(?:what|which|how many|how much)\s+(?:speed\s+)?(
 # "how do I beat Kingambit", "Kingambit keeps sweeping me": a checks question asked as advice
 BEAT_RE = re.compile(r"\bhow (?:do|can|should|would|to) (?:i |we |you )?(?:beat|handle|deal with|stop|counter|check|wall|answer|"
                      r"play (?:against|around|into)|take (?:on|down|out)|get past|break)\b|"
-                     r"\b(?:keeps?|kept) (?:sweeping|beating|destroying|wrecking|killing|winning|walling)\b|"
+                     r"\b(?:keeps?|kept) (?:sweeping|beating|destroying|wrecking|killing|winning|walling|getting kills)\b|"
                      r"\b(?:struggl\w*|trouble|problems?|issues?|losing) (?:with|against|to)\b|\b(?:scared|afraid) of\b|"
-                     r"\bwhat (?:do|should) i do (?:about|against|vs)\b", re.I)
+                     r"\bwhat (?:do|should) i do (?:about|against|vs)\b|\bhow (?:do i |to )?deal w(?:ith|/)?\b|"
+                     r"\b(?:best|good) way to (?:beat|handle|deal with|stop|counter|check)\b|"
+                     r"\bis (?:so |really )?(?:destroying|shredding|wrecking|killing|sweeping|annoying|a problem|an issue|"
+                     r"too strong|broken|unbeatable)\b|"
+                     r"\b(?:walls?|stops?|shuts? down|beats?|destroys?|wrecks?|sweeps?|counters?) (?:me|us|my (?:whole |entire )?team)\b|"
+                     r"\b(?:counters?|checks?|answers?)\s*\??\s*$|\bswitch(?:es)? into\b", re.I)
 # Questions about the whole team's plan, answered from the Coach Guide (engine/team_answers.py) when no opponent is named
 WIN_RE = re.compile(r"\bwin ?con(?:dition)?s?\b|\bhow (?:do|does|can|will) (?:i|we|my team|this team) win\b|"
                     r"\b(?:main|best|primary) (?:sweeper|win\w*|wincon)\b|\bwho (?:wins|sweeps|should sweep)\b", re.I)
@@ -87,7 +92,8 @@ RULES_CUE_RE = re.compile(r"\b(?:how does|how do(?!\s+(?:i|we|you)\b)|what does|
                           r"affects?|interacts?|stacks?|activates?|triggers?|weaken\w*|strengthen\w*|stronger|weaker|"
                           r"change\w*)\b", re.I)
 # ... unless it asks for advice or ladder usage, which the builder and strategy agents answer
-RULES_ADVICE_RE = re.compile(r"\bhow (?:do|can|should) (?:i|we)\b|\b(?:beat|win|play|handle|counter|lead|deal with|standard|"
+RULES_ADVICE_RE = re.compile(r"\bhow (?:do|can|should) (?:i|we)\b|\bwhat (?:do|should|can) (?:i|we) do\b|"
+                             r"\b(?:against|vs\.?|versus|teams?)\b|\b(?:beat|win|play|handle|counter|lead|deal with|standard|"
                              r"common|usage|popular|usual\w*|good|best|worth|better|should|recommend|suggest|replace|instead|"
                              r"run|running|plan|strategy|approach|game ?plan|matchup)\b", re.I)
 # "stat boosts" and "stat changes" are assumptions in matchup questions, not stat questions

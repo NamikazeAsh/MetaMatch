@@ -168,6 +168,15 @@ class TestPlannerReads(unittest.TestCase):
         self.assertEqual(plan.opp_overrides.get("item"), "Choice Scarf")
         self.assertIn("details the question states", " ".join(solve(plan).facts))
 
+    def test_complaints_are_beat_questions(self):
+        for q in ["zamazenta is destroying me", "how to deal w lando", "ogerpon wellspring counters?",
+                  "gliscor walls my whole team", "best way to handle pult", "who on my team switches into tusk"]:
+            self.assertEqual(plan_query(q, self.team).intent, "checks", q)
+
+    def test_archetype_advice_is_not_a_rules_lookup(self):
+        self.assertEqual(plan_query("what do i do against sun teams", self.team).intent, "open")
+        self.assertEqual(plan_query("what does sun do", self.team).intent, "rules")
+
     def test_typo_with_short_first_word(self):
         self.assertEqual(find_pokemon("how do i beat iron valient"), ["Iron Valiant"])
         self.assertEqual(find_pokemon("does iron head hit hard"), [])
@@ -186,6 +195,27 @@ class TestRouting(unittest.TestCase):
     def test_prepare_routes_items_to_brock(self):
         turn = AgentManager().prepare("Should my Dragapult run Choice Specs instead?", _team())
         self.assertEqual(turn.route, "builder")
+
+    def test_set_up_is_not_a_set_question(self):
+        self.assertFalse(BUILDER_RE.search("how do i set up with dragonite safely"))
+
+    def test_small_talk(self):
+        turn = AgentManager().prepare("thanks!", _team())
+        self.assertEqual(turn.route, "smalltalk")
+        self.assertNotIn("Kingambit", "".join(AgentManager().respond(turn, _team())))
+
+
+class TestRetrievalQuery(unittest.TestCase):
+    def test_canonical_names(self):
+        from metamatch.rag.store import canonical
+        self.assertEqual(canonical("gambit keeps sweeping me"), "Kingambit keeps sweeping me")
+        self.assertEqual(canonical("how do i beat iron valient"), "how do i beat Iron Valiant")
+
+    def test_no_retrieval_for_small_talk_and_engine_questions(self):
+        from metamatch.agents.coach import NO_RETRIEVAL
+        for q in ["thanks!", "what is my team weak to", "rate my team", "is my team good?"]:
+            self.assertTrue(NO_RETRIEVAL.search(q), q)
+        self.assertFalse(NO_RETRIEVAL.search("is my team good against stall"))
 
 
 class TestBrockCheck(unittest.TestCase):

@@ -7,8 +7,9 @@ Retrieval benchmark for the RAG store, run through the production path (rag/stor
 queries.jsonl: {"query", "format", "gold": [metadata matches] | "mega_ou" | [], "must": optional key term}.
 A hit is gold when its metadata matches one entry (e.g. {"pokemon": "Kingambit"}); with "must", its text
 must also contain the term (strict). Queries with gold [] have no right answer: the score counts how many
-references Oak would still be served for them. "oak@2" follows Oak's real path: 4 hits, then the
-relevance filter, keep 2.
+references Oak would still be served for them. "oak@2" follows Oak's real path: the relevance filter
+applied before ranking, 4 hits, a second slot only for a concept or a named Pokemon
+(agents/coach.references).
 Caveat: the 65 queries were written while the retrieval variants were being designed, so they are a
 development set, not a held out one.
 """
@@ -35,8 +36,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--show", action="store_true")
     args = ap.parse_args()
-    from metamatch.agents.coach import _relevant
-    from metamatch.engine.names import find_pokemon
+    from metamatch.agents.coach import references
     from metamatch.rag import store
 
     queries = [json.loads(line) for line in open(HERE / "queries.jsonl", encoding="utf-8") if line.strip()]
@@ -47,8 +47,7 @@ def main():
         t0 = time.perf_counter()
         hits = store.query_strategies(q["query"], n_results=10, format_id=q["format"])
         latency.append(time.perf_counter() - t0)
-        names = find_pokemon(q["query"])
-        oak_hits = [h for h in hits[:4] if _relevant(h, names)][:2]
+        oak_hits = references(q["query"], {}, format_id=q["format"])
         if q["gold"] == []:
             nogold += 1
             served += len(oak_hits)

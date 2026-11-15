@@ -25,12 +25,20 @@ CLARIFY = ("I couldn't tell which opposing Pokemon you mean. Could you name it? 
            "Full names and common nicknames like Lando, Pex or Corv both work.")
 CALC_DOWN = ("The damage calculator isn't running (it needs Node.js and `npm install` in src/metamatch/engine), "
              "so I can't work that out right now, and I won't guess at damage or Speed numbers.")
+# "thanks!", "hi": a friendly line, not a strategy essay built on whatever the index returns for "thanks"
+SMALLTALK_RE = re.compile(r"^\s*(?:thanks?(?: a lot| so much)?|thank you(?: so much)?|thx|ty|cheers|ok(?:ay)?|cool|nice|great|"
+                          r"got it|perfect|awesome|hi|hello|hey|yo|good morning|good evening)[\s!.]*(?:oak|brock|clemont)?[\s!.]*$",
+                          re.I)
+GREETING_RE = re.compile(r"^\s*(?:hi|hello|hey|yo|good morning|good evening)\b", re.I)
+GREETING = ("Hello there! Ask me about any matchup, your leads, your win condition, a set or a teammate, "
+            "and I'll check it against the engine.")
+THANKS = "Anytime! Ask away whenever something comes up, like a matchup, a lead or a set to check."
 # Answers that need the calc: without it, a planned question gets this notice, never unchecked model text
 CALC_INTENTS = {"speed", "speed_spread", "ko", "damage", "checks", "win", "lead", "threats", "gameplan"}
 # Set, item, spread and teammate questions are Brock's: he has the ladder numbers, Oak and Clemont don't. In the
 # 2026 11 12 audit six of these ("Is Life Orb the best item on Venusaur", "What should I replace Alomomola with")
 # reached Oak through the router's low confidence fallback
-BUILDER_RE = re.compile(r"\b(?:items?|movesets?|sets?|evs?|spreads?|natures?|investment|tera(?: type)?|abilit(?:y|ies)|"
+BUILDER_RE = re.compile(r"\b(?:items?|movesets?|sets?(?! up)|evs?|spreads?|natures?|investment|tera(?: type)?|abilit(?:y|ies)|"
                         r"teammates?|partners?|replace\w*|swap\w*|wallbreaker|slot|specs|band|scarf|boots|life orb|"
                         r"leftovers|sash|helmet|assault vest|eviolite|booster)\b", re.I)
 STRATEGY_RE = re.compile(r"\bhow (?:do|can|should) (?:i|we) (?:beat|play|win|handle|deal|stop|counter|use|pilot)\b|"
@@ -93,6 +101,8 @@ class AgentManager:
             return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona])
         if plan.intent == "clarify":
             return Turn(query, reading, plan, persona=PERSONAS["mechanics"])
+        if SMALLTALK_RE.match(query):
+            return Turn(query, reading, plan, route="smalltalk", persona=PERSONAS["strategy"])
         if plan.intent in CALC_INTENTS:
             from metamatch.engine import calc
             if not calc.available():
@@ -110,13 +120,15 @@ class AgentManager:
             return iter([CLARIFY])
         if turn.route == "calc_down":
             return iter([CALC_DOWN])
+        if turn.route == "smalltalk":
+            return iter([GREETING if GREETING_RE.match(turn.query) else THANKS])
         named = self._named_context(turn.plan)
         if turn.route == "mechanics":
             return self.tactician.run(turn.text, team_context, team_weakness)
         if turn.route == "builder":
             return self.auditor.run(turn.text, team_context, turn.plan)
         briefing = strategy_briefing(team_context, turn.plan.opponents)
-        return self.coach.run(turn.text, team_context, named, briefing)
+        return self.coach.run(turn.text, team_context, named, briefing, plan=turn.plan)
 
     def remember(self, turn: Turn, state: dialogue.DialogueState = None) -> dialogue.DialogueState:
         """The dialogue state after answering `turn`."""

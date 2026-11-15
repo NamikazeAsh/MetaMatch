@@ -72,6 +72,7 @@ def rebuild_index(chunks):
     INFO_PATH.write_text(json.dumps({"built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                                      "stats_month": _stats_month(), "chunks": len(chunks)}), encoding="utf-8")
     _corpus.cache_clear()
+    _vectors.cache_clear()
     print("Index successfully rebuilt.")
 
 
@@ -104,6 +105,16 @@ def _corpus(count):
     return data["ids"], data["documents"], data["metadatas"], terms, lengths, (sum(lengths) / n) or 1, idf
 
 
+@lru_cache(maxsize=1)
+def _vectors(count):
+    """Every chunk's stored embedding, in _corpus order, for ranking a filtered subset without a Chroma filter."""
+    import numpy as np
+    ids = _corpus(count)[0]
+    data = get_collection().get(ids=list(ids), include=["embeddings"])
+    by_id = dict(zip(data["ids"], data["embeddings"]))
+    return np.asarray([by_id[i] for i in ids], dtype=np.float32)
+
+
 def _bm25(query, rows, corpus, k1=1.2, b=0.75):
     _, _, _, terms, lengths, avg, idf = corpus
     words = _tokens(query)
@@ -128,11 +139,26 @@ def _formats_for(format_id, metadatas):
     return formats
 
 
-def query_strategies(query, n_results=3, format_id=None, names=None):
+def canonical(query):
+    """The query with every Pokemon mention spelled the way the chunks spell it: 'gambit' -> 'Kingambit',
+    'iron valient' -> 'Iron Valiant'. Nicknames and typos match neither BM25 nor the embedder otherwise."""
+    from metamatch.engine.names import find_pokemon_spans
+    out, last = [], 0
+    for start, end, name in find_pokemon_spans(query):
+        if start < last:
+            continue
+        out += [query[last:start], name]
+        last = end
+    return "".join(out) + query[last:]
+
+
+def query_strategies(query, n_results=3, format_id=None, names=None, keep=None):
     """
     Top chunks for `query` in `format_id`: singles chunks for the format (its analyses or usage cards)
     plus game wide guides and concepts. `names`: Pokemon the question is about (canonical names);
-    found with the planner's resolver when not given. Each hit: {'text', 'metadata', 'distance'}.
+    found with the planner's resolver when not given. `keep`: optional test on a chunk's metadata, applied before
+    ranking, so the results are the best of the chunks the caller can use rather than whatever survives a filter.
+    Each hit: {'id', 'text', 'metadata', 'distance'}.
     """
     collection = get_collection()
     count = collection.count()
@@ -144,16 +170,25 @@ def query_strategies(query, n_results=3, format_id=None, names=None):
     ids, docs, metas = corpus[0], corpus[1], corpus[2]
     formats = _formats_for(format_id, metas)
     allowed = [i for i, m in enumerate(metas) if m.get("game") in (game, "any") and m.get("play") == "singles"
-               and m.get("format", "any") in formats]
+               and m.get("format", "any") in formats and (keep is None or keep(m))]
     if not allowed:
         return []
+    query = canonical(query)
 
     where = {"$and": [{"game": {"$in": [game, "any"]}}, {"play": "singles"}, {"format": {"$in": sorted(formats)}}]}
     embedding = get_model().encode([QUERY_PREFIX + query], normalize_embeddings=True).tolist()
-    dense = collection.query(query_embeddings=embedding, n_results=min(POOL, len(allowed)), where=where)
     position = {cid: i for i, cid in enumerate(ids)}
-    dense_rows = [position[cid] for cid in dense["ids"][0] if cid in position]
-    distance = {position[cid]: d for cid, d in zip(dense["ids"][0], dense["distances"][0]) if cid in position}
+    if keep is None:
+        dense = collection.query(query_embeddings=embedding, n_results=min(POOL, len(allowed)), where=where)
+        dense_rows = [position[cid] for cid in dense["ids"][0] if cid in position]
+        distance = {position[cid]: d for cid, d in zip(dense["ids"][0], dense["distances"][0]) if cid in position}
+    else:
+        # A metadata test can't be written as a Chroma filter, so rank the allowed rows' stored vectors directly
+        import numpy as np
+        sims = _vectors(count)[allowed] @ np.asarray(embedding[0], dtype=np.float32)
+        order = np.argsort(-sims)[:POOL]
+        dense_rows = [allowed[j] for j in order]
+        distance = {allowed[j]: float(1 - sims[j]) for j in order}
 
     lexical = _bm25(query, allowed, corpus)
     lexical_rows = sorted(lexical, key=lexical.get, reverse=True)[:POOL]
@@ -169,4 +204,4 @@ def query_strategies(query, n_results=3, format_id=None, names=None):
         if (metas[i].get("pokemon") or "").lower() in named:
             score[i] += NAME_BOOST
     top = sorted(score, key=score.get, reverse=True)[:n_results]
-    return [{"text": docs[i], "metadata": metas[i], "distance": distance.get(i)} for i in top]
+    return [{"id": ids[i], "text": docs[i], "metadata": metas[i], "distance": distance.get(i)} for i in top]

@@ -13,6 +13,7 @@ from metamatch.engine import rules
 from metamatch.engine.briefing import Briefing
 from metamatch.engine.names import find_pokemon
 from metamatch.rag import store
+from metamatch.rag.chunking import body
 
 # Chunks are 300 to 900 characters plus a header line; the cap guards against odd long ones
 RAG_CHARS = 1000
@@ -119,6 +120,47 @@ def _source_label(meta):
     return f"{subject}, {where} ({kind})" if subject and subject != "Concept" else f"{where} ({kind})"
 
 
+def _rules_for(team, query):
+    """Showdown rule text for what the question names: abilities, items, moves, and the ability and item of any team
+    member it names. Every member's rules in every prompt was 350 tokens of mostly unused text."""
+    named = {n.lower() for n in find_pokemon(query)}
+    members = {k: p for k, p in (team or {}).items()
+               if {(p.get("Pokemon") or "").lower(), (p.get("Forme") or "").lower()} & named}
+    return rules.team_rules(members, query)
+
+
+# Small talk and questions the engine answers better than any passage: retrieval would only add noise here
+NO_RETRIEVAL = re.compile(r"^\s*(?:thanks?|thank you|thx|ty|ok(?:ay)?|cool|nice|great|got it|hi|hello|hey)\b|"
+                          r"\b(?:weak(?:ness|nesses)? to|threats?|rate my team)\b|\bis my team good\W*$", re.I)
+
+
+def references(query, team, plan=None, facts_text="", format_id=None):
+    """The (at most two) retrieved passages Oak is given: ranked only among chunks about concepts, the team, a named
+    Pokemon or one in the engine facts (filtering first, not after, measured +4 points of oak@2 on the 2026 11 14 held
+    out set). The second slot is only for a concept note or a Pokemon the question names, so it never fills with a
+    marginal chunk about some team member."""
+    if NO_RETRIEVAL.search(query):
+        return []
+    asked = find_pokemon(query)
+    focus = set(asked) | set(find_pokemon(facts_text))
+    for p in (team or {}).values():
+        focus |= {p.get("Pokemon"), p.get("Forme")} - {None}
+    try:
+        hits = store.query_strategies(query, n_results=4, format_id=format_id or config.team_format(team), names=asked,
+                                      keep=lambda m: _relevant({"metadata": m}, focus))
+    except Exception as e:  # the index is optional: without it Oak works from the engine facts alone
+        print(f"Retrieval failed: {e}")
+        return []
+    asked_keys = {_species_key(n) for n in asked}
+    kept = hits[:1]
+    for h in hits[1:]:
+        m = h["metadata"]
+        if m.get("type") == "concept" or _species_key(m.get("pokemon")) in asked_keys:
+            kept.append(h)
+            break
+    return kept
+
+
 def _move_owner_clash(advice, team):
     """A sentence naming exactly one team member alongside a move only another member runs."""
     moves = {p["Pokemon"]: {m["name"] for m in p.get("Moves", [])} for p in team.values()}
@@ -162,83 +204,65 @@ class CoachAgent:
     def __init__(self, model_name=None):
         self.model = model_name
 
-    def _context(self, query, team_context, named_context, facts):
-        """(user message, source labels): retrieved guides, the team, named sets and engine facts, then the question.
-        The labels are returned rather than kept on the agent, because one agent serves every chat session."""
-        team_str = "### USER TEAM\n"
+    def _context(self, query, team_context, named_context, facts, plan=None):
+        """(user message, references used): the question first, then the trainer's team with owners and typings, the
+        rule text for what the question names, named opposing sets, engine facts and the references.
+        The 2026 11 14 ablations measured each choice: question first beat question last (12 vs 9 of 33 drafts),
+        labelled owners stopped "own member as the opponent" errors, and spreads, roles and every member's rule text
+        were noise. The references are returned rather than kept on the agent, which serves every chat session."""
+        game = config.format_game(config.team_format(team_context))
+        lines = []
         for p in team_context.values():
-            moves = ", ".join([m['name'] for m in p.get('Moves', [])])
-            roles = ", ".join(p.get('Roles', []))
-            # Champions has stat points instead of EVs and no Tera
-            is_champions = config.format_game(p.get('Format')) == "champions"
-            raw_evs = p.get('SP', {}) if is_champions else p.get('EVs', {})
-            if isinstance(raw_evs, dict):
-                evs = " / ".join(f"{v} {k}" for k, v in raw_evs.items() if v > 0) or "Unknown"
-            else:
-                evs = str(raw_evs)
-            gimmick = "" if is_champions else f"Tera: {p.get('Tera Type', '?')} | "
-            spread = "Stat Points" if is_champions else "EVs"
-            team_str += (
-                f"- {p['Pokemon']} @ {p.get('Item')} | Ability: {p.get('Ability')} | "
-                f"{gimmick}Nature: {p.get('Nature', '?')} | {spread}: {evs} | "
-                + (f"Roles: {roles} | " if roles else "")
-                + f"Speed: {p.get('Speed', '?')} | Moves: {moves}\n"
-            )
+            moves = ", ".join(m['name'] for m in p.get('Moves', []))
+            tera = "" if game == "champions" else f", Tera {p.get('Tera Type', '?')}"
+            lines.append(f"- Your {p['Pokemon']} ({'/'.join(p.get('Type', []))}) @ {p.get('Item') or 'no item'}, "
+                         f"{p.get('Ability')}{tera}, Speed {p.get('Speed', '?')}. Moves: {moves}.")
+        team_str = "YOUR TEAM (the trainer's own Pokemon):\n" + "\n".join(lines) + "\n"
 
-        # Retrieve references, keeping only ones about Pokemon in play
-        asked = find_pokemon(query)
-        focus_names = set(asked) | set(find_pokemon(named_context + facts))
-        for p in team_context.values():
-            focus_names |= {p.get("Pokemon"), p.get("Forme")} - {None}
-        try:
-            rag_hits = store.query_strategies(query, n_results=4, format_id=config.team_format(team_context), names=asked)
-        except Exception as e:  # the index is optional: without it Oak works from the engine facts alone
-            print(f"Retrieval failed: {e}")
-            rag_hits = []
-        rag_hits = [h for h in rag_hits if _relevant(h, focus_names)][:2]
-        sources = list(dict.fromkeys(_source_label(h["metadata"]) for h in rag_hits))
+        rule_lines = _rules_for(team_context, query)
+        rules_str = ("RULES (Pokemon Showdown's own text):\n" + "\n".join(f"- {line}" for line in rule_lines) + "\n") if rule_lines else ""
+
+        hits = references(query, team_context, plan, named_context + facts)
         rag_context = ""
-        if rag_hits:
-            rag_context = ("### REFERENCES (general notes from Smogon analyses, ladder stats and guides; they describe these "
-                           "Pokemon on other teams, so check every move and teammate against USER TEAM before using it)\n")
-            for hit in rag_hits:
-                rag_context += f"{_trim(hit['text'])}\n\n"
+        if hits:
+            rag_context = ("REFERENCES (general Smogon notes; they describe these Pokemon on other players' teams, not "
+                           "yours):\n" + "\n\n".join(_trim(h["text"]) for h in hits) + "\n")
 
-        rules_str = "### RULES (Pokemon Showdown's own text)\n" + "\n".join(f"- {l}" for l in rules.team_rules(team_context, query)) + "\n"
-
-        # Context, facts and the question sit together at the end, where a small model pays the most attention
         return (
-            f"{rag_context}{team_str}\n{rules_str}\n{named_context}\n{facts}\n"
-            f"QUESTION: {query}\n"
-            "Answer using the ENGINE FACTS above, naming specific members of my team."
-        ), sources
+            f"QUESTION: {query}\n\n{team_str}\n{rules_str}\n{named_context}\n{facts}\n\n{rag_context}\n"
+            f"Answer the QUESTION above."
+        ), hits
 
     def _advise(self, context, feedback=None):
-        system = """You are Professor Oak, the legendary Pokemon researcher and mentor.
-Help this trainer understand the big picture: win conditions, checks and counters.
-Respond in plain prose only. No JSON, no lists. Be concise: 3 to 5 sentences.
+        system = """You are Professor Oak, a warm, experienced Pokemon researcher who explains the big picture.
+Answer in 3 to 5 sentences of plain prose. No lists, no headings, no JSON.
 Rules:
-1. Any claim about speed, damage, KOs, weaknesses or threats must come from ENGINE FACTS. Never invent numbers.
-2. Only recommend Pokemon that are on the USER TEAM. Never call a Pokemon an answer to something it loses to.
-3. If the facts don't cover something, speak generally instead of guessing."""
+1. Every claim about speed, damage, KOs, typings, weaknesses or who beats whom must come from the ENGINE FACTS or
+YOUR TEAM. Never invent numbers, moves or abilities.
+2. Pokemon marked "Your" belong to the trainer; every other Pokemon is an opponent. Only recommend the trainer's own
+Pokemon, and never call one an answer to something it loses to.
+3. If the facts don't cover something, give general advice instead of guessing."""
         if feedback:
             system += f"\nYour previous answer was rejected because it had {feedback}. Fix that."
         # No earlier turns: replayed answers measured as harmful (the model repeats their mistakes and copies their
         # fact blocks), and follow ups reach this point already resolved by the dialogue state
         return chat([{"role": "system", "content": system}, {"role": "user", "content": context}],
-                    temperature=0.4, max_tokens=350, model=self.model)
+                    temperature=0.2, max_tokens=350, model=self.model)
 
-    def run(self, query: str, team_context: dict, named_context: str = "", briefing: Briefing = None):
-        """Yields the answer as text chunks: verified advice with the engine check in the dropdown under it
-        (FACTS_MARK), or the engine check on its own when no advice passes."""
+    def run(self, query: str, team_context: dict, named_context: str = "", briefing: Briefing = None, plan=None):
+        """Yields the answer as text chunks: verified advice with the engine check and the strategy notes it was given
+        in the dropdown under it (FACTS_MARK), or the engine check and notes on their own when no advice passes."""
         from .grounded import FACTS_MARK
         briefing = briefing or Briefing()
 
-        context, sources = self._context(query, team_context, named_context, briefing.facts)
+        context, hits = self._context(query, team_context, named_context, briefing.facts, plan)
+        sources = list(dict.fromkeys(_source_label(h["metadata"]) for h in hits))
+        notes = "".join(f"\n\n**{_source_label(h['metadata'])}**\n\n> {_trim(body(h['text']))}" for h in hits)
+        dropdown = ((briefing.summary or "") + notes).strip()
         if not ollama_available():
             yield OFFLINE_NOTE
-            if briefing.summary:
-                yield "\n\n" + briefing.summary
+            if dropdown:
+                yield "\n\n" + dropdown
             return
         feedback = None
         for _ in range(2):
@@ -247,18 +271,18 @@ Rules:
             except Exception as e:  # LLM call failed: the engine check still stands on its own
                 print(f"Coach failed: {e}")
                 yield OFFLINE_NOTE if not ollama_available(ttl=0) else FAILED_NOTE
-                if briefing.summary:
-                    yield "\n\n" + briefing.summary
+                if dropdown:
+                    yield "\n\n" + dropdown
                 return
             feedback = verify(advice, context, briefing, team_context)
             if feedback is None:
                 yield advice
                 if sources:
                     yield "\n\n_References: " + "; ".join(sources) + "._"
-                if briefing.summary:
-                    yield FACTS_MARK + briefing.summary
+                if dropdown:
+                    yield FACTS_MARK + dropdown
                 return
         # Both drafts failed the fact check: say so rather than show unverified advice
         yield "_Professor Oak's advice didn't pass the fact check this time, so only the engine's numbers are shown._"
-        if briefing.summary:
-            yield "\n\n" + briefing.summary
+        if dropdown:
+            yield "\n\n" + dropdown
