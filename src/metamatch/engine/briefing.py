@@ -79,7 +79,8 @@ def exchange(p, opp_set, game, dex):
     return {
         "name": p["Pokemon"],
         "speed": user_speed,
-        "outspeeds": mechanics.scarf_adjusted_share(user_speed, speeds, opp_set.get("scarf_share", 0.0)),
+        "outspeeds": mechanics.scarf_adjusted_share(user_speed, speeds, opp_set.get("scarf_share", 0.0),
+                                                     opp_set.get("booster_share", 0.0)),
         "dealt": dealt[0] if dealt else None,
         "taken": taken[0] if taken else None,
         "to_ko": to_ko,

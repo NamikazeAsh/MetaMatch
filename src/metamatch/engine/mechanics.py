@@ -35,11 +35,13 @@ def opponent_speed_spec(spec, stated_item):
     return {k: v for k, v in spec.items() if k != "item"}
 
 
-def scarf_adjusted_share(user_speed, speeds, scarf_share):
-    """Share of opponent sets the user outspeeds, mixing in the chance it holds Choice Scarf."""
+def scarf_adjusted_share(user_speed, speeds, scarf_share, booster_share=0.0):
+    """Share of opponent sets the user outspeeds, mixing in the chance it holds Choice Scarf or a Booster Energy that
+    raises its Speed (both x1.5)."""
     plain = sum(share for spe, share in speeds if spe < user_speed)
-    scarfed = sum(share for spe, share in speeds if int(spe * 1.5) < user_speed)
-    return (1 - scarf_share) * plain + scarf_share * scarfed
+    boosted = sum(share for spe, share in speeds if int(spe * 1.5) < user_speed)
+    fast = min(1.0, scarf_share + booster_share)
+    return (1 - fast) * plain + fast * boosted
 
 
 # KOs

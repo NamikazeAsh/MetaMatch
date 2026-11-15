@@ -19,6 +19,7 @@ class MetaSpeed:
     speeds: list = field(default_factory=list)       # [(speed, share 0..1)], most common first
     scarf_share: float = 0.0
     spreads: dict = field(default_factory=dict)      # {speed: [(spread label, share 0..1)]}, top few per speed
+    booster_share: float = 0.0                       # sets whose Booster Energy raises Speed
 
     @property
     def usual(self):
@@ -49,7 +50,7 @@ def meta_speeds(format_id, n=25, exclude=()):
         s = likely_set(name, format_id)
         if s and s.get("speeds"):
             rows.append(MetaSpeed(s["name"], round(usage * 100, 1), list(s["speeds"]), s.get("scarf_share", 0.0),
-                                  spreads_by_speed(s["name"], format_id)))
+                                  spreads_by_speed(s["name"], format_id), s.get("booster_share", 0.0)))
     return rows
 
 
@@ -131,11 +132,11 @@ def price_text(curve, cost, short=False):
 
 def outspeed_share(speed, meta):
     """Share of `meta`'s ladder sets a Pokemon at `speed` outspeeds, Choice Scarf mixed in at its usage share."""
-    return mechanics.scarf_adjusted_share(speed, meta.speeds, meta.scarf_share)
+    return mechanics.scarf_adjusted_share(speed, meta.speeds, meta.scarf_share, meta.booster_share)
 
 
 def tie_share(speed, meta):
-    return sum(share for spe, share in meta.speeds if spe == speed) * (1 - meta.scarf_share)
+    return sum(share for spe, share in meta.speeds if spe == speed) * (1 - min(1.0, meta.scarf_share + meta.booster_share))
 
 
 def is_member(name, team):

@@ -558,7 +558,7 @@ def _stated_set(plan, dex, game):
     if any(k in plan.opp_overrides for k in ("item", "nature", "evs", "max", "min", "uninvested", "no_speed_item")):
         # A stated spread or item has one Speed, not the ladder's spread of Speeds
         speed = mechanics.final_speed(calc_spec(out), game, _any_move([m for m, _ in out["moves"]], dex))
-        out["speeds"], out["scarf_share"] = ([(speed, 1.0)] if speed else []), 0.0
+        out["speeds"], out["scarf_share"], out["booster_share"] = ([(speed, 1.0)] if speed else []), 0.0, 0.0
     return out
 
 

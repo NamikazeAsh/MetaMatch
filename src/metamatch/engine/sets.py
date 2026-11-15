@@ -15,6 +15,41 @@ SPEED_PLUS = {"Timid", "Jolly", "Hasty", "Naive"}
 SPEED_MINUS = {"Brave", "Relaxed", "Quiet", "Sassy"}
 
 
+# Nature -> (raised stat, lowered stat); neutral natures are absent
+NATURE_EFFECT = {"Lonely": ("atk", "def"), "Brave": ("atk", "spe"), "Adamant": ("atk", "spa"), "Naughty": ("atk", "spd"),
+                 "Bold": ("def", "atk"), "Relaxed": ("def", "spe"), "Impish": ("def", "spa"), "Lax": ("def", "spd"),
+                 "Timid": ("spe", "atk"), "Hasty": ("spe", "def"), "Jolly": ("spe", "spa"), "Naive": ("spe", "spd"),
+                 "Modest": ("spa", "atk"), "Mild": ("spa", "def"), "Quiet": ("spa", "spe"), "Rash": ("spa", "spd"),
+                 "Calm": ("spd", "atk"), "Gentle": ("spd", "def"), "Sassy": ("spd", "spe"), "Careful": ("spd", "spa")}
+BOOST_ABILITIES = {"protosynthesis", "quarkdrive"}
+
+
+def speed_is_best_stat(base, nature, evs, game):
+    """True when Speed is the highest of Atk, Def, SpA, SpD, Spe for this spread, which is when Protosynthesis or
+    Quark Drive boosts Speed (ties go to the earlier stat, so Speed has to be strictly highest)."""
+    up, down = NATURE_EFFECT.get(nature, (None, None))
+    stats = {}
+    for s in ("atk", "def", "spa", "spd", "spe"):
+        mod = 1.1 if s == up else 0.9 if s == down else 1.0
+        stats[s] = calculate_speed(base[s], evs.get(s, 0), 31, mod, "", game)
+    return all(stats["spe"] > v for s, v in stats.items() if s != "spe")
+
+
+def booster_speed_share(entry, species, game, total):
+    """Share of a Pokemon's ladder sets whose Booster Energy raises Speed: Booster's item share times the share of
+    spreads where Speed is the best stat. 0 unless its usual ability is Protosynthesis or Quark Drive."""
+    abilities = entry.get("Abilities", {})
+    if not abilities or not species or max(abilities, key=abilities.get) not in BOOST_ABILITIES:
+        return 0.0
+    booster = entry.get("Items", {}).get("boosterenergy", 0) / total
+    if not booster:
+        return 0.0
+    spreads = entry.get("Spreads", {})
+    weight = sum(spreads.values()) or 1
+    fast = sum(w for raw, w in spreads.items() if speed_is_best_stat(species["baseStats"], *_parse_spread(raw), game))
+    return booster * fast / weight
+
+
 def _ranked(counts, total):
     return [(k, v / total) for k, v in sorted(counts.items(), key=lambda x: x[1], reverse=True) if k and k != "nothing"]
 
@@ -149,6 +184,9 @@ def likely_set(name, format_id, known=None):
         "scarf_share": 1.0 if to_id(item or "") == "choicescarf" and known.get("item") else
                        0.0 if known.get("item") else dict(items).get("choicescarf", 0.0),
         "speeds": speed_distribution(key, format_id, entry),
+        # Booster Energy that lands on Speed (x1.5), mixed in like Choice Scarf; a revealed item settles it
+        "booster_share": (0.0 if known.get("item") and to_id(known["item"]) != "boosterenergy" else
+                          booster_speed_share(entry, dex.species(key), config.format_game(format_id), total)),
     }
 
 

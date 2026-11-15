@@ -235,6 +235,19 @@ class TestBrockCheck(unittest.TestCase):
         self.assertIn("Gyarados", brock_verify("Gyarados would pair well with Dragapult.", self.FACTS))
 
 
+class TestBoosterSpeed(unittest.TestCase):
+    def test_booster_lands_on_speed_only_when_speed_is_best(self):
+        from metamatch.engine.sets import speed_is_best_stat
+        valiant = {"atk": 130, "def": 90, "spa": 120, "spd": 60, "spe": 116}
+        self.assertTrue(speed_is_best_stat(valiant, "Timid", {"spa": 252, "spd": 4, "spe": 252}, "sv"))
+        moon = {"atk": 139, "def": 71, "spa": 55, "spd": 101, "spe": 119}
+        self.assertFalse(speed_is_best_stat(moon, "Jolly", {"atk": 252, "spd": 4, "spe": 252}, "sv"))
+
+    def test_share_mixes_booster_like_scarf(self):
+        from metamatch.engine.mechanics import scarf_adjusted_share
+        self.assertAlmostEqual(scarf_adjusted_share(400, [(364, 1.0)], 0.0, 0.7), 0.3)
+
+
 class TestContextFit(unittest.TestCase):
     def test_drops_oldest_turns_only(self):
         msgs = [{"role": "system", "content": "s"}] + [{"role": "user", "content": "x" * 3000} for _ in range(6)] + \
