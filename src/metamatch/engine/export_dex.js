@@ -28,6 +28,10 @@ for (const [game, num] of Object.entries(GAMES)) {
     if (m.name === '(No Move)') continue;
     // Champions data leaves category off status moves
     dex.moves[m.name] = {type: m.type, category: m.category || 'Status', basePower: m.basePower || 0, priority: m.priority || 0};
+    // Stages the user's attacking stat drops after each use (Draco Meteor 2, Make It Rain 1), for KO counts over turns
+    let drops = 0;
+    try { drops = new calc.Move(gen, m.name).dropsStats || 0; } catch (e) { drops = 0; }
+    if (drops) dex.moves[m.name].selfDrop = drops;
   }
   for (const i of gen.items) {
     dex.items[i.name] = i.megaStone ? {megaStone: i.megaStone} : {};

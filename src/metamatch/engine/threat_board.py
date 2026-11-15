@@ -35,7 +35,8 @@ def _hko(n):
 def exchange_parts(x):
     """{'speed', 'dealt', 'dealt_ko', 'taken', 'taken_ko', 'priority'} for one exchange (briefing.exchange)."""
     share = x["outspeeds"]
-    speed = "Faster" if share >= 0.95 else "Slower" if share <= 0.05 else f"Faster than {share * 100:.0f}% of sets"
+    speed = ("Speed tie" if x.get("ties", 0) >= 0.95 else "Faster" if share >= 0.95 else "Slower" if share + x.get("ties", 0) <= 0.05
+             else f"Faster than {share * 100:.0f}% of sets")
     priority = ""
     if x.get("priority", (0, None))[1] and x["to_ko"] == x["to_be_koed"]:
         priority = f"Finishes first with {x['priority'][1]}"

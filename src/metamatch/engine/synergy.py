@@ -393,10 +393,10 @@ def _damage(p, spec, game, fld, threats, boosts=None):
     for mv in moves:
         for _, dspec in threats:
             for on in (False, True):
-                r = results[i]
-                att = reqs[i]["attacker"]
+                r, req = results[i], reqs[i]
+                att = req["attacker"]
                 i += 1
-                n = mechanics.hits_to_ko(r, att, dspec, mv) if r else None
+                n = mechanics.hits_to_ko(r, att, dspec, mv, game=req.get("game"), field=req.get("field")) if r else None
                 count.setdefault(mv, [0, 0])[int(on)] += int(n is not None and n <= 2)
     best = max(count, key=lambda mv: (count[mv][1] - count[mv][0], count[mv][1]))
     off, on = count[best]

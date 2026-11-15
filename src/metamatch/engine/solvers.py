@@ -238,9 +238,14 @@ def solve_speed(plan, dex, game):
     answer = "tie" if us == them else ("yes" if (slower if plan.speed_ask == "slower" else faster) else "no")
     told = constraints.stated_spread(plan.opp_overrides)
     which = "the stated spread" if told else "its most common spread"
+    if stated in mechanics.OPP_SPEED_ITEMS:
+        which += f" and the stated {stated}"
     facts = [f"{_user_name(p)} Speed: {us}.", f"{name} Speed with {which}: {them}."]
-    # Ladder shares compare against plain spreads, so they only hold when nothing changes the opponent's Speed
-    plain = not trick_room and not any(c.side in ("opponent", "both") for c in situation)
+    # Ladder shares compare against plain spreads, so they only hold when nothing the question states changes the
+    # opponent's Speed: no field effect, no stated spread, and no stated Speed item (a Scarf answer that also said
+    # "outspeeds 100% of its sets" would contradict itself)
+    plain = (not trick_room and not any(c.side in ("opponent", "both") for c in situation)
+             and stated not in mechanics.OPP_SPEED_ITEMS and not plan.opp_overrides.get("boosts"))
     if s and s["speeds"] and not told and plain:
         faster = sum(share for spe, share in s["speeds"] if spe < us)
         tied = sum(share for spe, share in s["speeds"] if spe == us)

@@ -79,11 +79,33 @@ def best_hits(user_pokemon, opp_set, game, dex, n=2):
     if not any(results):
         return None
 
-    def best(pairs):
+    def best(pairs, defender_name):
+        pairs = list(pairs)
         hits = [(m, r) for m, r in pairs if r and r['range'][1] > 0]
+        # The calc can't run moves that take half the target's HP (Ruination, Super Fang, Nature's Madness): add them
+        # as chip worth half of full HP, using the defender's HP from any other result in the same direction
+        stats = next((r for _, r in pairs if r and r.get("defender_stats")), None)
+        for m, r in pairs:
+            if m in HALF_HP_MOVES and stats and not (r and r['range'][1] > 0) and _half_hp_lands(m, defender_name, dex):
+                hp = stats["defender_stats"]["hp"]
+                hits.append((m, {"range": [hp // 2, hp // 2], "percent": [50.0, 50.0], "ko": "",
+                                 "desc": f"{m} takes half of the target's current HP", "half_hp": True,
+                                 "defender_stats": stats["defender_stats"], "attacker_speed": stats.get("attacker_speed")}))
         return sorted(hits, key=lambda x: x[1]['percent'][1], reverse=True)[:n]
 
-    return best(zip(user_moves, results[:len(user_moves)])), best(zip(opp_moves, results[len(user_moves):]))
+    return (best(zip(user_moves, results[:len(user_moves)]), opp_spec["name"]),
+            best(zip(opp_moves, results[len(user_moves):]), mine["name"]))
+
+
+HALF_HP_MOVES = {"Ruination", "Super Fang", "Nature's Madness"}
+
+
+def _half_hp_lands(move, defender_name, dex):
+    """Super Fang is a Normal move, so Ghosts are immune; Ruination and Nature's Madness hit everything."""
+    if move != "Super Fang":
+        return True
+    species = dex.species(defender_name) if dex else None
+    return "Ghost" not in (species or {}).get("types", [])
 
 
 def _damage_facts(user_pokemon, opp_set, game, dex):

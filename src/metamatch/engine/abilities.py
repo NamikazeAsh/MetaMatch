@@ -129,7 +129,8 @@ def _count(moves, off, on, game, threats):
     results = calc.calculate_many(reqs)
     count = {}
     for req, r in zip(reqs, results):
-        n = mechanics.hits_to_ko(r, req["attacker"], req["defender"], req["move"]) if r else None
+        n = mechanics.hits_to_ko(r, req["attacker"], req["defender"], req["move"], game=req["game"],
+                                 field=req.get("field")) if r else None
         count.setdefault(req["move"], [0, 0])[int(req["attacker"] is on)] += int(n is not None and n <= 2)
     best = max(count, key=lambda mv: (count[mv][1] - count[mv][0], count[mv][1], moves[mv]))
     lo, hi = count[best]

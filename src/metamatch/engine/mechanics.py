@@ -44,6 +44,14 @@ def scarf_adjusted_share(user_speed, speeds, scarf_share, booster_share=0.0):
     return (1 - fast) * plain + fast * boosted
 
 
+def scarf_adjusted_tie(user_speed, speeds, scarf_share, booster_share=0.0):
+    """Share of opponent sets at exactly the user's Speed, with the same Choice Scarf and Booster mix."""
+    plain = sum(share for spe, share in speeds if spe == user_speed)
+    boosted = sum(share for spe, share in speeds if int(spe * 1.5) == user_speed)
+    fast = min(1.0, scarf_share + booster_share)
+    return (1 - fast) * plain + fast * boosted
+
+
 # KOs
 
 def _hits_in_move(result):
@@ -108,12 +116,35 @@ def ko_answer(result, n, attacker, defender, move, full_hp=True):
     return ("yes" if lo >= hp else "sometimes" if hi >= hp else "no"), effect
 
 
-def hits_to_ko(result, attacker, defender, move, cap=10):
-    """Hits needed at the lowest roll from full HP, or None when the move does no damage."""
-    if not result or result["range"][0] <= 0:
+def self_drop(move, game):
+    """Stages the user's attacking stat falls after each use (Draco Meteor 2, Make It Rain 1), 0 for most moves."""
+    from metamatch.engine.dex import get_dex
+    dex = get_dex(game) if game else None
+    return ((dex.move(move) or {}).get("selfDrop", 0) if dex else 0) or 0
+
+
+def hits_to_ko(result, attacker, defender, move, cap=10, game=None, field=None):
+    """Hits needed at the lowest roll from full HP, or None when the move does no damage.
+    A move that lowers its user's attacking stat (Draco Meteor, Make It Rain) hits weaker every time: with `game`
+    known, the calc's own 'times used' option counts every later use at the dropped stat, with the same `field`,
+    instead of repeating the first hit."""
+    if not result or result["range"][0] <= 0 or result.get("half_hp"):
+        # A move that takes half the target's current HP (Ruination) never knocks out on its own
         return None
     effect = survival_effect(result, attacker, defender, move)
     hp = result["defender_stats"]["hp"]
+    if game and self_drop(move, game) and _total(result, 1, effect)[0] < hp:
+        uses = range(2, 6)
+        reqs = [{"game": game, "attacker": attacker, "defender": defender, "move": move,
+                 "moveOptions": {"timesUsed": n}, **({"field": field} if field else {})} for n in uses]
+        results = calc.calculate_many(reqs)
+        if any(results):
+            for n, r in zip(uses, results):
+                # A Sash or Sturdy first hit is held at 1 HP, so it takes one more use than the plain total
+                if r and r.get("range") and r["range"][0] >= hp:
+                    return n + (1 if effect else 0)
+            return uses[-1] + 1
+        # Calc unavailable for the repeat: fall back to repeating the first hit
     for n in range(1, cap + 1):
         if _total(result, n, effect)[0] >= hp:
             return n

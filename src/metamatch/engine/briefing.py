@@ -60,6 +60,21 @@ def _kill_priority(pairs, k, attacker, defender, dex):
     return top
 
 
+def _race(pairs, attacker, defender, game):
+    """Hits for the attacker's best plain attack to KO from full HP. A half HP move (Ruination) can open: one use, then
+    the plain attack only needs the other half, which counts when that is quicker. None when nothing can KO."""
+    plain = [(m, r) for m, r in pairs or [] if not r.get("half_hp")]
+    if not plain:
+        return None
+    move, best = plain[0]
+    n = mechanics.hits_to_ko(best, attacker, defender, move, game=game)
+    if any(r.get("half_hp") for _, r in pairs) and best["range"][0] > 0:
+        hp = best["defender_stats"]["hp"]
+        combo = 1 + math.ceil((hp - hp // 2) / best["range"][0])
+        n = min(n, combo) if n else combo
+    return n
+
+
 def exchange(p, opp_set, game, dex):
     """
     One on one numbers for a team member vs an opponent set: speed share (Choice Scarf mixed in at its
@@ -74,13 +89,15 @@ def exchange(p, opp_set, game, dex):
     speeds = opp_set.get("speeds") or []
     # Final Speed from the same calc call the damage came from, so it matches the chat speed solver
     user_speed = next((r.get("attacker_speed") for _, r in dealt), None) or p.get("Speed", 0)
-    to_ko = mechanics.hits_to_ko(dealt[0][1], mine, theirs, dealt[0][0]) if dealt else None
-    to_be_koed = mechanics.hits_to_ko(taken[0][1], theirs, mine, taken[0][0]) if taken else None
+    to_ko = _race(dealt, mine, theirs, game)
+    to_be_koed = _race(taken, theirs, mine, game)
     return {
         "name": p["Pokemon"],
         "speed": user_speed,
         "outspeeds": mechanics.scarf_adjusted_share(user_speed, speeds, opp_set.get("scarf_share", 0.0),
                                                      opp_set.get("booster_share", 0.0)),
+        "ties": mechanics.scarf_adjusted_tie(user_speed, speeds, opp_set.get("scarf_share", 0.0),
+                                             opp_set.get("booster_share", 0.0)),
         "dealt": dealt[0] if dealt else None,
         "taken": taken[0] if taken else None,
         "to_ko": to_ko,
@@ -108,7 +125,7 @@ def _verdict(x):
 
 
 def _hko(n):
-    return "OHKO" if n == 1 else f"{n}HKO"
+    return "OHKO" if n == 1 else f"{n}HKO" if n else "no KO"
 
 
 def _hit(pair):
@@ -120,7 +137,8 @@ def _hit(pair):
 def _reason(x):
     """'faster; Earthquake 69-82% (2HKO); takes Iron Head 43-51% (3HKO)'"""
     share = x["outspeeds"]
-    speed = "faster" if share >= 0.95 else "slower" if share <= 0.05 else f"faster than {share * 100:.0f}% of sets"
+    speed = ("speed tie" if x.get("ties", 0) >= 0.95 else "faster" if share >= 0.95 else "slower" if share + x.get("ties", 0) <= 0.05
+             else f"faster than {share * 100:.0f}% of sets")
     if x.get("priority", (0, None))[1] and x["to_ko"] == x["to_be_koed"]:
         speed += f", finishes first with {x['priority'][1]}"
     if x.get("opp_priority", (0, None))[1] and x["to_ko"] == x["to_be_koed"]:

@@ -22,6 +22,8 @@ NATURE_EFFECT = {"Lonely": ("atk", "def"), "Brave": ("atk", "spe"), "Adamant": (
                  "Modest": ("spa", "atk"), "Mild": ("spa", "def"), "Quiet": ("spa", "spe"), "Rash": ("spa", "spd"),
                  "Calm": ("spd", "atk"), "Gentle": ("spd", "def"), "Sassy": ("spd", "spe"), "Careful": ("spd", "spa")}
 BOOST_ABILITIES = {"protosynthesis", "quarkdrive"}
+CHOICE_ITEMS = {"choiceband", "choicespecs", "choicescarf"}
+CHOICE_STATUS_OK = {"trick", "switcheroo"}
 
 
 def speed_is_best_stat(base, nature, evs, game):
@@ -162,12 +164,21 @@ def likely_set(name, format_id, known=None):
 
     move_list = [(m, 1.0) for m in known.get("moves", [])]
     known_ids = {to_id(m) for m in known.get("moves", [])}
+    # Items and moves come from separate ladder shares, so the top four moves can include a status move a Choice
+    # item locks out (Choice Specs Dragapult with Will-O-Wisp); a Choice set keeps only attacks, Trick and Switcheroo
+    item_id = to_id(item or "")
+    allowed_status = CHOICE_STATUS_OK if item_id in CHOICE_ITEMS else set() if item_id == "assaultvest" else None
     for slug, share in moves:
         if len(move_list) >= 4:
             break
         display = dex.move_name(slug)
-        if display and to_id(display) not in known_ids:
-            move_list.append((display, share))
+        if not display or to_id(display) in known_ids:
+            continue
+        # Assault Vest blocks every status move; a Choice item allows Trick and Switcheroo
+        if (allowed_status is not None and (dex.move(display) or {}).get("category") == "Status"
+                and to_id(display) not in allowed_status):
+            continue
+        move_list.append((display, share))
 
     return {
         "name": key,
