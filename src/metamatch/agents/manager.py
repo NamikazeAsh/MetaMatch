@@ -1,3 +1,7 @@
+import re
+from dataclasses import dataclass
+
+from metamatch.engine import dialogue
 from metamatch.engine.planner import plan_query
 from metamatch.engine.solvers import solve
 from metamatch.engine.sets import likely_set
@@ -19,16 +23,43 @@ PERSONAS = {
 
 CLARIFY = ("I couldn't tell which opposing Pokemon you mean. Could you name it? "
            "Full names and common nicknames like Lando, Pex or Corv both work.")
+CALC_DOWN = ("The damage calculator isn't running (it needs Node.js and `npm install` in src/metamatch/engine), "
+             "so I can't work that out right now, and I won't guess at damage or Speed numbers.")
+# Answers that need the calc: without it, a planned question gets this notice, never unchecked model text
+CALC_INTENTS = {"speed", "speed_spread", "ko", "damage", "checks"}
+# Set, item, spread and teammate questions are Brock's: he has the ladder numbers, Oak and Clemont don't. In the
+# 2026 11 12 audit six of these ("Is Life Orb the best item on Venusaur", "What should I replace Alomomola with")
+# reached Oak through the router's low confidence fallback
+BUILDER_RE = re.compile(r"\b(?:items?|movesets?|sets?|evs?|spreads?|natures?|investment|tera(?: type)?|abilit(?:y|ies)|"
+                        r"teammates?|partners?|replace\w*|swap\w*|wallbreaker|slot|specs|band|scarf|boots|life orb|"
+                        r"leftovers|sash|helmet|assault vest|eviolite|booster)\b", re.I)
+STRATEGY_RE = re.compile(r"\bhow (?:do|can|should) (?:i|we) (?:beat|play|win|handle|deal|stop|counter|use|pilot)\b|"
+                         r"\b(?:win ?con\w*|game ?plan|lead\w*|against|vs\.?|versus|matchups?|archetype|stall|offense|rain|sun)\b",
+                         re.I)
 
 
-def _texts(stream):
-    """OpenAI style chunk stream -> plain text chunks."""
-    for chunk in stream:
-        if chunk.choices:
-            yield chunk.choices[0].delta.content or ""
+@dataclass
+class Turn:
+    """One chat question, worked out once: how it reads in context, its plan, the engine's answer and the persona."""
+    query: str                  # as the user typed it
+    reading: dialogue.Reading   # the full question after the dialogue state
+    plan: object
+    verdict: object = None
+    route: str = ""
+    persona: str = ""
+
+    @property
+    def text(self):
+        return self.reading.text
+
+    @property
+    def rewritten(self):
+        return self.reading.text != self.query
 
 
 class AgentManager:
+    """Shared by every chat session, so it holds no per conversation state: that lives in the DialogueState the
+    caller passes in."""
     _instance = None
 
     def __new__(cls):
@@ -39,17 +70,8 @@ class AgentManager:
             instance.coach = CoachAgent()
             instance.auditor = AuditorAgent()
             instance.grounded = GroundedAgent()
-            instance._last = (None, None)
             cls._instance = instance
         return cls._instance
-
-    def _plan(self, query, team_context):
-        """(plan, verdict) for the query; verdict is None for open questions. Cached for the persona lookup."""
-        key = (query, id(team_context))
-        if self._last[0] != key:
-            plan = plan_query(query, team_context)
-            self._last = (key, (plan, solve(plan) if plan.intent != "open" else None))
-        return self._last[1]
 
     def _named_context(self, plan):
         """Likely set cards for named Pokemon that aren't on the user's team."""
@@ -60,36 +82,67 @@ class AgentManager:
                 lines.append(describe_likely_set(s, plan.format_id))
         return ("### LIKELY SETS FOR POKEMON YOU ASKED ABOUT\n" + "\n".join(lines) + "\n") if lines else ""
 
-    def get_response(self, query: str, team_context: dict, team_weakness: dict = None, history: list = None):
-        """
-        Main entry point. Questions the engine can answer get a computed verdict;
-        everything else is routed to an LLM agent. Returns a generator of text chunks.
-        """
-        plan, verdict = self._plan(query, team_context)
+    def prepare(self, query: str, team_context: dict, state: dialogue.DialogueState = None) -> Turn:
+        """Reads the question in the context of the conversation, plans it and solves it if the engine can."""
+        reading = dialogue.resolve(query, state, team_context)
+        plan = plan_query(reading.text, team_context)
+        if reading.why_of is not None:
+            return Turn(query, reading, plan, reading.why_of, persona=PERSONAS[reading.why_of.persona])
+        verdict = solve(plan) if plan.intent not in ("open", "clarify") else None
         if verdict:
-            return self.grounded.run(query, verdict, team_context)
+            return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona])
         if plan.intent == "clarify":
+            return Turn(query, reading, plan, persona=PERSONAS["mechanics"])
+        if plan.intent in CALC_INTENTS:
+            from metamatch.engine import calc
+            if not calc.available():
+                return Turn(query, reading, plan, route="calc_down", persona=PERSONAS["mechanics"])
+        route, _ = self.router.route_query(reading.text)
+        if BUILDER_RE.search(reading.text) and not STRATEGY_RE.search(reading.text):
+            route = "builder"
+        return Turn(query, reading, plan, route=route, persona=PERSONAS.get(route, PERSONAS["fallback"]))
+
+    def respond(self, turn: Turn, team_context: dict, team_weakness: dict = None):
+        """The answer to a prepared turn, as a generator of text chunks."""
+        if turn.verdict:
+            return self.grounded.run(turn.text, turn.verdict, team_context)
+        if turn.plan.intent == "clarify":
             return iter([CLARIFY])
+        if turn.route == "calc_down":
+            return iter([CALC_DOWN])
+        named = self._named_context(turn.plan)
+        if turn.route == "mechanics":
+            return self.tactician.run(turn.text, team_context, team_weakness)
+        if turn.route == "builder":
+            return self.auditor.run(turn.text, team_context, turn.plan)
+        briefing = strategy_briefing(team_context, turn.plan.opponents)
+        return self.coach.run(turn.text, team_context, named, briefing)
 
-        route, confidence = self.router.route_query(query)
-        named = self._named_context(plan)
+    def remember(self, turn: Turn, state: dialogue.DialogueState = None) -> dialogue.DialogueState:
+        """The dialogue state after answering `turn`."""
+        return dialogue.update(state, turn.reading, turn.plan, turn.verdict, clarified=turn.plan.intent == "clarify")
 
-        # Low confidence queries go to the Coach, the most general agent
-        if route == "mechanics":
-            return _texts(self.tactician.run(query, team_context, team_weakness))
-        elif route == "builder":
-            return _texts(self.auditor.run(query, team_context, history, named))
-        else:
-            briefing = strategy_briefing(team_context, plan.opponents)
-            return self.coach.run(query, team_context, history, named, briefing)
+    def replay(self, history: list, team_context: dict) -> dialogue.DialogueState:
+        """Rebuilds the dialogue state from stored user turns, for a conversation reopened in a new session."""
+        state = None
+        for m in history or []:
+            if m.get("role") == "user":
+                reading = dialogue.resolve(m["content"], state, team_context)
+                plan = plan_query(reading.text, team_context)
+                state = dialogue.update(state, reading, plan, clarified=plan.intent == "clarify")
+        return state
+
+    def get_response(self, query: str, team_context: dict, team_weakness: dict = None, history: list = None,
+                     state: dialogue.DialogueState = None):
+        """One shot entry point (benchmarks, scripts): prepare and respond. `history` rebuilds the state if none
+        is given."""
+        if state is None and history:
+            state = self.replay(history, team_context)
+        return self.respond(self.prepare(query, team_context, state), team_context, team_weakness)
 
     def get_active_agent_name(self, query: str, team_context: dict = None) -> str:
-        """The persona the chat shows for this query, from the same plan the answer uses."""
+        """The persona that answers `query` on its own (no conversation context)."""
         if team_context is not None:
-            plan, verdict = self._plan(query, team_context)
-            if verdict:
-                return PERSONAS[verdict.persona]
-            if plan.intent == "clarify":
-                return PERSONAS["mechanics"]
+            return self.prepare(query, team_context).persona
         route, _ = self.router.route_query(query)
-        return PERSONAS.get(route, "Unknown Agent")
+        return PERSONAS.get(route, PERSONAS["fallback"])

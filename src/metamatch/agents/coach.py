@@ -6,7 +6,7 @@ Engine facts dropdown under it; without passing advice the Engine check is shown
 """
 import re
 
-from .client import get_agent_client, ollama_available
+from .client import chat, ollama_available
 from .grounded import FREE_NUMBERS, _numbers
 from metamatch import config
 from metamatch.engine import rules
@@ -17,6 +17,7 @@ from metamatch.rag import store
 # Chunks are 300 to 900 characters plus a header line; the cap guards against odd long ones
 RAG_CHARS = 1000
 OFFLINE_NOTE = "_Professor Oak is offline (Ollama isn't running), so only the engine's numbers are shown. Start Ollama for his advice._"
+FAILED_NOTE = "_Professor Oak couldn't answer this time (the model call failed), so only the engine's numbers are shown._"
 RECOMMEND = re.compile(r"\b(answer|counter|handle|best|deal with|check|beat|use|great|ideal|recommend|switch|option|"
                        r"take (?:out|down)|viable|good|strong|effective|key|reliable|bring|send|lead with|pivot)", re.I)
 # Double negatives that read like caution but recommend ("don't hesitate", "does not fear"): removed before checking
@@ -159,13 +160,11 @@ def verify(advice, context, briefing, team=None):
 
 class CoachAgent:
     def __init__(self, model_name=None):
-        self.client, self.model = get_agent_client()
-        if model_name:
-            self.model = model_name
-        self.sources = []  # references the last answer's prompt used, shown under the advice
+        self.model = model_name
 
     def _context(self, query, team_context, named_context, facts):
-        """The user message: retrieved guides, the team, named sets and engine facts, then the question."""
+        """(user message, source labels): retrieved guides, the team, named sets and engine facts, then the question.
+        The labels are returned rather than kept on the agent, because one agent serves every chat session."""
         team_str = "### USER TEAM\n"
         for p in team_context.values():
             moves = ", ".join([m['name'] for m in p.get('Moves', [])])
@@ -191,9 +190,13 @@ class CoachAgent:
         focus_names = set(asked) | set(find_pokemon(named_context + facts))
         for p in team_context.values():
             focus_names |= {p.get("Pokemon"), p.get("Forme")} - {None}
-        rag_hits = store.query_strategies(query, n_results=4, format_id=config.team_format(team_context), names=asked)
+        try:
+            rag_hits = store.query_strategies(query, n_results=4, format_id=config.team_format(team_context), names=asked)
+        except Exception as e:  # the index is optional: without it Oak works from the engine facts alone
+            print(f"Retrieval failed: {e}")
+            rag_hits = []
         rag_hits = [h for h in rag_hits if _relevant(h, focus_names)][:2]
-        self.sources = [_source_label(h["metadata"]) for h in rag_hits]
+        sources = list(dict.fromkeys(_source_label(h["metadata"]) for h in rag_hits))
         rag_context = ""
         if rag_hits:
             rag_context = ("### REFERENCES (general notes from Smogon analyses, ladder stats and guides; they describe these "
@@ -208,9 +211,9 @@ class CoachAgent:
             f"{rag_context}{team_str}\n{rules_str}\n{named_context}\n{facts}\n"
             f"QUESTION: {query}\n"
             "Answer using the ENGINE FACTS above, naming specific members of my team."
-        )
+        ), sources
 
-    def _advise(self, context, history, feedback=None):
+    def _advise(self, context, feedback=None):
         system = """You are Professor Oak, the legendary Pokemon researcher and mentor.
 Help this trainer understand the big picture: win conditions, checks and counters.
 Respond in plain prose only. No JSON, no lists. Be concise: 3 to 5 sentences.
@@ -220,28 +223,18 @@ Rules:
 3. If the facts don't cover something, speak generally instead of guessing."""
         if feedback:
             system += f"\nYour previous answer was rejected because it had {feedback}. Fix that."
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system},
-                # Recent turns so follow ups like "what about against rain?" make sense
-                *(history or [])[-6:],
-                {"role": "user", "content": context},
-            ],
-            temperature=0.4,
-            max_tokens=350,
-            stream=False,
-        )
-        return (completion.choices[0].message.content or "").strip()
+        # No earlier turns: replayed answers measured as harmful (the model repeats their mistakes and copies their
+        # fact blocks), and follow ups reach this point already resolved by the dialogue state
+        return chat([{"role": "system", "content": system}, {"role": "user", "content": context}],
+                    temperature=0.4, max_tokens=350, model=self.model)
 
-    def run(self, query: str, team_context: dict, history: list = None, named_context: str = "",
-            briefing: Briefing = None):
+    def run(self, query: str, team_context: dict, named_context: str = "", briefing: Briefing = None):
         """Yields the answer as text chunks: verified advice with the engine check in the dropdown under it
         (FACTS_MARK), or the engine check on its own when no advice passes."""
         from .grounded import FACTS_MARK
         briefing = briefing or Briefing()
 
-        context = self._context(query, team_context, named_context, briefing.facts)
+        context, sources = self._context(query, team_context, named_context, briefing.facts)
         if not ollama_available():
             yield OFFLINE_NOTE
             if briefing.summary:
@@ -250,18 +243,18 @@ Rules:
         feedback = None
         for _ in range(2):
             try:
-                advice = self._advise(context, history, feedback)
-            except Exception as e:  # LLM down: the engine check still stands on its own
+                advice = self._advise(context, feedback)
+            except Exception as e:  # LLM call failed: the engine check still stands on its own
                 print(f"Coach failed: {e}")
-                yield OFFLINE_NOTE
+                yield OFFLINE_NOTE if not ollama_available(ttl=0) else FAILED_NOTE
                 if briefing.summary:
                     yield "\n\n" + briefing.summary
                 return
             feedback = verify(advice, context, briefing, team_context)
             if feedback is None:
                 yield advice
-                if self.sources:
-                    yield "\n\n_References: " + "; ".join(self.sources) + "._"
+                if sources:
+                    yield "\n\n_References: " + "; ".join(sources) + "._"
                 if briefing.summary:
                     yield FACTS_MARK + briefing.summary
                 return

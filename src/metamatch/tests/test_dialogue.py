@@ -1,0 +1,195 @@
+"""Chat follow ups, planner misreads and Brock's fact check (no LLM needed)."""
+import unittest
+
+from metamatch.agents import client
+from metamatch.agents.auditor import verify as brock_verify
+from metamatch.agents.manager import AgentManager, BUILDER_RE, STRATEGY_RE
+from metamatch.engine import calc, dialogue
+from metamatch.engine.names import find_pokemon
+from metamatch.engine.planner import plan_query
+from metamatch.engine.solvers import solve
+from metamatch.team import readTeam
+
+TEAM = """Gholdengo @ Choice Scarf
+Ability: Good as Gold
+Tera Type: Steel
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Make It Rain
+- Shadow Ball
+- Trick
+- Focus Blast
+
+Kingambit @ Leftovers
+Ability: Supreme Overlord
+Tera Type: Dark
+EVs: 252 HP / 252 Atk / 4 SpD
+Adamant Nature
+- Swords Dance
+- Kowtow Cleave
+- Sucker Punch
+- Iron Head
+
+Dragapult @ Heavy-Duty Boots
+Ability: Infiltrator
+Tera Type: Ghost
+EVs: 252 SpA / 4 SpD / 252 Spe
+Timid Nature
+- Draco Meteor
+- Shadow Ball
+- U-turn
+- Will-O-Wisp"""
+
+
+def _team():
+    team, _ = readTeam(TEAM, "gen9ou")
+    return team
+
+
+def _ask(conversation, team):
+    """Resolves each message in turn, the way the chat tab does; returns the readings."""
+    state, out = None, []
+    for q in conversation:
+        reading = dialogue.resolve(q, state, team)
+        plan = plan_query(reading.text, team)
+        state = dialogue.update(state, reading, plan, clarified=plan.intent == "clarify")
+        out.append(reading)
+    return out
+
+
+class TestFollowUps(unittest.TestCase):
+    def setUp(self):
+        self.team = _team()
+
+    def test_swap_opponent(self):
+        r = _ask(["Does my Dragapult outspeed Iron Valiant?", "what about Roaring Moon?"], self.team)[-1]
+        self.assertEqual(r.kind, "swap")
+        self.assertEqual(r.text, "Does my Dragapult outspeed Roaring Moon?")
+
+    def test_swap_member(self):
+        r = _ask(["Does my Dragapult outspeed Iron Valiant?", "and gholdengo?"], self.team)[-1]
+        self.assertEqual(r.text, "Does my Gholdengo outspeed Iron Valiant?")
+
+    def test_swap_own_species_is_opposing(self):
+        r = _ask(["How do I beat Raging Bolt?", "what about Kingambit"], self.team)[-1]
+        self.assertEqual(r.text, "How do I beat opposing Kingambit?")
+        self.assertEqual(plan_query(r.text, self.team).opponents, ["Kingambit"])
+
+    def test_variant_puts_detail_on_opponent(self):
+        r = _ask(["Does my Dragapult outspeed Iron Valiant?", "what if it's the scarf set?"], self.team)[-1]
+        self.assertEqual(r.kind, "variant")
+        self.assertEqual(r.text, "Does my Dragapult outspeed scarf Iron Valiant?")
+        self.assertEqual(plan_query(r.text, self.team).opp_overrides.get("item"), "Choice Scarf")
+
+    def test_variant_field_goes_last(self):
+        r = _ask(["Does my Kingambit survive Great Tusk's Headlong Rush?", "what if it's in sand"], self.team)[-1]
+        self.assertEqual(r.text, "Does my Kingambit survive Great Tusk's Headlong Rush in sand?")
+
+    def test_pronoun_is_last_opponent(self):
+        r = _ask(["What is the most common item on Iron Valiant?", "does it outspeed my Dragapult?"], self.team)[-1]
+        self.assertEqual(r.text, "does Iron Valiant outspeed my Dragapult?")
+
+    def test_expletive_it_left_alone(self):
+        r = _ask(["What is the most common item on Iron Valiant?", "is it worth running Tera Steel on Gholdengo?"],
+                 self.team)[-1]
+        self.assertEqual(r.kind, "new")
+
+    def test_clarify_reply(self):
+        readings = _ask(["Does my Gholdengo outspeed it?", "Iron Valiant"], self.team)
+        self.assertEqual(readings[-1].text, "Does my Gholdengo outspeed Iron Valiant?")
+
+    def test_why_reuses_verdict(self):
+        state = dialogue.DialogueState(query="Does my Dragapult outspeed Iron Valiant?", verdict="V")
+        r = dialogue.resolve("why?", state, self.team)
+        self.assertEqual((r.kind, r.why_of), ("why", "V"))
+
+    def test_new_question_untouched(self):
+        r = _ask(["Does my Dragapult outspeed Iron Valiant?", "How do I beat stall?"], self.team)[-1]
+        self.assertEqual(r.text, "How do I beat stall?")
+
+    def test_replace_carries_member(self):
+        r = _ask(["Is my Gholdengo set good?", "ok what should I replace then"], self.team)[-1]
+        self.assertIn("my Gholdengo", r.text)
+
+
+class TestPlannerReads(unittest.TestCase):
+    def setUp(self):
+        self.team = _team()
+
+    def test_beat_own_species_is_opponent(self):
+        plan = plan_query("How do I beat Kingambit?", self.team)
+        self.assertEqual(plan.opponents, ["Kingambit"])
+        self.assertIsNone(plan.user)
+
+    def test_teammates_is_not_an_item(self):
+        plan = plan_query("What are the most common teammates of Kingambit?", self.team)
+        self.assertEqual((plan.intent, plan.usage_field), ("usage", "teammates"))
+        v = solve(plan)
+        self.assertIn("teammate", v.statement)
+
+    def test_named_option_share(self):
+        plan = plan_query("Is Sucker Punch common on Kingambit?", self.team)
+        self.assertEqual((plan.intent, plan.usage_field, plan.usage_option), ("usage", "move", "Sucker Punch"))
+        self.assertIn("Sucker Punch is on", solve(plan).statement)
+
+    def test_spread_to_survive_is_not_a_yes_no(self):
+        plan = plan_query("What spread lets Gholdengo survive Great Tusk's Headlong Rush?", self.team)
+        self.assertEqual(plan.intent, "open")
+
+    @unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+    def test_evs_to_outspeed(self):
+        plan = plan_query("What EVs does my Kingambit need to outspeed Great Tusk?", self.team)
+        self.assertEqual(plan.intent, "speed_spread")
+        v = solve(plan)
+        self.assertEqual(v.persona, "builder")
+        self.assertIn("Great Tusk", v.statement)
+
+    def test_typo_with_short_first_word(self):
+        self.assertEqual(find_pokemon("how do i beat iron valient"), ["Iron Valiant"])
+        self.assertEqual(find_pokemon("does iron head hit hard"), [])
+
+
+class TestRouting(unittest.TestCase):
+    def test_builder_words(self):
+        for q in ["Is Life Orb the best item on Venusaur?", "What should I replace Alomomola with?",
+                  "Specs or Life Orb on Dragapult?", "What spread lets Corviknight survive Thunderclap?"]:
+            self.assertTrue(BUILDER_RE.search(q) and not STRATEGY_RE.search(q), q)
+
+    def test_strategy_stays(self):
+        for q in ["How do I beat stall?", "What should I lead with?", "How do I use Kingambit against rain?"]:
+            self.assertTrue(STRATEGY_RE.search(q), q)
+
+    def test_prepare_routes_items_to_brock(self):
+        turn = AgentManager().prepare("Should my Dragapult run Choice Specs instead?", _team())
+        self.assertEqual(turn.route, "builder")
+
+
+class TestBrockCheck(unittest.TestCase):
+    FACTS = ["Your Dragapult (Dragon/Ghost) runs Heavy-Duty Boots, Infiltrator, Tera Ghost, moves Draco Meteor, U-turn.",
+             "Ladder sets of Dragapult (yours is above), items: Choice Specs 50%, Heavy-Duty Boots 24%."]
+
+    def test_grounded_answer_passes(self):
+        self.assertIsNone(brock_verify("Half of ladder Dragapult run Choice Specs (50%), so it is a fine pick.", self.FACTS))
+
+    def test_invented_item_rejected(self):
+        self.assertIn("Life Orb", brock_verify("Life Orb would hit harder than Choice Specs.", self.FACTS))
+
+    def test_invented_number_rejected(self):
+        self.assertIn("62", brock_verify("About 62% of players run Choice Specs.", self.FACTS))
+
+    def test_invented_pokemon_rejected(self):
+        self.assertIn("Gyarados", brock_verify("Gyarados would pair well with Dragapult.", self.FACTS))
+
+
+class TestContextFit(unittest.TestCase):
+    def test_drops_oldest_turns_only(self):
+        msgs = [{"role": "system", "content": "s"}] + [{"role": "user", "content": "x" * 3000} for _ in range(6)] + \
+               [{"role": "user", "content": "question"}]
+        fitted = client.fit(msgs, max_tokens=300, num_ctx=4096)
+        self.assertEqual(fitted[0]["content"], "s")
+        self.assertEqual(fitted[-1]["content"], "question")
+        self.assertLessEqual(client.estimate_tokens(fitted) + 300, 4096)
+
+
+if __name__ == "__main__":
+    unittest.main()

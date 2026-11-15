@@ -8,8 +8,8 @@ from dataclasses import dataclass, field, replace
 
 from metamatch import config
 from metamatch.engine import calc, constraints, mechanics
-from metamatch.engine.dex import dex_for_format
-from metamatch.engine.sets import calc_spec, chaos_entry, describe_spread, likely_set
+from metamatch.engine.dex import dex_for_format, to_id
+from metamatch.engine.sets import calc_spec, chaos_entry, describe_spread, likely_set, spread_label
 
 STAT_NAMES = {"hp": "HP", "atk": "Attack", "def": "Defense", "spa": "Special Attack", "spd": "Special Defense", "spe": "Speed"}
 CALC_STAT_KEYS = {"HP": "hp", "Atk": "atk", "Def": "def", "SpA": "spa", "SpD": "spd", "Spe": "spe"}
@@ -40,6 +40,7 @@ class Verdict:
     losers: list = field(default_factory=list)  # checks verdicts: members that lose one on one
     members: list = field(default_factory=list)  # checks verdicts: the whole team
     groups: dict = field(default_factory=dict)   # team_type verdicts: {"immune"|"resist"|"neutral"|"weak": [members]}
+    speeds: tuple = ()                           # speed verdicts: (player's Speed, opponent's Speed)
 
 
 def _pct(x):
@@ -252,7 +253,7 @@ def solve_speed(plan, dex, game):
             facts.append(f"{_pct(s['item_share'])} of {name} carry Booster Energy, which raises its Speed to {boosted}.")
     # Contradiction checks read the answer as "subject is faster than other", inverted when ask_slower
     return Verdict("speed", answer, statement, facts, subject=subject, other=other,
-                   ask_slower=plan.speed_ask == "slower", subject_is_player=plan.subject != "opponent")
+                   ask_slower=plan.speed_ask == "slower", subject_is_player=plan.subject != "opponent", speeds=(us, them))
 
 
 def _attack(plan, dex, game):
@@ -451,7 +452,10 @@ def solve_stat(plan, dex, game):
     return Verdict("stat", str(value), statement, facts)
 
 
-USAGE_FIELDS = {"item": "Items", "ability": "Abilities", "move": "Moves", "tera": "Tera Types", "spread": "Spreads"}
+USAGE_FIELDS = {"item": "Items", "ability": "Abilities", "move": "Moves", "tera": "Tera Types", "spread": "Spreads",
+                "teammates": "Teammates"}
+ORDINALS = ["", "most common", "second most common", "third most common", "fourth most common", "fifth most common",
+            "sixth most common", "seventh most common", "eighth most common", "ninth most common", "tenth most common"]
 
 
 def solve_usage(plan, dex, game):
@@ -461,7 +465,9 @@ def solve_usage(plan, dex, game):
         return None
     total = sum(entry.get("Abilities", {}).values()) or 1
     counts = entry.get(USAGE_FIELDS[plan.usage_field], {})
-    ranked = sorted(((k, v / total) for k, v in counts.items() if k and k != "nothing"), key=lambda x: x[1], reverse=True)[:3]
+    everything = sorted(((k, v / total) for k, v in counts.items() if k and k != "nothing" and v > 0),
+                        key=lambda x: x[1], reverse=True)
+    ranked = everything[:3]
     if not ranked:
         return None
 
@@ -474,14 +480,60 @@ def solve_usage(plan, dex, game):
             return dex.move_name(k) or k
         if plan.usage_field == "tera":
             return k.capitalize()
+        if plan.usage_field == "spread":
+            return spread_label(k, plan.format_id)
         return k
 
     label = config.format_info(plan.format_id)["label"]
-    noun = {"item": "held item", "ability": "ability", "move": "move", "tera": "Tera type", "spread": "spread"}[plan.usage_field]
+    noun = {"item": "held item", "ability": "ability", "move": "move", "tera": "Tera type", "spread": "spread",
+            "teammates": "teammate"}[plan.usage_field]
     top, share = ranked[0]
-    statement = f"The most common {noun} on {key} in {label} is {display(top)} ({_pct(share)} of sets)."
     facts = [f"Top {noun}s: " + ", ".join(f"{display(k)} {_pct(v)}" for k, v in ranked) + "."]
+    if plan.usage_option:
+        # One named option: its own share and rank, with the top options for scale
+        want = to_id(plan.usage_option)
+        rank, hit = next(((i + 1, kv) for i, kv in enumerate(everything) if to_id(kv[0]) == want), (None, None))
+        if hit is None:
+            statement = f"{plan.usage_option} doesn't show up on {key} sets in {label}'s usage stats."
+            return Verdict("usage", "0%", statement, facts, persona="builder")
+        place = ORDINALS[rank] if rank < len(ORDINALS) else f"number {rank}"
+        statement = (f"{plan.usage_option} is on {_pct(hit[1])} of {key} sets in {label}, "
+                     f"the {place} {noun}." + ("" if rank == 1 else f" The most common is {display(top)} ({_pct(share)})."))
+        return Verdict("usage", _pct(hit[1]), statement, facts, persona="builder")
+    if plan.usage_field == "teammates":
+        statement = f"The most common teammate of {key} in {label} is {display(top)} (on {_pct(share)} of its teams)."
+        facts = ["Top teammates (share of its teams): " + ", ".join(f"{display(k)} {_pct(v)}" for k, v in ranked) + "."]
+    else:
+        statement = f"The most common {noun} on {key} in {label} is {display(top)} ({_pct(share)} of sets)."
     return Verdict("usage", display(top), statement, facts, persona="builder")
+
+
+def solve_speed_spread(plan, dex, game):
+    """'What EVs does my X need to outspeed Y': the least Speed investment (and nature, if needed) that clears Y."""
+    from metamatch.engine.speed_board import price, price_text, speed_curve
+    if any(c.kind == "trick_room" for c in plan.situation):
+        return None
+    base = solve_speed(plan, dex, game)
+    if not base or not base.speeds:
+        return None
+    us, them = base.speeds
+    curve = speed_curve(plan.user, plan.format_id)
+    if not curve:
+        return None
+    cost = price(curve, them + 1)
+    me, name = _user_name(plan.user), base.other if plan.subject != "opponent" else base.subject
+    if cost is None:
+        statement = f"{me} can't reach {them + 1} Speed to outspeed {name}. {price_text(curve, cost)}."
+    elif cost[0] == "own" and cost[1] <= curve["current"]:
+        statement = f"{me} already outspeeds {name} ({them} Speed) with your spread ({us} Speed)."
+        if cost[1] < curve["current"]:
+            statement += f" {price_text(curve, cost)}."
+    else:
+        statement = f"To outspeed {name} ({them} Speed), {me} needs {them + 1} Speed: {price_text(curve, cost)}."
+    facts = [f for f in base.facts if "Across all" not in f]
+    facts.append(f"{me} runs {curve['current']} Spe {curve['unit']} now, with {max(curve['free'], 0)} {curve['unit']} unspent.")
+    return Verdict("speed_spread", price_text(curve, cost, short=True), statement, facts, persona="builder",
+                   subject=me, other=name)
 
 
 def _join(names):
@@ -496,14 +548,17 @@ def solve_checks(plan, dex, game):
     if not row:
         return None
     name, answers, losses = display_name(row.name), row.answers, row.losses
+    # A mirror ("what checks Kingambit" on a team with Kingambit) says whose copy is whose
+    mine = lambda m: f"your {m}" if to_id(m) == to_id(row.name) else m  # noqa: E731
+    them = f"the opposing {name}" if any(to_id(m) == to_id(row.name) for m in row.cells) else name
     if answers:
-        statement = f"{_join(answers)} {'beats' if len(answers) == 1 else 'beat'} {name} one on one."
+        statement = f"{_join([mine(m) for m in answers])} {'beats' if len(answers) == 1 else 'beat'} {them} one on one."
     else:
-        statement = f"Nobody on your team beats {name} one on one."
+        statement = f"Nobody on your team beats {them} one on one."
     ohko = [m for m in losses if (row.cells[m].exchange or {}).get("to_be_koed") == 1]
     if ohko:
-        statement += f" {name} OHKOs {_join(ohko)}."
-    facts = [f"{m} vs {name}: {row.cells[m].reason}." for m in answers + losses]
+        statement += f" {them[0].upper() + them[1:]} OHKOs {_join([mine(m) for m in ohko])}."
+    facts = [f"{mine(m)[0].upper() + mine(m)[1:]} vs {them}: {row.cells[m].reason}." for m in answers + losses]
     if row.checks_data:
         facts.append(f"Smogon's checks data also lists {_join(row.checks_data)} as checks to {name}.")
     facts.append(f"{name} assumed on its most common set; switching, hazards and setup are not counted.")
@@ -656,7 +711,8 @@ def solve_rules(plan, dex, game):
 
 
 SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage, "type": solve_type, "stat": solve_stat,
-           "usage": solve_usage, "checks": solve_checks, "team_type": solve_team_type, "rules": solve_rules}
+           "usage": solve_usage, "checks": solve_checks, "team_type": solve_team_type, "rules": solve_rules,
+           "speed_spread": solve_speed_spread}
 
 
 def solve(plan):

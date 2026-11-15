@@ -291,7 +291,7 @@ def load_team(pokemon_data, fmt_id):
         analysis=analysis, pokemon_data=pokemon_data, default_input=pokemon_data,
         pokemon_names=extract_pokemon_names(pokemon_data), format_id=fmt_id, team_id=tid,
         # Each team keeps its own coach conversation; a new team never inherits the last one's chat
-        chat_messages=storage.chat_messages(tid) if config.LOCAL_MODE else [],
+        chat_messages=storage.chat_messages(tid) if config.LOCAL_MODE else [], chat_state=None,
     )
     return tid
 

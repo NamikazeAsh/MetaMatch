@@ -1,93 +1,65 @@
-from .client import get_agent_client
+from .client import chat
 from metamatch.engine import rules
 from metamatch.logic_engine import generate_mechanics_report, find_pokemon_in_query
 
+# The calc block is about 1200 tokens per opponent; three keep the prompt inside the context
+MAX_SUBJECTS = 3
+# Immunities the typing alone doesn't explain: (attack type, what grants it on the member)
+GRANTED = {"ground": ("levitate", "earth eater"), "electric": ("volt absorb", "lightning rod", "motor drive"),
+           "water": ("water absorb", "storm drain", "dry skin"), "fire": ("flash fire", "well-baked body"),
+           "grass": ("sap sipper",)}
+
+
+def _matchup_line(p):
+    """'- Your Rotom-Wash: immune to Ground (from Levitate); resists Fire, Water; weak to Grass (2x).'"""
+    ability, item = p.get("Ability", "").lower(), p.get("Item", "").lower()
+    immune, resist, weak = [], [], []
+    for t, mult in p.get("Damage From", {}).items():
+        if mult == 0.0:
+            reason = ""
+            if ability in GRANTED.get(t, ()):
+                reason = f" (from {p['Ability']})"
+            elif t == "ground" and item == "air balloon":
+                reason = f" (from {p['Item']})"
+            immune.append(f"{t.capitalize()}{reason}")
+        elif mult < 1.0:
+            resist.append(t.capitalize())
+        elif mult >= 2.0:
+            weak.append(f"{t.capitalize()} ({mult:g}x)")
+    parts = [f"immune to {', '.join(immune)}" if immune else "", f"resists {', '.join(resist)}" if resist else "",
+             f"weak to {', '.join(weak)}" if weak else ""]
+    return f"- Your {p['Pokemon']}: " + ("; ".join(x for x in parts if x) or "no immunities, resistances or weaknesses") + "."
+
+
 class TacticianAgent:
     def __init__(self, model_name=None):
-        self.client, self.model = get_agent_client()
-        if model_name:
-            self.model = model_name
+        self.model = model_name
 
-    def run(self, query: str, team_context: dict, team_weakness: dict = None) -> str:
+    def run(self, query: str, team_context: dict, team_weakness: dict = None):
         """
         Clemont, the mechanics agent: type matchups, Speed and damage for questions the planner can't turn into a
         single verdict. The model only restates the computed matchups and the team's defensive profile.
+        Yields the answer as text pieces.
         """
         # Opponents are the Pokemon named in the question that aren't on the user's team
         team_names = {p['Pokemon'].lower() for p in team_context.values()}
-        subjects = [n for n in find_pokemon_in_query(query) if n.lower() not in team_names]
+        subjects = [n for n in find_pokemon_in_query(query) if n.lower() not in team_names][:MAX_SUBJECTS]
 
         mechanics_str = generate_mechanics_report(team_context, subjects)
-
-        # Each member's immunities (and what grants them) and 2x or worse weaknesses, from its Damage From table
         defensive_str = ""
         if team_weakness:
-            defensive_str = "### GENERAL DEFENSIVE PROFILE (TYPE CHART + ABILITIES)\n"
-            for p in team_context.values():
-                p_name = p['Pokemon']
-                p_immunities = []
-                p_weaknesses = []
-
-                dmg_from = p.get('Damage From', {})
-                ability = p.get('Ability', '').lower()
-                item = p.get('Item', '').lower()
-                
-                for t, mult in dmg_from.items():
-                    if mult == 0.0:
-                        reason = ""
-                        # An immunity the typing alone doesn't explain comes from the ability or Air Balloon
-                        if t == 'ground' and ('levitate' in ability or 'earth eater' in ability):
-                            reason = f" (via {p['Ability']})"
-                        elif t == 'ground' and item == 'air balloon':
-                            reason = f" (via {p['Item']})"
-                        elif t == 'electric' and ability in ['volt absorb', 'lightning rod', 'motor drive']:
-                            reason = f" (via {p['Ability']})"
-                        elif t == 'water' and ability in ['water absorb', 'storm drain', 'dry skin']:
-                            reason = f" (via {p['Ability']})"
-                        elif t == 'fire' and ability in ['flash fire', 'well-baked body']:
-                            reason = f" (via {p['Ability']})"
-                        elif t == 'grass' and ability == 'sap sipper':
-                            reason = f" (via {p['Ability']})"
-                            
-                        p_immunities.append(f"{t.capitalize()}{reason}")
-                    elif mult >= 2.0:
-                        p_weaknesses.append(f"{t.capitalize()} ({mult}x)")
-                
-                if p_immunities:
-                    defensive_str += f"[{p_name}]: HARD IMMUNE to {', '.join(p_immunities)}.\n"
-                if p_weaknesses:
-                    defensive_str += f"[{p_name}]: WEAK to {', '.join(p_weaknesses)}.\n"
-        
+            defensive_str = ("Your team's type matchups (type chart plus abilities):\n"
+                             + "\n".join(_matchup_line(p) for p in team_context.values()))
         if not mechanics_str and not defensive_str:
             mechanics_str = "No specific matchup data calculated."
-        rules_str = "### RULES (Pokemon Showdown's own text)\n" + "\n".join(f"- {l}" for l in rules.team_rules(team_context, query))
+        rules_str = "Rules (Pokemon Showdown's own text):\n" + "\n".join(f"- {line}" for line in rules.team_rules(team_context, query))
 
-        system_content = f"""
-        You are Clemont, the brilliant engineer and logic expert.
-        The future is now thanks to science! You function as a deterministic Battle Mechanics Calculator.
-        Respond in plain prose only. No JSON. Be concise: 3–5 sentences.
-
-        INPUT DATA (IRREFUTABLE FACTS):
-        {defensive_str}
-        {mechanics_str}
-        {rules_str}
-
-        INSTRUCTIONS:
-        1. Answer the user's question using ONLY the calculated data above.
-        2. If the data provides a reason (e.g. "via Levitate"), you MAY state it.
-        3. DO NOT use external knowledge.
-        4. If the data says a Pokemon is IMMUNE, say it is IMMUNE.
-        5. Be robotic, precise, and extremely brief.
-        """
-
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": query}
-            ],
-            temperature=0.0,
-            stream=True
+        system_content = (
+            "You are Clemont, an upbeat young inventor who explains exactly how battle mechanics work.\n"
+            "Answer in 2 to 4 sentences of plain prose, no lists.\n"
+            "Use only the facts below. Never add a type, number, move, ability or Pokemon they do not state. "
+            "If they do not settle the question, say what they do show.\n\n"
+            f"{defensive_str}\n\n{mechanics_str}\n\n{rules_str}"
         )
-        
-        return response
+        return chat([{"role": "system", "content": system_content}, {"role": "user", "content": query}],
+                    temperature=0.0, max_tokens=250, stream=True, model=self.model)

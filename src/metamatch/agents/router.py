@@ -75,15 +75,9 @@ class SemanticRouter:
         the query ('mechanics' outright when it names a damage, KO or Speed word), or 'fallback' when nothing is
         similar enough.
         """
-        # The chat tab asks for the persona before the response, so reuse the last result
-        if getattr(self, "_last", (None,))[0] == query:
-            return self._last[1]
-
         # Questions the damage calc or speed engine can answer always go to the Tactician
         if MECHANICS_PATTERN.search(query):
-            result = ("mechanics", 1.0)
-            self._last = (query, result)
-            return result
+            return "mechanics", 1.0
 
         query_embedding = self.model.encode(query)
         
@@ -101,9 +95,7 @@ class SemanticRouter:
                 max_score = route_score
                 best_route = route
 
-        result = ("fallback" if max_score < CONFIDENCE_THRESHOLD else best_route, float(max_score))
-        self._last = (query, result)
-        return result
+        return ("fallback" if max_score < CONFIDENCE_THRESHOLD else best_route), float(max_score)
 
 _router_instance = None
 

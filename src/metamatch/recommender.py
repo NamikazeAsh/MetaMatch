@@ -53,11 +53,11 @@ def get_recommendations(current_team_names, top_n=5, format_id="gen9ou", team_ro
     else:
         format_ids = format_id
 
+    # Without the members' roles nothing is known to be missing, so no candidate is credited with filling a role
     covered_roles: set = set()
-    if team_roles:
-        for roles in team_roles:
-            covered_roles.update(roles)
-    missing_roles = set(ROLE_FILL_MOVES.keys()) - covered_roles
+    for roles in team_roles or ():
+        covered_roles.update(roles)
+    missing_roles = set(ROLE_FILL_MOVES.keys()) - covered_roles if team_roles is not None else set()
 
     # One Mega per team
     team_has_mega = (any(is_mega(name) for name in current_team_names)

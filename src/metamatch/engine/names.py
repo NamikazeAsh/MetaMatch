@@ -200,6 +200,18 @@ def _game_words():
 
 
 @lru_cache(maxsize=1)
+def _game_phrases():
+    """Whole move, item and ability names, normalised ('iron head', 'choice scarf')."""
+    from metamatch.engine.dex import get_dex
+    phrases = set()
+    for game in ("sv", "champions"):
+        dex = get_dex(game)
+        if dex:
+            phrases.update(norm(name) for name in list(dex.move_data) + list(dex.item_data) + dex.ability_names)
+    return phrases
+
+
+@lru_cache(maxsize=1)
 def _fuzzy_targets():
     """Single and two word names that typos are matched against."""
     # Usage list names only: typo matching against every dex entry (CAP, battle formes) misfires far more often
@@ -229,12 +241,21 @@ def find_pokemon_spans(query):
     # Typos: whatever words are left, matched closely against known names
     targets = _fuzzy_targets()
     words = [(m.start(), m.group()) for m in re.finditer(r"[a-z0-9]+", text)]
+    game = _game_words()
     for i, (pos, word) in enumerate(words):
-        if len(word) < 5 or word in COMMON_WORDS or word in _game_words() or word.isdigit():
+        if word in COMMON_WORDS or word.isdigit():
             continue
-        candidates = [word]
+        candidates = []
+        # Two words first ("iron valient", "great tsk"): the first may be short or a move word, as long as the pair
+        # isn't itself a move, item or ability ("iron head") and one of the two words isn't a game word
         if i + 1 < len(words):
-            candidates.insert(0, f"{word} {words[i + 1][1]}")
+            nxt = words[i + 1][1]
+            two = f"{word} {nxt}"
+            if (len(word) >= 3 and len(nxt) >= 3 and nxt not in COMMON_WORDS and two not in _game_phrases()
+                    and not (word in game and nxt in game)):
+                candidates.append(two)
+        if len(word) >= 5 and word not in game:
+            candidates.append(word)
         for cand in candidates:
             match = difflib.get_close_matches(cand, targets, n=1, cutoff=0.85)
             if match and targets[match[0]] not in [d for _, _, d in found]:

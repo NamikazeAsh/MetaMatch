@@ -1,7 +1,8 @@
 import streamlit as st
 from metamatch import config, storage
-from metamatch.suggestions import get_chat_response
 from metamatch.ui import section_header
+
+AVATARS = {"🧪": "🧪", "📜": "📜", "🍳": "🍳"}
 
 
 def _persist(role, content, name=None, avatar=None):
@@ -23,10 +24,22 @@ def _show(content, placeholder=None):
                 st.markdown(facts)
 
 
-def _for_model(content):
-    """Chat history as the agents read it: the dropdown marker becomes a plain label."""
-    from metamatch.agents.grounded import FACTS_MARK
-    return content.replace(FACTS_MARK, "\n\nEngine facts:\n")
+def _dialogue_state(manager):
+    """This team's conversation state, rebuilt from the stored turns when the chat was reopened in a new session."""
+    tid = st.session_state.get("team_id")
+    held = st.session_state.get("chat_state")
+    if not held or held.get("team") != tid:
+        held = {"team": tid, "state": manager.replay(st.session_state.chat_messages, st.session_state.analysis['team'])}
+        st.session_state.chat_state = held
+    return held
+
+
+def _clear():
+    tid = st.session_state.get("team_id")
+    if config.LOCAL_MODE and tid:
+        storage.clear_chat(tid)
+    st.session_state.chat_messages = []
+    st.session_state.chat_state = None
 
 
 def render():
@@ -53,72 +66,74 @@ def render():
                     st.markdown(f"**{msg['name']}**")
                 _show(msg["content"])
 
-    with st.expander("💡 How to use the AI Coach efficiently", expanded=False):
-        st.markdown("""
-        **Meet your Coaching Staff:**
+    left, right = st.columns([5, 1])
+    with left:
+        with st.expander("💡 How to use the AI Coach efficiently", expanded=False):
+            st.markdown("""
+            **Meet your Coaching Staff:**
 
-        🧪 **Clemont** (Mechanics Engine)
-        *Ask him about math, specific interactions, and speed tiers.*
-        *   "Is Rotom-Wash weak to Ground?"
-        *   "Who is faster: Dragapult or Zamazenta?"
+            🧪 **Clemont** (Mechanics Engine)
+            *Ask him about math, specific interactions, and speed tiers.*
+            *   "Is Rotom-Wash weak to Ground?"
+            *   "Who is faster: Dragapult or Zamazenta?"
 
-        📜 **Professor Oak** (Strategy Mentor)
-        *Ask him about win conditions, game plans, and high-level concepts.*
-        *   "How do I beat Stall teams?"
-        *   "What is the best lead for this team?"
+            📜 **Professor Oak** (Strategy Mentor)
+            *Ask him about win conditions, game plans, and high-level concepts.*
+            *   "How do I beat Stall teams?"
+            *   "What is the best lead for this team?"
 
-        🍳 **Brock** (Team Builder)
-        *Ask him about sets, items, and meta usage stats.*
-        *   "What is the most popular item for Great Tusk?"
-        *   "Is this moveset good?"
-        """)
+            🍳 **Brock** (Team Builder)
+            *Ask him about sets, items, and meta usage stats.*
+            *   "What is the most popular item for Great Tusk?"
+            *   "Is this moveset good?"
+
+            Follow ups work too: "what about Gholdengo?", "what if it's Scarf?", "why?".
+            """)
+    with right:
+        if st.session_state.chat_messages:
+            st.button("Clear chat", on_click=_clear, use_container_width=True)
 
     if prompt := st.chat_input("How do I beat Kingambit?"):
-        history = [{"role": m["role"], "content": _for_model(m["content"])} for m in st.session_state.chat_messages]
-        st.session_state.chat_messages.append({"role": "user", "content": prompt})
-        _persist("user", prompt)
+        team = st.session_state.analysis['team']
         with chat_container:
             with st.chat_message("user"):
                 st.markdown(prompt)
 
         with chat_container:
             from metamatch.agents import AgentManager
+            from metamatch.agents.grounded import FACTS_MARK
             manager = AgentManager()
-            agent_name = manager.get_active_agent_name(prompt, st.session_state.analysis['team'])
-
-            avatar = "🤖"
-            if "🧪" in agent_name: avatar = "🧪"
-            elif "📜" in agent_name: avatar = "📜"
-            elif "🍳" in agent_name: avatar = "🍳"
+            held = _dialogue_state(manager)
+            agent_name, avatar, full_response, turn = "MetaMatch", "🤖", "", None
+            try:
+                turn = manager.prepare(prompt, team, held["state"])
+                agent_name = turn.persona
+                avatar = next((a for mark, a in AVATARS.items() if mark in agent_name), "🤖")
+            except Exception as e:
+                print(f"Chat planning failed: {e}")
 
             with st.chat_message(agent_name, avatar=avatar):
                 st.markdown(f"**{agent_name}**")
+                if turn is not None and turn.rewritten:
+                    st.caption(f"Reading this as: {turn.text}")
                 response_placeholder = st.empty()
                 # Answers are checked before they show, so say something is happening meanwhile
-                response_placeholder.caption(f"{agent_name.split()[0] if agent_name else 'The coach'} is thinking...")
-                full_response = ""
-
+                response_placeholder.caption(f"{agent_name.rsplit(' ', 1)[0]} is thinking...")
                 try:
-                    stream = get_chat_response(
-                        prompt,
-                        st.session_state.analysis['team'],
-                        st.session_state.analysis['weakness'],
-                        history
-                    )
-
-                    from metamatch.agents.grounded import FACTS_MARK
-                    for content in stream:
+                    if turn is None:
+                        raise RuntimeError("the question couldn't be planned")
+                    for content in manager.respond(turn, team, st.session_state.analysis['weakness']):
                         full_response += content
                         response_placeholder.markdown(full_response.partition(FACTS_MARK)[0] + "▌")
                 except Exception as e:
-                    full_response += f"\n\n⚠️ LLM request failed: {e}"
-
+                    print(f"Chat answer failed: {e}")
+                    response_placeholder.error(f"Something went wrong answering that ({e}). Nothing was saved; try again.")
+                    return
                 _show(full_response, response_placeholder)
 
-        st.session_state.chat_messages.append({
-            "role": "assistant",
-            "name": agent_name,
-            "avatar": avatar,
-            "content": full_response
-        })
+        # Only a completed exchange is kept, so a failure never leaves a question without its answer
+        held["state"] = manager.remember(turn, held["state"])
+        st.session_state.chat_messages += [{"role": "user", "content": prompt},
+                                           {"role": "assistant", "name": agent_name, "avatar": avatar, "content": full_response}]
+        _persist("user", prompt)
         _persist("assistant", full_response, name=agent_name, avatar=avatar)

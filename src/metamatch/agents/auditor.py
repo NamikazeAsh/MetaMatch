@@ -1,99 +1,181 @@
-from .client import get_agent_client
-from metamatch import auditor, recommender, config
-from metamatch.rag import store
+"""
+Brock, the building agent: sets, items, moves, Tera, spreads and teammates, answered from ladder usage.
+
+The model gets a short list of labelled facts and nothing else: whose Pokemon each line is about, the member's own set,
+what ladder players run with percentages, and Team Completer picks marked as not on the team. In the 2026 11 14
+ablations this took Brock from 1 of 15 correct drafts to 14 of 15; the old prompt (usage tables for all six members,
+rule text, a retrieved passage, "guide the trainer on what's effective in the meta") invited him to name Pokemon, moves
+and items nobody had given him. Every Pokemon, move, item and ability he names, and every number, must appear in the
+facts; one retry, then the facts are shown on their own.
+"""
+import re
+
+from .client import chat, ollama_available
+from .grounded import FACTS_MARK, FREE_NUMBERS, _numbers
+from metamatch import auditor, config
 from metamatch.engine import rules
+from metamatch.engine.dex import dex_for_format, to_id
 from metamatch.engine.names import find_pokemon
-from .coach import _relevant, _trim
+from metamatch.engine.sets import chaos_entry, spread_label
+
+TEAMMATE_RE = re.compile(r"\b(?:teammates?|partners?|add|addition|slot|wallbreaker|breaker|sweeper|pivot|core|synergy|"
+                         r"replace\w*|swap\w*|instead of|fill|missing|need|recommend\w* (?:a|an|another|some)\b|"
+                         r"suggest\w* (?:a|an|another|some)\b|who (?:should|could|can) i)", re.I)
+REPLACE_RE = re.compile(r"\b(?:replace\w*|swap\w*|instead of|drop|cut)\b", re.I)
+SYSTEM = ("You are Brock, a calm, friendly Pokemon breeder who knows what ladder players really run.\n"
+          "Answer in 2 to 4 sentences of plain prose, no lists.\n"
+          "Use only the facts you are given. Percentages are the share of ladder sets that use that option.\n"
+          "Suggest only options that appear in the facts. Never add a move, item, ability, type, number, stat or Pokemon "
+          "the facts do not state. If the facts do not settle the question, say what they do show.")
+OFFLINE = "_Brock is offline (Ollama isn't running), so here is the ladder data on its own._"
+UNCHECKED = "_Brock's answer didn't pass the fact check this time, so here is the ladder data on its own._"
+
+
+def _pct(x):
+    return f"{100 * x:.0f}%"
+
+
+def _ranked(table, total, name=lambda k: k, n=5, min_share=0.02):
+    rows = sorted(((k, v / total) for k, v in (table or {}).items() if k and k != "nothing"), key=lambda kv: kv[1], reverse=True)
+    return ", ".join(f"{name(k)} {_pct(v)}" for k, v in rows[:n] if v >= min_share)
+
+
+def _types(name, dex):
+    s = dex.species(name) if dex else None
+    return "/".join(s["types"]) if s else ""
+
+
+def _ladder_lines(name, format_id, dex, owner):
+    """What ladder players run on `name`: items, abilities, moves, Tera and spreads with their shares."""
+    key, entry = chaos_entry(name, format_id)
+    if not entry:
+        return [f"There is no ladder data for {name} in this format."]
+    total = sum(entry.get("Abilities", {}).values()) or 1
+    label = f"Ladder sets of {key} ({owner})"
+    lines = [f"{label}, items: " + _ranked(entry.get("Items"), total, lambda k: dex.item_name(k) or k) + ".",
+             f"{label}, moves (share of sets): " + _ranked(entry.get("Moves"), total, lambda k: dex.move_name(k) or k, n=8) + "."]
+    abilities = _ranked(entry.get("Abilities"), total, lambda k: dex.ability_name(k) or k, n=3)
+    if abilities.count("%") > 1:
+        lines.append(f"{label}, abilities: {abilities}.")
+    if config.format_game(format_id) != "champions" and entry.get("Tera Types"):
+        lines.append(f"{label}, Tera types: " + _ranked(entry.get("Tera Types"), total, str.capitalize) + ".")
+    spreads = _ranked(entry.get("Spreads"), total, lambda k: spread_label(k, format_id), n=3, min_share=0.03)
+    if spreads:
+        lines.append(f"{label}, most common spreads: {spreads}.")
+    return lines
+
+
+def _own_set(p, format_id):
+    game = config.format_game(format_id)
+    spread = p.get("SP") if game == "champions" else p.get("EVs")
+    if isinstance(spread, dict):
+        spread = " / ".join(f"{v} {k}" for k, v in spread.items() if v) or "no investment"
+    tera = "" if game == "champions" else f", Tera {p.get('Tera Type')}"
+    return (f"Your {p['Pokemon']} ({'/'.join(p.get('Type', []))}) runs {p.get('Item') or 'no item'}, {p.get('Ability')}{tera}, "
+            f"{p.get('Nature', '?')} {spread}, moves {', '.join(m['name'] for m in p.get('Moves', []))}.")
+
+
+def _member(name, team):
+    target = to_id(name)
+    return next((p for p in team.values() if target in (to_id(p.get("Pokemon")), to_id(p.get("Forme")))), None)
+
+
+def _teammate_lines(team, format_id, dex, replacing=None):
+    """Team Completer picks for the next slot (or for the slot `replacing` leaves), marked as not on the team."""
+    from metamatch.engine.completer import complete
+    rest = {k: v for k, v in team.items() if v is not replacing} if replacing else team
+    picks, _, _ = complete(rest, format_id, top_n=3)
+    names = {p["Pokemon"] for p in team.values()}
+    lines = []
+    for c in [c for c in picks if c.name not in names][:3]:
+        why = []
+        if c.covers:
+            why.append(f"it beats {', '.join(c.covers[:3])} one on one, which your team struggles with")
+        if c.roles:
+            why.append(f"it adds a role your team lacks: {', '.join(r.lower() for r in c.roles)}")
+        if c.best_pair and c.best_pair[1] and c.best_pair[1] > 1.2:
+            why.append(f"ladder players often pair it with {c.best_pair[0]}")
+        lines.append(f"Suggested new teammate (not on your team): {c.name} ({_types(c.name, dex)}), used on {c.usage:g}% of teams"
+                     + (f"; {'; '.join(why)}" if why else "") + ".")
+    if replacing:
+        lines.insert(0, f"These picks are for the slot your {replacing['Pokemon']} would leave.")
+    return lines or ["The Team Completer found no new teammate that beats a threat your team struggles with."]
+
+
+def _warning_lines(team):
+    """Set choices few ladder players make, from the usage audit."""
+    out = []
+    for w in auditor.audit_team(team).get("warnings", []):
+        common = f"; the most common is {w['suggestion']}" if w.get("suggestion") else ""
+        out.append(f"Your {w['pokemon']} runs {w['current']} ({w['category'].lower()}), which only {w['usage']:.1f}% of "
+                   f"ladder {w['pokemon']} sets use{common}.")
+    return out
+
+
+def facts_for(query, team, plan=None):
+    """The labelled facts Brock answers from, most specific first."""
+    format_id = config.team_format(team)
+    dex = dex_for_format(format_id)
+    names = [p["Pokemon"] for p in team.values()]
+    facts = [f"The trainer's own team (\"your\") is exactly these {len(names)}: {', '.join(names)}. "
+             "Never suggest one of them as a new teammate."]
+    opponents = set(plan.opponents) if plan else set()
+    asked = [n for n in find_pokemon(query) if n not in opponents]
+    members = list(dict.fromkeys(n for n in asked if _member(n, team)))
+    others = [n for n in find_pokemon(query) if n not in members]
+    for name in members:
+        p = _member(name, team)
+        facts.append(_own_set(p, format_id))
+        facts += _ladder_lines(p.get("Forme") or p["Pokemon"], format_id, dex, "yours is above")
+    for name in others[:2]:
+        facts += _ladder_lines(name, format_id, dex, "not on your team")
+    if TEAMMATE_RE.search(query):
+        replacing = _member(members[0], team) if members and REPLACE_RE.search(query) else None
+        facts += _teammate_lines(team, format_id, dex, replacing)
+    elif not members and not others:
+        facts += _warning_lines(team) or ["Every item, ability and move on your team is one ladder players commonly run."]
+    return facts
+
+
+def verify(text, facts):
+    """Why Brock's answer can't be shown, or None. Every number, Pokemon, move, item and ability must be in the facts."""
+    known = " ".join(facts)
+    unknown = _numbers(text) - _numbers(known) - FREE_NUMBERS
+    if unknown:
+        return f"numbers not in the facts: {', '.join(sorted(unknown))}"
+    low = known.lower()
+    invented = [n for n in find_pokemon(text) if n.lower() not in low]
+    if invented:
+        return f"Pokemon that are not in the facts: {', '.join(invented)}"
+    named = [name for kind, name in rules.find_named(text) if kind in ("move", "item", "ability") and name.lower() not in low]
+    if named:
+        return f"moves, items or abilities that are not in the facts: {', '.join(named)}"
+    return None
+
 
 class AuditorAgent:
     def __init__(self, model_name=None):
-        self.client, self.model = get_agent_client()
-        if model_name:
-            self.model = model_name
+        self.model = model_name
 
-    def run(self, query: str, team_context: dict, history: list = None, named_context: str = ""):
-        """
-        Brock, the building agent: sets, items, EVs, teammates and usage. The usage audit, teammate
-        recommendations and one matching reference go in the prompt, so answers quote real ladder numbers.
-        """
-        # Usage audit and teammate picks, computed before the model sees anything
-        audit_res = auditor.audit_team(team_context)
-        reports = audit_res.get("reports", {})
-        warnings = audit_res.get("warnings", [])
-
-        team_names = [p['Pokemon'] for p in team_context.values()]
-        team_items = [p.get('Item', '') for p in team_context.values()]
-        recommendations = recommender.get_recommendations(team_names, top_n=3, format_id=config.team_format(team_context), team_items=team_items)
-
-        # One reference for the why, with the same filters as Oak: only references about Pokemon in play, trimmed to one prompt slot
-        asked = find_pokemon(query)
-        focus = set(asked) | set(find_pokemon(named_context)) | {p.get("Forme") or p["Pokemon"] for p in team_context.values()}
-        rag_hits = [h for h in store.query_strategies(query, n_results=3, format_id=config.team_format(team_context), names=asked)
-                    if _relevant(h, focus)]
-        rag_context = ""
-        if rag_hits:
-            rag_context = f"### STRATEGY CONTEXT (EXPLAINER)\n{_trim(rag_hits[0]['text'])}\n"
-
-        audit_str = "### METAGAME USAGE REPORT\n"
-        for p_name, report in reports.items():
-            parts = [f"{label} '{report[key]['name']}' ({report[key]['usage']:.1f}%)"
-                     for key, label in (("item", "Item"), ("ability", "Ability")) if report[key]]
-            audit_str += f"- {p_name}: {', '.join(parts) or 'No item or ability listed'}\n"
-            m_list = [f"{m}({v:.1f}%)" for m,v in report['moves'].items()]
-            audit_str += f"  Moves: {', '.join(m_list)}\n"
-        
-        warn_str = ""
-        if warnings:
-            warn_str = "### SUBOPTIMAL WARNINGS\n"
-            for w in warnings:
-                warn_str += f"- {w['pokemon']} {w['category']} usage is low ({w['usage']:.1f}%). Popular: {w['suggestion']}\n"
-            
-        rec_str = "### SYNERGY RECOMMENDATIONS\n"
-        if recommendations:
-            parts = []
-            for name, score, reason in recommendations:
-                # Raw synergy scores mean nothing to the model, so only the name and reason go in
-                entry = name
-                if reason:
-                    entry += f" [{reason}]"
-                parts.append(entry)
-            rec_str += ", ".join(parts)
-
-        rules_str = "### RULES (Pokemon Showdown's own text)\n" + "\n".join(f"- {l}" for l in rules.team_rules(team_context, query))
-
-        system_content = f"""
-        You are Brock, the experienced Pokemon breeder and analyst.
-        You have a keen eye for team synergy and metagame trends!
-        Respond in plain prose only. No JSON. Be concise: 3–5 sentences.
-
-        USAGE DATA:
-        {audit_str}
-
-        {warn_str}
-
-        {rec_str}
-
-        {rules_str}
-
-        {rag_context}
-
-        INSTRUCTIONS:
-        1. Answer strictly using the USAGE DATA and STRATEGY CONTEXT.
-        2. If the user asks about an item or move, cite its usage percentage.
-        3. Guide the trainer based on what's effective in the current meta.
-        4. Be supportive and grounded in your analysis.
-        """
-
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_content + named_context},
-                # Recent turns so follow ups like "what about against rain?" make sense
-                *(history or [])[-6:],
-                {"role": "user", "content": query}
-            ],
-            temperature=0.2,
-            stream=True
-        )
-        
-        return response
+    def run(self, query: str, team_context: dict, plan=None):
+        """Yields the answer as text: checked prose with the facts in the dropdown under it, or the facts alone."""
+        facts = facts_for(query, team_context, plan)
+        block = "\n".join(f"* {f}" for f in facts)
+        if not ollama_available():
+            yield OFFLINE + "\n\n" + block
+            return
+        user = "Facts:\n" + "\n".join(f"- {f}" for f in facts) + f"\n\nQuestion: {query}"
+        feedback = None
+        for _ in range(2):
+            system = SYSTEM + (f"\nYour previous answer was rejected because it had {feedback}. Fix that." if feedback else "")
+            try:
+                text = chat([{"role": "system", "content": system}, {"role": "user", "content": user}],
+                            temperature=0.2, max_tokens=250, model=self.model)
+            except Exception as e:
+                print(f"Brock failed: {e}")
+                break
+            feedback = verify(text, facts)
+            if feedback is None:
+                yield text + FACTS_MARK + block
+                return
+        yield UNCHECKED + "\n\n" + block

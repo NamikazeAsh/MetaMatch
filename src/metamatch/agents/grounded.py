@@ -11,7 +11,7 @@ On failure the model gets one retry, then the result is shown on its own, open.
 import re
 
 from . import claims
-from .client import get_agent_client, ollama_available
+from .client import chat, ollama_available
 from metamatch.engine.names import find_pokemon
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
@@ -113,9 +113,6 @@ def facts_block(verdict):
 
 
 class GroundedAgent:
-    def __init__(self):
-        self.client, self.model = get_agent_client()
-
     def _voice(self, query, verdict, team, feedback=None):
         facts = "\n".join(f"- {f}" for f in verdict.facts) or "- (none)"
         who = PERSONAS.get(verdict.persona, PERSONAS["mechanics"])
@@ -136,11 +133,9 @@ class GroundedAgent:
         )
         if feedback:
             system += f"\nYour previous attempt was rejected because it had {feedback}. Fix that."
-        completion = self.client.chat.completions.create(
-            model=self.model, temperature=0.0, max_tokens=150, stream=False,
-            messages=[{"role": "system", "content": system}, {"role": "user", "content": query}],
-        )
-        return _trim_voice(ANSWER_LINE.sub("", completion.choices[0].message.content or ""))
+        reply = chat([{"role": "system", "content": system}, {"role": "user", "content": query}],
+                     temperature=0.0, max_tokens=150)
+        return _trim_voice(ANSWER_LINE.sub("", reply))
 
     def voice(self, query, verdict, team=None):
         """A checked, voiced answer, or '' when the model is offline or can't produce one that keeps the facts."""

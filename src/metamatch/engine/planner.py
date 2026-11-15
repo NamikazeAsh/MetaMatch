@@ -19,7 +19,21 @@ STAT_WORDS = {"hp": "hp", "attack": "atk", "atk": "atk", "defense": "def", "def"
               "speed": "spe", "spe": "spe"}
 
 USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|standard (?:set|item|spread)|what (?:item|ability|tera|nature|spread)|"
-                      r"which (?:item|ability|tera)|usual(?:ly)?|typical(?:ly)?|carr(?:y|ies)|common\s+(?:\w+\s+)?sets?)\b", re.I)
+                      r"which (?:item|ability|tera)|usual(?:ly)?|typical(?:ly)?|carr(?:y|ies)|common\s+(?:\w+\s+)?sets?|"
+                      r"teammates? (?:of|for)|(?:who|what) (?:pairs?|goes|runs) (?:well )?with|"
+                      r"(?:common|standard|popular|normal) (?:on|for))\b", re.I)
+# "is Loaded Dice common on Garchomp": the share of one named option, not the top option
+OPTION_ASK_RE = re.compile(r"\b(?:common|standard|popular|normal|usual|used|run|ran)\s+(?:on|for|with)\b|\bhow (?:common|popular|often)\b", re.I)
+TEAMMATE_FIELD_RE = re.compile(r"\b(?:teammates?|partners?|pairs?|goes with|runs with)\b", re.I)
+# "what EVs does X need to outspeed Y", "how much Speed to outspeed": an investment question, not a yes or no
+SPREAD_ASK_RE = re.compile(r"\b(?:what|which|how many|how much)\s+(?:speed\s+)?(?:evs?|spreads?|investment|natures?|stat points|sp)\b|"
+                           r"\bevs?\s+(?:to|for|needed|do i need|does it need)|\bneeds? to (?:outspeed|survive|live|tank)|"
+                           r"\bhow much speed\b", re.I)
+# A team species right after one of these is the opponent's copy even when no team member is named yet:
+# "How do I beat Kingambit?" on a team that runs Kingambit asks about an opposing one
+STRONG_OPP_RE = re.compile(r"\b(opposing|enemy|their|opp|beat|handle|counter|stop|check|checks|deal with|answer|answers|"
+                           r"play around|play against|played against|facing|face|scared of|afraid of|threatened by)\s+"
+                           r"(?:an?\s+|the\s+|that\s+)?$", re.I)
 # Words right before a target: a team species named after one of these is the opponent's copy
 OPP_MARK_RE = re.compile(r"\b(a|an|opposing|enemy|their|opp|vs|versus|against|into|on|to|from|than|ohko|ohkos|2hko|"
                          r"outspeeds?|kos?|beats?|hits?|resists?)\s+(?:[\w+-]+\s+){0,2}$", re.I)
@@ -62,7 +76,7 @@ STAT_ASK_RE = re.compile(r"\b(how much|what)\s+(speed|attack|defense|special att
 
 @dataclass
 class Plan:
-    intent: str = "open"            # speed, ko, damage, type, stat, usage, clarify, open
+    intent: str = "open"            # speed, speed_spread, ko, damage, type, stat, usage, checks, team_type, rules, clarify, open
     format_id: str = config.DEFAULT_FORMAT
     user: dict | None = None        # team member entry from readTeam
     user_named: bool = False        # False when `user` is just the only member of a one Pokemon team
@@ -75,7 +89,8 @@ class Plan:
     survive: bool = False           # "can X survive ..." flips the yes/no
     atk_type: str | None = None
     stat: str | None = None
-    usage_field: str | None = None  # item, ability, move, tera, spread
+    usage_field: str | None = None  # item, ability, move, tera, spread, teammates
+    usage_option: str | None = None  # "is Loaded Dice common on Garchomp": the one option asked about
     opp_overrides: dict = field(default_factory=dict)   # set details the question states for the opponent
     user_overrides: dict = field(default_factory=dict)  # ... and for the player's Pokemon
     conditions: dict = field(default_factory=dict)      # calc Field the question states: weather, terrain
@@ -159,6 +174,8 @@ def _find_stat(query):
 
 def _usage_field(query):
     """Which usage field is asked for; whole words only, so 'Terapagos' is not 'tera'."""
+    if TEAMMATE_FIELD_RE.search(query):
+        return "teammates"
     for pattern, fld in ((r"tera", "tera"), (r"abilit(?:y|ies)", "ability"), (r"items?", "item"),
                          (r"spreads?", "spread"), (r"natures?", "spread"), (r"move(?:s|set)?", "move"), (r"sets?", "item")):
         if re.search(rf"\b{pattern}\b", query, re.I):
@@ -233,7 +250,8 @@ def plan_query(query, team):
             owned_names.append(name)
         # A team species named as a target once the player's Pokemon is known is the opponent's copy:
         # "does my Scizor OHKO a full health Scizor", "how much does rilla wood hammer do to corv"
-        if member is not None and plan.user is not None and not owned and OPP_MARK_RE.search(before):
+        if member is not None and not owned and (STRONG_OPP_RE.search(before)
+                                                 or (plan.user is not None and OPP_MARK_RE.search(before))):
             member = None
         if member is not None:
             plan.user = plan.user or member
@@ -338,6 +356,13 @@ def plan_query(query, team):
         plan.intent = "stat"
         plan.stat_target = target
         plan.stat = _find_stat(scrubbed) or "spe"
+    elif SPREAD_ASK_RE.search(q) and plan.opponent and plan.user and SPEED_RE.search(q):
+        # "What EVs does my Tusk need to outspeed Iron Valiant": the investment, not whether it already does
+        plan.intent = "speed_spread"
+    elif SPREAD_ASK_RE.search(q) and KO_RE.search(q):
+        # "What spread lets Corviknight survive Thunderclap": a spread search no solver runs yet; a yes or no would
+        # answer a different question, so it stays open for the builder
+        pass
     elif KO_RE.search(q) and plan.opponent and (plan.user or plan.move):
         plan.intent = "ko"
         hits = re.search(r"\b(o|\d)hko", q, re.I)
@@ -362,6 +387,9 @@ def plan_query(query, team):
     elif USAGE_RE.search(q) and (plan.opponent or plan.user):
         plan.intent = "usage"
         plan.usage_field = _usage_field(names_only)
+        option = [(kind, name) for kind, name in rules.find_named(names_only) if kind in ("item", "move", "ability")]
+        if OPTION_ASK_RE.search(q) and option and plan.usage_field != "teammates":
+            plan.usage_field, plan.usage_option = option[0]
 
     # Stated battle conditions: counted when they change this kind of answer, otherwise reported as not counted
     plan.situation = [c for c in found if not plan.raw_stats and constraints.counts_for(c, plan.intent)]
