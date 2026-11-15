@@ -167,6 +167,58 @@ def verify(text, facts):
     named = [name for kind, name in rules.find_named(text) if kind in ("move", "item", "ability") and name.lower() not in low]
     if named:
         return f"moves, items or abilities that are not in the facts: {', '.join(named)}"
+    return share_clash(text, facts) or comparison_clash(text, facts)
+
+
+# Numbers bound to options. The bag of numbers check above let "50% run Choice Specs, the same share as Heavy-Duty
+# Boots" through (Boots is 24%): every number was somewhere in the facts, just not next to the option it was given to.
+SHARE = re.compile(r"([A-Z][\w'\- ]*?[a-z0-9]) (\d+(?:\.\d+)?)%")
+PCT = re.compile(r"(\d+(?:\.\d+)?)\s*%")
+MORE = re.compile(r"\b(?:more|higher|ahead of|over|greater|bigger|beats|above|outnumbers)\b", re.I)
+LESS = re.compile(r"\b(?:less|fewer|lower|behind|below|smaller|trails|rarer)\b", re.I)
+SAME = re.compile(r"\b(?:same|equal\w*|identical|matches|as (?:many|common|popular|often) as|just as)\b", re.I)
+
+
+def _shares(facts):
+    """{option lowercased: {shares}} from fact lines like 'items: Choice Specs 50%, Heavy-Duty Boots 24%'."""
+    out = {}
+    for line in facts:
+        for name, pct in SHARE.findall(line.split(":", 1)[-1]):
+            out.setdefault(name.strip().lower(), set()).add(float(pct))
+    return out
+
+
+def share_clash(text, facts):
+    """A percentage given to the wrong option: in a sentence naming options from the facts, every percentage must be
+    the share of one of them."""
+    table = _shares(facts)
+    for sentence in re.split(r"(?<=[.!?])\s+", text):
+        low = sentence.lower()
+        named = {name: shares for name, shares in table.items() if name in low}
+        if not named:
+            continue
+        for pct in PCT.findall(sentence):
+            if not any(abs(float(pct) - v) < 0.6 for shares in named.values() for v in shares):
+                return f"{pct}% given to {', '.join(named)}, which the facts give other shares"
+    return None
+
+
+def comparison_clash(text, facts):
+    """Two options ranked against each other the wrong way round, or unequal shares called the same."""
+    table = {name: next(iter(v)) for name, v in _shares(facts).items() if len(v) == 1}
+    for sentence in re.split(r"(?<=[.!?])\s+", text):
+        low = sentence.lower()
+        found = sorted((low.find(name), name) for name in table if low.find(name) >= 0)
+        if len(found) < 2:
+            continue
+        (pa, a), (pb, b) = found[0], found[1]
+        between = sentence[pa:pb + len(b)]
+        if SAME.search(sentence) and abs(table[a] - table[b]) >= 2:
+            return f"a claim that {a} and {b} are equally common ({table[a]:g}% and {table[b]:g}%)"
+        if MORE.search(between) and table[a] < table[b]:
+            return f"a claim that {a} is more common than {b} ({table[a]:g}% vs {table[b]:g}%)"
+        if LESS.search(between) and table[a] > table[b]:
+            return f"a claim that {a} is less common than {b} ({table[a]:g}% vs {table[b]:g}%)"
     return None
 
 

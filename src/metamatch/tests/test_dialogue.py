@@ -259,6 +259,16 @@ class TestBrockCheck(unittest.TestCase):
     def test_invented_number_rejected(self):
         self.assertIn("62", brock_verify("About 62% of players run Choice Specs.", self.FACTS))
 
+    def test_false_equal_share_rejected(self):
+        text = "50% of ladder sets run Choice Specs, which is the same percentage as Heavy-Duty Boots."
+        self.assertIn("equally", brock_verify(text, self.FACTS))
+
+    def test_share_given_to_wrong_option_rejected(self):
+        self.assertIsNotNone(brock_verify("Choice Specs is on 24% of Dragapult sets.", self.FACTS))
+
+    def test_fair_comparison_passes(self):
+        self.assertIsNone(brock_verify("Choice Specs is the most common at 50%, ahead of Heavy-Duty Boots at 24%.", self.FACTS))
+
     def test_invented_pokemon_rejected(self):
         self.assertIn("Gyarados", brock_verify("Gyarados would pair well with Dragapult.", self.FACTS))
 
