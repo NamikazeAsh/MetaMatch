@@ -198,8 +198,14 @@ class TestPlannerReads(unittest.TestCase):
 
     def test_complaints_are_beat_questions(self):
         for q in ["zamazenta is destroying me", "how to deal w lando", "ogerpon wellspring counters?",
-                  "gliscor walls my whole team", "best way to handle pult", "who on my team switches into tusk"]:
+                  "gliscor walls my whole team", "best way to handle pult"]:
             self.assertEqual(plan_query(q, self.team).intent, "checks", q)
+
+    def test_switch_ins_and_member_questions(self):
+        self.assertEqual(plan_query("who on my team switches into tusk", self.team).intent, "switchins")
+        self.assertEqual(plan_query("what can switch into kingambit", self.team).opponents, ["Kingambit"])
+        self.assertEqual(plan_query("why is dragapult on this team", self.team).intent, "member")
+        self.assertEqual(plan_query("my dragapult keeps dying to great tusk", self.team).intent, "matchup")
 
     def test_archetype_advice_is_not_a_rules_lookup(self):
         self.assertEqual(plan_query("what do i do against sun teams", self.team).intent, "open")

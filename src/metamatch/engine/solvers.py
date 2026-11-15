@@ -352,7 +352,14 @@ def solve_ko(plan, dex, game):
         n = "OHKO" if plan.ko_hits == 1 else f"{plan.ko_hits}HKO"
         outcome = {"yes": f"it {n}s", "no": f"it does not {n}", "sometimes": f"it {n}s only on some damage rolls"}[answer]
     held = f" (it survives a full HP hit at 1 HP with {effect})" if effect and effect != "Disguise" else         " (Disguise takes the first hit)" if effect else ""
-    statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{held}, so {outcome}." + _counting(attack.situation, attack.names)
+    if not hi:
+        # "does 0-0%, so it survives" reads like a bug: say it is an immunity, as the damage answer does
+        from metamatch.team import ABILITY_IMMUNITIES
+        ability = (s or {}).get("ability") if dfn != _user_name(plan.user or {"Pokemon": ""}) else (plan.user or {}).get("Ability")
+        why = f"{dfn}'s {ability} makes it immune" if (ability or "").lower() in ABILITY_IMMUNITIES else f"{dfn} is immune to it"
+        statement = f"{att}'s {move} does no damage to {dfn}: {why}, so {outcome}." + _counting(attack.situation, attack.names)
+    else:
+        statement = f"{att}'s {move} does {lo}-{hi}% to {dfn}{held}, so {outcome}." + _counting(attack.situation, attack.names)
     facts = [f"Calc: {r['desc']}"] if r["desc"] else []
     facts += _hp_facts(attack)
     if effect and effect != "Disguise":
@@ -584,7 +591,7 @@ def solve_matchup(plan, dex, game):
     """'Does my Kingambit beat Gholdengo': the one on one between the named member and the opponent's set."""
     from metamatch.engine.threat_board import row_for_set
     member = plan.user
-    row = row_for_set({"m": member}, _stated_set(plan, dex, game), plan.format_id)
+    row = row_for_set(plan.team or {"m": member}, _stated_set(plan, dex, game), plan.format_id)
     cell = row.cells.get(member["Pokemon"]) if row else None
     if not cell:
         return None
@@ -594,8 +601,12 @@ def solve_matchup(plan, dex, game):
     verb = {"win": "beats", "lose": "loses to"}.get(cell.verdict, "trades evenly with")
     statement = f"Your {me} {verb} {name} one on one."
     basis = "its most common set, with the details the question states" if plan.opp_overrides else "its most common set"
-    facts = [f"Your {me} vs {name}: {cell.reason}.",
-             f"{name[0].upper() + name[1:]} assumed on {basis}; switching, hazards and setup are not counted."]
+    facts = [f"Your {me} vs {name}: {cell.reason}."]
+    others = [m for m in row.answers if m != member["Pokemon"]]
+    if cell.verdict != "win":
+        facts.append(f"Teammates that beat {name} one on one: {_join(others)}." if others
+                     else f"No teammate beats {name} one on one either.")
+    facts.append(f"{name[0].upper() + name[1:]} assumed on {basis}; switching, hazards and setup are not counted.")
     answer = {"win": "yes", "lose": "no"}.get(cell.verdict, "even")
     return Verdict("matchup", answer, statement, facts, persona="strategy", subject=me, other=name,
                    losers=[member["Pokemon"]] if cell.verdict == "lose" else [], members=[member["Pokemon"]])
@@ -795,7 +806,8 @@ def solve(plan):
         print(f"Solver {plan.intent} failed: {e}")
         return None
     # Rules and team type questions name items and moves as subjects, not as set details for a matchup
-    if verdict and plan.intent not in ("usage", "rules", "team_type", "win", "lead", "threats", "gameplan", "tera"):
+    if verdict and plan.intent not in ("usage", "rules", "team_type", "win", "lead", "threats", "gameplan", "tera",
+                                              "member"):
         # Stated versus assumed: say what came from the question, and what the engine could not count
         for who, details in (("your Pokemon", plan.user_overrides), ("the opponent", plan.opp_overrides)):
             if constraints.summary(details):

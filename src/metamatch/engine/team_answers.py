@@ -7,6 +7,7 @@ Why: in the 2026 11 14 runs Oak's own advice was right 2 times in 50, and the be
 out at 4 of 12 on these general questions, while an engine sentence plus one voiced "why" was right 18 of 21 times.
 """
 import json
+import re
 from functools import lru_cache
 
 from metamatch import config
@@ -125,4 +126,105 @@ def solve_tera(plan, dex, game):
     return Verdict("tera", top["name"], statement, facts, persona="strategy")
 
 
-SOLVERS = {"win": solve_win, "lead": solve_lead, "threats": solve_threats, "gameplan": solve_gameplan, "tera": solve_tera}
+def solve_switchins(plan, dex, game):
+    """'Who on my team can switch into Raging Bolt': members ranked by the damage they take from the opponent's
+    strongest attack against them. Switching in is taking a hit, not winning the one on one: a member that survives
+    at least two of its strongest hits counts."""
+    from metamatch.engine.solvers import _stated_set, display_name
+    from metamatch.engine.threat_board import row_for_set
+    row = row_for_set(plan.team, _stated_set(plan, dex, game), plan.format_id)
+    if not row:
+        return None
+    name = display_name(row.name)
+    if any(m.lower() == row.name.lower() for m in row.cells):
+        name = f"the opposing {name}"
+    ranked = []
+    for member, cell in row.cells.items():
+        x = cell.exchange or {}
+        if not x.get("taken"):
+            ranked.append((0.0, member, f"Your {member} takes no damage from {name}'s usual attacks."))
+            continue
+        move, res = x["taken"]
+        lo, hi = res["percent"]
+        hits = x.get("to_be_koed")
+        ranked.append((hi, member, f"Your {member} takes {move} for {lo:g} to {hi:g}%"
+                       + (f" ({hits} hits to KO)." if hits else ".")))
+    ranked.sort()
+    good = [m for hi, m, _ in ranked if hi < 50 or ((row.cells[m].exchange or {}).get("to_be_koed") or 0) >= 3]
+    if good:
+        verb = "takes" if len(good) == 1 else "take"
+        statement = f"Your {_and(good)} {verb} {name}'s attacks best."
+    else:
+        statement = f"Nobody on your team takes two of {name}'s strongest hits."
+    basis = "its most common set, with the details the question states" if plan.opp_overrides else "its most common set"
+    facts = [line for _, _, line in ranked] + [f"{name[0].upper() + name[1:]} assumed on {basis}, at full health; "
+                                               "recovery and Regenerator are not counted."]
+    return Verdict("switchins", ", ".join(good) or "none", statement, facts, persona="strategy", other=name,
+                   members=list(row.cells))
+
+
+def solve_member(plan, dex, game):
+    """'Why is Torkoal on this team', 'how do I use Slowking-Galar': the member's jobs (the cores it sets or uses,
+    hazards, removal, pivoting, set up, win condition, lead) and its one on ones against the most used Pokemon."""
+    from metamatch.engine.guide import member_facts
+    from metamatch.engine import rules
+    g = _guide(plan)
+    team = plan.team or {}
+    name = plan.user["Pokemon"]
+    rows = _rows_for(plan)
+    m = next((x for x in member_facts(team, plan.format_id, rows) if x.name == name), None)
+    if m is None:
+        return None
+    jobs = []
+    for e in g.engines:
+        label = getattr(e, "label", None) or e.key
+        if any(st["name"] == name for st in e.setters):
+            users = [u.name for u in e.users if u.name != name]
+            jobs.append(f"sets {label}" + (f" for {_and(users)}" if users else ""))
+        elif any(u.name == name for u in e.users):
+            jobs.append(f"uses the team's {label}")
+    if m.hazards:
+        jobs.append(f"sets {_and(m.hazards)}")
+    if m.removal:
+        jobs.append(f"clears hazards with {_and(m.removal)}")
+    if m.pivots:
+        jobs.append(f"pivots out with {_and(m.pivots)}")
+    if m.setup:
+        jobs.append(f"sets up with {_and(m.setup)}")
+    if g.win and g.win["name"] == name:
+        jobs.append("is your main win condition")
+    if any(lead["name"] == name for lead in g.leads):
+        jobs.append("is one of your best leads")
+    n = g.n_threats
+    if jobs:
+        statement = f"Your {name} {_and(jobs)}."
+    else:
+        statement = f"Your {name} beats {len(m.beats)} of the {n} most used Pokemon one on one."
+    facts = [f"Beats {len(m.beats)} of the {n} most used Pokemon one on one" + (f": {_and(m.beats[:6])}." if m.beats else "."),
+             f"Loses to {_and(m.loses[:6])}." if m.loses else "None of the most used Pokemon beats it one on one.",
+             f"Outspeeds {m.outspeeds:.0%} of the top ladder sets."]
+    if m.priority:
+        facts.append(f"Has {_and(m.priority)} for priority.")
+    # A move the question names: Showdown's rule text for it
+    asked = plan.query.lower()
+    for move in [mv["name"] for mv in plan.user.get("Moves", [])]:
+        if re.search(rf"\b{re.escape(move.lower())}\b", asked):
+            line = rules.text_line("move", move)
+            if line:
+                facts.append(line)
+    return Verdict("member", name, statement, facts, persona="strategy", subject=name)
+
+
+@lru_cache(maxsize=16)
+def _rows_cached(team_json, format_id):
+    from metamatch.engine.guide import board_rows
+    return board_rows(json.loads(team_json), format_id)
+
+
+def _rows_for(plan):
+    team = plan.team or {}
+    return _rows_cached(json.dumps(team, sort_keys=True, default=str), plan.format_id or config.team_format(team))
+
+
+SOLVERS = {"win": solve_win, "lead": solve_lead, "threats": solve_threats, "gameplan": solve_gameplan, "tera": solve_tera,
+           "switchins": solve_switchins, "member": solve_member}

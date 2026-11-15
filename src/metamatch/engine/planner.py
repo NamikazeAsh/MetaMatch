@@ -27,7 +27,9 @@ OPTION_ASK_RE = re.compile(r"\b(?:common|standard|popular|normal|usual|used|run|
                            r"\b(?:usually|typically|normally|often|ever) (?:carry|carries|run|runs|use|uses|hold|holds|have|has)\b", re.I)
 # "Does my Kingambit beat Gholdengo?": one member against one opponent, from the same one on one as the Threat Board
 MATCHUP_RE = re.compile(r"\b(?:beat|beats|win|wins|handle|handles|check|checks|counter|counters|lose|loses|losing) "
-                        r"(?:to |against |vs\.? )?|\bmatch ?up\b|\b(?:good|bad|fine) (?:against|vs|into)\b", re.I)
+                        r"(?:to |against |vs\.? )?|\bmatch ?up\b|\b(?:good|bad|fine) (?:against|vs|into)\b|"
+                        r"\b(?:dying|dies|die|died|fainting|faints?) to\b|\bgets? (?:ko'?d|killed|destroyed|swept|walled|"
+                        r"outsped|one ?shot) by\b|\bstruggles? (?:with|against|vs)\b", re.I)
 TEAMMATE_FIELD_RE = re.compile(r"\b(?:teammates?|partners?|pairs?|goes with|runs with)\b", re.I)
 # "what EVs does X need to outspeed Y", "how much Speed to outspeed": an investment question, not a yes or no
 SPREAD_ASK_RE = re.compile(r"\b(?:what|which|how many|how much)\s+(?:speed\s+)?(?:evs?|spreads?|investment|natures?|stat points|sp)\b|"
@@ -43,7 +45,17 @@ BEAT_RE = re.compile(r"\bhow (?:do|can|should|would|to) (?:i |we |you )?(?:beat|
                      r"\bis (?:so |really )?(?:destroying|shredding|wrecking|killing|sweeping|annoying|a problem|an issue|"
                      r"too strong|broken|unbeatable)\b|"
                      r"\b(?:walls?|stops?|shuts? down|beats?|destroys?|wrecks?|sweeps?|counters?) (?:me|us|my (?:whole |entire )?team)\b|"
-                     r"\b(?:counters?|checks?|answers?)\s*\??\s*$|\bswitch(?:es)? into\b", re.I)
+                     r"\b(?:counters?|checks?|answers?)\s*\??\s*$", re.I)
+# "who can switch into Raging Bolt", "safe switch ins to Kingambit": taking the hit, not winning the one on one
+SWITCH_RE = re.compile(r"\bswitch(?:es|ing)? (?:in(?:to)?|on)\b|\bswitch ?ins?\b|\b(?:tank|take|takes|absorb)s? "
+                       r"(?:a hit|hits|its (?:hits|attacks)|the hit)\b|\bwho (?:can )?(?:tank|take)s?\b", re.I)
+# "why is Torkoal on this team", "how do I use my Slowking-Galar", "what does my Corviknight do", "why does Garganacl run
+# Protect": one member's job on the team
+MEMBER_RE = re.compile(r"\bwhy (?:is|do i have|did i (?:put|add|pick|use)|are)\b|\bwhy does\b[^?.!]*\b(?:run|have|use|carry)\b|"
+                       r"\bhow (?:do|should|can|would) (?:i|you|we) (?:use|play|pilot|run)\b|\bwhat does (?:my )?[\w-]+ do\b|"
+                       r"\b(?:best|good|right) way to (?:use|play)\b|\b(?:role|job|purpose|point) of\b|"
+                       r"\bwhat(?:'s| is) (?:my )?[\w-]+'?s? (?:job|role|purpose)\b|\bwhen (?:should|do) i (?:use|click|set ?up|"
+                       r"dragon dance|swords dance|nasty plot|calm mind|tera)\b", re.I)
 # Questions about the whole team's plan, answered from the Coach Guide (engine/team_answers.py) when no opponent is named
 WIN_RE = re.compile(r"\bwin ?con(?:dition)?s?\b|\bhow (?:do|does|can|will) (?:i|we|my team|this team) win\b|"
                     r"\b(?:main|best|primary) (?:sweeper|win\w*|wincon)\b|\bwho (?:wins|sweeps|should sweep)\b", re.I)
@@ -66,7 +78,8 @@ VERSUS_RE = re.compile(r"\b(?:against|vs\.?|versus|into|facing)\b", re.I)
 # A team species right after one of these is the opponent's copy even when no team member is named yet:
 # "How do I beat Kingambit?" on a team that runs Kingambit asks about an opposing one
 STRONG_OPP_RE = re.compile(r"\b(opposing|enemy|their|opp|beat|handle|counter|stop|check|checks|deal with|answer|answers|"
-                           r"play around|play against|played against|facing|face|scared of|afraid of|threatened by)\s+"
+                           r"play around|play against|played against|facing|face|scared of|afraid of|threatened by|"
+                           r"switch(?:es|ing)? into|switch in(?: on| to)?|tank|take hits from)\s+"
                            r"(?:an?\s+|the\s+|that\s+)?$", re.I)
 # Words right before a target: a team species named after one of these is the opponent's copy
 OPP_MARK_RE = re.compile(r"\b(a|an|opposing|enemy|their|opp|vs|versus|against|into|on|to|from|than|ohko|ohkos|2hko|"
@@ -418,9 +431,16 @@ def plan_query(query, team):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:
         plan.intent = "speed"
+    elif plan.opponent and team and SWITCH_RE.search(q) and plan.user_named and plan.move and plan.attacker == "opponent":
+        # "Can my Kingambit switch into Great Tusk's Headlong Rush": whether that member lives that hit
+        plan.intent, plan.survive, plan.ko_hits = "ko", True, 1
+    elif plan.opponent and team and SWITCH_RE.search(q):
+        plan.intent = "switchins"
     elif plan.user is not None and plan.user_named and plan.opponent and team and MATCHUP_RE.search(q) \
             and not TEAM_WIDE_RE.search(q):
         plan.intent = "matchup"
+    elif plan.user is not None and plan.user_named and not plan.opponents and team and MEMBER_RE.search(q):
+        plan.intent = "member"
     elif (CHECKS_RE.search(q) or BEAT_RE.search(q)) and plan.opponent and team:
         plan.intent = "checks"
         plan.asks_how = bool(BEAT_RE.search(q))
