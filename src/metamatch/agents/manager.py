@@ -34,7 +34,8 @@ GREETING = ("Hello there! Ask me about any matchup, your leads, your win conditi
             "and I'll check it against the engine.")
 THANKS = "Anytime! Ask away whenever something comes up, like a matchup, a lead or a set to check."
 # Answers that need the calc: without it, a planned question gets this notice, never unchecked model text
-CALC_INTENTS = {"speed", "speed_spread", "ko", "damage", "checks", "win", "lead", "threats", "gameplan"}
+CALC_INTENTS = {"speed", "speed_spread", "ko", "damage", "checks", "matchup", "win", "lead", "threats", "gameplan",
+                "tera"}
 # Set, item, spread and teammate questions are Brock's: he has the ladder numbers, Oak and Clemont don't. In the
 # 2026 11 12 audit six of these ("Is Life Orb the best item on Venusaur", "What should I replace Alomomola with")
 # reached Oak through the router's low confidence fallback

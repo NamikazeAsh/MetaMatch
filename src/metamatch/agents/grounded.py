@@ -38,6 +38,7 @@ def _checks_clash(explanation, verdict):
 
 
 CLAIM_CHECKS = {"type": claims.type_clash, "speed": claims.speed_clash, "ko": claims.ko_clash, "checks": _checks_clash,
+                "matchup": _checks_clash,
                 "team_type": claims.group_clash, "rules": claims.yes_no_clash}
 
 
@@ -86,10 +87,17 @@ TYPE_WORD = re.compile(r"\b(?:Normal|Fire|Water|Electric|Grass|Ice|Fighting|Pois
                        r"Dragon|Dark|Steel|Fairy)\b|\bhalf\b|\bquarter\b|\bdouble\b|\d", re.I)
 
 
+# Ranking and frequency words: "It's actually the most commonly held item overall" invents a fact with no name in it
+RANKING_WORD = re.compile(r"\b(?:most|least|more|less|than|only|overall|common\w*|popular|usual\w*|rare\w*|every|all|"
+                          r"always|never|best|worst|better|worse|usage|percent|top|favou?rite|standard|meta)\b", re.I)
+
+
 def _claims_something(sentence):
-    """A sentence naming a Pokemon, type, move, ability, item, weather or number states a fact, not just a tone."""
+    """A sentence naming a Pokemon, type, move, ability, item, weather or number, or ranking anything, states a fact,
+    not just a tone."""
     from metamatch.engine import rules
-    return bool(TYPE_WORD.search(sentence) or find_pokemon(sentence) or rules.find_named(sentence))
+    return bool(TYPE_WORD.search(sentence) or RANKING_WORD.search(sentence) or find_pokemon(sentence)
+                or rules.find_named(sentence))
 
 
 def _trim_voice(text):

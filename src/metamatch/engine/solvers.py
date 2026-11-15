@@ -458,8 +458,26 @@ ORDINALS = ["", "most common", "second most common", "third most common", "fourt
             "sixth most common", "seventh most common", "eighth most common", "ninth most common", "tenth most common"]
 
 
+def _usual_set(target, plan, game):
+    """'What does Raging Bolt usually run': the whole most common set, not just its item."""
+    s = likely_set(target, plan.format_id)
+    if not s:
+        return None
+    label = config.format_info(plan.format_id)["label"]
+    moves = ", ".join(m for m, _ in s["moves"])
+    statement = (f"The most common {s['name']} set in {label} is {s['item']} ({_pct(s['item_share'])}), {s['ability']}, "
+                 f"{describe_spread(s, game)}, with {moves}.")
+    facts = ["Move shares: " + ", ".join(f"{m} {_pct(share)}" for m, share in s["moves"]) + ".",
+             f"{describe_spread(s, game)} is on {_pct(s['spread_share'])} of sets."]
+    if s.get("tera") and game != "champions":
+        facts.append(f"Most common Tera: {s['tera'][0]} ({_pct(s['tera'][1])}).")
+    return Verdict("usage", s["item"] or s["name"], statement, facts, persona="builder")
+
+
 def solve_usage(plan, dex, game):
     target = plan.opponent or (plan.user["Forme"] if plan.user.get("Forme") else plan.user["Pokemon"])
+    if plan.usage_field == "set":
+        return _usual_set(target, plan, game)
     key, entry = chaos_entry(target, plan.format_id)
     if not entry:
         return None
@@ -560,6 +578,27 @@ def _stated_set(plan, dex, game):
         speed = mechanics.final_speed(calc_spec(out), game, _any_move([m for m, _ in out["moves"]], dex))
         out["speeds"], out["scarf_share"], out["booster_share"] = ([(speed, 1.0)] if speed else []), 0.0, 0.0
     return out
+
+
+def solve_matchup(plan, dex, game):
+    """'Does my Kingambit beat Gholdengo': the one on one between the named member and the opponent's set."""
+    from metamatch.engine.threat_board import row_for_set
+    member = plan.user
+    row = row_for_set({"m": member}, _stated_set(plan, dex, game), plan.format_id)
+    cell = row.cells.get(member["Pokemon"]) if row else None
+    if not cell:
+        return None
+    me, name = _user_name(member), display_name(row.name)
+    if to_id(member["Pokemon"]) == to_id(row.name):
+        name = f"the opposing {name}"
+    verb = {"win": "beats", "lose": "loses to"}.get(cell.verdict, "trades evenly with")
+    statement = f"Your {me} {verb} {name} one on one."
+    basis = "its most common set, with the details the question states" if plan.opp_overrides else "its most common set"
+    facts = [f"Your {me} vs {name}: {cell.reason}.",
+             f"{name[0].upper() + name[1:]} assumed on {basis}; switching, hazards and setup are not counted."]
+    answer = {"win": "yes", "lose": "no"}.get(cell.verdict, "even")
+    return Verdict("matchup", answer, statement, facts, persona="strategy", subject=me, other=name,
+                   losers=[member["Pokemon"]] if cell.verdict == "lose" else [], members=[member["Pokemon"]])
 
 
 def solve_checks(plan, dex, game):
@@ -737,7 +776,7 @@ def solve_rules(plan, dex, game):
 
 SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage, "type": solve_type, "stat": solve_stat,
            "usage": solve_usage, "checks": solve_checks, "team_type": solve_team_type, "rules": solve_rules,
-           "speed_spread": solve_speed_spread}
+           "speed_spread": solve_speed_spread, "matchup": solve_matchup}
 
 
 def solve(plan):
@@ -756,7 +795,7 @@ def solve(plan):
         print(f"Solver {plan.intent} failed: {e}")
         return None
     # Rules and team type questions name items and moves as subjects, not as set details for a matchup
-    if verdict and plan.intent not in ("usage", "rules", "team_type", "win", "lead", "threats", "gameplan"):
+    if verdict and plan.intent not in ("usage", "rules", "team_type", "win", "lead", "threats", "gameplan", "tera"):
         # Stated versus assumed: say what came from the question, and what the engine could not count
         for who, details in (("your Pokemon", plan.user_overrides), ("the opponent", plan.opp_overrides)):
             if constraints.summary(details):

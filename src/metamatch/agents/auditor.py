@@ -76,8 +76,23 @@ def _own_set(p, format_id):
 
 
 def _member(name, team):
-    target = to_id(name)
-    return next((p for p in team.values() if target in (to_id(p.get("Pokemon")), to_id(p.get("Forme")))), None)
+    """The team entry `name` refers to, the planner's way: 'samurott' finds a team's Samurott-Hisui."""
+    from metamatch.engine.planner import _team_member
+    return _team_member(name, team, dex_for_format(config.team_format(team)))
+
+
+# "which of my mons is my best wallbreaker": a question about the team's own members, not a new teammate
+OWN_ROLE_RE = re.compile(r"\b(?:which|who) (?:of|on|in) (?:my|our)\b|\bmy (?:best|main|only|current)\b|"
+                         r"\b(?:which|what) (?:mon|pokemon|member|one) (?:is|on my)\b", re.I)
+
+
+def _role_lines(team):
+    out = []
+    for p in team.values():
+        roles = [r for r in p.get("Roles", []) if r]
+        if roles:
+            out.append(f"Your {p['Pokemon']}'s roles: {', '.join(roles)}.")
+    return out or ["No roles were detected for your team's members."]
 
 
 def _teammate_lines(team, format_id, dex, replacing=None):
@@ -129,7 +144,9 @@ def facts_for(query, team, plan=None):
         facts += _ladder_lines(p.get("Forme") or p["Pokemon"], format_id, dex, "yours is above")
     for name in others[:2]:
         facts += _ladder_lines(name, format_id, dex, "not on your team")
-    if TEAMMATE_RE.search(query):
+    if TEAMMATE_RE.search(query) and OWN_ROLE_RE.search(query) and not REPLACE_RE.search(query):
+        facts += _role_lines(team)
+    elif TEAMMATE_RE.search(query):
         replacing = _member(members[0], team) if members and REPLACE_RE.search(query) else None
         facts += _teammate_lines(team, format_id, dex, replacing)
     elif not members and not others:

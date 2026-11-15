@@ -18,12 +18,16 @@ STAT_WORDS = {"hp": "hp", "attack": "atk", "atk": "atk", "defense": "def", "def"
               "special attack": "spa", "spa": "spa", "special defense": "spd", "spd": "spd",
               "speed": "spe", "spe": "spe"}
 
-USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|standard (?:set|item|spread)|what (?:item|ability|tera|nature|spread)|"
+USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|standard (?:set|item|spread)|what (?:item|ability|tera|nature|spread|moves?)|"
                       r"which (?:item|ability|tera)|usual(?:ly)?|typical(?:ly)?|carr(?:y|ies)|common\s+(?:\w+\s+)?sets?|"
                       r"teammates? (?:of|for)|(?:who|what) (?:pairs?|goes|runs) (?:well )?with|"
-                      r"(?:common|standard|popular|normal) (?:on|for))\b", re.I)
+                      r"(?:common|standard|popular|normal) (?:on|for))\b|\bsets?\W*$", re.I)
 # "is Loaded Dice common on Garchomp": the share of one named option, not the top option
-OPTION_ASK_RE = re.compile(r"\b(?:common|standard|popular|normal|usual|used|run|ran)\s+(?:on|for|with)\b|\bhow (?:common|popular|often)\b", re.I)
+OPTION_ASK_RE = re.compile(r"\b(?:common|standard|popular|normal|usual|used|run|ran)\s+(?:on|for|with)\b|\bhow (?:common|popular|often)\b|"
+                           r"\b(?:usually|typically|normally|often|ever) (?:carry|carries|run|runs|use|uses|hold|holds|have|has)\b", re.I)
+# "Does my Kingambit beat Gholdengo?": one member against one opponent, from the same one on one as the Threat Board
+MATCHUP_RE = re.compile(r"\b(?:beat|beats|win|wins|handle|handles|check|checks|counter|counters|lose|loses|losing) "
+                        r"(?:to |against |vs\.? )?|\bmatch ?up\b|\b(?:good|bad|fine) (?:against|vs|into)\b", re.I)
 TEAMMATE_FIELD_RE = re.compile(r"\b(?:teammates?|partners?|pairs?|goes with|runs with)\b", re.I)
 # "what EVs does X need to outspeed Y", "how much Speed to outspeed": an investment question, not a yes or no
 SPREAD_ASK_RE = re.compile(r"\b(?:what|which|how many|how much)\s+(?:speed\s+)?(?:evs?|spreads?|investment|natures?|stat points|sp)\b|"
@@ -54,6 +58,9 @@ GAMEPLAN_RE = re.compile(r"\bgame ?plan\b|\bhow (?:do|should|would) (?:i|we|you)
                          r"\bhow (?:does|do) (?:this|my|our) team (?:work|play|function)\b|\bstrategy for (?:this|my|our) team\b|"
                          r"\b(?:is|how good is) (?:this|my|our) team (?:good|any good|viable|decent|strong)\b|"
                          r"\brate (?:this|my|our) team\b|\bwhat does (?:this|my|our) team (?:do|want)\b", re.I)
+TERA_PLAN_RE = re.compile(r"\b(?:who|which (?:mon|pokemon|member|one)) (?:should|do|would|can) (?:i |we )?(?:tera|terastal\w*)\b|"
+                          r"\btera (?:plan|target|user|candidate)s?\b|\bwhen (?:should|do) (?:i|we) (?:tera|terastal\w*)\b|"
+                          r"\b(?:best|good) (?:tera|terastal\w*) (?:user|target|candidate)\b", re.I)
 # "What should I lead against rain": a plan against an archetype is still Oak's to discuss
 VERSUS_RE = re.compile(r"\b(?:against|vs\.?|versus|into|facing)\b", re.I)
 # A team species right after one of these is the opponent's copy even when no team member is named yet:
@@ -206,7 +213,8 @@ def _usage_field(query):
     if TEAMMATE_FIELD_RE.search(query):
         return "teammates"
     for pattern, fld in ((r"tera", "tera"), (r"abilit(?:y|ies)", "ability"), (r"items?", "item"),
-                         (r"spreads?", "spread"), (r"natures?", "spread"), (r"move(?:s|set)?", "move"), (r"sets?", "item")):
+                         (r"spreads?", "spread"), (r"natures?", "spread"), (r"moves?", "move"),
+                         (r"(?:move)?sets?|builds?|runs?|running|ran", "set")):
         if re.search(rf"\b{pattern}\b", query, re.I):
             return fld
     return "item"
@@ -297,7 +305,8 @@ def plan_query(query, team):
         plan.user = _team_member(owned_names[0], team, dex)
         plan.user_named = True
     # "gambit keeps sweeping me" on a team that runs Kingambit: a complaint about a Pokemon is about the opponent's
-    if plan.user is not None and not plan.opponents and not owned_names and BEAT_RE.search(query) and len(names) == 1:
+    if (plan.user is not None and not plan.opponents and not owned_names and len(names) == 1
+            and (BEAT_RE.search(query) or CHECKS_RE.search(query))):
         plan.opponents = [names[0]]
         plan.user, plan.user_named = None, False
         spans = [(a, b, n, "opponent") for a, b, n, _ in spans]
@@ -409,9 +418,14 @@ def plan_query(query, team):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:
         plan.intent = "speed"
+    elif plan.user is not None and plan.user_named and plan.opponent and team and MATCHUP_RE.search(q) \
+            and not TEAM_WIDE_RE.search(q):
+        plan.intent = "matchup"
     elif (CHECKS_RE.search(q) or BEAT_RE.search(q)) and plan.opponent and team:
         plan.intent = "checks"
         plan.asks_how = bool(BEAT_RE.search(q))
+    elif team and not plan.opponents and not plan.user_named and TERA_PLAN_RE.search(q):
+        plan.intent = "tera"
     elif team and not plan.opponents and not VERSUS_RE.search(q) and GAMEPLAN_RE.search(q):
         plan.intent = "gameplan"
     elif team and not plan.opponents and not VERSUS_RE.search(q) and WIN_RE.search(q):

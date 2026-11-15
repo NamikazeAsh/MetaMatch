@@ -107,6 +107,21 @@ class TestFollowUps(unittest.TestCase):
         r = _ask(["Does my Dragapult outspeed Iron Valiant?", "How do I beat stall?"], self.team)[-1]
         self.assertEqual(r.text, "How do I beat stall?")
 
+    def test_setup_goes_last_and_drops_on_member_swap(self):
+        readings = _ask(["Does my Kingambit OHKO Great Tusk?", "what about after a swords dance?", "and dragapult?"],
+                        self.team)
+        self.assertEqual(readings[1].text, "Does my Kingambit OHKO Great Tusk after a swords dance?")
+        self.assertEqual(readings[2].text, "Does my Dragapult OHKO Great Tusk?")
+
+    def test_tera_detail_lands_on_opponent(self):
+        r = _ask(["who checks dragonite on my team", "what if it teras normal and uses extreme speed"], self.team)[-1]
+        plan = plan_query(r.text, self.team)
+        self.assertEqual((plan.opp_overrides.get("tera"), plan.user_overrides.get("tera")), ("Normal", None))
+
+    def test_why_not_option(self):
+        r = _ask(["what item should my kingambit use", "why not black glasses?"], self.team)[-1]
+        self.assertEqual(r.text, "Is Black Glasses common on Kingambit?")
+
     def test_replace_carries_member(self):
         r = _ask(["Is my Gholdengo set good?", "ok what should I replace then"], self.team)[-1]
         self.assertIn("my Gholdengo", r.text)
@@ -150,6 +165,19 @@ class TestPlannerReads(unittest.TestCase):
                  "What should I lead against rain?": "open"}
         for q, intent in cases.items():
             self.assertEqual(plan_query(q, self.team).intent, intent, q)
+
+    def test_usual_set_is_the_whole_set(self):
+        for q in ["What does Great Tusk usually run?", "kingambit sets?"]:
+            plan = plan_query(q, self.team)
+            self.assertEqual((plan.intent, plan.usage_field), ("usage", "set"), q)
+            self.assertIn(" with ", solve(plan).statement)
+
+    def test_one_member_matchup(self):
+        plan = plan_query("Does my Kingambit beat Gholdengo?", self.team)
+        self.assertEqual(plan.intent, "matchup")
+
+    def test_tera_plan(self):
+        self.assertEqual(plan_query("who should i tera", self.team).intent, "tera")
 
     def test_complaint_about_own_species_is_opponent(self):
         plan = plan_query("gambit keeps sweeping me", self.team)

@@ -95,4 +95,34 @@ def solve_gameplan(plan, dex, game):
     return Verdict("gameplan", g.win["name"] if g.win else g.leads[0]["name"], statement, facts, persona="strategy")
 
 
-SOLVERS = {"win": solve_win, "lead": solve_lead, "threats": solve_threats, "gameplan": solve_gameplan}
+def solve_tera(plan, dex, game):
+    """'Who should I Tera': each member's own Tera type, ranked by the weaknesses it removes and adds and whether it
+    powers up an attack (Coach Guide Tera plan). SV only: Champions has no Tera."""
+    if game == "champions":
+        return None
+    g = _guide(plan)
+    if not g.tera:
+        return None
+    top = g.tera[0]
+    if not top.get("best"):
+        statement = "None of your members gains much from its Tera type; it removes no more weaknesses than it adds."
+    else:
+        statement = f"Your {top['name']} is your best Tera user: Tera {top['tera']}."
+    facts = []
+    for t in g.tera[:3]:
+        parts = []
+        if t["removed"]:
+            parts.append(f"removes its {_and(t['removed'])} weakness{'es' if len(t['removed']) > 1 else ''}")
+        if len(t["added"]) == 1:
+            article = "an" if t["added"][0][0] in "AEIOU" else "a"
+            parts.append(f"adds {article} {t['added'][0]} weakness")
+        elif t["added"]:
+            parts.append(f"adds {_and(t['added'])} weaknesses")
+        note = t["note"]
+        # "Purely defensive..." and "Stellar keeps..." read as a clause; "Headlong Rush goes..." starts with a move name
+        parts.append(note[0].lower() + note[1:] if note.startswith(("Purely", "Stellar")) else note)
+        facts.append(f"{t['name']}, Tera {t['tera']}: " + "; ".join(parts) + ".")
+    return Verdict("tera", top["name"], statement, facts, persona="strategy")
+
+
+SOLVERS = {"win": solve_win, "lead": solve_lead, "threats": solve_threats, "gameplan": solve_gameplan, "tera": solve_tera}

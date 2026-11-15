@@ -15,7 +15,7 @@ from metamatch.engine.names import find_pokemon_spans
 # Words a short follow up is made of besides the Pokemon it names: "and what about Gholdengo then?"
 FILLER = set("""and ok okay so but what about how vs versus against instead then too now same for with the a an if is it its
 it's that this one ones mon guy thing their they them his her him opposing enemy opp my also or please hmm well say
-suppose assume assuming""".split())
+suppose assume assuming on for in at""".split())
 # Openers of a "same question, different details" follow up: "what if it's Scarf", "and with Specs?"
 VARIANT_RE = re.compile(r"^\s*(?:(?:and|ok|okay|so|but|now)\s+)*(?:what if|what about|how about|if|with|assume|assuming|"
                         r"suppose|say|and if|but if|even if|without|no)\b", re.I)
@@ -38,7 +38,13 @@ FIELD_RE = re.compile(r"\b(?:rain\w*|sun\w*|sand\w*|snow\w*|hail|trick room|tail
 DETAIL_FILLER_RE = re.compile(r"\b(?:what if|what about|how about|and if|but if|even if|if|and|but|so|now|ok|okay|with|"
                               r"assume|assuming|suppose|say|it'?s|it is|it has|it runs|it holds|they'?re|they have|"
                               r"they run|has|have|holds?|holding|runs?|running|is|on|the|a|an|set|one|instead|then|"
-                              r"too|version|variant)\b", re.I)
+                              r"too|version|variant|uses?|using|clicks?|goes for|terastalli[sz]es)\b", re.I)
+# Set up and boosts belong to whoever runs the move, so they go at the end of the question, not glued to a Pokemon
+SETUP_RE = re.compile(r"\b(?:after|following)\b|[+]\d|\b(?:swords dance|nasty plot|dragon dance|calm mind|quiver dance|"
+                      r"bulk up|shell smash|belly drum|tidy up|victory dance|shift gear|coil|growth|iron defense|"
+                      r"agility|rock polish|curse|sd|dd|np|cm|qd)\b", re.I)
+# "why not booster energy?": the share of that option on the Pokemon the conversation is about
+WHY_NOT_RE = re.compile(r"^\s*(?:but |and |so )?(?:why not|what about|how about) (.+?)(?: instead| then)?\W*$", re.I)
 
 
 @dataclass
@@ -90,6 +96,13 @@ def _detail(text, spans):
     text = PRONOUN_RE.sub(" ", text)
     text = DETAIL_FILLER_RE.sub(" ", text)
     text = re.sub(r"\bteras?\s+(\w+)", r"Tera \1", text, flags=re.I)
+    # Move names would split the details from the Pokemon they describe ("Tera Normal Extreme Speed Dragonite" reads
+    # the Tera as nobody's); its likely set already carries its usual moves
+    from metamatch.engine import rules
+    moves = [n for kind, n in rules.find_named(text) if kind == "move"]
+    if len(moves) < len(rules.find_named(text)) or re.search(r"\bTera \w+", text):
+        for move in moves:
+            text = re.sub(re.escape(move), " ", text, flags=re.I)
     return re.sub(r"\s+", " ", re.sub(r"[?!.]", " ", text)).strip()
 
 
@@ -99,6 +112,27 @@ def _insert_before(prev, spans, target, detail):
         if name == target:
             return prev[:a] + detail + " " + prev[a:]
     return None
+
+
+def _moves_of(name, team):
+    for p in (team or {}).values():
+        if name in (p.get("Pokemon"), p.get("Forme")):
+            return {m["name"].lower() for m in p.get("Moves", [])}
+    return set()
+
+
+SETUP_PHRASE_RE = re.compile(r"\s*\b(?:after|following)\s+(?:a\s+|an\s+|one\s+|two\s+)?(?P<move>swords dance|nasty plot|dragon dance|"
+                             r"calm mind|quiver dance|bulk up|shell smash|belly drum|tidy up|victory dance|shift gear|"
+                             r"coil|growth|iron defense|agility|rock polish|curse)s?\b|\s*(?:at\s+)?[+]\d\b", re.I)
+
+
+def _drop_setup_it_lacks(text, moves):
+    """'can my Corviknight ohko Great Tusk after swords dance' -> without the Swords Dance Corviknight doesn't run:
+    a boost stated for the last member doesn't carry over to a member swapped in."""
+    def keep(m):
+        move = (m.group("move") or "").lower()
+        return m.group(0) if move and move in moves else ""
+    return SETUP_PHRASE_RE.sub(keep, text)
 
 
 def resolve(query, state, team):
@@ -123,12 +157,25 @@ def resolve(query, state, team):
         filled = PRONOUN_RE.sub(named[0], prev, count=1) if PRONOUN_RE.search(prev) else f"{prev.rstrip('?. ')} against {named[0]}?"
         return Reading(filled, "clarify")
 
+    # "why not booster energy?": how often that option shows up on the Pokemon the conversation is about
+    why_not = WHY_NOT_RE.match(query)
+    if why_not and not named and not SETUP_RE.search(query):
+        from metamatch.engine import rules
+        # "why not X" can be any option; "what about X" only an item, since "what about Knock Off" is usually a calc
+        kinds = ("item", "move", "ability") if query.lower().lstrip().startswith(("why", "but why", "and why", "so why")) else ("item",)
+        option = [n for kind, n in rules.find_named(why_not.group(1)) if kind in kinds]
+        target = state.member or (state.opponents[0] if state.opponents else None)
+        if option and target:
+            return Reading(f"Is {option[0]} common on {target}?", "variant")
+
     # "what about Gholdengo?": the last question with this Pokemon swapped in on the same side
     if named and len(words) <= 8 and not _words_left(query, spans) and not OWN_QUESTION_RE.search(query):
         new = named[0]
         prev_members = [n for _, _, n in prev_spans if n in members and n not in state.opponents]
         if new in members and prev_members:
             swapped = _put(prev, prev_spans, set(prev_members), new)
+            if swapped:
+                swapped = _drop_setup_it_lacks(swapped, _moves_of(new, team))
         else:
             swapped = _put(prev, prev_spans, set(state.opponents), ("opposing " if new in members else "") + new)
         if swapped:
@@ -138,8 +185,12 @@ def resolve(query, state, team):
     if VARIANT_RE.match(query) and len(words) <= 12 and not ASKS_RE.search(query):
         detail = _detail(query, spans)
         if detail:
-            if FIELD_RE.search(detail) and not named:
-                return Reading(f"{prev.rstrip('?. ')} {detail}?", "variant")
+            if (FIELD_RE.search(detail) or SETUP_RE.search(detail)) and not named:
+                # "after a swords dance" stays a phrase of its own: the planner credits it to whoever runs the move
+                tail = query.strip().rstrip("?.!") if SETUP_RE.search(detail) else detail
+                tail = re.sub(r"^\s*(?:(?:and|ok|okay|so|but|now)\s+)*(?:what if|what about|how about|and if|but if|if)\s+",
+                              "", tail, flags=re.I)
+                return Reading(f"{prev.rstrip('?. ')} {tail}?", "variant")
             target = named[0] if named else (state.opponents[0] if state.opponents else state.member)
             if target:
                 text = prev
