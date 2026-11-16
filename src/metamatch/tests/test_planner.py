@@ -88,7 +88,7 @@ class TestPlannerIntents(unittest.TestCase):
         self.assertEqual((p.intent, p.stat), ("stat", "spe"))
 
     def test_open_questions_stay_open(self):
-        for q in ["How do I beat stall?", "What should I lead against rain?", "Is Dragapult faster than Kingambit?"]:
+        for q in ["How do I beat hyper offense?", "Explain double switching", "Is Dragapult faster than Kingambit?"]:
             self.assertEqual(self.plan(q).intent, "open", q)
         # A lead for the team itself comes from the Coach Guide (engine/team_answers.py)
         self.assertEqual(self.plan("What's a good lead for this team?").intent, "lead")

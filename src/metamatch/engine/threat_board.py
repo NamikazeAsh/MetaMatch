@@ -102,7 +102,7 @@ def threat_row(team, name, format_id, usage=None):
     return row_for_set(team, likely_set(name, format_id), format_id, usage)
 
 
-def row_for_set(team, opp_set, format_id, usage=None):
+def row_for_set(team, opp_set, format_id, usage=None, field=None):
     """A board row for any opponent set shaped like sets.likely_set (a pasted set works too)."""
     dex = dex_for_format(format_id)
     if not opp_set or not dex:
@@ -110,7 +110,7 @@ def row_for_set(team, opp_set, format_id, usage=None):
     game = config.format_game(format_id)
     row = ThreatRow(opp_set["name"], round((usage if usage is not None else opp_set.get("usage", 0)) * 100, 1))
     for p in team.values():
-        x = exchange(p, opp_set, game, dex)
+        x = exchange(p, opp_set, game, dex, field=field)
         if x is None:
             continue
         row.cells[p["Pokemon"]] = Cell(_verdict(x), _reason(x), x)

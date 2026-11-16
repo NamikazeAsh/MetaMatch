@@ -63,18 +63,19 @@ def _speed_facts(user_name, user_speed, opponent_name, opp_set, opp_base_speed, 
     return [f"SPEED: {user_name} ({user_speed}) is SLOWER than {opponent_name} ({neutral})."]
 
 
-def best_hits(user_pokemon, opp_set, game, dex, n=2):
+def best_hits(user_pokemon, opp_set, game, dex, n=2, field=None):
     """
     (dealt, taken): the user's and the opponent's n strongest damaging moves as (move, calc result)
-    pairs, strongest first. None when the calc is unavailable.
+    pairs, strongest first. None when the calc is unavailable. `field`: calc field such as {"weather": "Rain"}.
     """
     mine = user_spec(user_pokemon, game)
     opp_spec = calc_spec(opp_set)
     user_moves = [m['name'] for m in user_pokemon.get('Moves', []) if m.get('category') not in (None, 'Status')]
     opp_moves = [m for m, _ in opp_set['moves'] if (dex.move(m) or {}).get('category') not in (None, 'Status')]
 
-    requests = ([{"game": game, "attacker": mine, "defender": opp_spec, "move": m} for m in user_moves]
-                + [{"game": game, "attacker": opp_spec, "defender": mine, "move": m} for m in opp_moves])
+    extra = {"field": field} if field else {}
+    requests = ([{"game": game, "attacker": mine, "defender": opp_spec, "move": m, **extra} for m in user_moves]
+                + [{"game": game, "attacker": opp_spec, "defender": mine, "move": m, **extra} for m in opp_moves])
     results = calc.calculate_many(requests)
     if not any(results):
         return None

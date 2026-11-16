@@ -69,6 +69,9 @@ THREATS_RE = re.compile(r"\b(?:biggest|main|worst|scariest|top|major|key) threat
 GAMEPLAN_RE = re.compile(r"\bgame ?plan\b|\bhow (?:do|should|would) (?:i|we|you) (?:play|pilot|use|run) (?:this|my|our) team\b|"
                          r"\bhow (?:does|do) (?:this|my|our) team (?:work|play|function)\b|\bstrategy for (?:this|my|our) team\b|"
                          r"\bwhat does (?:this|my|our) team (?:do|want)\b", re.I)
+# "how do I play against rain", "stall walls my team", "is my team good against sun": an archetype question
+ARCHETYPE_ASK_RE = re.compile(r"\b(?:against|vs\.?|versus|beat\w*|handle|deal\w*|play\w*|struggl\w*|counter\w*|annoying|"
+                              r"wreck\w*|problem|trouble|good|weak)\b|\bteams?\b", re.I)
 # "is my team good", "rate my team": the broken down team score (engine/team_score.py)
 SCORE_RE = re.compile(r"\b(?:is|how good is|how strong is) (?:this|my|our) team(?: (?:good|any good|viable|decent|strong|"
                       r"bad|ok|okay|fine))?\b|\b(?:rate|grade|score|judge|review) (?:this|my|our) team\b|"
@@ -158,6 +161,7 @@ class Plan:
     options: list = field(default_factory=list)     # compare questions: [(kind, name)] items, moves, abilities named
     replace: bool = False           # teammate questions: find a replacement for the named member
     role: str = ""                  # roles questions: the role asked about ("wallbreaker")
+    archetype: str = ""             # archetype questions: rain, sun, sand, stall or hazards
     opp_overrides: dict = field(default_factory=dict)   # set details the question states for the opponent
     user_overrides: dict = field(default_factory=dict)  # ... and for the player's Pokemon
     conditions: dict = field(default_factory=dict)      # calc Field the question states: weather, terrain
@@ -249,6 +253,13 @@ def _usage_field(query):
         if re.search(rf"\b{pattern}\b", query, re.I):
             return fld
     return "item"
+
+
+def _archetype(text, format_id):
+    """'rain', 'sun', 'sand', 'stall' or 'hazards' when the question names one the engine has a roster for."""
+    from metamatch.engine.archetypes import archetype_of, available
+    key = archetype_of(text)
+    return key if key and available(key, format_id) else None
 
 
 def _options(text):
@@ -473,6 +484,8 @@ def plan_query(query, team):
         plan.asks_how = bool(BEAT_RE.search(q))
     elif team and not plan.opponents and not plan.user_named and TERA_PLAN_RE.search(q):
         plan.intent = "tera"
+    elif team and not plan.opponents and ARCHETYPE_ASK_RE.search(q) and _archetype(q, format_id):
+        plan.intent, plan.archetype = "archetype", _archetype(q, format_id)
     elif team and not plan.opponents and not VERSUS_RE.search(q) and SCORE_RE.search(q):
         plan.intent = "score"
     elif team and not plan.opponents and not VERSUS_RE.search(q) and GAMEPLAN_RE.search(q):

@@ -49,7 +49,9 @@ class TestChecksIntent(unittest.TestCase):
         self.assertEqual((plan.intent, plan.asks_how), ("checks", True))
 
     def test_archetype_questions_stay_open(self):
-        self.assertEqual(plan_query("how do I beat stall?", self.team).intent, "open")
+        # Archetypes with a ladder roster get an engine answer; ones without stay open
+        self.assertEqual(plan_query("how do I beat stall?", self.team).intent, "archetype")
+        self.assertEqual(plan_query("how do I beat hyper offense?", self.team).intent, "open")
 
     def test_verifier_rejects_a_loser_called_an_answer(self):
         v = Verdict("checks", "Gholdengo", "Gholdengo beats Kyurem one on one.", [], other="Kyurem",

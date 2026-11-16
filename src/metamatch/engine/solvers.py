@@ -995,7 +995,8 @@ def solve(plan):
         # Team strategy answers (win condition, leads, threats, game plan) live with the Coach Guide
         from metamatch.engine.team_answers import SOLVERS as TEAM_SOLVERS
         from metamatch.engine.build_answers import SOLVERS as BUILD_SOLVERS
-        solver = TEAM_SOLVERS.get(plan.intent) or BUILD_SOLVERS.get(plan.intent)
+        from metamatch.engine.archetypes import SOLVERS as ARCHETYPE_SOLVERS
+        solver = TEAM_SOLVERS.get(plan.intent) or BUILD_SOLVERS.get(plan.intent) or ARCHETYPE_SOLVERS.get(plan.intent)
     dex = dex_for_format(plan.format_id)
     if not solver or not dex:
         return None
@@ -1006,7 +1007,7 @@ def solve(plan):
         return None
     # Rules and team type questions name items and moves as subjects, not as set details for a matchup
     if verdict and plan.intent not in ("usage", "rules", "team_type", "win", "lead", "threats", "gameplan", "tera",
-                                              "member", "compare", "teammate", "roles", "score"):
+                                              "member", "compare", "teammate", "roles", "score", "archetype"):
         # Stated versus assumed: say what came from the question, and what the engine could not count
         for who, details in (("your Pokemon", plan.user_overrides), ("the opponent", plan.opp_overrides)):
             if constraints.summary(details):

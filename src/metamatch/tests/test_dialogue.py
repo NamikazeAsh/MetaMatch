@@ -161,8 +161,8 @@ class TestPlannerReads(unittest.TestCase):
 
     def test_team_strategy_intents(self):
         cases = {"What is my win condition?": "win", "what should i lead": "lead", "what are my biggest threats": "threats",
-                 "what's my game plan": "gameplan", "is my team good": "score", "rate my team": "score", "How do I beat stall?": "open",
-                 "What should I lead against rain?": "open"}
+                 "what's my game plan": "gameplan", "is my team good": "score", "rate my team": "score", "How do I beat stall?": "archetype",
+                 "How do I play against hyper offense?": "open"}
         for q, intent in cases.items():
             self.assertEqual(plan_query(q, self.team).intent, intent, q)
 
@@ -171,6 +171,20 @@ class TestPlannerReads(unittest.TestCase):
             plan = plan_query(q, self.team)
             self.assertEqual((plan.intent, plan.usage_field), ("usage", "set"), q)
             self.assertIn(" with ", solve(plan).statement)
+
+    def test_archetype_intents(self):
+        for q, key in [("how do i play against rain", "rain"), ("how do I beat stall?", "stall"),
+                       ("what do i do against sun teams", "sun"), ("hazard stacking teams wreck me", "hazards")]:
+            plan = plan_query(q, self.team)
+            self.assertEqual((plan.intent, plan.archetype), ("archetype", key), q)
+        self.assertEqual(plan_query("does rain boost water moves", self.team).intent, "rules")
+
+    @unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+    def test_archetype_answer_names_members(self):
+        v = solve(plan_query("how do i play against rain", self.team))
+        if v:
+            self.assertIn("rain", v.plain)
+            self.assertTrue(any("your" in f.text for f in v.typed))
 
     def test_one_member_matchup(self):
         plan = plan_query("Does my Kingambit beat Gholdengo?", self.team)
@@ -208,7 +222,7 @@ class TestPlannerReads(unittest.TestCase):
         self.assertEqual(plan_query("my dragapult keeps dying to great tusk", self.team).intent, "matchup")
 
     def test_archetype_advice_is_not_a_rules_lookup(self):
-        self.assertEqual(plan_query("what do i do against sun teams", self.team).intent, "open")
+        self.assertEqual(plan_query("what do i do against sun teams", self.team).intent, "archetype")
         self.assertEqual(plan_query("what does sun do", self.team).intent, "rules")
 
     def test_typo_with_short_first_word(self):

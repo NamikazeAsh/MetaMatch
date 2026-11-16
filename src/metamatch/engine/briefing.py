@@ -60,7 +60,11 @@ def _kill_priority(pairs, k, attacker, defender, dex):
     return top
 
 
-def _race(pairs, attacker, defender, game, roll=0):
+WEATHER_SPEED = {("Swift Swim", "Rain"): True, ("Chlorophyll", "Sun"): True, ("Sand Rush", "Sand"): True,
+                 ("Slush Rush", "Snow"): True}
+
+
+def _race(pairs, attacker, defender, game, roll=0, field=None):
     """Hits for the attacker's best plain attack to KO from full HP, at the lowest roll (roll=0, guaranteed) or the
     highest (roll=1). A half HP move (Ruination) can open: one use, then the plain attack only needs the other half,
     which counts when that is quicker. None when nothing can KO."""
@@ -68,7 +72,7 @@ def _race(pairs, attacker, defender, game, roll=0):
     if not plain:
         return None
     move, best = plain
-    n = mechanics.hits_to_ko(best, attacker, defender, move, game=game, roll=roll)
+    n = mechanics.hits_to_ko(best, attacker, defender, move, game=game, roll=roll, field=field)
     if any(r.get("half_hp") for _, r in pairs) and best["range"][roll] > 0:
         hp = best["defender_stats"]["hp"]
         combo = 1 + math.ceil((hp - hp // 2) / best["range"][roll])
@@ -81,22 +85,25 @@ def _plain(pairs):
     return next(((m, r) for m, r in pairs or [] if not r.get("half_hp")), None)
 
 
-def exchange(p, opp_set, game, dex):
+def exchange(p, opp_set, game, dex, field=None):
     """
     One on one numbers for a team member vs an opponent set: speed share (Choice Scarf mixed in at its
     usage share), best hit each way, hits to KO each way (Sturdy, Sash and Disguise aware) and the
     priority each side can finish with. None when the calc is unavailable.
     """
-    hits = best_hits(p, opp_set, game, dex, n=4)
+    hits = best_hits(p, opp_set, game, dex, n=4, field=field)
     if hits is None:
         return None
     dealt, taken = hits
     mine, theirs = user_spec(p, game), calc_spec(opp_set)
     speeds = opp_set.get("speeds") or []
+    # A weather Speed ability (Swift Swim in rain, Chlorophyll in sun...) doubles the opponent's Speed under its weather
+    if field and WEATHER_SPEED.get((opp_set.get("ability") or "", (field or {}).get("weather"))):
+        speeds = [(s * 2, share) for s, share in speeds]
     # Final Speed from the same calc call the damage came from, so it matches the chat speed solver
     user_speed = next((r.get("attacker_speed") for _, r in dealt), None) or p.get("Speed", 0)
-    to_ko = _race(dealt, mine, theirs, game)
-    to_be_koed = _race(taken, theirs, mine, game)
+    to_ko = _race(dealt, mine, theirs, game, field=field)
+    to_be_koed = _race(taken, theirs, mine, game, field=field)
     return {
         "name": p["Pokemon"],
         "speed": user_speed,
@@ -109,8 +116,8 @@ def exchange(p, opp_set, game, dex):
         "to_ko": to_ko,
         "to_be_koed": to_be_koed,
         # Best case counts (highest roll) and the attacks they rest on, for "in 3 or 4 hits" in the chat's facts
-        "to_ko_best": _race(dealt, mine, theirs, game, roll=1),
-        "to_be_koed_best": _race(taken, theirs, mine, game, roll=1),
+        "to_ko_best": _race(dealt, mine, theirs, game, roll=1, field=field),
+        "to_be_koed_best": _race(taken, theirs, mine, game, roll=1, field=field),
         "dealt_ko_move": _plain(dealt),
         "taken_ko_move": _plain(taken),
         "half_hp": [m for m, r in taken if r.get("half_hp")],

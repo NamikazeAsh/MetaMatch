@@ -17,6 +17,7 @@ CATEGORIES = {
     "teammate": ("building", "builder", "Team Completer"),
     "roles": ("building", "builder", "Team Overview"),
     "score": ("score", "strategy", "Team Overview"),
+    "archetype": ("matchups", "strategy", "Threat Board"),
     "win": ("gameplan", "strategy", "Coach Guide"),
     "lead": ("gameplan", "strategy", "Coach Guide"),
     "tera": ("gameplan", "strategy", "Coach Guide"),

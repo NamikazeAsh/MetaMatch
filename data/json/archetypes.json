@@ -1,0 +1,171 @@
+{
+ "gen9ou": {
+  "month": "2026-10",
+  "source": "gen9ou-1500",
+  "rain": {
+   "weather": "Rain",
+   "setters": [
+    [
+     "Pelipper",
+     3.78
+    ]
+   ],
+   "partners": [
+    [
+     "Iron Treads",
+     0.506,
+     4.4
+    ],
+    [
+     "Raging Bolt",
+     0.473,
+     3.1
+    ],
+    [
+     "Barraskewda",
+     0.452,
+     24.6
+    ],
+    [
+     "Kingdra",
+     0.195,
+     22.1
+    ],
+    [
+     "Zapdos",
+     0.153,
+     2.2
+    ],
+    [
+     "Overqwil",
+     0.143,
+     23.6
+    ]
+   ]
+  },
+  "sun": {
+   "weather": "Sun",
+   "setters": [
+    [
+     "Ninetales",
+     3.37
+    ],
+    [
+     "Torkoal",
+     3.16
+    ]
+   ],
+   "partners": [
+    [
+     "Walking Wake",
+     0.773,
+     11.2
+    ],
+    [
+     "Great Tusk",
+     0.679,
+     2.1
+    ],
+    [
+     "Hatterene",
+     0.352,
+     2.6
+    ],
+    [
+     "Raging Bolt",
+     0.335,
+     2.2
+    ],
+    [
+     "Ceruledge",
+     0.293,
+     3.7
+    ],
+    [
+     "Venusaur",
+     0.291,
+     14.2
+    ]
+   ]
+  },
+  "sand": {
+   "weather": "Sand",
+   "setters": [
+    [
+     "Tyranitar",
+     3.72
+    ],
+    [
+     "Hippowdon",
+     0.42
+    ]
+   ],
+   "partners": [
+    [
+     "Excadrill",
+     0.541,
+     18.5
+    ],
+    [
+     "Hydrapple",
+     0.113,
+     4.3
+    ],
+    [
+     "Sinistcha",
+     0.092,
+     3.8
+    ]
+   ]
+  },
+  "stall": {
+   "walls": [
+    [
+     "Blissey",
+     2.93,
+     3.15
+    ],
+    [
+     "Dondozo",
+     3.85,
+     2.65
+    ],
+    [
+     "Toxapex",
+     2.94,
+     2.49
+    ],
+    [
+     "Clodsire",
+     3.12,
+     2.45
+    ],
+    [
+     "Skarmory",
+     2.12,
+     1.79
+    ],
+    [
+     "Weezing-Galar",
+     4.85,
+     1.58
+    ],
+    [
+     "Hippowdon",
+     0.42,
+     1.54
+    ],
+    [
+     "Talonflame",
+     0.69,
+     1.5
+    ],
+    [
+     "Gliscor",
+     11.76,
+     1.45
+    ]
+   ]
+  }
+ }
+}
