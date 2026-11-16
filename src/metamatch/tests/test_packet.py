@@ -56,7 +56,7 @@ QUESTIONS = ["Does my Dragapult outspeed Iron Valiant?", "Does my Great Tusk OHK
              "What is my win condition?", "what should i lead", "what are my biggest threats", "what's my game plan",
              "who should i tera", "who can switch into raging bolt", "why is dragapult on this team",
              "What's the most common spread for Great Tusk?", "What is weak in my dragapult",
-             "what does my kingambit resist"]
+             "what does my kingambit resist", "how to use weather team", "how do i build a rain team"]
 
 
 class TestHelpers(unittest.TestCase):
@@ -108,6 +108,18 @@ class TestMemberTypeProfile(unittest.TestCase):
                 self.assertEqual(v.answer, answer, q)
         # Advice about a weakness is still a strategy question
         self.assertNotEqual(plan_query("how do I cover my dragapult's weaknesses", team).intent, "type")
+
+
+class TestTeamWeather(unittest.TestCase):
+    def test_using_weather_is_about_the_team_and_facing_it_is_an_archetype(self):
+        team, _ = readTeam(TEAM, "gen9ou")
+        plan = plan_query("how to use weather team", team)
+        self.assertEqual((plan.intent, plan.archetype), ("weather", None))
+        self.assertEqual(plan_query("how do i build a rain team", team).archetype, "rain")
+        self.assertNotEqual(plan_query("how do I play against rain", team).intent, "weather")
+        v = solve(plan)
+        self.assertEqual(v.answer, "no")
+        self.assertIn("runs no weather", v.statement)
 
 
 class TestSmogonCards(unittest.TestCase):

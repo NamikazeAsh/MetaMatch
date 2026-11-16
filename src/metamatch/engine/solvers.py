@@ -1045,7 +1045,7 @@ def solve(plan):
         return None
     # Rules and team type questions name items and moves as subjects, not as set details for a matchup
     if verdict and plan.intent not in ("usage", "rules", "team_type", "win", "lead", "threats", "gameplan", "tera",
-                                              "member", "compare", "teammate", "roles", "score", "archetype",
+                                              "member", "compare", "teammate", "roles", "score", "archetype", "weather",
                                               "speed_tiers", "audit"):
         # Stated versus assumed: say what came from the question, and what the engine could not count
         for who, details in (("your Pokemon", plan.user_overrides), ("the opponent", plan.opp_overrides)):

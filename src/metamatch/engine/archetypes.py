@@ -199,4 +199,76 @@ def _hazards(plan, dex):
     return Verdict("archetype", "hazards", said, [f.text for f in typed], persona="strategy", plain=said, typed=typed)
 
 
-SOLVERS = {"archetype": solve_archetype}
+WEATHER_KEYS = ("rain", "sun", "sand", "snow")
+# Synergy rule texts are written about one member ("Slush Rush doubles its Speed"); on their own they need a subject
+HOLDER_RE = re.compile(r"\bits\b")
+
+
+def solve_weather(plan, dex, game):
+    """"How do I use weather on my team": the team's own weather from the same synergy read the Coach Guide uses
+    (setters, the members that gain and by how much, drawbacks), or, when it runs none, the setters it has with
+    nothing to gain from them, and what ladder teams of the asked weather pair together."""
+    from metamatch.engine import calc, synergy
+    team = plan.team
+    asked = plan.archetype if plan.archetype in WEATHER_KEYS else None
+    engines = [e for e in synergy.team_engines(team, plan.format_id, measure=calc.available())
+               if e.key in WEATHER_KEYS and (asked is None or e.key == asked)]
+    typed = []
+    full = [e for e in engines if e.setters and any(u.major for u in e.users)]
+    half = [e for e in engines if not e.setters]
+    if full:
+        said = f"Your team is built around {join(e.label.lower() for e in full)}: " + \
+            join(synergy.describe(e) for e in full) + "."
+        for e in full:
+            for u in e.users:
+                if u.major:
+                    line = synergy.headline(e, u)
+                    line = (line.replace(", it ", f", {mon(u.name, True)} ", 1) if ", it " in line
+                            else f"{cap(mon(u.name, True))}: {line[:1].lower()}{line[1:]}")
+                    typed.append(Fact("synergy", f"{line}.",
+                                      {"engine": e.key, "user": u.name}, role="why"))
+            typed += [Fact("synergy", d.rstrip(".") + ".", {"engine": e.key}) for d in e.drawbacks[:2]]
+            if e.ladder:
+                typed.append(Fact("usage", e.ladder + ".", {"engine": e.key}))
+    elif half:
+        said = cap(join(synergy.describe(e) for e in half)) + "."
+        for e in half:
+            if e.partners:
+                typed.append(Fact("usage", f"Ladder players set {e.label.lower()} for it with {join(e.partners)}.",
+                                  {"engine": e.key, "partners": e.partners}, role="why"))
+    else:
+        found = []
+        for key in WEATHER_KEYS:
+            if asked and key != asked:
+                continue
+            for s in synergy._setters(team, synergy.CONDITIONS[key], users_present=True):
+                found.append((key, s))
+        if found:
+            setters = join(f"{mon(s['name'], True)} sets {key} with {join(s['how'])}" for key, s in found)
+            said = f"Your team doesn't build around weather: {setters}, but nothing on your team gains from it."
+        else:
+            said = f"Your team runs no {asked or 'weather'}: nothing on it sets {asked or 'any weather'}."
+        ladder = _data().get(plan.format_id, {})
+        if not asked and not found:
+            kinds = [(k, ladder[k]) for k in WEATHER_KEYS if ladder.get(k, {}).get("setters")]
+            if kinds:
+                typed.append(Fact("usage", "Ladder weather teams here run " + join(
+                    f"{k} ({join(n for n, _ in r['setters'][:2])})" for k, r in kinds) + ".",
+                    {"weathers": [k for k, _ in kinds]}, role="why"))
+        roster = ladder.get(asked) if asked else None
+        if roster:
+            setters = join(n for n, _ in roster["setters"][:2])
+            partners = join(n for n, *_ in roster["partners"][:4])
+            typed.append(Fact("usage", f"Ladder {asked} teams pair {setters} with {partners}.",
+                              {"setters": roster["setters"], "partners": roster["partners"]}, role="why"))
+        for key in ([asked] if asked else sorted({k for k, _ in found})):
+            rules = [HOLDER_RE.sub("the holder's", r.text) for r in synergy.CONDITIONS[key]["abilities"].values()
+                     if r.major and not r.generic][:2]
+            rules += [r.text for r in synergy.CONDITIONS[key]["moves"].values() if r.major and not r.generic][:1]
+            if rules:
+                typed.append(Fact("rule", f"In {key}: {join(rules)}.", {"weather": key}, role="why"))
+    facts = [f.text for f in typed]
+    return Verdict("weather", "yes" if full else "no", said, facts, persona="strategy", plain=said, typed=typed)
+
+
+SOLVERS = {"archetype": solve_archetype, "weather": solve_weather}

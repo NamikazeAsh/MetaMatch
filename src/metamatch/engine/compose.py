@@ -18,6 +18,7 @@ CATEGORIES = {
     "roles": ("building", "builder", "Team Overview"),
     "score": ("score", "strategy", "Team Overview"),
     "archetype": ("matchups", "strategy", "Threat Board"),
+    "weather": ("gameplan", "strategy", "Coach Guide"),
     "speed_tiers": ("speed", "mechanics", "Speed Tiers"),
     "audit": ("building", "builder", "Audit"),
     "win": ("gameplan", "strategy", "Coach Guide"),

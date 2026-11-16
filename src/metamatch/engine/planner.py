@@ -80,6 +80,11 @@ TAB_ASK_RE = re.compile(r"\b(?:summari[sz]e|explain|walk me through|go over|what
 # "how do I play against rain", "stall walls my team", "is my team good against stall": an archetype question
 ARCHETYPE_ASK_RE = re.compile(r"\b(?:against|vs\.?|versus|beat\w*|handle|deal\w*|play\w*|struggl\w*|counter\w*|annoying|"
                               r"wreck\w*|problem|trouble|good|weak)\b|\bteams?\b", re.I)
+# "how do I use weather", "does my team run rain", "how to build a sun team": the team's own weather, not facing one
+WEATHER_WORD_RE = re.compile(r"\b(weather|rain|sun|sand(?:storm)?|snow)\b", re.I)
+WEATHER_USE_RE = re.compile(r"\b(?:use|using|run|running|runs|build\w*|abus\w*|pilot\w*|work|my team'?s? \w+|"
+                            r"(?:do|does) (?:i|my team) (?:have|set))\b", re.I)
+FACING_RE = re.compile(r"\b(?:against|vs\.?|versus|beat\w*|counter\w*|deal\w*|handle|stop|struggl\w*|threat\w*)\b", re.I)
 # "is my team good", "rate my team": the broken down team score (engine/team_score.py)
 SCORE_RE = re.compile(r"\b(?:is|how good is|how strong is) (?:this|my|our) team(?: (?:good|any good|viable|decent|strong|"
                       r"bad|ok|okay|fine))?\b|\b(?:rate|grade|score|judge|review) (?:this|my|our) team\b|"
@@ -504,6 +509,10 @@ def plan_query(query, team):
         plan.asks_how = bool(BEAT_RE.search(q))
     elif team and not plan.opponents and not plan.user_named and TERA_PLAN_RE.search(q):
         plan.intent = "tera"
+    elif (team and not plan.opponents and WEATHER_WORD_RE.search(q) and WEATHER_USE_RE.search(q)
+            and not FACING_RE.search(q)):
+        word = WEATHER_WORD_RE.search(q).group(1).lower()
+        plan.intent, plan.archetype = "weather", {"weather": None, "sandstorm": "sand"}.get(word, word)
     elif team and not plan.opponents and ARCHETYPE_ASK_RE.search(q) and _archetype(q, format_id):
         plan.intent, plan.archetype = "archetype", _archetype(q, format_id)
     elif team and not plan.opponents and not VERSUS_RE.search(q) and SCORE_RE.search(q):
