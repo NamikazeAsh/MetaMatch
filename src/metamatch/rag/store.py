@@ -13,10 +13,10 @@ from collections import Counter
 from datetime import datetime, timezone
 from functools import lru_cache
 
-import chromadb
-from sentence_transformers import SentenceTransformer
-
 from metamatch import config
+
+# chromadb and sentence-transformers are imported inside the functions that use them: together they take about 25 s
+# to import (they pull in torch), and the chat tab only needs index_stale(), which reads two small JSON files
 
 DB_PATH = config.DATA_DIR / "chroma_db"
 INFO_PATH = DB_PATH / "index_info.json"
@@ -31,6 +31,7 @@ STOPWORDS = set("the a an of to in on is do does i my how what for with and or v
 
 
 def get_client():
+    import chromadb
     DB_PATH.mkdir(parents=True, exist_ok=True)
     return chromadb.PersistentClient(path=str(DB_PATH))
 
@@ -42,6 +43,7 @@ def get_collection():
 @lru_cache(maxsize=1)
 def get_model():
     """The embedding model, loaded once per process."""
+    from sentence_transformers import SentenceTransformer
     return SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 
