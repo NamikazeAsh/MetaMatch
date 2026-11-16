@@ -228,7 +228,41 @@ class TestRouting(unittest.TestCase):
 
     def test_prepare_routes_items_to_brock(self):
         turn = AgentManager().prepare("Should my Dragapult run Choice Specs instead?", _team())
+        self.assertIn("Brock", turn.persona)
+        if turn.verdict is not None:   # the engine comparison when usage data is available
+            self.assertEqual(turn.verdict.intent, "compare")
+
+    def test_open_building_question_goes_to_brock(self):
+        turn = AgentManager().prepare("Is Nuzzle a good move on Hatterene?", _team())
         self.assertEqual(turn.route, "builder")
+
+    def test_declines(self):
+        from metamatch.agents.manager import decline_for
+        for q in ["what will my opponent lead", "will i win against stall", "is this team good in vgc",
+                  "will kingambit get banned"]:
+            self.assertIsNotNone(decline_for(q, "gen9ou"), q)
+        for q in ["does chlorophyll double speed", "how do i beat rain", "does my dragapult outspeed iron valiant"]:
+            self.assertIsNone(decline_for(q, "gen9ou"), q)
+        self.assertEqual(AgentManager().prepare("what will my opponent lead", _team()).route, "decline")
+
+
+class TestBuildAnswers(unittest.TestCase):
+    def setUp(self):
+        self.team = _team()
+
+    def test_build_intents(self):
+        self.assertEqual(plan_query("specs or band on dragapult", self.team).intent, "compare")
+        self.assertEqual(plan_query("Suggest a teammate for this team", self.team).intent, "teammate")
+        p = plan_query("What should I replace my Kingambit with?", self.team)
+        self.assertEqual((p.intent, p.replace), ("teammate", True))
+        self.assertEqual(plan_query("which of my mons is my best wallbreaker", self.team).intent, "roles")
+        self.assertEqual(plan_query("teammates of Kingambit", self.team).intent, "usage")
+
+    def test_compare_answer(self):
+        v = solve(plan_query("specs or band on dragapult", self.team))
+        if v:
+            self.assertIn("Choice Specs", v.plain)
+            self.assertIn("Choice Band", v.plain)
 
     def test_set_up_is_not_a_set_question(self):
         self.assertFalse(BUILDER_RE.search("how do i set up with dragonite safely"))

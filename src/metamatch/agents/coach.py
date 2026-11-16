@@ -249,9 +249,51 @@ Pokemon, and never call one an answer to something it loses to.
         return chat([{"role": "system", "content": system}, {"role": "user", "content": context}],
                     temperature=0.2, max_tokens=350, model=self.model)
 
-    def run(self, query: str, team_context: dict, named_context: str = "", briefing: Briefing = None, plan=None):
-        """Yields the answer as text chunks: verified advice with the engine check and the strategy notes it was given
-        in the dropdown under it (FACTS_MARK), or the engine check and notes on their own when no advice passes."""
+    def run(self, query: str, team_context: dict, named_context: str = "", briefing: Briefing = None, plan=None,
+            state=None, meta=None):
+        """Yields the answer for an open strategy question. The engine's facts about the team (one on ones, win
+        conditions, cores, shared weaknesses) and sentences from MetaMatch's own concept notes become a numbered packet;
+        Oak only picks the facts that answer the question and adds an opener, and the facts are shown word for word.
+        Smogon passages go in the dropdown as cited cards, never to the model. METAMATCH_VOICE=legacy keeps the old
+        free advice path until the final measurement."""
+        from .grounded import voice_mode
+        if voice_mode() == "legacy":
+            yield from self._legacy_run(query, team_context, named_context, briefing, plan)
+            return
+        yield self.packet_text(query, team_context, briefing or Briefing(), plan, state, meta)
+
+    def packet_text(self, query, team_context, briefing, plan=None, state=None, meta=None):
+        from metamatch.engine.packet import Fact, Packet, first_sentences
+        from .grounded import FACTS_MARK
+        from .voice import pick
+        packet = Packet(query, "open", category="open", persona="strategy")
+        hits = references(query, team_context, plan, briefing.facts)
+        concept = []
+        for h in hits:
+            if h["metadata"].get("type") == "concept":
+                # Each sentence carries its note's title, so a sun sentence never reads as part of a rain answer
+                title = h["metadata"].get("title") or h["metadata"].get("section") or "Concept"
+                for sentence in re.split(r"(?<=[.!?])\s+", body(h["text"]).strip())[:4]:
+                    if len(sentence.split()) >= 5:
+                        concept.append(Fact("concept", f"{title}: {first_sentences(sentence)}",
+                                            {"source": _source_label(h["metadata"])}))
+        # Concept sentences lead for questions with no opponent named; the team's matchups lead otherwise
+        ordered = (briefing.typed + concept) if getattr(plan, "opponents", None) else (concept + briefing.typed)
+        for f in ordered[:12]:
+            packet.add(Fact(f.kind, f.text, dict(f.data), "context", f.detail))
+        notes = "".join(f"\n\n**{_source_label(h['metadata'])}**\n\n> {_trim(body(h['text']))}" for h in hits)
+        dropdown = ((briefing.summary or "") + notes).strip()
+        if not packet.facts:
+            text = "I can't work that out from the engine's numbers, so I won't guess."
+            return text + (FACTS_MARK + dropdown if dropdown else "")
+        opener, ids, report = pick(packet, getattr(state, "recent_openers", ()), getattr(state, "recent_moods", ()))
+        if meta is not None:
+            meta.update(report, opener=opener)
+        lines = "\n".join(f"* {packet.fact(i).text}" for i in ids if packet.fact(i))
+        return f"*{opener}*\n\n{lines}" + (FACTS_MARK + dropdown if dropdown else "")
+
+    def _legacy_run(self, query, team_context, named_context="", briefing=None, plan=None):
+        """The pre restructure path: Oak's checked free advice (kept switchable until the final measurement)."""
         from .grounded import FACTS_MARK
         briefing = briefing or Briefing()
 

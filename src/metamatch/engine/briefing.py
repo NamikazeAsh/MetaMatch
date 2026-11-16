@@ -233,6 +233,7 @@ class Briefing:
     facts: str = ""                                  # ENGINE FACTS block for the LLM prompt
     summary: str = ""                                # markdown verdicts shown to the user
     matchups: list = field(default_factory=list)     # Matchup per named opponent or top threat
+    typed: list = field(default_factory=list)        # the same facts as packet facts (engine/packet.py)
 
 
 def strategy_briefing(team, opponents=(), n_threats=3):
@@ -282,4 +283,35 @@ def strategy_briefing(team, opponents=(), n_threats=3):
     facts = ("### ENGINE FACTS (computed by MetaMatch; trust these over your own memory)\n"
              + "\n\n".join(sections) + "\n")
     summary = "**Engine check** (most common sets, one on one)\n" + "\n".join(f"* {b}" for b in bullets)
-    return Briefing(facts, summary, matchups)
+    return Briefing(facts, summary, matchups, _typed(matchups, wincons, engine_lines, weak))
+
+
+def _typed(matchups, wincons, engine_lines, weak):
+    """The briefing as packet facts: one claim each, owner words on every Pokemon."""
+    from metamatch.engine.facts import exchange_facts
+    from metamatch.engine.packet import Fact, cap, join, mon, plainify
+    out = []
+    for m in matchups:
+        if m.wins:
+            out.append(Fact("matchup", f"{cap(join(mon(x['name'], True) for x in m.wins))} "
+                                       f"{'beats' if len(m.wins) == 1 else 'beat'} {mon(m.opponent, False)} one on one.",
+                            {"opponent": m.opponent, "answers": [x["name"] for x in m.wins]}))
+            hit = [f for f in exchange_facts(m.wins[0], m.wins[0]["name"], m.opponent) if f.kind == "damage"]
+            out += hit[:1]
+        else:
+            out.append(Fact("matchup", f"Nobody on your team beats {mon(m.opponent, False)} one on one.",
+                            {"opponent": m.opponent, "answers": []}))
+        ohko = [x["name"] for x in m.losses if x.get("to_be_koed") == 1]
+        if ohko:
+            out.append(Fact("matchup", f"{cap(mon(m.opponent, False))} knocks out {join(mon(n, True) for n in ohko)} "
+                                       "in one hit.", {"opponent": m.opponent, "ohko": ohko}))
+    if wincons:
+        out.append(Fact("role", f"{cap(join(mon(n, True) for n in wincons))} "
+                                f"{'is a likely win condition' if len(wincons) == 1 else 'are likely win conditions'}: "
+                                "they set up or use the team's weather.", {"wincons": wincons}))
+    for line in engine_lines:
+        if not line.startswith("  "):
+            out.append(Fact("engine", plainify(line.strip()), {}))
+    for w in weak:
+        out.append(Fact("type", plainify(w), {}))
+    return out

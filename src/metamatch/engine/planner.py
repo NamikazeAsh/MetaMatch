@@ -73,6 +73,18 @@ GAMEPLAN_RE = re.compile(r"\bgame ?plan\b|\bhow (?:do|should|would) (?:i|we|you)
 TERA_PLAN_RE = re.compile(r"\b(?:who|which (?:mon|pokemon|member|one)) (?:should|do|would|can) (?:i |we )?(?:tera|terastal\w*)\b|"
                           r"\btera (?:plan|target|user|candidate)s?\b|\bwhen (?:should|do) (?:i|we) (?:tera|terastal\w*)\b|"
                           r"\b(?:best|good) (?:tera|terastal\w*) (?:user|target|candidate)\b", re.I)
+# "Specs or Band on Dragapult", "is Leftovers better than Rocky Helmet", "should my Corv run Rocky Helmet instead"
+COMPARE_RE = re.compile(r"\b(?:or|vs\.?|versus|better than|worse than|instead of|over)\b|\binstead\b|"
+                        r"\bshould\b[^?.!]*\b(?:run|use|hold|carry|have)\b", re.I)
+# "suggest a teammate", "what should I replace Corviknight with", "who should I add"
+TEAMMATE_ASK_RE = re.compile(r"\b(?:teammates?|partners?|replace\w*|swap\w*|addition|wallbreaker for (?:my|this) team)\b|"
+                             r"\bwho (?:should|could|can) i (?:add|bring|use)\b|\bwhat (?:should|could) i (?:add|change)\b|"
+                             r"\b(?:sixth|last|6th) (?:slot|member|mon)\b", re.I)
+REPLACE_ASK_RE = re.compile(r"\b(?:replace\w*|swap\w*|instead of|drop|cut)\b", re.I)
+OWN_ROLE_ASK_RE = re.compile(r"\b(?:which|who|what) (?:of|on|in) (?:my|our)\b|\bmy (?:best|main|only)\b|"
+                             r"\b(?:which|what) (?:mon|pokemon|member|one) (?:is|on my)\b|\bdo i have an?\b", re.I)
+ROLE_RE = re.compile(r"\b(wallbreaker|breaker|pivot|hazard setter|hazard remover|hazard removal|sweeper|wall|tank|"
+                     r"speed control|priority|revenge killer|spin ?blocker)\b", re.I)
 # "What should I lead against rain": a plan against an archetype is still Oak's to discuss
 VERSUS_RE = re.compile(r"\b(?:against|vs\.?|versus|into|facing)\b", re.I)
 # A team species right after one of these is the opponent's copy even when no team member is named yet:
@@ -140,6 +152,9 @@ class Plan:
     usage_field: str | None = None  # item, ability, move, tera, spread, teammates
     usage_option: str | None = None  # "is Loaded Dice common on Garchomp": the one option asked about
     asks_how: bool = False          # checks questions asked as advice ("how do I beat X"), voiced by Oak
+    options: list = field(default_factory=list)     # compare questions: [(kind, name)] items, moves, abilities named
+    replace: bool = False           # teammate questions: find a replacement for the named member
+    role: str = ""                  # roles questions: the role asked about ("wallbreaker")
     opp_overrides: dict = field(default_factory=dict)   # set details the question states for the opponent
     user_overrides: dict = field(default_factory=dict)  # ... and for the player's Pokemon
     conditions: dict = field(default_factory=dict)      # calc Field the question states: weather, terrain
@@ -231,6 +246,15 @@ def _usage_field(query):
         if re.search(rf"\b{pattern}\b", query, re.I):
             return fld
     return "item"
+
+
+def _options(text):
+    """[(kind, name)] for the items, moves and abilities a question names, casual item names included ("specs")."""
+    found = [(kind, name) for kind, name in rules.find_named(text) if kind in ("item", "move", "ability")]
+    for alias, item in constraints.ITEM_ALIASES.items():
+        if re.search(rf"\b{re.escape(alias)}\b", text, re.I) and ("item", item) not in found:
+            found.append(("item", item))
+    return list(dict.fromkeys(found))
 
 
 PRONOUN_RE = re.compile(r"\b(i|we|it|you|he|she|they)\b", re.I)
@@ -454,6 +478,18 @@ def plan_query(query, team):
         plan.intent = "lead"
     elif team and not plan.opponents and THREATS_RE.search(q):
         plan.intent = "threats"
+    elif (plan.user or plan.opponent) and COMPARE_RE.search(q) and _options(names_only):
+        # Comparing options on one Pokemon: two named, or one named against what the member holds now
+        plan.options = _options(names_only)
+        if len(plan.options) >= 2 or (plan.user is not None and plan.user_named):
+            plan.intent = "compare"
+    elif team and OWN_ROLE_ASK_RE.search(q) and ROLE_RE.search(q) and not plan.opponents:
+        plan.intent = "roles"
+        plan.role = ROLE_RE.search(q).group(1).lower().replace("spinblocker", "spin blocker")
+    elif team and TEAMMATE_ASK_RE.search(q) and not plan.opponents and not (USAGE_RE.search(q) and plan.user_named
+                                                                              and not REPLACE_ASK_RE.search(q)):
+        plan.intent = "teammate"
+        plan.replace = bool(REPLACE_ASK_RE.search(q)) and plan.user_named
     elif RULES_CUE_RE.search(q) and not RULES_ADVICE_RE.search(q) and rules.find_named(q, [(a, b) for a, b, _ in raw_spans]):
         # What an ability, item, move or weather does, from Showdown's rule text
         plan.intent = "rules"

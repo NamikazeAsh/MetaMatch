@@ -223,6 +223,52 @@ def _closeness(text, cited):
     return sum(w in source for w in words) / len(words) if words else 1.0
 
 
+MAX_PICKS = 3
+FACTS_LINE = re.compile(r"^\s*\**\s*FACTS?\s*\**\s*:\s*(.+?)\s*$", re.I | re.M)
+
+
+def pick(packet, recent_openers=(), recent_moods=()):
+    """(opener, fact ids, report) for an open question: the model only chooses which numbered facts answer it best
+    (and writes the opener); the app shows the chosen facts word for word. Falls back to the packet's first facts."""
+    persona = packet.persona if packet.persona in PERSONAS else "strategy"
+    mood = _pick_mood(persona, recent_moods)
+    default = (packet.why or [f.id for f in packet.facts])[:2]
+    report = {"opener": "stock", "facts": "default", "mood": mood}
+    if not packet.facts or not ollama_available():
+        return stock_opener(persona, recent_openers), default, report
+    system = (
+        f"You are {PERSONAS[persona]['voice']}. A trainer asked a question about their Pokemon team, and a battle "
+        "engine computed the numbered facts below.\n"
+        "Reply with exactly these two lines and nothing else:\n"
+        "OPENER: <a short reaction in your own voice>\n"
+        f"FACTS: <the numbers of the 1 to {MAX_PICKS} facts that answer the question best, most useful first>\n\n"
+        f"OPENER is {MAX_OPENER_WORDS} words at most, in a {mood} mood: only a greeting or reaction, with no Pokemon, "
+        "type, move, item, ability, number, result or advice."
+    )
+    numbered = {str(i + 1): f for i, f in enumerate(packet.facts)}
+    user = f"QUESTION: {packet.question}\nFACTS:\n" + "\n".join(f"{n}. {f.text}" for n, f in numbered.items())
+    try:
+        reply = chat([{"role": "system", "content": system}, {"role": "user", "content": user}],
+                     temperature=0.3, max_tokens=60)
+    except Exception as e:
+        print(f"Picker failed: {e}")
+        return stock_opener(persona, recent_openers), default, report
+    got = parse(reply)
+    line = (FACTS_LINE.search(reply or "") or None)
+    numbers = re.findall(r"\d+", line.group(1) if line else (reply or "").splitlines()[-1] if reply else "")
+    ids = list(dict.fromkeys(numbered[n].id for n in numbers if n in numbered))[:MAX_PICKS]
+    if ids:
+        report["facts"] = "model"
+    else:
+        ids = default
+    opener = got.get("opener", "")
+    if check_opener(opener, recent_openers) is None:
+        report["opener"] = "model"
+    else:
+        opener = stock_opener(persona, recent_openers)
+    return opener, ids, report
+
+
 def speak(packet, verdict=None, team_names=(), recent_openers=(), recent_moods=()):
     """(opener, why, report): the checked opener and why sentence for a packet, each falling back on its own.
     report says which slots came from the model, for tracing."""

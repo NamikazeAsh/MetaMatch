@@ -226,8 +226,32 @@ class AuditorAgent:
     def __init__(self, model_name=None):
         self.model = model_name
 
-    def run(self, query: str, team_context: dict, plan=None):
-        """Yields the answer as text: checked prose with the facts in the dropdown under it, or the facts alone."""
+    def run(self, query: str, team_context: dict, plan=None, state=None, meta=None):
+        """Yields the answer for a building question the engine has no single answer for: Brock's labelled ladder
+        facts become a numbered packet, Brock picks the ones that answer it and adds an opener, and the facts are shown
+        word for word. METAMATCH_VOICE=legacy keeps the old checked free text until the final measurement."""
+        from .grounded import voice_mode
+        if voice_mode() == "legacy":
+            yield from self._legacy_run(query, team_context, plan)
+            return
+        from metamatch.engine.packet import Fact, Packet
+        from .voice import pick
+        lines = facts_for(query, team_context, plan)[1:]   # the first line only told the model whose team it is
+        packet = Packet(query, "open", category="building", persona="builder")
+        for line in lines[:12]:
+            packet.add(Fact("usage", line, {}))
+        block = "\n".join(f"* {f}" for f in lines)
+        if not packet.facts:
+            yield "I don't have ladder numbers that answer that, so I won't guess."
+            return
+        opener, ids, report = pick(packet, getattr(state, "recent_openers", ()), getattr(state, "recent_moods", ()))
+        if meta is not None:
+            meta.update(report, opener=opener)
+        shown = "\n".join(f"* {packet.fact(i).text}" for i in ids if packet.fact(i))
+        yield f"*{opener}*\n\n{shown}" + FACTS_MARK + block
+
+    def _legacy_run(self, query: str, team_context: dict, plan=None):
+        """The pre restructure path: Brock's checked free text (kept switchable until the final measurement)."""
         facts = facts_for(query, team_context, plan)
         block = "\n".join(f"* {f}" for f in facts)
         if not ollama_available():

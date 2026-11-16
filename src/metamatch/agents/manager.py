@@ -7,8 +7,6 @@ from metamatch.engine.solvers import solve
 from metamatch.engine.sets import likely_set
 from metamatch.engine.briefing import strategy_briefing
 from metamatch.logic_engine import describe_likely_set
-from .router import get_router
-from .tactician import TacticianAgent
 from .coach import CoachAgent
 from .auditor import AuditorAgent
 from .grounded import GroundedAgent
@@ -33,13 +31,51 @@ GREETING_RE = re.compile(r"^\s*(?:hi|hello|hey|yo|good morning|good evening)\b",
 GREETING = ("Hello there! Ask me about any matchup, your leads, your win condition, a set or a teammate, "
             "and I'll check it against the engine.")
 THANKS = "Anytime! Ask away whenever something comes up, like a matchup, a lead or a set to check."
+# Questions nobody can answer from data: a fixed, honest line and the nearest thing the engine can answer instead
+DECLINES = [
+    ("next_move", re.compile(r"\bwhat will (?:they|my opponent|the opponent|he|she)\b|\bpredict\w*\b|"
+                             r"\b(?:will|is going to|gonna|would)\b[^?.!]*\b(?:they|he|she|the opponent|my opponent|opp)\b[^?.!]*"
+                             r"\b(?:lead|click|use|switch|go for|do|bring|send)\b", re.I),
+     "I can't know what your opponent will click. What I can show you is their usual set and how each of your Pokemon "
+     "does against it: ask me how to beat the Pokemon you're worried about."),
+    ("odds", re.compile(r"\bwill i win\b|\b(?:odds|chances?) (?:of|to|i) win\w*\b|\bwinnable\b|\bwin ?rate\b|"
+                        r"\bam i (?:favou?red|going to win)\b", re.I),
+     "I don't predict results: games come down to the player. I can show you how your team lines up against a threat, "
+     "or your game plan."),
+    ("luck", re.compile(r"\bhax\w*\b|\bwhy did i lose\b|\b(?:bad )?luck\w*\b|\brigged\b", re.I),
+     "Luck in a past game isn't something I can measure. If you name a move or ability, I can tell you exactly how "
+     "it works."),
+    ("format", re.compile(r"\b(?:in|for|playing|play) doubles\b|\bdoubles (?:format|battles?|tiers?|teams?)\b|"
+                          r"\b(?:vgc|random battles?|randbats|battle stadium|bss|little cup|monotype|"
+                          r"gen ?[1-8]\b|ubers)\b", re.I),
+     "I'm built for {label} singles with your team, so I can't judge other formats like VGC, doubles or older "
+     "generations."),
+    ("future", re.compile(r"\b(?:will|gonna|going to|get)\b[^?.!]*\b(?:banned|ban|suspect\w*|tier ?shift\w*|drop to|"
+                          r"rise to)\b", re.I),
+     "I can't predict bans or tier shifts. The Meta page shows which Pokemon are rising and falling in usage."),
+]
+
+
+def decline_for(query, format_id):
+    """The decline line for a question nobody can answer from data, or None."""
+    from metamatch import config
+    label = config.format_info(format_id)["label"] if format_id else "OU"
+    for kind, pattern, line in DECLINES:
+        if pattern.search(query):
+            # A question about the team's own format ("is this good in Ubers" on an Ubers team) is not out of scope
+            if kind == "format" and re.search(rf"\b{re.escape(label)}\b", query, re.I):
+                continue
+            return line.format(label=label)
+    return None
+
+
 # Answers that need the calc: without it, a planned question gets this notice, never unchecked model text
 CALC_INTENTS = {"speed", "speed_spread", "ko", "damage", "checks", "matchup", "win", "lead", "threats", "gameplan",
                 "tera", "switchins", "member"}
 # Set, item, spread and teammate questions are Brock's: he has the ladder numbers, Oak and Clemont don't. In the
 # 2026 11 12 audit six of these ("Is Life Orb the best item on Venusaur", "What should I replace Alomomola with")
 # reached Oak through the router's low confidence fallback
-BUILDER_RE = re.compile(r"\b(?:items?|movesets?|sets?(?! up)|evs?|spreads?|natures?|investment|tera(?: type)?|abilit(?:y|ies)|"
+BUILDER_RE = re.compile(r"\b(?:items?|moves?|movesets?|sets?(?! up)|evs?|spreads?|natures?|investment|tera(?: type)?|abilit(?:y|ies)|"
                         r"teammates?|partners?|replace\w*|swap\w*|wallbreaker|slot|specs|band|scarf|boots|life orb|"
                         r"leftovers|sash|helmet|assault vest|eviolite|booster)\b", re.I)
 STRATEGY_RE = re.compile(r"\bhow (?:do|can|should) (?:i|we) (?:beat|play|win|handle|deal|stop|counter|use|pilot)\b|"
@@ -73,10 +109,8 @@ class AgentManager:
     _instance = None
 
     def __new__(cls):
-        if cls._instance is None or not hasattr(cls._instance, 'router'):
+        if cls._instance is None or not hasattr(cls._instance, 'grounded'):
             instance = super(AgentManager, cls).__new__(cls)
-            instance.router = get_router()
-            instance.tactician = TacticianAgent()
             instance.coach = CoachAgent()
             instance.auditor = AuditorAgent()
             instance.grounded = GroundedAgent()
@@ -98,6 +132,9 @@ class AgentManager:
         plan = plan_query(reading.text, team_context)
         if reading.why_of is not None:
             return Turn(query, reading, plan, reading.why_of, persona=PERSONAS[reading.why_of.persona])
+        declined = decline_for(reading.text, plan.format_id)
+        if declined:
+            return Turn(query, reading, plan, route="decline", persona=PERSONAS["strategy"], meta={"decline": declined})
         verdict = solve(plan) if plan.intent not in ("open", "clarify") else None
         if verdict:
             return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona])
@@ -109,10 +146,18 @@ class AgentManager:
             from metamatch.engine import calc
             if not calc.available():
                 return Turn(query, reading, plan, route="calc_down", persona=PERSONAS["mechanics"])
-        route, _ = self.router.route_query(reading.text)
-        if BUILDER_RE.search(reading.text) and not STRATEGY_RE.search(reading.text):
-            route = "builder"
+        route = self._open_route(reading.text)
         return Turn(query, reading, plan, route=route, persona=PERSONAS.get(route, PERSONAS["fallback"]))
+
+    def _open_route(self, text):
+        """Category of an open question: building words go to Brock, everything else to Oak. The old embedding router
+        (and Clemont's free text) is only loaded for the legacy voice kept for the final comparison."""
+        from .grounded import voice_mode
+        if voice_mode() == "legacy":
+            from .router import get_router
+            route, _ = get_router().route_query(text)
+            return "builder" if BUILDER_RE.search(text) and not STRATEGY_RE.search(text) else route
+        return "builder" if BUILDER_RE.search(text) and not STRATEGY_RE.search(text) else "strategy"
 
     def respond(self, turn: Turn, team_context: dict, team_weakness: dict = None, state: dialogue.DialogueState = None):
         """The answer to a prepared turn, as a generator of text chunks."""
@@ -124,13 +169,16 @@ class AgentManager:
             return iter([CALC_DOWN])
         if turn.route == "smalltalk":
             return iter([GREETING if GREETING_RE.match(turn.query) else THANKS])
+        if turn.route == "decline":
+            return iter([turn.meta["decline"]])
         named = self._named_context(turn.plan)
         if turn.route == "mechanics":
-            return self.tactician.run(turn.text, team_context, team_weakness)
+            from .tactician import TacticianAgent   # legacy voice only
+            return TacticianAgent().run(turn.text, team_context, team_weakness)
         if turn.route == "builder":
-            return self.auditor.run(turn.text, team_context, turn.plan)
+            return self.auditor.run(turn.text, team_context, turn.plan, state=state, meta=turn.meta)
         briefing = strategy_briefing(team_context, turn.plan.opponents)
-        return self.coach.run(turn.text, team_context, named, briefing, plan=turn.plan)
+        return self.coach.run(turn.text, team_context, named, briefing, plan=turn.plan, state=state, meta=turn.meta)
 
     def remember(self, turn: Turn, state: dialogue.DialogueState = None) -> dialogue.DialogueState:
         """The dialogue state after answering `turn`."""
@@ -164,5 +212,4 @@ class AgentManager:
         """The persona that answers `query` on its own (no conversation context)."""
         if team_context is not None:
             return self.prepare(query, team_context).persona
-        route, _ = self.router.route_query(query)
-        return PERSONAS.get(route, PERSONAS["fallback"])
+        return PERSONAS.get(self._open_route(query), PERSONAS["fallback"])
