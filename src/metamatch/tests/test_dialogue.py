@@ -186,6 +186,11 @@ class TestPlannerReads(unittest.TestCase):
             self.assertIn("rain", v.plain)
             self.assertTrue(any("your" in f.text for f in v.typed))
 
+    def test_tab_questions(self):
+        for q, intent in [("summarize my threat board", "threats"), ("walk me through my speed tiers", "speed_tiers"),
+                          ("what did the audit flag", "audit"), ("what does the coach guide say", "gameplan")]:
+            self.assertEqual(plan_query(q, self.team).intent, intent, q)
+
     def test_one_member_matchup(self):
         plan = plan_query("Does my Kingambit beat Gholdengo?", self.team)
         self.assertEqual(plan.intent, "matchup")

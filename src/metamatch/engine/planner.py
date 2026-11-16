@@ -69,7 +69,15 @@ THREATS_RE = re.compile(r"\b(?:biggest|main|worst|scariest|top|major|key) threat
 GAMEPLAN_RE = re.compile(r"\bgame ?plan\b|\bhow (?:do|should|would) (?:i|we|you) (?:play|pilot|use|run) (?:this|my|our) team\b|"
                          r"\bhow (?:does|do) (?:this|my|our) team (?:work|play|function)\b|\bstrategy for (?:this|my|our) team\b|"
                          r"\bwhat does (?:this|my|our) team (?:do|want)\b", re.I)
-# "how do I play against rain", "stall walls my team", "is my team good against sun": an archetype question
+# "summarize my threat board", "walk me through my speed tiers": a dashboard tab, answered by the same functions
+TABS = [(re.compile(r"\bthreat ?board\b", re.I), "threats"), (re.compile(r"\bspeed ?tiers?\b", re.I), "speed_tiers"),
+        (re.compile(r"\baudit\b|\bteam check\b", re.I), "audit"), (re.compile(r"\b(?:team )?completer\b", re.I), "teammate"),
+        (re.compile(r"\bcoach(?:'s)? guide\b|\bguide tab\b", re.I), "gameplan"),
+        (re.compile(r"\b(?:matchup )?matri(?:x|ces)\b", re.I), "team_type"),
+        (re.compile(r"\bteam overview\b|\boverview tab\b", re.I), "score")]
+TAB_ASK_RE = re.compile(r"\b(?:summari[sz]e|explain|walk me through|go over|what does|what do|tell me about|break down|"
+                        r"read|show|say|says|flag\w*)\b|\btab\b", re.I)
+# "how do I play against rain", "stall walls my team", "is my team good against stall": an archetype question
 ARCHETYPE_ASK_RE = re.compile(r"\b(?:against|vs\.?|versus|beat\w*|handle|deal\w*|play\w*|struggl\w*|counter\w*|annoying|"
                               r"wreck\w*|problem|trouble|good|weak)\b|\bteams?\b", re.I)
 # "is my team good", "rate my team": the broken down team score (engine/team_score.py)
@@ -435,7 +443,11 @@ def plan_query(query, team):
     # A stat question is about the named team member, else a named Pokemon off the team
     target = ("user" if plan.user is not None and (plan.user_named or not plan.opponents)
               else "opponent" if plan.opponents else None)
-    if (team and TEAM_WIDE_RE.search(q) and TYPE_ASK_RE.search(q) and not TEAM_ADVICE_RE.search(q)
+    tab = next((intent for pattern, intent in TABS if pattern.search(q)), None) if team and TAB_ASK_RE.search(q) else None
+    if tab:
+        # A question about a dashboard tab gets that tab's own answer (same functions, so the numbers match)
+        plan.intent = tab
+    elif (team and TEAM_WIDE_RE.search(q) and TYPE_ASK_RE.search(q) and not TEAM_ADVICE_RE.search(q)
             and not SPEED_RE.search(q)):
         # A type chart lookup over the whole team: one type, the opponent's usual attacks, or every shared weakness
         plan.intent = "team_type"

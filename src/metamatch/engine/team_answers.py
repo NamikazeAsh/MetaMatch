@@ -315,6 +315,51 @@ def solve_score(plan, dex, game):
     return Verdict("score", f"{s.total:g}", said, facts, persona="strategy", plain=said, typed=typed)
 
 
+def solve_speed_tiers(plan, dex, game):
+    """'Walk me through my speed tiers': each member's Speed and how much of the top ladder it outspeeds (Speed Tiers
+    tab, same functions)."""
+    from metamatch.engine.guide import N_SPEED
+    from metamatch.engine import speed_board
+    team = plan.team or {}
+    names = [p["Pokemon"] for p in team.values()]
+    speeds = speed_board.member_speeds(team, plan.format_id)
+    meta = speed_board.meta_speeds(plan.format_id, n=N_SPEED, exclude=names)
+    if not speeds or not meta:
+        return None
+    share = {n: sum(speed_board.outspeed_share(s, m) for m in meta) / len(meta) for n, s in speeds.items()}
+    order = sorted(speeds, key=speeds.get, reverse=True)
+    typed = [Fact("speed", f"Your {n} has {speeds[n]} Speed and outspeeds {round(share[n] * 100)}% of the top {N_SPEED} "
+                           "ladder Pokemon's sets.", {"member": n, "speed": speeds[n], "share": round(share[n], 3)},
+                  role="why" if i in (0, len(order) - 1) else "context") for i, n in enumerate(order)]
+    fast, slow = order[0], order[-1]
+    said = (f"Your fastest is your {fast} at {speeds[fast]} Speed, outspeeding {round(share[fast] * 100)}% of the top "
+            f"{N_SPEED} ladder sets; your slowest is your {slow} at {speeds[slow]}.")
+    return Verdict("speed_tiers", fast, said, [f.text for f in typed], persona="mechanics", plain=said, typed=typed)
+
+
+def solve_audit(plan, dex, game):
+    """'What did the audit flag': set choices few ladder players make (usage audit) and legality problems (Team
+    Check), the same functions as the Audit tab."""
+    from metamatch import auditor
+    from metamatch.engine.team_check import check
+    team = plan.team or {}
+    typed = []
+    for w in auditor.audit_team(team).get("warnings", []):
+        common = f"; the most common is {w['suggestion']}" if w.get("suggestion") else ""
+        typed.append(Fact("usage", f"Your {w['pokemon']} runs {w['current']} ({w['category'].lower()}), which only "
+                                   f"{w['usage']:.0f}% of ladder {w['pokemon']} sets use{common}.",
+                          {"member": w["pokemon"], "usage": w["usage"]}, role="why" if len(typed) < 2 else "context"))
+    problems = [(lvl, msg) for lvl, msg in check(team, plan.format_id) if lvl == "fix"]
+    for _, msg in problems:
+        typed.append(Fact("rule", msg, {"legality": True}, role="why"))
+    if not typed:
+        said = "The audit found nothing unusual: every item, ability and move is one ladder players commonly run, and the team is legal."
+        return Verdict("audit", "clean", said, [], persona="builder", plain=said, typed=[])
+    said = (f"The audit flags {len(typed) - len(problems)} uncommon set choice{'s' if len(typed) - len(problems) != 1 else ''}"
+            + (f" and {len(problems)} legality problem{'s' if len(problems) != 1 else ''}" if problems else "") + ".")
+    return Verdict("audit", str(len(typed)), said, [f.text for f in typed], persona="builder", plain=said, typed=typed)
+
+
 @lru_cache(maxsize=16)
 def _rows_cached(team_json, format_id):
     from metamatch.engine.guide import board_rows
@@ -327,4 +372,5 @@ def _rows_for(plan):
 
 
 SOLVERS = {"win": solve_win, "lead": solve_lead, "threats": solve_threats, "gameplan": solve_gameplan, "tera": solve_tera,
-           "switchins": solve_switchins, "member": solve_member, "score": solve_score}
+           "switchins": solve_switchins, "member": solve_member, "score": solve_score,
+           "speed_tiers": solve_speed_tiers, "audit": solve_audit}
