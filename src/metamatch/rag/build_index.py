@@ -4,6 +4,7 @@ Builds the local RAG index from every source:
   * concept notes, one file per game (data/knowledge/concepts_<general|sv|champions>.md)
   * Champions usage cards from the downloaded chaos stats (rag/usage_cards.py)
   * reworded Pokechamp community guides from the local cache (rag/pokechamp.py)
+  * Smogon technique and archetype guides from the local cache (rag/guides.py), shown only as cited cards
 Run: python src/metamatch/rag/build_index.py  (or scripts/update_meta.py --rebuild-index)
 """
 import re
@@ -15,7 +16,7 @@ SRC_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(SRC_DIR))
 
 from metamatch import config  # noqa: E402
-from metamatch.rag import pokechamp, scraper, store, usage_cards  # noqa: E402
+from metamatch.rag import guides, pokechamp, scraper, store, usage_cards  # noqa: E402
 from metamatch.rag.chunking import header  # noqa: E402
 
 KNOWLEDGE_DIR = config.DATA_DIR / "knowledge"
@@ -56,6 +57,8 @@ def main():
     guide_chunks = pokechamp.build_chunks()
     print(f"Loaded {len(guide_chunks)} community guide chunks.")
     chunks.extend(guide_chunks)
+    # Run scripts/fetch_guides.py first to fill the Smogon technique guide cache
+    chunks.extend(guides.build_chunks())
     if not chunks:
         print("No data fetched. Aborting.")
         return

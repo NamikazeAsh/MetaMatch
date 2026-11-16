@@ -169,3 +169,6 @@ data/replays/
 # Sprites downloaded on first use
 src/metamatch/static/sprites/
 data/knowledge/smogon/
+
+# Smogon technique guides: copyrighted text, kept local for personal retrieval only
+data/knowledge/guides/
