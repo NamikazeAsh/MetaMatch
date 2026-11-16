@@ -60,19 +60,25 @@ def _kill_priority(pairs, k, attacker, defender, dex):
     return top
 
 
-def _race(pairs, attacker, defender, game):
-    """Hits for the attacker's best plain attack to KO from full HP. A half HP move (Ruination) can open: one use, then
-    the plain attack only needs the other half, which counts when that is quicker. None when nothing can KO."""
-    plain = [(m, r) for m, r in pairs or [] if not r.get("half_hp")]
+def _race(pairs, attacker, defender, game, roll=0):
+    """Hits for the attacker's best plain attack to KO from full HP, at the lowest roll (roll=0, guaranteed) or the
+    highest (roll=1). A half HP move (Ruination) can open: one use, then the plain attack only needs the other half,
+    which counts when that is quicker. None when nothing can KO."""
+    plain = _plain(pairs)
     if not plain:
         return None
-    move, best = plain[0]
-    n = mechanics.hits_to_ko(best, attacker, defender, move, game=game)
-    if any(r.get("half_hp") for _, r in pairs) and best["range"][0] > 0:
+    move, best = plain
+    n = mechanics.hits_to_ko(best, attacker, defender, move, game=game, roll=roll)
+    if any(r.get("half_hp") for _, r in pairs) and best["range"][roll] > 0:
         hp = best["defender_stats"]["hp"]
-        combo = 1 + math.ceil((hp - hp // 2) / best["range"][0])
+        combo = 1 + math.ceil((hp - hp // 2) / best["range"][roll])
         n = min(n, combo) if n else combo
     return n
+
+
+def _plain(pairs):
+    """The strongest attack that is not a half HP move: the one a knockout count is built on."""
+    return next(((m, r) for m, r in pairs or [] if not r.get("half_hp")), None)
 
 
 def exchange(p, opp_set, game, dex):
@@ -102,6 +108,13 @@ def exchange(p, opp_set, game, dex):
         "taken": taken[0] if taken else None,
         "to_ko": to_ko,
         "to_be_koed": to_be_koed,
+        # Best case counts (highest roll) and the attacks they rest on, for "in 3 or 4 hits" in the chat's facts
+        "to_ko_best": _race(dealt, mine, theirs, game, roll=1),
+        "to_be_koed_best": _race(taken, theirs, mine, game, roll=1),
+        "dealt_ko_move": _plain(dealt),
+        "taken_ko_move": _plain(taken),
+        "half_hp": [m for m, r in taken if r.get("half_hp")],
+        "half_hp_mine": [m for m, r in dealt if r.get("half_hp")],
         "priority": _kill_priority(dealt, to_ko, mine, theirs, dex),
         "opp_priority": _kill_priority(taken, to_be_koed, theirs, mine, dex),
     }

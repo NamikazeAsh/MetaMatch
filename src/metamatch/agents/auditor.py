@@ -14,7 +14,7 @@ from .client import chat, ollama_available
 from .grounded import FACTS_MARK, FREE_NUMBERS, _numbers
 from metamatch import auditor, config
 from metamatch.engine import rules
-from metamatch.engine.dex import dex_for_format, to_id
+from metamatch.engine.dex import dex_for_format
 from metamatch.engine.names import find_pokemon
 from metamatch.engine.sets import chaos_entry, spread_label
 

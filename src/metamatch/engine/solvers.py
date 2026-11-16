@@ -9,6 +9,7 @@ from dataclasses import dataclass, field, replace
 from metamatch import config
 from metamatch.engine import calc, constraints, mechanics
 from metamatch.engine.dex import dex_for_format, to_id
+from metamatch.engine.packet import Fact, cap, hits as hits_text, mon, pct as pct_text
 from metamatch.engine.sets import calc_spec, chaos_entry, describe_spread, likely_set, spread_label
 
 STAT_NAMES = {"hp": "HP", "atk": "Attack", "def": "Defense", "spa": "Special Attack", "spd": "Special Defense", "spe": "Speed"}
@@ -41,6 +42,10 @@ class Verdict:
     members: list = field(default_factory=list)  # checks verdicts: the whole team
     groups: dict = field(default_factory=dict)   # team_type verdicts: {"immune"|"resist"|"neutral"|"weak": [members]}
     speeds: tuple = ()                           # speed verdicts: (player's Speed, opponent's Speed)
+    # The answer packet view (engine/packet.py): the answer in plain words with owner words, and typed facts; facts
+    # with role "why" are the ones the model may explain. `statement` and `facts` stay as the exact engine wording
+    plain: str = ""
+    typed: list = field(default_factory=list)
 
 
 def _pct(x):
@@ -241,6 +246,9 @@ def solve_speed(plan, dex, game):
     if stated in mechanics.OPP_SPEED_ITEMS:
         which += f" and the stated {stated}"
     facts = [f"{_user_name(p)} Speed: {us}.", f"{name} Speed with {which}: {them}."]
+    me, opp = mon(_user_name(p), True), mon(name, False)
+    typed = [Fact("speed", f"{cap(me)} has {us} Speed{held}.", {"side": "user", "speed": us}),
+             Fact("speed", f"{cap(opp)} has {them} Speed with {which}.", {"side": "opponent", "speed": them}, role="why")]
     # Ladder shares compare against plain spreads, so they only hold when nothing the question states changes the
     # opponent's Speed: no field effect, no stated spread, and no stated Speed item (a Scarf answer that also said
     # "outspeeds 100% of its sets" would contradict itself)
@@ -250,15 +258,36 @@ def solve_speed(plan, dex, game):
         faster = sum(share for spe, share in s["speeds"] if spe < us)
         tied = sum(share for spe, share in s["speeds"] if spe == us)
         facts.append(f"Across all {name} sets on the ladder, {_user_name(p)} outspeeds {_pct(faster)} and ties {_pct(tied)}.")
+        typed.append(Fact("speed", f"{cap(me)} outspeeds {_pct(faster)} of ladder {name} sets"
+                                   + (f" and ties {_pct(tied)}." if tied >= 0.005 else "."),
+                          {"outspeeds_share": round(faster, 3), "ties_share": round(tied, 3)}))
     if s and s.get("item") == "Choice Scarf" and "item" not in plan.opp_overrides and not plan.opp_overrides.get("no_speed_item"):
         facts.append(f"{_pct(s['item_share'])} of {name} carry Choice Scarf, reaching {int(them * 1.5)} Speed.")
+        typed.append(Fact("usage", f"{_pct(s['item_share'])} of ladder {name} sets hold Choice Scarf, which takes it to "
+                                   f"{int(them * 1.5)} Speed.", {"item": "Choice Scarf", "share": s["item_share"],
+                                                                 "speed": int(them * 1.5)}, role="why"))
     if s and s.get("item") == "Booster Energy" and not stated and not plan.raw_stats and opp_speed_spec is not spec:
         boosted = mechanics.final_speed(spec, game, move, _speed_field(plan, "opponent", situation))
         if boosted and boosted != them:
             facts.append(f"{_pct(s['item_share'])} of {name} carry Booster Energy, which raises its Speed to {boosted}.")
+            typed.append(Fact("usage", f"{_pct(s['item_share'])} of ladder {name} sets hold Booster Energy, which raises its "
+                                       f"Speed to {boosted}.", {"item": "Booster Energy", "share": s["item_share"],
+                                                                "speed": boosted}, role="why"))
+    if trick_room:
+        typed.append(Fact("rule", "Under Trick Room the slower Pokemon moves first.", {"trick_room": True}))
+    # The answer in plain words, from the player's side
+    if us == them:
+        said = f"{cap(me)} and {opp} tie at {us} Speed, so either can move first."
+    elif first:
+        said = f"{cap(me)} moves before {opp}: {us} Speed against {them}."
+    else:
+        said = f"{cap(opp)} moves before {me}: {them} Speed against {us}."
+    if trick_room:
+        said = "Under Trick Room, " + said[0].lower() + said[1:]
     # Contradiction checks read the answer as "subject is faster than other", inverted when ask_slower
     return Verdict("speed", answer, statement, facts, subject=subject, other=other,
-                   ask_slower=plan.speed_ask == "slower", subject_is_player=plan.subject != "opponent", speeds=(us, them))
+                   ask_slower=plan.speed_ask == "slower", subject_is_player=plan.subject != "opponent", speeds=(us, them),
+                   plain=said, typed=typed)
 
 
 def _attack(plan, dex, game):
@@ -342,6 +371,32 @@ def _ko_hits(ko_text):
     return (1 if m.group(2) == "O" else int(m.group(2))), m.group(1) == "guaranteed"
 
 
+def _attack_words(plan, attack, game):
+    """(attacker, defender, damage clause, typed facts) for a calc answer, with owner words, whole percentages and
+    the knockout count in plain words ('in 2 or 3 hits')."""
+    att_mine = plan.attacker == "user"
+    a, d = mon(attack.attacker, att_mine), mon(attack.defender, not att_mine)
+    r, move = attack.result, attack.move
+    lo, hi = r["percent"]
+    worst = mechanics.hits_to_ko(r, attack.attacker_spec, attack.defender_spec, move, game=game)
+    best = mechanics.hits_to_ko(r, attack.attacker_spec, attack.defender_spec, move, game=game, roll=1)
+    if not hi:
+        clause = f"{cap(a)}'s {move} does no damage to {d}"
+        typed = [Fact("damage", f"{clause}.", {"move": move, "pct": [0, 0], "immune": True}, role="why")]
+    else:
+        clause = f"{cap(a)}'s {move} does {pct_text(lo, hi)} of {d}'s HP"
+        count = hits_text(worst, best)
+        typed = [Fact("damage", f"{clause}.", {"move": move, "pct": [lo, hi]}, role="why", detail=r.get("desc", ""))]
+        if count:
+            typed.append(Fact("ko", f"From full HP, {a}'s {move} knocks out {d} {count}.",
+                              {"move": move, "hits": worst, "hits_best": best}, role="why"))
+    if attack.opp_set and not constraints.stated_spread(plan.opp_overrides) and "item" not in plan.opp_overrides:
+        s = attack.opp_set
+        typed.append(Fact("stated", f"{cap(mon(s['name'], False))} is assumed on its most common set: {s['item']}, "
+                                    f"{s['ability']}.", {"basis": "most common set"}))
+    return a, d, clause, typed
+
+
 def solve_ko(plan, dex, game):
     attack = _attack(plan, dex, game)
     if not attack:
@@ -371,7 +426,21 @@ def solve_ko(plan, dex, game):
         facts.append(f"{dfn} at full HP keeps {effect}; hazards or earlier chip would remove it.")
     if s and not constraints.stated_spread(plan.opp_overrides) and "item" not in plan.opp_overrides:
         facts.append(f"{s['name']} assumed on its most common set: {describe_spread(s, game)} @ {s['item']}, {s['ability']}.")
-    return Verdict("ko", answer, statement, facts, subject=att, other=dfn, survive=plan.survive, hits=plan.ko_hits)
+    a, d, clause, typed = _attack_words(plan, attack, game)
+    if effect:
+        typed.append(Fact("rule", f"At full HP, {d} lives one hit on 1 HP with {effect}." if effect != "Disguise" else
+                                  f"{cap(d)}'s Disguise takes the first hit.", {"effect": effect}, role="why"))
+    n = "one hit" if plan.ko_hits == 1 else f"{plan.ko_hits} hits"
+    if plan.survive:
+        said = {"yes": f"Yes, {d} survives: {clause[0].lower() + clause[1:]}.",
+                "no": f"No, {d} does not survive: {clause[0].lower() + clause[1:]}.",
+                "sometimes": f"Only on some rolls: {clause[0].lower() + clause[1:]}."}[answer]
+    else:
+        said = {"yes": f"Yes, it knocks out {d} in {n}: {clause[0].lower() + clause[1:]}.",
+                "no": f"No, it does not knock out {d} in {n}: {clause[0].lower() + clause[1:]}.",
+                "sometimes": f"Only on some rolls: {clause[0].lower() + clause[1:]}."}[answer]
+    return Verdict("ko", answer, statement, facts, subject=att, other=dfn, survive=plan.survive, hits=plan.ko_hits,
+                   plain=said, typed=typed)
 
 
 def solve_damage(plan, dex, game):
@@ -393,7 +462,9 @@ def solve_damage(plan, dex, game):
     facts += _hp_facts(attack)
     if s and not constraints.stated_spread(plan.opp_overrides) and "item" not in plan.opp_overrides:
         facts.append(f"{s['name']} assumed on its most common set: {describe_spread(s, game)} @ {s['item']}, {s['ability']}.")
-    return Verdict("damage", f"{lo}-{hi}%", statement, facts)
+    a, d, clause, typed = _attack_words(plan, attack, game)
+    said = clause + (f": {d} is immune." if not hi else ".")
+    return Verdict("damage", f"{lo}-{hi}%", statement, facts, plain=said, typed=typed)
 
 
 def solve_type(plan, dex, game):
@@ -436,7 +507,16 @@ def solve_type(plan, dex, game):
     typing = f"Tera {tera}" if tera and tera != "Stellar" else "/".join(types)
     statement = f"{name} ({typing}{', ' + ability if ability else ''}) {phrase}."
     facts = [f"{t} vs {d}: {chart.get(t, {}).get(d, 1.0):g}x." for d in types]
-    return Verdict("type", answer, statement, facts)
+    mine = plan.user is not None and (plan.user_named or not plan.opponent)
+    who = mon(name, mine)
+    plain_phrase = {"immune": f"is immune to {t} attacks{via}", "resists": f"resists {t} attacks: they do {mult:g} times damage",
+                    "weak": f"is weak to {t} attacks: they do {mult:g} times damage",
+                    "neutral": f"takes normal damage from {t} attacks"}[answer]
+    typed = [Fact("type", f"{cap(who)} is {typing} type" + (f" with {ability}." if ability else "."),
+                  {"types": types, "ability": ability}, role="why")]
+    typed += [Fact("type", f"{t} attacks do {chart.get(t, {}).get(d, 1.0):g} times damage to {d} types.",
+                   {"attack": t, "defend": d, "mult": chart.get(t, {}).get(d, 1.0)}, role="why") for d in types]
+    return Verdict("type", answer, statement, facts, plain=f"{cap(who)} {plain_phrase}.", typed=typed)
 
 
 def solve_stat(plan, dex, game):
@@ -461,7 +541,14 @@ def solve_stat(plan, dex, game):
     facts = [f"All stats: " + ", ".join(f"{STAT_NAMES[k]} {v}" for k, v in stats.items()) + "."]
     if plan.stat == "spe" and (item or "").lower() == "choice scarf":
         facts.append(f"With Choice Scarf it moves at {int(value * 1.5)}.")
-    return Verdict("stat", str(value), statement, facts)
+    whose = mon(who, plan.stat_target != "opponent")
+    typed = [Fact("stat", f"{cap(whose)}'s stats: " + ", ".join(f"{STAT_NAMES[k]} {v}" for k, v in stats.items()) + ".",
+                  {"stats": stats})]
+    if plan.stat == "spe" and (item or "").lower() == "choice scarf":
+        typed.append(Fact("stat", f"With Choice Scarf, {whose} moves at {int(value * 1.5)} Speed.",
+                          {"speed": int(value * 1.5)}, role="why"))
+    said = f"{cap(whose)}'s {STAT_NAMES[plan.stat]} is {value} at level {level}."
+    return Verdict("stat", str(value), statement, facts, plain=said, typed=typed)
 
 
 USAGE_FIELDS = {"item": "Items", "ability": "Abilities", "move": "Moves", "tera": "Tera Types", "spread": "Spreads",
@@ -483,7 +570,23 @@ def _usual_set(target, plan, game):
              f"{describe_spread(s, game)} is on {_pct(s['spread_share'])} of sets."]
     if s.get("tera") and game != "champions":
         facts.append(f"Most common Tera: {s['tera'][0]} ({_pct(s['tera'][1])}).")
-    return Verdict("usage", s["item"] or s["name"], statement, facts, persona="builder")
+    from metamatch.engine.packet import spread_words
+    lad = f"ladder {s['name']}"
+    unit = "stat points" if game == "champions" else "EVs"
+    typed = [Fact("usage", f"{_pct(s['item_share'])} of {lad} sets hold {s['item']}.", {"item": s["item"],
+                                                                                        "share": s["item_share"]}, role="why"),
+             Fact("usage", f"The usual ability of {lad} is {s['ability']}.", {"ability": s["ability"]}),
+             Fact("usage", "Move shares on " + f"{lad} sets: " + ", ".join(f"{m} {_pct(sh)}" for m, sh in s["moves"]) + ".",
+                  {"moves": s["moves"]}, role="why"),
+             Fact("usage", f"The most common spread, on {_pct(s['spread_share'])} of {lad} sets, is "
+                           f"{spread_words(s['nature'], s['evs'], unit)}.", {"spread_share": s["spread_share"]},
+                  detail=describe_spread(s, game))]
+    if s.get("tera") and game != "champions":
+        typed.append(Fact("usage", f"The most common Tera type on {lad} sets is {s['tera'][0]}, on {_pct(s['tera'][1])}.",
+                          {"tera": s["tera"][0], "share": s["tera"][1]}))
+    said = (f"Ladder {s['name']} most often runs {s['item']} and {s['ability']}, with "
+            f"{_join([m for m, _ in s['moves']])}.")
+    return Verdict("usage", s["item"] or s["name"], statement, facts, persona="builder", plain=said, typed=typed)
 
 
 def solve_usage(plan, dex, game):
@@ -519,23 +622,47 @@ def solve_usage(plan, dex, game):
             "teammates": "teammate"}[plan.usage_field]
     top, share = ranked[0]
     facts = [f"Top {noun}s: " + ", ".join(f"{display(k)} {_pct(v)}" for k, v in ranked) + "."]
+    lad = f"ladder {key}"
+    unit = "of its teams" if plan.usage_field == "teammates" else f"of {lad} sets"
+
+    def words(k):
+        # Spreads in words for the model ("Jolly nature with 252 Attack..."), not "Jolly 252 Atk / 252 Spe"
+        if plan.usage_field != "spread":
+            return display(k)
+        from metamatch.engine.packet import spread_words
+        from metamatch.engine.sets import _parse_spread
+        return spread_words(*_parse_spread(k), "stat points" if game == "champions" else "EVs")
+    if plan.usage_field == "spread":
+        # Spreads in words are long: one fact each
+        top_facts = [Fact("usage", f"{_pct(v)} {unit} use {words(k)}.", {"field": "spread", "spread": display(k),
+                                                                          "share": round(v, 3)}, role="why" if i < 2 else "context")
+                     for i, (k, v) in enumerate(ranked)]
+    else:
+        top_facts = [Fact("usage", f"Top {noun}s, as a share {unit}: " + "; ".join(f"{words(k)} {_pct(v)}" for k, v in ranked)
+                          + ".", {"field": plan.usage_field, "ranked": [(display(k), round(v, 3)) for k, v in ranked]},
+                          role="why", detail=facts[0])]
     if plan.usage_option:
         # One named option: its own share and rank, with the top options for scale
         want = to_id(plan.usage_option)
         rank, hit = next(((i + 1, kv) for i, kv in enumerate(everything) if to_id(kv[0]) == want), (None, None))
         if hit is None:
             statement = f"{plan.usage_option} doesn't show up on {key} sets in {label}'s usage stats."
-            return Verdict("usage", "0%", statement, facts, persona="builder")
+            return Verdict("usage", "0%", statement, facts, persona="builder",
+                           plain=f"{plan.usage_option} doesn't show up on {lad} sets in {label}.", typed=top_facts)
         place = ORDINALS[rank] if rank < len(ORDINALS) else f"number {rank}"
         statement = (f"{plan.usage_option} is on {_pct(hit[1])} of {key} sets in {label}, "
                      f"the {place} {noun}." + ("" if rank == 1 else f" The most common is {display(top)} ({_pct(share)})."))
-        return Verdict("usage", _pct(hit[1]), statement, facts, persona="builder")
+        said = (f"{plan.usage_option} is on {_pct(hit[1])} of {lad} sets, the {place} {noun}."
+                + ("" if rank == 1 else f" The most common is {display(top)}, on {_pct(share)}."))
+        return Verdict("usage", _pct(hit[1]), statement, facts, persona="builder", plain=said, typed=top_facts)
     if plan.usage_field == "teammates":
         statement = f"The most common teammate of {key} in {label} is {display(top)} (on {_pct(share)} of its teams)."
         facts = ["Top teammates (share of its teams): " + ", ".join(f"{display(k)} {_pct(v)}" for k, v in ranked) + "."]
+        said = f"{display(top)} is the most common teammate of {lad}, on {_pct(share)} of its teams."
     else:
         statement = f"The most common {noun} on {key} in {label} is {display(top)} ({_pct(share)} of sets)."
-    return Verdict("usage", display(top), statement, facts, persona="builder")
+        said = f"The most common {noun} on {lad} sets is {display(top)}, on {_pct(share)} of them."
+    return Verdict("usage", display(top), statement, facts, persona="builder", plain=said, typed=top_facts)
 
 
 def solve_speed_spread(plan, dex, game):
@@ -562,8 +689,13 @@ def solve_speed_spread(plan, dex, game):
         statement = f"To outspeed {name} ({them} Speed), {me} needs {them + 1} Speed: {price_text(curve, cost)}."
     facts = [f for f in base.facts if "Across all" not in f]
     facts.append(f"{me} runs {curve['current']} Spe {curve['unit']} now, with {max(curve['free'], 0)} {curve['unit']} unspent.")
+    typed = [f for f in base.typed if "ladder sets" not in f.text]
+    typed.append(Fact("set", f"Your {me} runs {curve['current']} Speed {curve['unit']} now, with "
+                             f"{max(curve['free'], 0)} {curve['unit']} unspent.",
+                      {"current": curve["current"], "free": curve["free"]}, role="why"))
+    said = statement.replace(f"{me} ", f"Your {me} ", 1) if statement.startswith(me) else statement
     return Verdict("speed_spread", price_text(curve, cost, short=True), statement, facts, persona="builder",
-                   subject=me, other=name)
+                   subject=me, other=name, plain=said, typed=typed)
 
 
 def _join(names):
@@ -613,8 +745,21 @@ def solve_matchup(plan, dex, game):
                      else f"No teammate beats {name} one on one either.")
     facts.append(f"{name[0].upper() + name[1:]} assumed on {basis}; switching, hazards and setup are not counted.")
     answer = {"win": "yes", "lose": "no"}.get(cell.verdict, "even")
+    from metamatch.engine.facts import basis_fact, exchange_facts
+    typed = exchange_facts(cell.exchange, member["Pokemon"], display_name(row.name), cell.verdict)
+    for f in typed[1:]:
+        if f.kind == "damage":
+            f.role = "why"
+    if cell.verdict != "win":
+        typed.append(Fact("matchup", f"Teammates that beat {mon(display_name(row.name), False)} one on one: "
+                                     f"{_join([mon(m, True) for m in others])}." if others else
+                                     f"No teammate beats {mon(display_name(row.name), False)} one on one either.",
+                          {"answers": others}))
+    typed.append(basis_fact(display_name(row.name), basis))
+    said = f"Your {me} {verb} {mon(display_name(row.name), False)} one on one."
     return Verdict("matchup", answer, statement, facts, persona="strategy", subject=me, other=name,
-                   losers=[member["Pokemon"]] if cell.verdict == "lose" else [], members=[member["Pokemon"]])
+                   losers=[member["Pokemon"]] if cell.verdict == "lose" else [], members=[member["Pokemon"]],
+                   plain=said, typed=typed)
 
 
 def solve_checks(plan, dex, game):
@@ -640,10 +785,26 @@ def solve_checks(plan, dex, game):
         facts.append(f"Smogon's checks data also lists {_join(row.checks_data)} as checks to {name}.")
     basis = "its most common set, with the details the question states" if plan.opp_overrides else "its most common set"
     facts.append(f"{name} assumed on {basis}; switching, hazards and setup are not counted.")
+    from metamatch.engine.facts import basis_fact, exchange_facts
+    opp = mon(name, False)
+    typed = []
+    for m in answers + losses:
+        for f in exchange_facts(row.cells[m].exchange, m, name, row.cells[m].verdict):
+            # The model may explain the strongest answer's two hits; the rest are context
+            if m == (answers or losses)[0] and f.kind == "damage":
+                f.role = "why"
+            typed.append(f)
+    typed.append(basis_fact(name, basis))
+    if answers:
+        said = f"{cap(_join([mon(m, True) for m in answers]))} {'beats' if len(answers) == 1 else 'beat'} {opp} one on one."
+    else:
+        said = f"Nobody on your team beats {opp} one on one."
+    if ohko:
+        said += f" {cap(opp)} knocks out {_join([mon(m, True) for m in ohko])} in one hit."
     # "How do I beat X" is Oak's question; "what checks X" is Clemont's
     return Verdict("checks", ", ".join(answers) or "none", statement, facts, other=name,
                    persona="strategy" if plan.asks_how else "mechanics",
-                   losers=losses, members=list(row.cells))
+                   losers=losses, members=list(row.cells), plain=said, typed=typed)
 
 
 ASK_VERBS = {"immune": ("is immune to {t} attacks", "are immune to {t} attacks"),
@@ -689,6 +850,20 @@ def _type_line(t, team, dex, label=None):
     return f"{label or t}: " + "; ".join(parts) + ".", groups
 
 
+def _type_fact(label, groups, why=True):
+    """'Against Water attacks: your Venusaur and your Dragapult resist them; your Torkoal is weak to them.'"""
+    words = {"immune": ("is immune", "are immune"), "resist": ("resists them", "resist them"),
+             "weak": ("is weak to them", "are weak to them"), "neutral": ("takes normal damage", "take normal damage")}
+    parts = []
+    for g in ("immune", "resist", "weak", "neutral"):
+        names = [n for n, _, _ in groups[g]]
+        if names:
+            parts.append(f"{_join([mon(n, True) for n in names])} {words[g][len(names) > 1]}")
+    return Fact("type", f"Against {label} attacks: " + "; ".join(parts) + ".",
+                {"attack": label, "groups": {g: [n for n, _, _ in e] for g, e in groups.items()}},
+                role="why" if why else "context")
+
+
 def _asked(groups, ask):
     """Names in the asked group; 'resist' also counts immunities."""
     keys = ("immune", "resist") if ask == "resist" else (ask,)
@@ -728,17 +903,21 @@ def solve_team_type(plan, dex, game):
         statement = f"{_join(names)} {phrase}." if names else f"Nobody on your team {one.format(t=plan.atk_type)}."
         if ask == "resist" and groups["immune"]:
             statement += f" ({_join(n for n, _, _ in groups['immune'])} {'is' if len(groups['immune']) == 1 else 'are'} immune.)"
+        said = (f"{cap(_join([mon(n, True) for n in names]))} {phrase}." if names
+                else f"Nobody on your team {one.format(t=plan.atk_type)}.")
         return Verdict("team_type", ", ".join(names) or "none", statement, [line],
-                       groups={g: [n for n, _, _ in entries] for g, entries in groups.items()})
+                       groups={g: [n for n, _, _ in entries] for g, entries in groups.items()},
+                       plain=said, typed=[_type_fact(plan.atk_type, groups)])
     if plan.opponent:
         name, attacks = _usual_attacks(plan.opponent, plan.format_id, dex)
         if not attacks:
             return None
         name = display_name(name)
-        facts, safe = [], None
+        facts, safe, typed = [], None, []
         for move, t in attacks:
             line, groups = _type_line(t, team, dex, label=f"{move} ({t})")
             facts.append(line)
+            typed.append(_type_fact(f"{mon(name, False)}'s {move} ({t})", groups))
             got = set(_asked(groups, "resist"))
             safe = got if safe is None else safe & got
         order = [_user_name(p) for p in team.values()]
@@ -747,7 +926,10 @@ def solve_team_type(plan, dex, game):
         statement = (f"{_join(safe)} {'resists' if len(safe) == 1 else 'resist'} all of {name}'s usual attacks ({listed})." if safe else
                      f"Nobody on your team resists all of {name}'s usual attacks ({listed}).")
         facts.append(f"{name}'s usual attacks are its damaging moves on at least {_pct(USUAL_MOVE_SHARE)} of sets.")
-        return Verdict("team_type", ", ".join(safe) or "none", statement, facts, other=name)
+        said = (f"{cap(_join([mon(n, True) for n in safe]))} {'resists' if len(safe) == 1 else 'resist'} all of "
+                f"{mon(name, False)}'s usual attacks." if safe else
+                f"Nobody on your team resists all of {mon(name, False)}'s usual attacks.")
+        return Verdict("team_type", ", ".join(safe) or "none", statement, facts, other=name, plain=said, typed=typed)
     from metamatch.engine.briefing import team_weaknesses
     shared = team_weaknesses(team)
     resisted = {t for p in team.values() for t in TYPE_NAMES if (p.get("Damage From") or {}).get(t.lower(), 1.0) < 1}
@@ -759,7 +941,13 @@ def solve_team_type(plan, dex, game):
     if unresisted:
         facts.append(f"Nobody on your team resists {_join(unresisted)}.")
     facts.append("A shared weakness hits at least two members super effectively and more members than resist it.")
-    return Verdict("team_type", ", ".join(weak_types) or "none", statement, facts)
+    typed = []
+    for t in weak_types:
+        _, groups = _type_line(t, team, dex)
+        typed.append(_type_fact(t, groups))
+    if unresisted:
+        typed.append(Fact("type", f"Nobody on your team resists {_join(unresisted)} attacks.", {"unresisted": unresisted}))
+    return Verdict("team_type", ", ".join(weak_types) or "none", statement, facts, plain=statement, typed=typed)
 
 
 def solve_rules(plan, dex, game):
@@ -778,16 +966,21 @@ def solve_rules(plan, dex, game):
         if line:
             facts.append(line)
     facts += rules.team_lines(named, plan.team)
+    # Rule text is Showdown's own wording; the team lines say which of the trainer's members it touches
+    from metamatch.engine.packet import first_sentences
+    typed = [Fact("rule", first_sentences(f), {"source": "Showdown"}, role="why" if i < 2 else "context", detail=f)
+             for i, f in enumerate(facts)]
     if decided:
         answer, reason = decided
-        return Verdict("rules", answer, f"{answer.capitalize()}. {reason}", facts)
+        return Verdict("rules", answer, f"{answer.capitalize()}. {reason}", facts,
+                       plain=f"{answer.capitalize()}. {reason}", typed=typed)
     effect = rules.weather_effect(named)
     if effect:
-        return Verdict("rules", effect, effect, facts)
+        return Verdict("rules", effect, effect, facts, plain=effect, typed=typed)
     kind, name = named[0]
     statement = rules.text_line(kind, name)
     return Verdict("rules", name, statement, [f for f in facts if f != rules.text_line(kind, name, full=True)
-                                               or rules.entry(kind, name).get("desc")])
+                                               or rules.entry(kind, name).get("desc")], plain=statement, typed=typed)
 
 
 SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage, "type": solve_type, "stat": solve_stat,

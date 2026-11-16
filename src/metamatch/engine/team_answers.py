@@ -12,6 +12,7 @@ from functools import lru_cache
 
 from metamatch import config
 from metamatch.engine.guide import team_guide
+from metamatch.engine.packet import Fact, mon, plainify
 from metamatch.engine.solvers import Verdict
 
 
@@ -42,7 +43,27 @@ def solve_win(plan, dex, game):
         return None
     name = g.win["name"]
     facts = [f"{name}: {p}" for p in _sentences(g.win["points"])] + [g.win["keep"]]
-    return Verdict("win", name, f"Your {name} is your best route to a win.", facts, persona="strategy")
+    said = f"Your {name} is your best route to a win."
+    return Verdict("win", name, said, facts, persona="strategy", plain=said, typed=_win_facts(g))
+
+
+def _win_facts(g):
+    name = g.win["name"]
+    out = [Fact("role", f"Your {name}: {plainify(p.rstrip('.'))}.", {"member": name}, role="why" if i < 2 else "context")
+           for i, p in enumerate(g.win["points"])]
+    if g.win.get("threats"):
+        out.append(Fact("matchup", f"Keep your {name} healthy until these are worn down: "
+                                   f"{_and(mon(t, False) for t in g.win['threats'])}.", {"threats": g.win["threats"]}))
+    return out
+
+
+def _lead_typed(leads, why=True):
+    out = []
+    for i, lead in enumerate(leads):
+        for j, p in enumerate(lead["points"]):
+            out.append(Fact("role", f"Your {lead['name']}: {plainify(p.rstrip('.'))}.", {"member": lead["name"]},
+                            role="why" if why and i == 0 and j < 2 else "context"))
+    return out
 
 
 def _lead_facts(leads):
@@ -55,22 +76,39 @@ def solve_lead(plan, dex, game):
         return None
     names = [lead["name"] for lead in g.leads]
     statement = f"Lead with your {names[0]}" + (f", or your {names[1]}." if len(names) > 1 else ".")
-    return Verdict("lead", names[0], statement, _lead_facts(g.leads), persona="strategy")
+    return Verdict("lead", names[0], statement, _lead_facts(g.leads), persona="strategy", plain=statement,
+                   typed=_lead_typed(g.leads))
 
 
 def _watch_facts(g):
     return [f"{w['name']} (on {w['usage']:.0f}% of teams): {w['text']}." for w in g.watch]
 
 
+def _watch_typed(g, why=True):
+    out = []
+    for i, w in enumerate(g.watch):
+        opp = mon(w["name"], False)
+        answers = w.get("answers") or []
+        tail = (f"only {mon(answers[0], True)} beats it one on one" if len(answers) == 1 else
+                "nobody on your team beats it one on one" if not answers else
+                f"{_and(mon(a, True) for a in answers)} beat it one on one")
+        out.append(Fact("matchup", f"{opp[0].upper() + opp[1:]} is on {w['usage']:.0f}% of ladder teams, and {tail}.",
+                        {"threat": w["name"], "usage": w["usage"], "answers": answers}, role="why" if why and i < 2 else "context"))
+    return out
+
+
 def solve_threats(plan, dex, game):
     g = _guide(plan)
     if not g.watch:
         statement = f"Every one of the {g.n_threats} most used Pokemon has at least two answers on your team."
-        return Verdict("threats", "none", statement, [], persona="strategy")
+        return Verdict("threats", "none", statement, [], persona="strategy", plain=statement)
     names = [w["name"] for w in g.watch]
     verb = "is the threat" if len(names) == 1 else "are the threats"
     statement = f"{_and(names)} {verb} your team answers most thinly."
-    return Verdict("threats", ", ".join(names), statement, _watch_facts(g), persona="strategy")
+    said = f"{_and(mon(n, False) for n in names)} {verb} your team answers most thinly."
+    said = said[0].upper() + said[1:]
+    return Verdict("threats", ", ".join(names), statement, _watch_facts(g), persona="strategy", plain=said,
+                   typed=_watch_typed(g))
 
 
 def solve_gameplan(plan, dex, game):
@@ -93,7 +131,13 @@ def solve_gameplan(plan, dex, game):
         facts.append(f"{_and(pair['pair'])} cover each other: {pair['points'][0]}.")
     statement = (parts[0][0].upper() + parts[0][1:] + (", " + ", ".join(parts[1:-1]) if len(parts) > 2 else "")
                  + (f", and {parts[-1]}." if len(parts) > 1 else "."))
-    return Verdict("gameplan", g.win["name"] if g.win else g.leads[0]["name"], statement, facts, persona="strategy")
+    typed = (_lead_typed(g.leads[:1], why=False) + (_win_facts(g) if g.win else []) + _watch_typed(g, why=False)[:2])
+    if g.combos:
+        pair = g.combos[0]
+        typed.append(Fact("role", f"Your {pair['pair'][0]} and your {pair['pair'][1]} cover each other's one on one "
+                                  "losses.", {"pair": pair["pair"]}, detail=pair["points"][0]))
+    return Verdict("gameplan", g.win["name"] if g.win else g.leads[0]["name"], statement, facts, persona="strategy",
+                   plain=statement, typed=typed)
 
 
 def solve_tera(plan, dex, game):
@@ -123,7 +167,9 @@ def solve_tera(plan, dex, game):
         # "Purely defensive..." and "Stellar keeps..." read as a clause; "Headlong Rush goes..." starts with a move name
         parts.append(note[0].lower() + note[1:] if note.startswith(("Purely", "Stellar")) else note)
         facts.append(f"{t['name']}, Tera {t['tera']}: " + "; ".join(parts) + ".")
-    return Verdict("tera", top["name"], statement, facts, persona="strategy")
+    typed = [Fact("type", plainify(f"Your {f}"), {"member": t["name"], "tera": t["tera"]}, role="why" if i == 0 else "context")
+             for i, (f, t) in enumerate(zip(facts, g.tera[:3]))]
+    return Verdict("tera", top["name"], statement, facts, persona="strategy", plain=statement, typed=typed)
 
 
 def solve_switchins(plan, dex, game):
@@ -138,17 +184,25 @@ def solve_switchins(plan, dex, game):
     name = display_name(row.name)
     if any(m.lower() == row.name.lower() for m in row.cells):
         name = f"the opposing {name}"
-    ranked = []
+    from metamatch.engine.packet import hits as hits_text, pct
+    opp = name if name.startswith("the opposing") else mon(name, False)
+    ranked, typed_by = [], {}
     for member, cell in row.cells.items():
         x = cell.exchange or {}
         if not x.get("taken"):
             ranked.append((0.0, member, f"Your {member} takes no damage from {name}'s usual attacks."))
+            typed_by[member] = Fact("damage", f"{opp[0].upper() + opp[1:]}'s usual attacks do no damage to your {member}.",
+                                    {"member": member, "pct": [0, 0]})
             continue
         move, res = x["taken"]
         lo, hi = res["percent"]
         hits = x.get("to_be_koed")
         ranked.append((hi, member, f"Your {member} takes {move} for {lo:g} to {hi:g}%"
                        + (f" ({hits} hits to KO)." if hits else ".")))
+        count = hits_text(hits, x.get("to_be_koed_best"))
+        typed_by[member] = Fact("damage", f"{opp[0].upper() + opp[1:]}'s {move} does {pct(lo, hi)} of your {member}'s HP"
+                                          + (f", knocking it out {count}." if count else "."),
+                                {"member": member, "move": move, "pct": [lo, hi], "hits": hits}, detail=res.get("desc", ""))
     ranked.sort()
     good = [m for hi, m, _ in ranked if hi < 50 or ((row.cells[m].exchange or {}).get("to_be_koed") or 0) >= 3]
     if good:
@@ -159,8 +213,17 @@ def solve_switchins(plan, dex, game):
     basis = "its most common set, with the details the question states" if plan.opp_overrides else "its most common set"
     facts = [line for _, _, line in ranked] + [f"{name[0].upper() + name[1:]} assumed on {basis}, at full health; "
                                                "recovery and Regenerator are not counted."]
+    typed = []
+    for i, (_, member, _) in enumerate(ranked):
+        f = typed_by[member]
+        f.role = "why" if i < 2 and member in good else "context"
+        typed.append(f)
+    typed.append(Fact("stated", f"{opp[0].upper() + opp[1:]} is assumed on {basis}, at full health; recovery and "
+                                "Regenerator are not counted.", {"basis": basis}))
+    said = (f"Your {_and(good)} {'takes' if len(good) == 1 else 'take'} {opp}'s attacks best." if good else
+            f"Nobody on your team takes two of {opp}'s strongest hits.")
     return Verdict("switchins", ", ".join(good) or "none", statement, facts, persona="strategy", other=name,
-                   members=list(row.cells))
+                   members=list(row.cells), plain=said, typed=typed)
 
 
 def solve_member(plan, dex, game):
@@ -212,7 +275,17 @@ def solve_member(plan, dex, game):
             line = rules.text_line("move", move)
             if line:
                 facts.append(line)
-    return Verdict("member", name, statement, facts, persona="strategy", subject=name)
+    typed = [Fact("role", f"Your {name} beats {len(m.beats)} of the {n} most used Pokemon one on one"
+                          + (f": {_and(mon(b, False) for b in m.beats[:5])}." if m.beats else "."),
+                  {"beats": m.beats}, role="why"),
+             Fact("role", f"Your {name} loses one on one to {_and(mon(b, False) for b in m.loses[:5])}." if m.loses else
+                          f"None of the most used Pokemon beats your {name} one on one.", {"loses": m.loses}, role="why"),
+             Fact("speed", f"Your {name} outspeeds {m.outspeeds:.0%} of the top ladder sets.", {"outspeeds": m.outspeeds})]
+    if m.priority:
+        typed.append(Fact("speed", f"Your {name} has {_and(m.priority)} for priority.", {"priority": m.priority}))
+    # Rule text lines come after the three one on one lines and the priority line
+    typed += [Fact("rule", f, {"source": "Showdown"}) for f in facts[3 + bool(m.priority):]]
+    return Verdict("member", name, statement, facts, persona="strategy", subject=name, plain=statement, typed=typed)
 
 
 @lru_cache(maxsize=16)

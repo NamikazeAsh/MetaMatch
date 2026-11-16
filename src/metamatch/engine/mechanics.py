@@ -123,8 +123,9 @@ def self_drop(move, game):
     return ((dex.move(move) or {}).get("selfDrop", 0) if dex else 0) or 0
 
 
-def hits_to_ko(result, attacker, defender, move, cap=10, game=None, field=None):
-    """Hits needed at the lowest roll from full HP, or None when the move does no damage.
+def hits_to_ko(result, attacker, defender, move, cap=10, game=None, field=None, roll=0):
+    """Hits needed from full HP at the lowest roll (roll=0, the guaranteed count) or the highest (roll=1, the best
+    case), or None when the move does no damage.
     A move that lowers its user's attacking stat (Draco Meteor, Make It Rain) hits weaker every time: with `game`
     known, the calc's own 'times used' option counts every later use at the dropped stat, with the same `field`,
     instead of repeating the first hit."""
@@ -133,7 +134,7 @@ def hits_to_ko(result, attacker, defender, move, cap=10, game=None, field=None):
         return None
     effect = survival_effect(result, attacker, defender, move)
     hp = result["defender_stats"]["hp"]
-    if game and self_drop(move, game) and _total(result, 1, effect)[0] < hp:
+    if game and self_drop(move, game) and _total(result, 1, effect)[roll] < hp:
         uses = range(2, 6)
         reqs = [{"game": game, "attacker": attacker, "defender": defender, "move": move,
                  "moveOptions": {"timesUsed": n}, **({"field": field} if field else {})} for n in uses]
@@ -141,14 +142,14 @@ def hits_to_ko(result, attacker, defender, move, cap=10, game=None, field=None):
         if any(results):
             for n, r in zip(uses, results):
                 # A Sash or Sturdy first hit is held at 1 HP, so it takes one more use than the plain total
-                if r and r.get("range") and r["range"][0] >= hp:
+                if r and r.get("range") and r["range"][roll] >= hp:
                     return n + (1 if effect else 0)
             return uses[-1] + 1
         # Calc unavailable for the repeat: fall back to repeating the first hit
     for n in range(1, cap + 1):
-        if _total(result, n, effect)[0] >= hp:
+        if _total(result, n, effect)[roll] >= hp:
             return n
-    return math.ceil(hp / result["range"][0]) + (1 if effect else 0)
+    return math.ceil(hp / result["range"][roll]) + (1 if effect else 0)
 
 
 # Priority
