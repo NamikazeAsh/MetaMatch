@@ -20,7 +20,7 @@ def _show(content, placeholder=None):
     with target:
         st.markdown(spoken)
         if facts.strip():
-            with st.expander("Engine facts", expanded=False):
+            with st.expander("Engine facts and sources", expanded=False):
                 st.markdown(facts)
 
 
@@ -68,24 +68,23 @@ def render():
 
     left, right = st.columns([5, 1])
     with left:
-        with st.expander("💡 How to use the AI Coach efficiently", expanded=False):
+        with st.expander("What you can ask", expanded=False):
             st.markdown("""
-            **Meet your Coaching Staff:**
+            Every answer is worked out by the engine (the real damage calculator, the type chart and this month's
+            ladder data); the coaches only say it. The exact numbers and any Smogon analysis are in the dropdown.
 
-            🧪 **Clemont** (Mechanics Engine)
-            *Ask him about math, specific interactions, and speed tiers.*
-            *   "Is Rotom-Wash weak to Ground?"
-            *   "Who is faster: Dragapult or Zamazenta?"
+            **Professor Oak** (matchups and game plan)
+            *   "How do I beat Kingambit?" · "Who can switch into Raging Bolt?"
+            *   "How do I play against rain?" · "How do I beat stall?"
+            *   "What should I lead?" · "What's my win condition?" · "Is my team good?"
 
-            📜 **Professor Oak** (Strategy Mentor)
-            *Ask him about win conditions, game plans, and high-level concepts.*
-            *   "How do I beat Stall teams?"
-            *   "What is the best lead for this team?"
+            **Clemont** (Speed and mechanics)
+            *   "Does my Dragapult outspeed Iron Valiant?" · "Does Mold Breaker ignore Levitate?"
+            *   "What am I weak to?" · "Walk me through my speed tiers"
 
-            🍳 **Brock** (Team Builder)
-            *Ask him about sets, items, and meta usage stats.*
-            *   "What is the most popular item for Great Tusk?"
-            *   "Is this moveset good?"
+            **Brock** (sets and building)
+            *   "Specs or Band on Dragapult?" · "What does Raging Bolt usually run?"
+            *   "What should I replace Corviknight with?" · "What did the audit flag?"
 
             Follow ups work too: "what about Gholdengo?", "what if it's Scarf?", "why?".
             """)
