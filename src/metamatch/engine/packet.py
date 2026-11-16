@@ -139,8 +139,9 @@ def lint(fact, team_names=()):
         problems.append(f"{len(text.split())} words")
     # Rule text is Showdown's own wording ("This Pokemon..."), and usage facts are about the species on the ladder,
     # where a team species named without "your" is the ladder's, not the trainer's
-    if fact.kind in ("rule", "usage"):
-        return problems
+    if fact.kind in ("rule", "usage", "score"):
+        # Score parts carry their evidence, so they run long by design
+        return [p for p in problems if not (fact.kind == "score" and p.endswith("words"))]
     if PRONOUN_FOR_MON.search(text):
         problems.append("pronoun for a Pokemon")
     for name in team_names:

@@ -161,7 +161,7 @@ class TestPlannerReads(unittest.TestCase):
 
     def test_team_strategy_intents(self):
         cases = {"What is my win condition?": "win", "what should i lead": "lead", "what are my biggest threats": "threats",
-                 "what's my game plan": "gameplan", "is my team good": "gameplan", "How do I beat stall?": "open",
+                 "what's my game plan": "gameplan", "is my team good": "score", "rate my team": "score", "How do I beat stall?": "open",
                  "What should I lead against rain?": "open"}
         for q, intent in cases.items():
             self.assertEqual(plan_query(q, self.team).intent, intent, q)

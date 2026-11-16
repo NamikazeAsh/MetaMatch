@@ -288,6 +288,33 @@ def solve_member(plan, dex, game):
     return Verdict("member", name, statement, facts, persona="strategy", subject=name, plain=statement, typed=typed)
 
 
+def solve_score(plan, dex, game):
+    """'Is my team good', 'rate my team': the broken down team score (engine/team_score.py) with its ladder percentile.
+    Each part is a fact with its evidence; the weakest two lead the answer."""
+    from metamatch.engine.team_score import LABELS, WEIGHTS, score_team
+    from metamatch.engine.threat_board import threat_board
+    team = plan.team or {}
+    s = score_team(team, plan.format_id, rows=threat_board(team, n=12, format_id=plan.format_id))
+    names = sorted((p["Pokemon"] for p in team.values()), key=len, reverse=True)
+
+    def owned(text):
+        for n in names:
+            text = re.sub(rf"(?<!your )\b{re.escape(n)}\b", f"your {n}", text)
+        return text
+    # Weakest by points lost, not percentage; the engines part is a bonus most teams lack, so it never leads
+    weakest = sorted((p for p in s.parts if p.key != "cores"), key=lambda p: p.points - WEIGHTS[p.key])[:2]
+    said = f"Your team scores {s.total:g} out of 100 on MetaMatch's checklist"
+    if s.percentile is not None:
+        said += f", better covered than {round(s.percentile * 100)}% of the {s.sample} ladder teams in our sample"
+    said += f". Its weakest parts are {LABELS[weakest[0].key].lower()} and {LABELS[weakest[1].key].lower()}."
+    typed = [Fact("score", owned(f"{LABELS[p.key]}: {p.points:g} of {WEIGHTS[p.key]} points. {p.evidence}"),
+                  {"part": p.key, "points": p.points, "weight": WEIGHTS[p.key]},
+                  role="why" if p in weakest else "context") for p in s.parts]
+    typed += [Fact("score", n, {}) for n in s.notes]
+    facts = [f"{LABELS[p.key]}: {p.points:g} / {WEIGHTS[p.key]}. {p.evidence}" for p in s.parts] + s.notes
+    return Verdict("score", f"{s.total:g}", said, facts, persona="strategy", plain=said, typed=typed)
+
+
 @lru_cache(maxsize=16)
 def _rows_cached(team_json, format_id):
     from metamatch.engine.guide import board_rows
@@ -300,4 +327,4 @@ def _rows_for(plan):
 
 
 SOLVERS = {"win": solve_win, "lead": solve_lead, "threats": solve_threats, "gameplan": solve_gameplan, "tera": solve_tera,
-           "switchins": solve_switchins, "member": solve_member}
+           "switchins": solve_switchins, "member": solve_member, "score": solve_score}

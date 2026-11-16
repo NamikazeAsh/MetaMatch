@@ -71,7 +71,7 @@ def decline_for(query, format_id):
 
 # Answers that need the calc: without it, a planned question gets this notice, never unchecked model text
 CALC_INTENTS = {"speed", "speed_spread", "ko", "damage", "checks", "matchup", "win", "lead", "threats", "gameplan",
-                "tera", "switchins", "member"}
+                "tera", "switchins", "member", "score"}
 # Set, item, spread and teammate questions are Brock's: he has the ladder numbers, Oak and Clemont don't. In the
 # 2026 11 12 audit six of these ("Is Life Orb the best item on Venusaur", "What should I replace Alomomola with")
 # reached Oak through the router's low confidence fallback

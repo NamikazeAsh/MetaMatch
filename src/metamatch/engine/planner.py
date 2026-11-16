@@ -68,8 +68,11 @@ THREATS_RE = re.compile(r"\b(?:biggest|main|worst|scariest|top|major|key) threat
                         re.I)
 GAMEPLAN_RE = re.compile(r"\bgame ?plan\b|\bhow (?:do|should|would) (?:i|we|you) (?:play|pilot|use|run) (?:this|my|our) team\b|"
                          r"\bhow (?:does|do) (?:this|my|our) team (?:work|play|function)\b|\bstrategy for (?:this|my|our) team\b|"
-                         r"\b(?:is|how good is) (?:this|my|our) team (?:good|any good|viable|decent|strong)\b|"
-                         r"\brate (?:this|my|our) team\b|\bwhat does (?:this|my|our) team (?:do|want)\b", re.I)
+                         r"\bwhat does (?:this|my|our) team (?:do|want)\b", re.I)
+# "is my team good", "rate my team": the broken down team score (engine/team_score.py)
+SCORE_RE = re.compile(r"\b(?:is|how good is|how strong is) (?:this|my|our) team(?: (?:good|any good|viable|decent|strong|"
+                      r"bad|ok|okay|fine))?\b|\b(?:rate|grade|score|judge|review) (?:this|my|our) team\b|"
+                      r"\bteam (?:score|rating|grade)\b|\bhow (?:good|bad|strong|solid) is (?:this|my|our) team\b", re.I)
 TERA_PLAN_RE = re.compile(r"\b(?:who|which (?:mon|pokemon|member|one)) (?:should|do|would|can) (?:i |we )?(?:tera|terastal\w*)\b|"
                           r"\btera (?:plan|target|user|candidate)s?\b|\bwhen (?:should|do) (?:i|we) (?:tera|terastal\w*)\b|"
                           r"\b(?:best|good) (?:tera|terastal\w*) (?:user|target|candidate)\b", re.I)
@@ -470,6 +473,8 @@ def plan_query(query, team):
         plan.asks_how = bool(BEAT_RE.search(q))
     elif team and not plan.opponents and not plan.user_named and TERA_PLAN_RE.search(q):
         plan.intent = "tera"
+    elif team and not plan.opponents and not VERSUS_RE.search(q) and SCORE_RE.search(q):
+        plan.intent = "score"
     elif team and not plan.opponents and not VERSUS_RE.search(q) and GAMEPLAN_RE.search(q):
         plan.intent = "gameplan"
     elif team and not plan.opponents and not VERSUS_RE.search(q) and WIN_RE.search(q):

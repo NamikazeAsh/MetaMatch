@@ -16,6 +16,7 @@ CATEGORIES = {
     "compare": ("building", "builder", "Audit"),
     "teammate": ("building", "builder", "Team Completer"),
     "roles": ("building", "builder", "Team Overview"),
+    "score": ("score", "strategy", "Team Overview"),
     "win": ("gameplan", "strategy", "Coach Guide"),
     "lead": ("gameplan", "strategy", "Coach Guide"),
     "tera": ("gameplan", "strategy", "Coach Guide"),
