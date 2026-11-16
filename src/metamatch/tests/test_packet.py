@@ -55,7 +55,8 @@ QUESTIONS = ["Does my Dragapult outspeed Iron Valiant?", "Does my Great Tusk OHK
              "Does Mold Breaker ignore Levitate?", "How do I beat Zamazenta?", "Does my Kingambit beat Gholdengo?",
              "What is my win condition?", "what should i lead", "what are my biggest threats", "what's my game plan",
              "who should i tera", "who can switch into raging bolt", "why is dragapult on this team",
-             "What's the most common spread for Great Tusk?"]
+             "What's the most common spread for Great Tusk?", "What is weak in my dragapult",
+             "what does my kingambit resist"]
 
 
 class TestHelpers(unittest.TestCase):
@@ -92,6 +93,21 @@ class TestAnswersAreClean(unittest.TestCase):
             self.assertTrue(1 <= len(p.why) <= 2, q)
             self.assertTrue(p.answer, q)
 
+
+class TestMemberTypeProfile(unittest.TestCase):
+    def test_one_member_without_a_type_gets_its_whole_profile(self):
+        team, _ = readTeam(TEAM, "gen9ou")
+        for q, ask, answer in [("What is weak in my dragapult", "weak", "Ice, Ghost, Dragon, Dark, Fairy"),
+                               ("what are my kingambit's weaknesses", "weak", "Fire, Fighting, Ground"),
+                               ("what does my kingambit resist", "resist", None),
+                               ("what is my great tusk immune to", "immune", "Electric")]:
+            plan = plan_query(q, team)
+            self.assertEqual((plan.intent, plan.atk_type, plan.team_ask), ("type", None, ask), q)
+            v = solve(plan)
+            if answer:
+                self.assertEqual(v.answer, answer, q)
+        # Advice about a weakness is still a strategy question
+        self.assertNotEqual(plan_query("how do I cover my dragapult's weaknesses", team).intent, "type")
 
 
 class TestSmogonCards(unittest.TestCase):

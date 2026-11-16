@@ -121,7 +121,7 @@ SURVIVE_RE = re.compile(r"\b(survive|survives|live|lives|tank|tanks|withstand)\b
 DAMAGE_RE = re.compile(r"(\bdamage\b|\bdmg\b|\bcalc\b|\bpercent(?:age)?\b|%|\bhow much\b)", re.I)
 SPEED_RE = re.compile(r"\b(outspeed|outspeeds|faster|slower|speed tie|out speed|outpace|moves? first|goes? first|"
                       r"mirror speed|speed (?:check|comparison|matchup))\b", re.I)
-TYPE_ASK_RE = re.compile(r"\b(immune|immunity|weak|weakness|resist|resists|resistant|neutral|super effective|not very effective|"
+TYPE_ASK_RE = re.compile(r"\b(immune|immunity|immunities|weak|weakness|weaknesses|resist|resists|resistant|resistances?|neutral|super effective|not very effective|"
                          r"type matchup|typing)\b", re.I)
 # "which of my Pokemon resist Water", "who on my team is weak to Ground", "is my team weak to Fairy": the whole team
 TEAM_WIDE_RE = re.compile(r"\b(?:my|our)\s+(?:team|squad|six|pok[eé]mon|mons|members)\b|\bwhat (?:am i|are we)\b|"
@@ -132,6 +132,7 @@ TEAM_ADVICE_RE = re.compile(r"\bhow\b(?!\s+many)|\b(?:fix|cover|patch|deal with|
                             r"should|recommend|suggest|teammate|why)\b", re.I)
 TEAM_ASKS = (("neutral", re.compile(r"\bneutral", re.I)), ("immune", re.compile(r"\bimmun", re.I)),
              ("weak", re.compile(r"\b(?:weak|super effective|vulnerable)", re.I)))
+RESIST_RE = re.compile(r"\bresist", re.I)
 # "how does Multiscale work", "does Mold Breaker ignore Levitate", "what does Booster Energy do": a rules question
 RULES_CUE_RE = re.compile(r"\b(?:how does|how do(?!\s+(?:i|we|you)\b)|what does|what do|what is|what's|whats|what happens|"
                           r"explain|works?|mean|means|boosts?|ignores?|bypass\w*|reflects?|bounces?|halves?|blocks?|"
@@ -477,6 +478,13 @@ def plan_query(query, team):
     elif TYPE_ASK_RE.search(q) and _attack_type(scrubbed, plan.move, dex) and (plan.user or plan.opponent):
         plan.intent = "type"
         plan.atk_type = _attack_type(scrubbed, plan.move, dex)
+    elif (TYPE_ASK_RE.search(q) and team and plan.user is not None and plan.user_named and not plan.opponents
+            and not TEAM_ADVICE_RE.search(q)):
+        # "What is my Dragapult weak to": one member's whole type profile (no attacking type named), led by the
+        # group asked about
+        plan.intent = "type"
+        plan.team_ask = next((ask for ask, pattern in TEAM_ASKS if pattern.search(q)), None) or (
+            "resist" if RESIST_RE.search(q) else "weak")
     elif DAMAGE_RE.search(q) and plan.opponent and (plan.user or plan.move):
         plan.intent = "damage"
     elif SPEED_RE.search(q) and plan.opponent and plan.user:

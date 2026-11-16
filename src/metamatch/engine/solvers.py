@@ -467,9 +467,47 @@ def solve_damage(plan, dex, game):
     return Verdict("damage", f"{lo}-{hi}%", statement, facts, plain=said, typed=typed)
 
 
+def _type_profile(plan):
+    """One team member's weaknesses, resistances and immunities across every type, abilities and Air Balloon
+    included (the team's own Damage From table, the one the Matchup Matrices tab shows)."""
+    p = plan.user
+    name = _user_name(p)
+    taken = {t: (p.get("Damage From") or {}).get(t.lower(), 1.0) for t in TYPE_NAMES}
+    groups = {"weak": [t for t in TYPE_NAMES if taken[t] > 1], "resist": [t for t in TYPE_NAMES if 0 < taken[t] < 1],
+              "immune": [t for t in TYPE_NAMES if taken[t] == 0]}
+    def listed(types):
+        return _join(f"{t} ({taken[t]:g}x)" for t in types)
+    typing = "/".join(p.get("Type", []))
+    weak = groups["weak"]
+    who = cap(mon(name, True))
+    facts = [f"Weak to: {listed(weak) or 'nothing'}.", f"Resists: {listed(groups['resist']) or 'nothing'}.",
+             f"Immune to: {_join(groups['immune']) or 'nothing'}."]
+    ask = plan.team_ask if plan.team_ask in ("resist", "immune") else "weak"
+    asked = groups[ask]
+    verb = {"weak": "is weak to", "resist": "resists", "immune": "is immune to"}[ask]
+    none = {"weak": "has no weaknesses", "resist": "resists nothing", "immune": "has no immunities"}[ask]
+    statement = f"{name} ({typing}) {verb} {listed(asked) if ask != 'immune' else _join(asked)}." if asked \
+        else f"{name} ({typing}) {none}."
+    plain = f"{who} {verb} {_join(asked)} attacks." if asked else f"{who} {none}."
+    typed = [Fact("type", f"{who} is {typing} type.", {"types": p.get("Type", [])}, role="why")]
+    for mult in sorted({taken[t] for t in weak}, reverse=True):
+        same = [t for t in weak if taken[t] == mult]
+        typed.append(Fact("type", f"{_join(same)} attacks do {mult:g} times damage to it.",
+                          {"weak": {t: mult for t in same}}, role="why"))
+    if groups["immune"]:
+        typed.append(Fact("type", f"{who} is immune to {_join(groups['immune'])} attacks.",
+                          {"immune": groups["immune"]}, role="why"))
+    if groups["resist"]:
+        typed.append(Fact("type", f"{who} resists {_join(groups['resist'])} attacks.",
+                          {"resist": groups["resist"]}))
+    return Verdict("type", ", ".join(asked) or "none", statement, facts, plain=plain, typed=typed)
+
+
 def solve_type(plan, dex, game):
     chart = dex.type_chart
     t = plan.atk_type
+    if not t:
+        return _type_profile(plan) if plan.user is not None else None
     # The question is about the named team member, else a named opponent, else the only team member
     if plan.user is not None and (plan.user_named or not plan.opponent):
         p = plan.user
