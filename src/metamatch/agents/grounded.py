@@ -187,7 +187,15 @@ class GroundedAgent:
         if meta is not None:
             meta.update(report, opener=opener)
         body = packet.answer + (f" {why}" if why and why.strip() != packet.answer.strip() else "")
-        return f"*{opener}*\n\n{body}" + FACTS_MARK + facts_block(verdict)
+        return f"*{opener}*\n\n{body}" + FACTS_MARK + facts_block(verdict) + cards_block(packet.cards)
+
+
+def cards_block(cards):
+    """Smogon analysis cards for the dropdown: the source as a heading, the text quoted, and any warning."""
+    out = ""
+    for label, text, note in cards or []:
+        out += f"\n\n**{label}**\n\n> {text}" + (f"\n\n_{note}_" if note else "")
+    return out
 
 
 def voice_mode():

@@ -93,5 +93,20 @@ class TestAnswersAreClean(unittest.TestCase):
             self.assertTrue(p.answer, q)
 
 
+
+class TestSmogonCards(unittest.TestCase):
+    def test_card_chain_and_labels(self):
+        from metamatch.rag.cards import _order, card, _note
+        order = _order("gen9ou")
+        self.assertEqual(order[0], "gen9ou")
+        self.assertLess(order.index("gen9uu"), order.index("gen8ou"))
+        self.assertNotIn("championsou", order[:6])
+        c = card("Kingambit", "gen9ou")
+        if c:   # needs the local cache (scripts/fetch_smogon_analyses.py)
+            self.assertTrue(c[0].startswith("From the"))
+        self.assertIn("Dynamax", _note("gen8ou", "Dynamax lets it hit hard", "gen9ou"))
+        self.assertEqual(_note("gen9ou", "Dynamax", "gen9ou"), "")
+
+
 if __name__ == "__main__":
     unittest.main()

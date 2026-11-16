@@ -54,4 +54,21 @@ def packet_for(question, plan, verdict):
         p.why.append(p.facts[0].id)
     for c in getattr(plan, "unhandled", None) or []:
         p.caveats.append(f"{c} is not counted.")
+    p.cards = smogon_cards(plan)
     return p
+
+
+def smogon_cards(plan):
+    """Smogon analysis cards for the Pokemon the question is about: the opponent first, else the named member."""
+    if plan is None:
+        return []
+    names = list(getattr(plan, "opponents", None) or [])
+    user = getattr(plan, "user", None)
+    if user is not None and getattr(plan, "user_named", False):
+        names.append(user.get("Forme") or user.get("Pokemon"))
+    try:
+        from metamatch.rag.cards import cards_for
+        return cards_for(names, plan.format_id, limit=1)
+    except Exception as e:   # the cache is optional
+        print(f"Smogon card failed: {e}")
+        return []
