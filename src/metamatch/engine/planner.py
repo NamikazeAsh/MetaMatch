@@ -221,6 +221,11 @@ def _find_move(query, candidates, dex):
     """Longest move named in the query: known movesets match in any case, other dex moves only in Title Case."""
     lowered = query.lower()
     hits = [m for m in candidates if m and m.lower() in lowered]
+    if hits and dex:
+        # A known move inside a longer one the query names is the longer one: "trick room" is not Trick
+        longer = [m for m in dex.move_data if any(h.lower() in m.lower() and len(m) > len(h) for h in hits)
+                  and re.search(rf"(?<![\w]){re.escape(m.lower())}(?![\w])", lowered)]
+        hits = [h for h in hits if not any(h.lower() in m.lower() for m in longer)] + longer
     if not hits and dex:
         hits = [m for m in dex.move_data if len(m) > 3 and re.search(rf"(?<![\w]){re.escape(m)}(?![\w])", query)]
     # "Psychic type attacks" names a type, not the move Psychic
