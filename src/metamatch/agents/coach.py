@@ -106,7 +106,7 @@ def _relevant(hit, focus_names):
     """Concept chunks always count; Pokemon chunks only when that Pokemon is on the team, named or in the facts.
     focus_names: canonical names (planner resolver), so 'Mega Absol' matches a chunk about 'Absol-Mega'."""
     subject = hit["metadata"].get("pokemon") or ""
-    if hit["metadata"].get("type") == "concept" or subject in ("", "Concept", "General"):
+    if hit["metadata"].get("type") in ("concept", "guide") or subject in ("", "Concept", "General", "Guide"):
         return True
     return _species_key(subject) in {_species_key(n) for n in focus_names}
 
@@ -115,6 +115,9 @@ def _source_label(meta):
     """'Kingambit, Set Swords Dance (smogon analysis)' for the sources line under an answer."""
     kind = {"smogon_analysis": "Smogon analysis", "smogon_stats": "ladder stats", "pokechamp": "community guide",
             "concepts": "concept note"}.get(meta.get("source"), "reference")
+    if meta.get("source") == "smogon_guide":
+        from metamatch.rag.guides import label
+        return label(meta)
     subject = meta.get("pokemon")
     where = meta.get("section") or meta.get("title") or ""
     return f"{subject}, {where} ({kind})" if subject and subject != "Concept" else f"{where} ({kind})"
@@ -159,6 +162,34 @@ def references(query, team, plan=None, facts_text="", format_id=None):
             kept.append(h)
             break
     return kept
+
+
+CANT_LINES = ("That one goes beyond what I can work out exactly, I'm afraid.",
+              "Hmm, my research can't settle that one exactly.",
+              "Now that's a question I can't answer with certainty.")
+# A retrieved card is only shown when it is this close to the question (cosine distance, bge small). On 16 open
+# questions (2026 11 15) the on topic passages scored 0.20 to 0.34 and "what's the meaning of life" 0.535
+CARD_MAX_DISTANCE = 0.34
+
+
+def _cant_line(recent=()):
+    return next((l for l in CANT_LINES if l not in (recent or ())), CANT_LINES[0])
+
+
+def _card_worthy(hit):
+    """Concept notes and Smogon guides, close enough to the question to be worth reading."""
+    m = hit["metadata"]
+    close = hit.get("distance") is not None and hit["distance"] <= CARD_MAX_DISTANCE
+    return m.get("type") in ("concept", "guide") and close
+
+
+def _card(hit):
+    """A retrieved passage shown verbatim with where it comes from, and a note when it predates current mechanics."""
+    m = hit["metadata"]
+    note = (f"\n\n_Written for Gen {m['gen']}: it mentions {m['old_mechanics']}, which the current games don't have._"
+            if m.get("old_mechanics") else "")
+    link = f" ([source]({m['url']}))" if m.get("url") else ""
+    return f"\n\n**{_source_label(m)}**{link}\n\n> {_trim(body(hit['text']))}{note}"
 
 
 def _move_owner_clash(advice, team):
@@ -263,34 +294,24 @@ Pokemon, and never call one an answer to something it loses to.
         yield self.packet_text(query, team_context, briefing or Briefing(), plan, state, meta)
 
     def packet_text(self, query, team_context, briefing, plan=None, state=None, meta=None):
-        from metamatch.engine.packet import Fact, Packet, first_sentences
-        from .grounded import FACTS_MARK
-        from .voice import pick
-        packet = Packet(query, "open", category="open", persona="strategy")
-        hits = references(query, team_context, plan, briefing.facts)
-        concept = []
-        for h in hits:
-            if h["metadata"].get("type") == "concept":
-                # Each sentence carries its note's title, so a sun sentence never reads as part of a rain answer
-                title = h["metadata"].get("title") or h["metadata"].get("section") or "Concept"
-                for sentence in re.split(r"(?<=[.!?])\s+", body(h["text"]).strip())[:4]:
-                    if len(sentence.split()) >= 5:
-                        concept.append(Fact("concept", f"{title}: {first_sentences(sentence)}",
-                                            {"source": _source_label(h["metadata"])}))
-        # Concept sentences lead for questions with no opponent named; the team's matchups lead otherwise
-        ordered = (briefing.typed + concept) if getattr(plan, "opponents", None) else (concept + briefing.typed)
-        for f in ordered[:12]:
-            packet.add(Fact(f.kind, f.text, dict(f.data), "context", f.detail))
-        notes = "".join(f"\n\n**{_source_label(h['metadata'])}**\n\n> {_trim(body(h['text']))}" for h in hits)
-        dropdown = ((briefing.summary or "") + notes).strip()
-        if not packet.facts:
-            text = "I can't work that out from the engine's numbers, so I won't guess."
-            return text + (FACTS_MARK + dropdown if dropdown else "")
-        opener, ids, report = pick(packet, getattr(state, "recent_openers", ()), getattr(state, "recent_moods", ()))
+        """A question no engine function answers: Oak says so, offers close questions the engine does answer (chips),
+        and shows the best matching concept note or Smogon guide passage as a cited card. No model picks facts here:
+        in the 2026 11 15 chats that picking put unrelated threat matchups under weakness and weather questions."""
+        from .suggest import marker, suggestions
+        line = _cant_line(getattr(state, "recent_openers", ()))
         if meta is not None:
-            meta.update(report, opener=opener)
-        lines = "\n".join(f"* {packet.fact(i).text}" for i in ids if packet.fact(i))
-        return f"*{opener}*\n\n{lines}" + (FACTS_MARK + dropdown if dropdown else "")
+            meta.update({"opener": "stock", "facts": "fallback"}, opener=line)
+        chips = suggestions(query, plan, team_context)
+        # The concept note first: it is written for the current games; a guide adds depth from earlier ones
+        hits = sorted((h for h in references(query, team_context, plan, briefing.facts) if _card_worthy(h)),
+                      key=lambda h: h["metadata"].get("type") != "concept")
+        text = f"*{line}*"
+        if hits:
+            text += "\n\nHere's how it has been explained before:" + "".join(_card(h) for h in hits[:2])
+        # The chips render right under this line
+        text += "\n\n" + ("These I can answer exactly for your team:" if chips else
+                          "Try asking about a matchup, a member or your game plan.")
+        return text + marker(chips)
 
     def _legacy_run(self, query, team_context, named_context="", briefing=None, plan=None):
         """The pre restructure path: Oak's checked free advice (kept switchable until the final measurement)."""

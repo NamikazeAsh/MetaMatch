@@ -242,13 +242,16 @@ class AuditorAgent:
             packet.add(Fact("usage", line, {}))
         block = "\n".join(f"* {f}" for f in lines)
         if not packet.facts:
-            yield "I don't have ladder numbers that answer that, so I won't guess."
+            from .suggest import marker, suggestions
+            yield ("I don't have ladder numbers that answer that, so I won't guess. These I can answer exactly:"
+                   + marker(suggestions(query, plan, team_context)))
             return
         opener, ids, report = pick(packet, getattr(state, "recent_openers", ()), getattr(state, "recent_moods", ()))
         if meta is not None:
             meta.update(report, opener=opener)
         shown = "\n".join(f"* {packet.fact(i).text}" for i in ids if packet.fact(i))
-        yield f"*{opener}*\n\n{shown}" + FACTS_MARK + block
+        from .suggest import marker, suggestions
+        yield f"*{opener}*\n\n{shown}" + marker(suggestions(query, plan, team_context)) + FACTS_MARK + block
 
     def _legacy_run(self, query: str, team_context: dict, plan=None):
         """The pre restructure path: Brock's checked free text (kept switchable until the final measurement)."""

@@ -110,6 +110,23 @@ class TestMemberTypeProfile(unittest.TestCase):
         self.assertNotEqual(plan_query("how do I cover my dragapult's weaknesses", team).intent, "type")
 
 
+class TestSuggestions(unittest.TestCase):
+    def test_every_chip_and_help_example_reaches_an_engine_answer(self):
+        from metamatch.agents.suggest import marker, split, suggestions
+        from metamatch.tabs.tab_chat import help_cards
+        team, _ = readTeam(TEAM, "gen9ou")
+        for q in ["how do i cover dragapult's weaknesses", "how do I play hyper offense", "when should i be aggressive",
+                  "how do i make my kingambit better"]:
+            chips = suggestions(q, plan_query(q, team), team)
+            self.assertTrue(chips, q)
+            for c in chips:
+                self.assertNotIn(plan_query(c, team).intent, ("open", "clarify"), c)
+            self.assertEqual(split("Answer." + marker(chips)), ("Answer.", chips))
+        for _, _, _, questions in help_cards(team):
+            for q in questions:
+                self.assertNotIn(plan_query(q, team).intent, ("open", "clarify"), q)
+
+
 class TestTeamWeather(unittest.TestCase):
     def test_using_weather_is_about_the_team_and_facing_it_is_an_archetype(self):
         team, _ = readTeam(TEAM, "gen9ou")

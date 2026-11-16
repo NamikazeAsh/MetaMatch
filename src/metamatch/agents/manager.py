@@ -177,7 +177,9 @@ class AgentManager:
             return TacticianAgent().run(turn.text, team_context, team_weakness)
         if turn.route == "builder":
             return self.auditor.run(turn.text, team_context, turn.plan, state=state, meta=turn.meta)
-        briefing = strategy_briefing(team_context, turn.plan.opponents)
+        from .grounded import voice_mode
+        # Only the legacy voice still reads the threat briefing; the open fallback offers questions instead
+        briefing = strategy_briefing(team_context, turn.plan.opponents) if voice_mode() == "legacy" else None
         return self.coach.run(turn.text, team_context, named, briefing, plan=turn.plan, state=state, meta=turn.meta)
 
     def remember(self, turn: Turn, state: dialogue.DialogueState = None) -> dialogue.DialogueState:
