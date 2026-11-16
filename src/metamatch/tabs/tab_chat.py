@@ -122,7 +122,7 @@ def render():
                 try:
                     if turn is None:
                         raise RuntimeError("the question couldn't be planned")
-                    for content in manager.respond(turn, team, st.session_state.analysis['weakness']):
+                    for content in manager.respond(turn, team, st.session_state.analysis['weakness'], held["state"]):
                         full_response += content
                         response_placeholder.markdown(full_response.partition(FACTS_MARK)[0] + "▌")
                 except Exception as e:

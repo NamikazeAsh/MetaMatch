@@ -212,6 +212,11 @@ def _game_phrases():
 
 
 @lru_cache(maxsize=1)
+def _two_word_targets():
+    return {alias: display for alias, display in _fuzzy_targets().items() if " " in alias}
+
+
+@lru_cache(maxsize=1)
 def _fuzzy_targets():
     """Single and two word names that typos are matched against."""
     # Usage list names only: typo matching against every dex entry (CAP, battle formes) misfires far more often
@@ -257,7 +262,10 @@ def find_pokemon_spans(query):
         if len(word) >= 5 and word not in game:
             candidates.append(word)
         for cand in candidates:
-            match = difflib.get_close_matches(cand, targets, n=1, cutoff=0.85)
+            # Two words only match two word names ("iron valient"), so "closer look" can't become Cloyster
+            # One word typos must be closer ("closer" scores 0.857 against "cloyster"; real typos like "gholdego" ~0.94)
+            pool = _two_word_targets() if " " in cand else targets
+            match = difflib.get_close_matches(cand, pool, n=1, cutoff=0.85 if " " in cand else 0.88)
             if match and targets[match[0]] not in [d for _, _, d in found]:
                 found.append((idx[pos], idx[pos + len(cand) - 1] + 1, targets[match[0]]))
                 break

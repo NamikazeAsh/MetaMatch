@@ -163,14 +163,33 @@ class GroundedAgent:
                 return text
         return ""
 
-    def run(self, query, verdict, team=None):
-        """Yields the answer as text chunks: the voiced answer with the exact result after FACTS_MARK, or the
-        result alone when no voiced answer passed the check."""
-        spoken = self.voice(query, verdict, team)
-        if spoken:
-            yield spoken + FACTS_MARK + facts_block(verdict)
+    def run(self, query, verdict, team=None, plan=None, state=None, meta=None):
+        """Yields the answer as text chunks.
+        Packet voice (default): opener, the engine's plain answer sentence and one checked why sentence, with the exact
+        engine result in the dropdown after FACTS_MARK. Legacy voice (METAMATCH_VOICE=legacy, kept until the final
+        measurement): the old free voiced paraphrase."""
+        if voice_mode() == "legacy":
+            spoken = self.voice(query, verdict, team)
+            yield (spoken + FACTS_MARK + facts_block(verdict)) if spoken else facts_block(verdict)
         else:
-            yield facts_block(verdict)
+            yield self.packet_text(query, verdict, team, plan, state, meta)
         # Honour a requested final answer line from the verdict itself, never from the LLM
         if re.search(r"ANSWER\s*:", query, re.I):
             yield f"\n\nANSWER: {verdict.answer}"
+
+    def packet_text(self, query, verdict, team=None, plan=None, state=None, meta=None):
+        from metamatch.engine.compose import packet_for
+        from .voice import speak
+        packet = packet_for(query, plan, verdict)
+        names = [p["Pokemon"] for p in (team or {}).values()]
+        opener, why, report = speak(packet, verdict, names, getattr(state, "recent_openers", ()),
+                                    getattr(state, "recent_moods", ()))
+        if meta is not None:
+            meta.update(report, opener=opener)
+        body = packet.answer + (f" {why}" if why and why.strip() != packet.answer.strip() else "")
+        return f"*{opener}*\n\n{body}" + FACTS_MARK + facts_block(verdict)
+
+
+def voice_mode():
+    import os
+    return (os.getenv("METAMATCH_VOICE") or "packet").lower()

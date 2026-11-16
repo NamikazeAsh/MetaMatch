@@ -55,6 +55,8 @@ class DialogueState:
     intent: str = ""
     verdict: object = None                        # the engine result shown for it, if any
     clarify: bool = False                         # the last answer asked which Pokemon was meant
+    recent_openers: list = field(default_factory=list)  # the persona openers already used, newest last
+    recent_moods: list = field(default_factory=list)
 
 
 @dataclass

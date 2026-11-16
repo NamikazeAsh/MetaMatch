@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from metamatch.engine import dialogue
 from metamatch.engine.planner import plan_query
@@ -56,6 +56,7 @@ class Turn:
     verdict: object = None
     route: str = ""
     persona: str = ""
+    meta: dict = field(default_factory=dict)   # what the voice did (opener used, slots from the model)
 
     @property
     def text(self):
@@ -113,10 +114,10 @@ class AgentManager:
             route = "builder"
         return Turn(query, reading, plan, route=route, persona=PERSONAS.get(route, PERSONAS["fallback"]))
 
-    def respond(self, turn: Turn, team_context: dict, team_weakness: dict = None):
+    def respond(self, turn: Turn, team_context: dict, team_weakness: dict = None, state: dialogue.DialogueState = None):
         """The answer to a prepared turn, as a generator of text chunks."""
         if turn.verdict:
-            return self.grounded.run(turn.text, turn.verdict, team_context)
+            return self.grounded.run(turn.text, turn.verdict, team_context, plan=turn.plan, state=state, meta=turn.meta)
         if turn.plan.intent == "clarify":
             return iter([CLARIFY])
         if turn.route == "calc_down":
@@ -133,7 +134,13 @@ class AgentManager:
 
     def remember(self, turn: Turn, state: dialogue.DialogueState = None) -> dialogue.DialogueState:
         """The dialogue state after answering `turn`."""
-        return dialogue.update(state, turn.reading, turn.plan, turn.verdict, clarified=turn.plan.intent == "clarify")
+        state = dialogue.update(state, turn.reading, turn.plan, turn.verdict, clarified=turn.plan.intent == "clarify")
+        # Recent openers and moods keep the persona from repeating itself turn after turn
+        if turn.meta.get("opener"):
+            state.recent_openers = (state.recent_openers + [turn.meta["opener"]])[-5:]
+        if turn.meta.get("mood"):
+            state.recent_moods = (state.recent_moods + [turn.meta["mood"]])[-3:]
+        return state
 
     def replay(self, history: list, team_context: dict) -> dialogue.DialogueState:
         """Rebuilds the dialogue state from stored user turns, for a conversation reopened in a new session."""
@@ -151,7 +158,7 @@ class AgentManager:
         is given."""
         if state is None and history:
             state = self.replay(history, team_context)
-        return self.respond(self.prepare(query, team_context, state), team_context, team_weakness)
+        return self.respond(self.prepare(query, team_context, state), team_context, team_weakness, state)
 
     def get_active_agent_name(self, query: str, team_context: dict = None) -> str:
         """The persona that answers `query` on its own (no conversation context)."""
