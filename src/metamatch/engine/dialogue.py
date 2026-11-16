@@ -182,6 +182,9 @@ def resolve(query, state, team):
             swapped = _put(prev, prev_spans, set(state.opponents), ("opposing " if new in members else "") + new)
         if swapped:
             return Reading(swapped, "swap")
+        # Nothing to swap (the last question named no Pokemon, like "is my team good"): ask about this one directly,
+        # its job if it is the trainer's, how to beat it if it isn't
+        return Reading(f"why is {new} on this team?" if new in members else f"how do I beat {new}?", "swap")
 
     # "what if it's the scarf set", "and with Specs?": the last question with the stated details added
     if VARIANT_RE.match(query) and len(words) <= 12 and not ASKS_RE.search(query):

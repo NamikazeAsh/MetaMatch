@@ -122,6 +122,12 @@ class TestFollowUps(unittest.TestCase):
         r = _ask(["what item should my kingambit use", "why not black glasses?"], self.team)[-1]
         self.assertEqual(r.text, "Is Black Glasses common on Kingambit?")
 
+    def test_named_follow_up_with_nothing_to_swap(self):
+        readings = _ask(["is my team good", "what about Gholdengo"], self.team)
+        self.assertEqual(readings[-1].text, "why is Gholdengo on this team?")
+        readings = _ask(["is my team good", "what about Iron Valiant"], self.team)
+        self.assertEqual(readings[-1].text, "how do I beat Iron Valiant?")
+
     def test_replace_carries_member(self):
         r = _ask(["Is my Gholdengo set good?", "ok what should I replace then"], self.team)[-1]
         self.assertIn("my Gholdengo", r.text)
