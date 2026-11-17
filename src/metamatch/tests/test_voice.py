@@ -18,8 +18,15 @@ class TestParse(unittest.TestCase):
 
 class TestOpener(unittest.TestCase):
     def test_tone_only(self):
-        self.assertIsNone(voice.check_opener("Ah, a classic problem!"))
+        self.assertIsNone(voice.check_opener("Ah, good question."))
         self.assertIsNone(voice.check_opener("Science has the answer!"))
+        # Calling every question a problem misframes answers like "your team runs no weather"
+        self.assertEqual(voice.check_opener("Ah, a classic problem!"), "calls it a problem")
+        self.assertEqual(voice.check_opener("That's quite a challenge!"), "calls it a problem")
+
+    def test_repair_keeps_one_owner_word(self):
+        self.assertEqual(voice.repair_why("Your Kingambit beats 8 of them.", [type("F", (), {"text": "your Kingambit"})()],
+                                          ["Kingambit"]), "Your Kingambit beats 8 of them.")
 
     def test_claims_rejected(self):
         for line in ["Your Kingambit is a beast!", "Rain teams are tough!", "That's a great team you have there!",

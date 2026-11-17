@@ -47,9 +47,21 @@ def solve_win(plan, dex, game):
     return Verdict("win", name, said, facts, persona="strategy", plain=said, typed=_win_facts(g))
 
 
+CONDITION_START = re.compile(r"^(?:With|After|Once|Under|When|If|Against|Behind)\b")
+
+
+def _about(name, point):
+    """'Your Kingambit beats ...' for a point about a member; a point that opens with its condition ("With 3
+    teammates down, ...") reads 'For your Kingambit, with 3 teammates down, ...' instead of 'Your Kingambit: With'."""
+    p = plainify(point.rstrip("."))
+    if CONDITION_START.match(p):
+        return f"For your {name}, {p[:1].lower()}{p[1:]}."
+    return f"Your {name}: {p}."
+
+
 def _win_facts(g):
     name = g.win["name"]
-    out = [Fact("role", f"Your {name}: {plainify(p.rstrip('.'))}.", {"member": name}, role="why" if i < 2 else "context")
+    out = [Fact("role", _about(name, p), {"member": name}, role="why" if i < 2 else "context")
            for i, p in enumerate(g.win["points"])]
     if g.win.get("threats"):
         out.append(Fact("matchup", f"Keep your {name} healthy until these are worn down: "
@@ -61,7 +73,7 @@ def _lead_typed(leads, why=True):
     out = []
     for i, lead in enumerate(leads):
         for j, p in enumerate(lead["points"]):
-            out.append(Fact("role", f"Your {lead['name']}: {plainify(p.rstrip('.'))}.", {"member": lead["name"]},
+            out.append(Fact("role", _about(lead["name"], p), {"member": lead["name"]},
                             role="why" if why and i == 0 and j < 2 else "context"))
     return out
 

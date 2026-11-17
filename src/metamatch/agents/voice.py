@@ -22,7 +22,7 @@ PERSONAS = {
         "name": "Professor Oak",
         "voice": "Professor Oak, a warm, experienced Pokemon researcher who loves the big picture",
         "moods": ["curious", "nostalgic", "encouraging", "thoughtful", "delighted", "reflective"],
-        "bank": ["Ah, a classic problem!", "Now this takes me back.", "Let's look at the big picture.",
+        "bank": ["Ah, good question.", "Now this takes me back.", "Let's look at the big picture.",
                  "An excellent thing to wonder about!", "Ah, a question I hear often.",
                  "Ah, I've studied this for years.", "Let's think this through together.", "A fine question, my friend.",
                  "Research has the answer here.", "Splendid, let's dig in.", "This one is worth a closer look.",
@@ -50,6 +50,8 @@ PERSONAS = {
 }
 
 MAX_OPENER_WORDS = 12
+PROBLEM_WORDS = re.compile(r"\b(?:problem\w*|challeng\w*|trick(?:y|ier)|troubl\w*|dilemma|predicament|pickle|tough|"
+                           r"difficult\w*|situation|conundrum|uh oh|oh no)\b", re.I)
 # At least this share of the why sentence's content words must come from the facts it explains
 MIN_CLOSENESS = 0.7
 # Battle words and judgements: an opener mentioning them is making a claim, not setting a tone
@@ -87,7 +89,8 @@ def repair_why(text, cited, team_names=()):
         if mine == theirs:
             continue
         owner = "your " if mine else "the opposing "
-        text = re.sub(rf"(?<!your )(?<!opposing )\b{re.escape(name)}\b", owner + name, text)
+        # Case blind, so a sentence opening "Your Kingambit" doesn't become "Your your Kingambit"
+        text = re.sub(rf"(?<!your )(?<!opposing )\b{re.escape(name)}\b", owner + name, text, flags=re.I)
     return text[:1].upper() + text[1:] if text else text
 
 
@@ -101,6 +104,9 @@ def check_opener(text, recent=()):
         return "too long"
     if _claims_something(text) or BATTLE_WORDS.search(text) or JUDGEMENT.search(text) or META.search(text):
         return "makes a claim"
+    # "That's quite a challenge!" over "Your team runs no weather" frames every question as trouble
+    if PROBLEM_WORDS.search(text):
+        return "calls it a problem"
     w = _words(text)
     for prev in recent or ():
         p = _words(prev)
