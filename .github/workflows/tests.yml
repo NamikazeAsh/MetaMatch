@@ -36,7 +36,7 @@ jobs:
       run: |
         # CPU torch keeps the install small; the tests never run a model on a GPU
         pip install torch --index-url https://download.pytorch.org/whl/cpu
-        pip install -r requirements.txt pytest ruff
+        pip install -r requirements_llm.txt pytest ruff
 
     - name: Lint
       run: ruff check src bench scripts --select E9,F63,F7,F82

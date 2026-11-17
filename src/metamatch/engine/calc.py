@@ -34,6 +34,8 @@ class CalcClient:
         if self._broken:
             return None
         node = shutil.which("node")
+        if node and not (ENGINE_DIR / "node_modules" / "@smogon" / "calc").exists():
+            _install_package()
         if not node or not (ENGINE_DIR / "node_modules" / "@smogon" / "calc").exists():
             print("Damage calc unavailable: install Node and run `npm install` in src/metamatch/engine")
             self._broken = True
@@ -96,6 +98,26 @@ class CalcClient:
         if self._proc and self._proc.poll() is None:
             self._proc.kill()
         self._proc = None
+
+
+def _install_package():
+    """Installs the pinned calc package once when Node is present but node_modules isn't, as on a fresh cloud deploy
+    (Streamlit Community Cloud installs Node from packages.txt but never runs npm)."""
+    npm = shutil.which("npm")
+    if not npm:
+        return
+    with _INSTALL_LOCK:  # two sessions starting at once must not run npm side by side
+        if (ENGINE_DIR / "node_modules" / "@smogon" / "calc").exists():
+            return
+        print("Installing the damage calc package (npm ci)...")
+        try:
+            subprocess.run([npm, "ci", "--omit=dev", "--no-audit", "--no-fund"], cwd=ENGINE_DIR, timeout=300,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        except (OSError, subprocess.SubprocessError) as e:
+            print(f"npm ci failed: {e}")
+
+
+_INSTALL_LOCK = threading.Lock()
 
 
 _client = CalcClient()

@@ -162,5 +162,5 @@ def render(team_data):
     with right:
         st.markdown(STYLE + f'<div class="tb-head">Loses to {escape(pick)} ({len(r["losses"])})</div>'
                     + _cards(r["losses"], pick, r, "lose"), unsafe_allow_html=True)
-    st.caption("One on one, on each threat's most common set. Switching, hazards, setup and Tera aren't counted. "
-               "You can also ask the Coach Chat \"what checks Kyurem?\".")
+    st.caption("One on one, on each threat's most common set. Switching, hazards, setup and Tera aren't counted."
+               + (" You can also ask the Coach Chat \"what checks Kyurem?\"." if config.CHAT_ENABLED else ""))

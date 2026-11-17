@@ -148,6 +148,13 @@ def _clear():
     st.session_state.chat_state = None
 
 
+def render_disabled():
+    """What the tab shows on a shared deployment, where no local model is running."""
+    section_header("Ask anything", "Ask the Coach")
+    st.info("Coach Chat is disabled currently. It runs on a local model, so it's only available when MetaMatch runs "
+            "on your own machine. Every other tab works as usual.", icon=":material/comments_disabled:")
+
+
 def render():
     section_header("Ask anything", "Ask the Coach")
     st.caption("Ask about counters, speed, damage or strategy. Answers use this month's ladder data and the real damage calculator.")

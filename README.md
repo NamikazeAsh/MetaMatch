@@ -305,7 +305,7 @@ graph TD
 ```bash
 git clone https://github.com/NamikazeAsh/MetaMatch.git
 cd MetaMatch
-pip install -r requirements.txt
+pip install -r requirements_llm.txt        # or requirements.txt to skip the coach's strategy search
 cd src/metamatch/engine && npm install && cd ../../..
 
 python scripts/update_meta.py              # usage stats, top Pokémon, speed tiers

@@ -569,7 +569,8 @@ def home_page():
             with st.container(horizontal=True, vertical_alignment="center"):
                 analyze_clicked = st.form_submit_button("Analyze team", type="primary", icon=":material/insights:")
                 sample_clicked = st.form_submit_button("Try a sample team", icon=":material/science:")
-                st.caption("Damage calcs, threats, speed tiers and the coach chat, all from one paste.")
+                st.caption("Damage calcs, threats, speed tiers and the coach chat, all from one paste." if config.CHAT_ENABLED
+                           else "Damage calcs, threats, speed tiers and a game plan, all from one paste.")
 
         if sample_clicked:
             open_sample_team()
@@ -672,7 +673,7 @@ def team_page():
         (tab_matrix, lambda: tab_matrix_mod.render(team_data, TYPE_MAP)),
         (tab7, lambda: tab_speed_tiers.render(team_data, TYPE_MAP)),
         (tab8, lambda: tab_coach_guide.render(TYPE_MAP)),
-        (tab_chat, tab_chat_mod.render),
+        (tab_chat, tab_chat_mod.render if config.CHAT_ENABLED else tab_chat_mod.render_disabled),
     ]
     for tab, draw in tabs:
         if tab.open:

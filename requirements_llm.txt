@@ -1,0 +1,4 @@
+# Local only: the coach's strategy search (RAG). The app runs without these; Streamlit Cloud installs only requirements.txt
+-r requirements.txt
+chromadb
+sentence-transformers
