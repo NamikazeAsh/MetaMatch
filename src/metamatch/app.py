@@ -98,11 +98,13 @@ st.html(r'''
     .mm-sprite:hover { transform: translateY(-2px); box-shadow: 0 0 18px -3px var(--glow), inset 0 0 18px -10px var(--glow); }
     .mm-sprite img { width: 56px; height: 56px; object-fit: contain; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--glow) 70%, transparent)); }
     .mm-sprite small { max-width: 100%; font-size: 0.62rem; color: #aab3c5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mm-strip { display: flex; gap: 4px; margin: 2px 0 4px; }
-    .mm-mini { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    /* Six sprites share the card's width: each shrinks below 34px rather than spill past the border */
+    .mm-strip { display: flex; gap: 4px; margin: 2px 0 4px; width: 100%; min-width: 0; }
+    .mm-mini { flex: 1 1 0; min-width: 0; max-width: 34px; aspect-ratio: 1; border-radius: 50%; display: flex;
+               align-items: center; justify-content: center; box-sizing: border-box;
                background: rgba(255, 255, 255, 0.04); border: 1px solid color-mix(in srgb, var(--glow) 55%, transparent);
                box-shadow: 0 0 10px -4px var(--glow); }
-    .mm-mini img { width: 30px; height: 30px; object-fit: contain; }
+    .mm-mini img { width: 88%; height: 88%; object-fit: contain; }
     [data-testid="stSidebar"] [class*="st-key-recent_"] { padding: 8px 10px !important; gap: 2px !important; }
     .mm-sprite-missing { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; color: #6b7487; font-weight: 700; }
     /* Set card on hover or keyboard focus; edge columns align to their edge so the narrow sidebar never clips it */
