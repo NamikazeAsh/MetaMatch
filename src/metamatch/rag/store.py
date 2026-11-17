@@ -47,6 +47,28 @@ def get_model():
     return SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 
+_WARM = False
+
+
+def is_warm():
+    """True once warm() has run in this process (the model and index stay loaded for every session)."""
+    return _WARM
+
+
+def warm():
+    """Loads everything the first question would otherwise wait for: torch, the embedding model, the Chroma index
+    and the BM25 tables (about 25 s cold). The chat tab shows a loading screen while this runs."""
+    global _WARM
+    if _WARM:
+        return
+    get_model().encode(["warm up"], normalize_embeddings=True)
+    count = get_collection().count()
+    if count:
+        _corpus(count)
+        _vectors(count)
+    _WARM = True
+
+
 def _stats_month():
     try:
         return json.loads((config.STATS_DIR / "manifest.json").read_text(encoding="utf-8")).get("month")

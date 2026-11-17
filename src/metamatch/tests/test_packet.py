@@ -122,7 +122,7 @@ class TestSuggestions(unittest.TestCase):
             for c in chips:
                 self.assertNotIn(plan_query(c, team).intent, ("open", "clarify"), c)
             self.assertEqual(split("Answer." + marker(chips)), ("Answer.", chips))
-        for _, _, _, questions in help_cards(team):
+        for _, _, _, _, questions in help_cards(team):
             for q in questions:
                 self.assertNotIn(plan_query(q, team).intent, ("open", "clarify"), q)
 
