@@ -36,6 +36,42 @@ STYLE = """
 .cg-row { display: grid; grid-template-columns: 78px 1fr; gap: 8px; font-size: .84rem; align-items: baseline; margin-top: 4px; }
 .cg-row .k { white-space: nowrap; color: #8fa1bf; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
 .cg-gone { text-decoration: line-through; opacity: .55; }
+.cg-rec { margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.06); display: grid; gap: 7px; }
+.cg-rec-h { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #00d4ff; }
+.cg-rec-row { display: grid; grid-template-columns: 96px 1fr; gap: 8px; align-items: center; }
+.cg-rec-k { color: #8fa1bf; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; line-height: 1.25; min-width: 0; }
+.cg-rec-k small { display: block; text-transform: none; letter-spacing: 0; font-weight: 500; color: #6f7a90; font-size: .7rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cg-tis { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+.cg-ti { position: relative; display: inline-flex; align-items: center; gap: 5px; cursor: help; outline: none; }
+.cg-ti .o { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; transition: transform .12s ease;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 75%, #fff), var(--c) 60%);
+  box-shadow: 0 0 10px -3px var(--c), inset 0 -3px 5px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.3); }
+.cg-ti .o i { display: block; width: 13px; height: 13px; background-size: contain; background-repeat: no-repeat; background-position: center;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.35)); }
+.cg-ti:hover .o { transform: scale(1.12); }
+.cg-ti.mine .o { box-shadow: 0 0 0 2px #121722, 0 0 0 3.5px #00d4ff, 0 0 14px rgba(0,212,255,.55); }
+.cg-ti b { font-size: .74rem; color: #c8d1e0; font-weight: 700; }
+.cg-ti.mine b { color: #7fe6ff; }
+.cg-tip { position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%) translateY(3px); white-space: nowrap;
+  font-size: .68rem; font-weight: 700; color: #fff; background: #0b0f17; border: 1px solid rgba(255,255,255,.14); padding: 3px 8px;
+  border-radius: 7px; opacity: 0; visibility: hidden; transition: opacity .12s ease, transform .12s ease, visibility .12s;
+  pointer-events: none; z-index: 45; box-shadow: 0 6px 16px rgba(0,0,0,.5); }
+.cg-ti:hover .cg-tip, .cg-ti:focus .cg-tip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+.cg-rare { font-size: .76rem; color: #ffd866; display: flex; gap: 6px; align-items: center; }
+.cg-rare::before { content: "!"; font-weight: 800; }
+.cg-mini-h { display: flex; align-items: baseline; justify-content: space-between; margin: 14px 2px 6px; font-weight: 700;
+  font-size: .86rem; color: #c8d1e0; }
+.cg-mini-h span { font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6f7a90; }
+.cg-minis { display: grid; gap: 6px; }
+.cg-mini { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 12px 6px 8px;
+  border-radius: 12px; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.06); }
+.cg-mini img { width: 40px; height: 40px; object-fit: contain; }
+.cg-mini-nm { font-weight: 700; font-size: .88rem; color: #e6edf7; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cg-mini-nm .cg-type { margin: 0; }
+.cg-dot { width: 4px; height: 4px; border-radius: 50%; background: #3a4358; }
+.cg-rare-dot { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 6px; border-radius: 50%; font-size: .7rem;
+  font-weight: 800; color: #1a1408; background: #ffd866; vertical-align: middle; cursor: help; }
 .cg-note { font-size: .84rem; color: #9fb0cc; margin-top: 6px; }
 .cg-combos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .cg-combo { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); min-width: 0; }
@@ -131,6 +167,38 @@ def _leads(leads):
         for x in leads) + "</div>"
 
 
+def _ti(t, type_map, tip, mine=False, share=None):
+    """A round type icon with its name and source on hover; ringed when it is the team's own Tera."""
+    from metamatch.sprites import get_type_icon
+    glyph = get_type_icon(t)
+    inner = f'<i style="background-image:url({glyph})"></i>' if glyph else escape(t[:2])
+    pct = f"<b>{share * 100:.0f}%</b>" if share is not None else ""
+    return (f'<span class="cg-ti{" mine" if mine else ""}" tabindex="0" style="--c:{type_map.get(t, {}).get("color", "#666")}">'
+            f'<span class="o">{inner}</span>{pct}<span class="cg-tip">{escape(tip)}</span></span>')
+
+
+def _recommended(x, type_map):
+    """Smogon's closest set and the ladder's top Tera types, the team's own pick ringed; '' without data."""
+    rows = ""
+    if x.get("smogon"):
+        set_name, types = x["smogon"]
+        icons = "".join(_ti(t, type_map, f"{t}: on Smogon's {set_name} set", t == x["tera"]) for t in types)
+        if x.get("smogon_other"):
+            icons += ('<span class="cg-dot"></span>'
+                      + _ti(x["tera"], type_map, f"{x['tera']}: on Smogon's {x['smogon_other']} set", True))
+        rows += (f'<div class="cg-rec-row"><span class="cg-rec-k">Smogon<small>{escape(set_name)}</small></span>'
+                 f'<span class="cg-tis">{icons}</span></div>')
+    if x.get("ladder"):
+        icons = "".join(_ti(t, type_map, f"{t}: {share * 100:.0f}% of ladder sets this month", t == x["tera"], share)
+                        for t, share in x["ladder"])
+        rows += f'<div class="cg-rec-row"><span class="cg-rec-k">Ladder</span><span class="cg-tis">{icons}</span></div>'
+    if not rows:
+        return ""
+    flag = ('<div class="cg-rare">Neither Smogon nor many ladder players use this Tera on it</div>'
+            if x.get("standing") == "rare" else "")
+    return f'<div class="cg-rec"><div class="cg-rec-h">Recommended</div>{rows}{flag}</div>'
+
+
 def _tera(tera, type_map):
     if not tera:
         return '<div class="cg-head">Tera plan</div><div class="cg-note">No Tera Types listed on this team.</div>'
@@ -141,8 +209,26 @@ def _tera(tera, type_map):
                   f'{_types([x["tera"]], type_map)}{best}</div>'
                   f'<div class="cg-row"><span class="k">Weak to</span><span>{_types(x["before"], type_map, gone=x["removed"])}</span></div>'
                   f'<div class="cg-row"><span class="k">After Tera</span><span>{_types(x["after"], type_map)}</span></div>'
-                  f'<div class="cg-note">{escape(x["note"])}.</div></div></div>')
-    return '<div class="cg-head">Tera plan</div><div class="cg-cards">' + cards + "</div>"
+                  f'<div class="cg-note">{escape(x["note"])}.</div>{_recommended(x, type_map)}</div></div>')
+    # The rest of the team in one compact row each: its pick and what is recommended, nothing else
+    rest = ""
+    for x in tera[3:]:
+        rec = ""
+        if x.get("smogon"):
+            rec += "".join(_ti(t, type_map, f"{t}: on Smogon's {x['smogon'][0]} set", t == x["tera"]) for t in x["smogon"][1])
+            if x.get("smogon_other"):
+                rec += _ti(x["tera"], type_map, f"{x['tera']}: on Smogon's {x['smogon_other']} set", True)
+        if x.get("ladder"):
+            rec += '<span class="cg-dot"></span>' if rec else ""
+            rec += "".join(_ti(t, type_map, f"{t}: {s * 100:.0f}% of ladder sets this month", t == x["tera"], s)
+                           for t, s in x["ladder"][:2])
+        warn = '<span class="cg-rare-dot" title="Unusual pick">!</span>' if x.get("standing") == "rare" else ""
+        rest += (f'<div class="cg-mini">{_img(x["name"])}<div class="cg-mini-nm">{escape(x["name"])}'
+                 f'<span>{_types([x["tera"]], type_map)}{warn}</span></div><span class="cg-tis">{rec}</span></div>')
+    if rest:
+        rest = (f'<div class="cg-mini-h">Rest of the team <span>Smogon · ladder share</span></div>'
+                f'<div class="cg-minis">{rest}</div>')
+    return '<div class="cg-head">Tera plan</div><div class="cg-cards">' + cards + "</div>" + rest
 
 
 def _mega(mega):

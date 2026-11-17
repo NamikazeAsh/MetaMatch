@@ -736,7 +736,33 @@ def solve_usage(plan, dex, game):
     else:
         statement = f"The most common {noun} on {key} in {label} is {display(top)} ({_pct(share)} of sets)."
         said = f"The most common {noun} on {lad} sets is {display(top)}, on {_pct(share)} of them."
+    if plan.usage_field == "tera":
+        # Smogon's recommendation first (what strong players advise), then the ladder (what players run)
+        advice = _smogon_tera(plan, key)
+        if advice:
+            said = f"{advice} {said}"
+            statement = f"{advice} {statement}"
+            facts.insert(0, advice)
+            top_facts = [Fact("usage", advice, {"field": "tera", "source": "smogon"}, role="why")] + top_facts
     return Verdict("usage", display(top), statement, facts, persona="builder", plain=said, typed=top_facts)
+
+
+def _smogon_tera(plan, name):
+    """'Smogon recommends Tera Ghost or Fairy on its Boots Pivot set.' For a team member, the Smogon set closest to
+    the member's own; for any other Pokemon, up to two of Smogon's sets. '' when Smogon lists none."""
+    from metamatch.engine import tera
+    def either(types):
+        return " or ".join([", ".join(types[:-1]), types[-1]]) if len(types) > 1 else types[0]
+    mine = plan.user is not None and not plan.opponent and plan.user_named
+    if mine:
+        moves = [m["name"] for m in plan.user.get("Moves", []) if m.get("name")]
+        best = tera.closest(name, plan.format_id, moves, plan.user.get("Item"))
+        return f"Smogon recommends Tera {either(best[1])} on its {best[0]} set, the one closest to yours." if best else ""
+    sets = tera.smogon(name, plan.format_id)[:2]
+    if not sets:
+        return ""
+    parts = [f"Tera {either(types)} on its {set_name} set" for set_name, types in sets]
+    return "Smogon recommends " + " and ".join(parts) + "."
 
 
 def solve_speed_spread(plan, dex, game):

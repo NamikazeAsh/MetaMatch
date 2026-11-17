@@ -43,6 +43,9 @@ def packet_for(question, plan, verdict):
     """The packet for an engine answered question. Verdicts without typed facts yet fall back to their exact engine
     lines (kind 'engine'), so every answer has the same shape while solvers are converted."""
     category, persona, link = category_of(verdict.intent)
+    # Tera usage sits next to the Coach Guide's Tera plan, which shows Smogon's pick and the ladder's side by side
+    if verdict.intent == "usage" and getattr(plan, "usage_field", None) == "tera":
+        link = "Coach Guide"
     p = Packet(question=question, intent=verdict.intent, category=category, persona=verdict.persona or persona,
                answer=verdict.plain or plainify(verdict.statement), link=link)
     if verdict.typed:

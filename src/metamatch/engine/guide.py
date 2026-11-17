@@ -240,6 +240,25 @@ def _tera(members, engines=()):
     return out
 
 
+def _add_recommended_tera(tera_cards, team, format_id):
+    """Adds what Smogon's closest set recommends and what the ladder runs to each Tera card, and whether the team's
+    own pick is one of them (engine/tera.py)."""
+    from metamatch.engine import tera as tera_data
+    by_name = {p["Pokemon"]: p for p in (team or {}).values()}
+    for x in tera_cards:
+        p = by_name.get(x["name"]) or {}
+        moves = [m["name"] for m in p.get("Moves", []) if m.get("name")]
+        x["smogon"] = tera_data.closest(x["name"], format_id, moves, p.get("Item"))
+        x["ladder"] = tera_data.ladder(x["name"], format_id)
+        x["standing"] = tera_data.standing(x["name"], format_id, x["tera"])
+        # The team's Tera recommended on a different Smogon set than the closest one: name that set too, so a pick
+        # counted as Smogon's never looks unrecommended on the card
+        x["smogon_other"] = None
+        if x["smogon"] and x["tera"] not in x["smogon"][1]:
+            x["smogon_other"] = next((name for name, types in tera_data.smogon(x["name"], format_id)
+                                      if x["tera"] in types), None)
+
+
 def _mega(team, format_id):
     """Champions Megas: the stat and typing changes Mega Evolution brings, straight from the dex."""
     dex = dex_for_format(format_id)
@@ -362,6 +381,7 @@ def team_guide(team, format_id=None, rows=None):
         guide.mega = _mega(team, format_id)
     else:
         guide.tera = _tera(members, guide.engines)
+        _add_recommended_tera(guide.tera, team, format_id)
     guide.combos = _combos(members)
     guide.watch = _watch(rows)
     return guide

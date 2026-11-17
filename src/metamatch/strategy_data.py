@@ -60,7 +60,10 @@ def update_strategy_cache():
                         'moves': flat_moves,
                         'item': set_data.get('item', 'None'),
                         'ability': set_data.get('ability', 'None'),
-                        'nature': set_data.get('nature', 'None')
+                        'nature': set_data.get('nature', 'None'),
+                        # Smogon's recommended Tera types for the set (Scarlet and Violet formats only)
+                        'teratypes': [t for t in ([set_data['teratypes']] if isinstance(set_data.get('teratypes'), str)
+                                                  else set_data.get('teratypes') or [])]
                     }
 
         except Exception as e:

@@ -161,6 +161,24 @@ class TestOwnWeatherSpeed(unittest.TestCase):
         self.assertEqual(tiers.answer, "Excadrill")
 
 
+class TestRecommendedTera(unittest.TestCase):
+    def test_smogon_and_ladder_tera(self):
+        from metamatch.engine import tera
+        sets = tera.smogon("Gholdengo", "gen9ou")
+        if not sets:
+            self.skipTest("Strategy Dex cache has no Tera types (scripts/build_strategy_cache.py)")
+        # The Smogon set closest to the team's own decides the recommendation
+        scarf = tera.closest("Gholdengo", "gen9ou", ["Make It Rain", "Shadow Ball", "Trick", "Focus Blast"], "Choice Scarf")
+        self.assertEqual(scarf[0], "Choice Scarf")
+        shares = [s for _, s in tera.ladder("Gholdengo", "gen9ou")]
+        self.assertEqual(shares, sorted(shares, reverse=True))
+        self.assertTrue(all(s >= tera.LADDER_MIN for s in shares))
+        self.assertEqual(tera.smogon("Gholdengo", "gen9championsou"), [])   # no Tera in Champions
+        team, _ = readTeam(TEAM, "gen9ou")
+        v = solve(plan_query("what tera should my gholdengo run", team))
+        self.assertTrue(v.plain.startswith("Smogon recommends Tera"), v.plain)
+
+
 class TestTeamWeather(unittest.TestCase):
     def test_using_weather_is_about_the_team_and_facing_it_is_an_archetype(self):
         team, _ = readTeam(TEAM, "gen9ou")
