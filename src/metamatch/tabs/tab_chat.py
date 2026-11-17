@@ -105,7 +105,7 @@ def _warm_up():
         from metamatch.rag import store
     except Exception:   # the RAG stack is optional; the chat works without it
         return
-    if store.is_warm():
+    if store.is_warm() or not store.installed():
         return
     slot = st.empty()
     slot.html(LOADER)

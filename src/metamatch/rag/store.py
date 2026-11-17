@@ -55,6 +55,16 @@ def is_warm():
     return _WARM
 
 
+def installed():
+    """True when the RAG packages (requirements_llm.txt) are installed. Streamlit Cloud installs only
+    requirements.txt, so there the chat answers from the engine alone and nothing is warmed up."""
+    from importlib.util import find_spec
+    try:
+        return find_spec("chromadb") is not None and find_spec("sentence_transformers") is not None
+    except (ImportError, ValueError):
+        return False
+
+
 def warm():
     """Loads everything the first question would otherwise wait for: torch, the embedding model, the Chroma index
     and the BM25 tables (about 25 s cold). The chat tab shows a loading screen while this runs."""
@@ -108,9 +118,10 @@ def index_info():
 
 
 def index_stale():
-    """True when the usage stats on disk are newer than the ones the index was built from."""
+    """True when the usage stats on disk are newer than the ones an existing index was built from. No index at all
+    (a cloud deploy installs no RAG packages and ships no index) isn't a stale one, so there is nothing to refresh."""
     built, current = index_info().get("stats_month"), _stats_month()
-    return bool(current) and built != current
+    return bool(current) and bool(built) and built != current
 
 
 def _tokens(text):
