@@ -572,7 +572,7 @@ def home_page():
                 st.caption("Damage calcs, threats, speed tiers and the coach chat, all from one paste.")
 
         if sample_clicked:
-            open_team(SAMPLE_TEAM, "gen9ou")
+            open_sample_team()
         elif analyze_clicked:
             if pokemon_data.strip():
                 open_team(pokemon_data, st.session_state.format_id)
@@ -590,8 +590,48 @@ def team_empty_state(message):
     st.page_link(HOME_PAGE, label="Paste a team on Home", icon=":material/home:")
 
 
+SAMPLE_TEAMS_FILE = config.JSON_DIR / "sample_teams.json"
+
+
+@st.cache_data(show_spinner=False)
+def sample_teams():
+    """[{title, author, source, format, team}]: real ladder teams saved from pokepast.es, so the sample button never
+    needs the network. The guided tour and the showcase keep the fixed SAMPLE_TEAM, so their steps always match."""
+    import json
+    try:
+        return json.loads(SAMPLE_TEAMS_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+
+
+def open_sample_team():
+    """'Try a sample team': a random one of the saved samples, never the one opened last, credited on the team page."""
+    import random
+    samples = sample_teams()
+    # The showcase capture sets METAMATCH_FIXED_SAMPLE so its screenshots match their captions
+    if not samples or os.getenv("METAMATCH_FIXED_SAMPLE"):
+        open_team(SAMPLE_TEAM, "gen9ou")
+        return
+    last = st.session_state.get("last_sample")
+    pool = [s for s in samples if s["source"] != last] or samples
+    pick = random.choice(pool)
+    st.session_state.last_sample = pick["source"]
+    st.session_state.sample_credit = pick
+    open_team(pick["team"], pick.get("format") or "gen9ou")
+
+
+def _sample_toast():
+    """Says which sample opened and who built it, once."""
+    pick = st.session_state.pop("sample_credit", None)
+    if pick:
+        by = (f", built by {pick['author']}" if pick.get("author") and not pick["author"].lower().startswith("guest")
+              else "")
+        st.toast(f"Sample team \"{pick['title']}\"{by} (pokepast.es)", icon=":material/science:")
+
+
 def team_page():
     """The dashboard for the team in session, or the one named by ?t=<id> (refresh, bookmark, second tab)."""
+    _sample_toast()
     linked = st.query_params.get("t")
     if linked and st.session_state.get("team_id") != linked:
         stored = storage.get_team(linked) if config.LOCAL_MODE else None

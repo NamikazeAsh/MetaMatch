@@ -93,7 +93,8 @@ def wait_http(url, timeout=90):
 
 
 def start_app(port, user_dir, extra_env=None):
-    env = dict(os.environ, METAMATCH_USER_DIR=str(user_dir), **(extra_env or {}))
+    # The showcase captions describe the fixed sample team, so the sample button must not pick a random one
+    env = dict(os.environ, METAMATCH_USER_DIR=str(user_dir), METAMATCH_FIXED_SAMPLE="1", **(extra_env or {}))
     proc = subprocess.Popen([sys.executable, "-m", "streamlit", "run", "src/metamatch/app.py", "--server.headless", "true",
                              "--server.port", str(port)], cwd=ROOT, env=env,
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
