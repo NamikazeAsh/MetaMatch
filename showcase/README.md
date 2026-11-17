@@ -58,7 +58,7 @@ The biggest shift in item, Tera, moves or ability among the top 25, and the pair
 
 ![How sets changed this month and rising cores](images/metaflash_trends.webp)
 
-### Your teams this month
+### Run the gauntlet
 
 Your recent teams against this month's 12 most used Pokémon, with the threats that just arrived and who on the team beats them.
 

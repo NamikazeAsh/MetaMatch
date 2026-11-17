@@ -221,7 +221,7 @@ CSS = """
 .mp-core-stat b { font-weight:900; font-size:1.25rem; color:#fff; }
 .mp-core-stat small { font-size:0.72rem; color:#8a93a6; }
 
-/* Your teams this month */
+/* Team check: your teams against this month's top 12 */
 .mp-teams { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
 .mp-team { border-radius:14px; padding:14px; min-width:0; background:linear-gradient(160deg, rgba(0,212,255,0.07), rgba(255,255,255,0.015) 60%);
   border:1px solid rgba(0,212,255,0.22); }
@@ -602,17 +602,16 @@ def _trend_sections(trends, format_id, month, type_map):
     html = ""
     leads, favs = _leads_panel(trends["leads"], types, type_map), _favorites_panel(trends["favorites"], types, type_map, rating)
     if leads and favs:
-        html += _sec("Team preview", "Leads and the top of the ladder",
-                     f"Which Pokémon open games, and what {rating}+ players run more than the ladder at 1500+")
+        html += _sec("Team preview", "Leads and the top of the ladder")
         html += f'<div class="mp-duo">{leads}{favs}</div>'
     elif leads:
-        html += _sec("Team preview", "Leads to expect", "Which Pokémon opened games that month")
+        html += _sec("Team preview", "Leads to expect")
         html += f'<div class="mp-solo">{leads}</div>'
     if trends["sets"]:
-        html += _sec("Sets", "How sets changed this month", "The biggest shift in item, Tera, moves or ability among the top 25")
+        html += _sec("Sets", "How sets changed this month")
         html += f'<div class="mp-grid3">{"".join(_trend_card(t, types, type_map) for t in trends["sets"])}</div>'
     if trends["cores"]:
-        html += _sec("Teams", "Rising cores", "Pairs more teams are running together than last month")
+        html += _sec("Teams", "Rising cores")
         html += f'<div class="mp-grid4">{"".join(_core_card(c, types, type_map) for c in trends["cores"])}</div>'
     if not trends["sets"] and month < (meta_pulse.current_month() or ""):
         html += '<div class="mp-quiet">Set trends, top players&#39; picks and rising cores cover the last 12 months.</div>'
@@ -663,8 +662,7 @@ def _teams_section(format_id, month):
         teams = [t for t in storage.recent_teams(6) if t.get("format") == format_id][:3]
     if not teams:
         return
-    st.html(_sec("Your teams", "Your teams this month",
-                 "Each team against this month&#39;s 12 most used Pokémon, with the threats that just arrived"))
+    st.html(_sec("Run the gauntlet", "Can your teams handle this month's top 12?"))
     key = f"mf_teams_{format_id}_{month}"
     if not st.session_state.get(key):
         st.button("Check my teams against this month", icon=":material/shield:", key=f"btn_{key}",

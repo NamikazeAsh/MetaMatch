@@ -80,7 +80,7 @@ The home screen opens on a magazine style front page of what the ladder is doing
 * **Top players' picks:** what the top of the ladder runs more than players at 1500+.
 * **How sets changed:** the biggest shift in item, Tera, moves or ability among the top 25 each month, like Tera Ghost Cinderace jumping from 9% to 34%.
 * **Rising cores:** pairs more teams are building together than last month.
-* **Your teams this month:** each saved team against this month's 12 most used Pokémon, flagging threats that just entered the top 12 and climbing ones it barely answers.
+* **Run the gauntlet:** each saved team against this month's 12 most used Pokémon, flagging threats that just entered the top 12 and climbing ones it barely answers.
 * **Written by code, not an LLM:** every card and headline (*"Raging Bolt climbs 8 ranks to #5"*) is picked by fixed rules from the data, with usage floors so tiny tiers can't fake a headline.
 * **Honest charts:** every axis starts at zero, so a dip looks as big as it really was.
 * **Self updating:** the monthly stats workflow appends each new month's usage, leads, sets and 1500+ usage to compact histories, so the page is always current with no manual step.
