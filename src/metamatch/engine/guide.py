@@ -263,6 +263,15 @@ def _mega(team, format_id):
     return out
 
 
+def _takes(types, defender_types):
+    """'is immune to Ground and resists Grass, Bug and Fairy': an immunity is a free switch into that attack,
+    so it is said apart from a resistance rather than folded into one."""
+    immune = [t for t in types if _mult(t, defender_types) == 0]
+    resist = [t for t in types if t not in immune]
+    parts = ([f"is immune to {_and(immune)}"] if immune else []) + ([f"resists {_and(resist)}"] if resist else [])
+    return " and ".join(parts)
+
+
 def _combos(members, n=3):
     """Pairs that cover each other: one beats the threats that beat the other, or takes the types it fears."""
     scored = []
@@ -287,9 +296,9 @@ def _combos(members, n=3):
         if a_covers:
             points.append(f"{a.name} beats {_and(a_covers[:3])}, which {'beats' if len(a_covers[:3]) == 1 else 'beat'} {b.name}")
         if b_takes:
-            points.append(f"{b.name} resists {_and(b_takes)} for {a.name}")
+            points.append(f"{b.name} {_takes(b_takes, b.types)} for {a.name}")
         if a_takes:
-            points.append(f"{a.name} resists {_and(a_takes)} for {b.name}")
+            points.append(f"{a.name} {_takes(a_takes, a.types)} for {b.name}")
         out.append({"pair": [a.name, b.name], "points": points})
         used[a.name] = used.get(a.name, 0) + 1
         used[b.name] = used.get(b.name, 0) + 1

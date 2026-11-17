@@ -284,6 +284,15 @@ class TestEngineGuide(unittest.TestCase):
         self.assertIn("2x STAB", tusk["note"])                                     # Headlong Rush
 
 
+class TestGuideCombos(unittest.TestCase):
+    def test_immunity_is_said_apart_from_resistance(self):
+        from metamatch.engine.guide import _takes
+        # Corviknight takes Ground for Tyranitar as an immunity, a free switch into Earthquake
+        self.assertEqual(_takes(["Grass", "Ground", "Bug"], ["Flying", "Steel"]),
+                         "is immune to Ground and resists Grass and Bug")
+        self.assertEqual(_takes(["Fire"], ["Rock", "Dark"]), "resists Fire")
+
+
 class TestGuideLeads(unittest.TestCase):
     def test_ladder_lead_rate_nudges_and_is_shown_but_unknown_stays_neutral(self):
         from metamatch.engine.guide import Member, _leads
