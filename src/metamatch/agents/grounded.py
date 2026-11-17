@@ -186,7 +186,8 @@ class GroundedAgent:
                                     getattr(state, "recent_moods", ()))
         if meta is not None:
             meta.update(report, opener=opener)
-        body = packet.answer + (f" {why}" if why and why.strip() != packet.answer.strip() else "")
+        # A why the answer already says (word for word) adds nothing
+        body = packet.answer + (f" {why}" if why and why.strip().lower() not in packet.answer.lower() else "")
         if packet.link:
             body += f"\n\n_See the {packet.link} tab for the full picture._"
         return f"*{opener}*\n\n{body}" + FACTS_MARK + facts_block(verdict) + cards_block(packet.cards)

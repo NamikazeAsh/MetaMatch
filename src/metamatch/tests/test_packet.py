@@ -127,6 +127,40 @@ class TestSuggestions(unittest.TestCase):
                 self.assertNotIn(plan_query(q, team).intent, ("open", "clarify"), q)
 
 
+SAND = """Tyranitar @ Smooth Rock
+Ability: Sand Stream
+EVs: 252 HP / 252 Atk / 4 SpD
+Adamant Nature
+- Stealth Rock
+- Knock Off
+- Stone Edge
+- Ice Beam
+
+Excadrill @ Air Balloon
+Ability: Sand Rush
+EVs: 252 Atk / 4 SpD / 252 Spe
+Adamant Nature
+- Earthquake
+- Iron Head
+- Rock Slide
+- Rapid Spin"""
+
+
+@unittest.skipUnless(calc.available(), "Node or @smogon/calc not installed")
+class TestOwnWeatherSpeed(unittest.TestCase):
+    def test_sand_rush_speed_is_given_when_the_team_sets_sand(self):
+        from metamatch.engine.solvers import own_field
+        team, _ = readTeam(SAND, "gen9ou")
+        self.assertEqual(own_field(team, "Excadrill")[:2], ("Tyranitar", "sand"))
+        v = solve(plan_query("Does my Excadrill outspeed Iron Valiant?", team))
+        self.assertIn("With your Tyranitar's sand up, your Excadrill has", v.plain)
+        # A stated weather is the question's own condition, so no second number is added
+        v = solve(plan_query("Does my Excadrill outspeed Iron Valiant in rain?", team))
+        self.assertNotIn("sand up", v.plain)
+        tiers = solve(plan_query("Walk me through my speed tiers", team))
+        self.assertEqual(tiers.answer, "Excadrill")
+
+
 class TestTeamWeather(unittest.TestCase):
     def test_using_weather_is_about_the_team_and_facing_it_is_an_archetype(self):
         team, _ = readTeam(TEAM, "gen9ou")

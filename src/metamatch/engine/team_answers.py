@@ -8,6 +8,7 @@ out at 4 of 12 on these general questions, while an engine sentence plus one voi
 """
 import json
 import re
+from dataclasses import replace
 from functools import lru_cache
 
 from metamatch import config
@@ -346,6 +347,17 @@ def solve_speed_tiers(plan, dex, game):
     fast, slow = order[0], order[-1]
     said = (f"Your fastest is your {fast} at {speeds[fast]} Speed, outspeeding {round(share[fast] * 100)}% of the top "
             f"{N_SPEED} ladder sets; your slowest is your {slow} at {speeds[slow]}.")
+    # The team's own weather or terrain can make another member the real fastest (Sand Rush behind Sand Stream)
+    from metamatch.engine.synergy import field_speeds
+    boosted = max(field_speeds(team, plan.format_id), key=lambda b: b["outspeeds"], default=None)
+    if boosted and boosted["speed"] > speeds[fast]:
+        cond = f"your {boosted['setter']}'s {boosted['label']}" if boosted["setter"] else f"its own {boosted['label']}"
+        line = (f"With {cond} up, your {boosted['name']} is faster still: {boosted['speed']} Speed, outspeeding "
+                f"{int(boosted['outspeeds'] * 100)}% of the top {N_SPEED} ladder sets.")
+        said += " " + line
+        typed = [Fact("speed", line, {"member": boosted["name"], "speed": boosted["speed"], "field": boosted["label"]},
+                      role="why")] + [replace(f, role="context") for f in typed]
+        fast = boosted["name"]
     return Verdict("speed_tiers", fast, said, [f.text for f in typed], persona="mechanics", plain=said, typed=typed)
 
 

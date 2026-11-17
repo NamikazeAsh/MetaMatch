@@ -661,3 +661,27 @@ def headline(engine, user):
         return f"{lead}, {move} 2HKOs {on} of the {n} most used Pokémon ({off} without it)"
     point = user.points[0] if user.points else ""
     return f"{lead}: {point[:1].lower()}{point[1:]}"
+
+
+def field_speeds(team, format_id=None):
+    """[{name, speed, outspeeds, label, setter}] for members whose Speed the team's own weather or terrain raises,
+    when an ability sets it on entry (so it is up whenever the setter is in): Sand Rush Excadrill behind Sand Stream
+    Tyranitar. Trick Room and Tailwind are timed moves, not standing conditions, so they are left out. Used by the
+    banner's Speed tile and the chat's speed tiers answer, so neither calls a member the fastest when another is."""
+    if not calc.available():
+        return []
+    try:
+        engines = team_engines(team, format_id)
+    except Exception as e:
+        print(f"Field speed failed: {e}")
+        return []
+    out = []
+    for e in engines:
+        if e.key in ("trick_room", "tailwind") or not e.always_on:
+            continue
+        setter = next((s["name"] for s in e.setters if s.get("ability")), None)
+        for u in e.users:
+            if u.speed and u.speed[3] > u.speed[2]:
+                out.append({"name": u.name, "speed": u.speed[1], "outspeeds": u.speed[3], "label": _label(e),
+                            "setter": setter if setter != u.name else None})
+    return out

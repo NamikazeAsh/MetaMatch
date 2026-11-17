@@ -151,7 +151,15 @@ def _facts(team_json, format_id, stats_month):
     from metamatch.tabs.tab_threats import _board
     rows = _board(team_json, format_id, stats_month)
     team = json.loads(team_json)
-    return rows, [dataclasses.asdict(m) for m in member_facts(team, format_id, rows)]
+    facts = [dataclasses.asdict(m) for m in member_facts(team, format_id, rows)]
+    # A member whose Speed the team's own weather or terrain doubles: Sand Rush Excadrill behind Sand Stream
+    # Tyranitar is the team's real fastest, so the Speed tile must not stop at unboosted Speed
+    from metamatch.engine.synergy import field_speeds
+    boosted = {b["name"]: b for b in field_speeds(team, format_id)}
+    for f in facts:
+        if f["name"] in boosted:
+            f["field"] = boosted[f["name"]]
+    return rows, facts
 
 
 def _type_icon(t, type_map, small=False):
@@ -235,6 +243,16 @@ def _stats(team, rows, facts, coverage, weakness, type_map):
         fast = [top] if top else []
         speed_txt = (f"{escape(top['name'])} is your fastest, outspeeding {top['outspeeds'] * 100:.0f}% of the top 25" if top
                      else "No Speed data")
+    # The team's own weather or terrain can make another member the real fastest (Sand Rush behind Sand Stream)
+    boosted = max((f for f in facts if f.get("field")), key=lambda f: f["field"]["outspeeds"], default=None)
+    if boosted and boosted["field"]["outspeeds"] > max((f["outspeeds"] for f in fast), default=0):
+        fld = boosted["field"]
+        cond = f"{fld['setter']}'s {fld['label']}" if fld.get("setter") else f"its own {fld['label']}"
+        # Rounded down: 99.7% must not read as 100%
+        lead = f"With {escape(cond)} up, {escape(boosted['name'])} outspeeds {int(fld['outspeeds'] * 100)}% of the top 25"
+        rest = [f for f in fast if f["name"] != boosted["name"]]
+        speed_txt = lead + (f"; {escape(rest[0]['name'])} {rest[0]['outspeeds'] * 100:.0f}% without it" if rest else "")
+        fast = [boosted] + rest
     sprites = "".join(f'<img src="{escape(get_sprite(f["name"]) or "")}" alt="">' for f in fast[:3])
     return (f'<div class="bn-stats">'
             f'<div class="bn-stat"><div class="bn-ring" style="--p:{pct}"><span>{answered}/{total}</span></div>'

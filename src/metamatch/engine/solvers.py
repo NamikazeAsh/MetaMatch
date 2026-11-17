@@ -194,6 +194,20 @@ def _user_name(p):
     return display_name(p["Forme"]) if p.get("Forme") else p["Pokemon"]
 
 
+def own_field(team, member=None):
+    """(setter, label, calc Field) for the weather or terrain an ability on the team sets on entry ("sand",
+    Tyranitar), or None. With `member`, only one that changes that member's Speed is useful to callers, which
+    compare the Speed with and without it; the setter is None when the member sets it itself."""
+    from metamatch.engine import synergy
+    for key, cond in synergy.CONDITIONS.items():
+        for p in (team or {}).values():
+            abilities = {a for a in (p.get("Ability"), p.get("Mega Ability")) if a}
+            if abilities & set(cond.get("ability_setters", {})):
+                label = key.lower() if key in synergy.WEATHER else cond["label"]
+                return (None if p["Pokemon"] == member else p["Pokemon"]), label, dict(cond["field"])
+    return None
+
+
 def solve_speed(plan, dex, game):
     p = plan.user
     name, spec, s = _opponent(plan, dex)
@@ -284,6 +298,28 @@ def solve_speed(plan, dex, game):
         said = f"{cap(opp)} moves before {me}: {them} Speed against {us}."
     if trick_room:
         said = "Under Trick Room, " + said[0].lower() + said[1:]
+    # The team's own weather or terrain (set by an ability on entry): Sand Rush Excadrill behind Sand Stream
+    # Tyranitar is far faster than its plain Speed says, so give that number too
+    own = None if (plan.raw_stats or trick_room or plan.conditions) else own_field(plan.team, _user_name(p))
+    if own:
+        setter, label, fld = own
+        us_f = mechanics.final_speed(mine, game, move, fld)
+        them_f = mechanics.final_speed(opp_speed_spec, game, move, fld)
+        if us_f and them_f and us_f != us:
+            where = f"With {mon(setter, True)}'s {label} up" if setter else f"With its own {label} up"
+            if us_f == them_f:
+                line = f"{where}, {me} and {opp} tie at {us_f} Speed."
+            elif us_f > them_f:
+                line = f"{where}, {me} has {us_f} Speed and moves before {opp} ({them_f})."
+            else:
+                line = f"{where}, {me} has {us_f} Speed, still behind {opp} ({them_f})."
+            said += " " + line
+            statement += f" {where}, {_user_name(p)} has {us_f} Speed against {name}'s {them_f}."
+            facts.append(f"{where}: {_user_name(p)} {us_f} Speed, {name} {them_f}.")
+            # The answer now carries both numbers; a voiced "why" restating one of them ("Iron Valiant has a higher
+            # Speed") would read as contradicting the other, so no fact is offered as the why
+            typed = [Fact("speed", line[0].upper() + line[1:], {"field": label, "speed": us_f, "opponent": them_f},
+                          role="why")] + [replace(f, role="context") for f in typed]
     # Contradiction checks read the answer as "subject is faster than other", inverted when ask_slower
     return Verdict("speed", answer, statement, facts, subject=subject, other=other,
                    ask_slower=plan.speed_ask == "slower", subject_is_player=plan.subject != "opponent", speeds=(us, them),
