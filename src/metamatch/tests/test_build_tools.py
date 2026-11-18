@@ -284,6 +284,17 @@ class TestEngineGuide(unittest.TestCase):
         self.assertIn("2x STAB", tusk["note"])                                     # Headlong Rush
 
 
+class TestMegaPastes(unittest.TestCase):
+    def test_mega_named_paste_reads_like_the_stone_holder(self):
+        from metamatch.engine.guide import _mega
+        for header in ("Gengar @ Gengarite", "Gengar-Mega @ Gengarite"):
+            team, _ = readTeam(header + "\nAbility: Cursed Body\nTimid Nature\n- Shadow Ball", "gen9championsou")
+            p = next(iter(team.values()))
+            self.assertEqual((p["Pokemon"], p.get("Forme"), p.get("Mega Ability")), ("Gengar", "Gengar-Mega", "Shadow Tag"),
+                             header)
+            self.assertEqual([m["forme"] for m in _mega(team, "gen9championsou")], ["Gengar-Mega"], header)
+
+
 class TestGuideCombos(unittest.TestCase):
     def test_immunity_is_said_apart_from_resistance(self):
         from metamatch.engine.guide import _takes

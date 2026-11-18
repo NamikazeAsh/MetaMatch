@@ -120,8 +120,15 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
         # Types and base stats from the bundled dex (PokeAPI as fallback).
         # A held Mega Stone means the Pokemon battles as its Mega forme, with that forme's ability.
         species = dex.species(poke_data['Pokemon']) if dex else None
+        # A paste that names the Mega forme itself ("Gengar-Mega @ Gengarite", as some builders write it) is the same
+        # set as the base species holding its stone, so it is read the same way: base name, Mega forme and ability
+        if species and species.get('baseSpecies') and '-Mega' in species['name'] and dex.species(species['baseSpecies']):
+            poke_data['Pokemon'] = dex.species(species['baseSpecies'])['name']
+            poke_data['Forme'] = species['name']
+            if species['abilities']:
+                poke_data['Mega Ability'] = species['abilities'][0]
         if species:
-            mega = dex.mega_forme(species['name'], poke_data['Item'])
+            mega = None if poke_data.get('Forme') else dex.mega_forme(species['name'], poke_data['Item'])
             if mega:
                 species = dex.species(mega)
                 poke_data['Forme'] = mega
