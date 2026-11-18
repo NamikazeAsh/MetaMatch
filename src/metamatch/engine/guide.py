@@ -282,8 +282,19 @@ def _mega(team, format_id):
         out.append({"name": p["Pokemon"], "forme": forme, "points": points, "item": p.get("Item"),
                     "base_stats": {k: b.get(k) for k in STAT_LABELS}, "mega_stats": {k: s.get(k) for k in STAT_LABELS},
                     "base_types": base.get("types") or [], "mega_types": mega.get("types") or [],
-                    "base_ability": p.get("Ability"), "mega_ability": ability})
+                    "base_ability": p.get("Ability"), "mega_ability": ability,
+                    "smogon": _mega_smogon(p, forme, format_id)})
     return out
+
+
+def _mega_smogon(p, forme, format_id):
+    """(label, preview, [the rest, by paragraph]) of Smogon's write up of this Mega here, or None (rag/cards.py)."""
+    try:
+        from metamatch.rag.cards import mega_analysis
+        return mega_analysis(p["Pokemon"], forme, [m["name"] for m in p.get("Moves", []) if m.get("name")], format_id)
+    except Exception as e:   # the analysis is a bonus: never let it break the guide
+        print(f"Mega analysis failed: {e}")
+        return None
 
 
 def _takes(types, defender_types):

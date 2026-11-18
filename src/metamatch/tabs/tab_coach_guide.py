@@ -75,6 +75,17 @@ STYLE = """
 .cg-stat .v { color: #e6edf7; font-weight: 700; text-align: right; }
 .cg-stat .d { font-weight: 800; font-size: .74rem; }
 .cg-stat .d.up { color: #5fd38d; } .cg-stat .d.down { color: #f87171; }
+.cg-smogon { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.06); }
+.cg-smogon-k { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--c) 70%, #fff); margin-bottom: 6px; }
+.cg-smogon blockquote { margin: 0; padding: 2px 0 2px 12px; border-left: 2px solid color-mix(in srgb, var(--c) 55%, transparent);
+  font-size: .86rem; line-height: 1.55; color: #d6deeb; }
+.cg-smogon-more { margin: 6px 0 0 14px; font-size: .84rem; line-height: 1.55; color: #aab3c5; }
+.cg-smogon-more summary { cursor: pointer; font-size: .74rem; font-weight: 700; color: #7fe6ff; list-style: none; }
+.cg-smogon-more summary::-webkit-details-marker { display: none; }
+.cg-smogon-more summary::before { content: "+ "; }
+.cg-smogon-more[open] summary::before { content: "- "; }
+.cg-smogon-more p { margin: 6px 0 0; }
 .cg-stat.total { margin-top: 2px; } .cg-mega-bst { color: #aab3c5; font-size: .8rem; } .cg-mega-bst b { color: #fff; }
 .cg-rec { margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.06); display: grid; gap: 7px; }
 .cg-rec-h { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #00d4ff; }
@@ -329,7 +340,20 @@ def _mega_card(x, type_map):
         bars += (f'<div class="cg-stat total"><span class="k">Total</span><span class="cg-mega-bst">{total_b} &rarr; '
                  f'<b>{total_m}</b></span><span class="v"></span><span class="d up">+{total_m - total_b}</span></div>')
         bars = f'<div class="cg-stats">{bars}</div>'
-    return f'<div class="cg-mega" style="--c:{color}">{head}<div class="cg-mega-rows">{rows}</div>{bars}</div>'
+    smogon = ""
+    if x.get("smogon"):
+        import re
+        label, preview, rest = x["smogon"]
+        # Smogon's long paragraphs shown three sentences at a time; the words are left exactly as written
+        chunks = []
+        for p in rest:
+            sentences = re.split(r"(?<=[.!?])\s+", p)
+            chunks += [" ".join(sentences[i:i + 3]) for i in range(0, len(sentences), 3)]
+        more = (f'<details class="cg-smogon-more"><summary>Read more</summary>'
+                + "".join(f"<p>{escape(c)}</p>" for c in chunks) + "</details>") if chunks else ""
+        smogon = (f'<div class="cg-smogon"><div class="cg-smogon-k">{escape(label)}</div>'
+                  f'<blockquote>{escape(preview)}</blockquote>{more}</div>')
+    return f'<div class="cg-mega" style="--c:{color}">{head}<div class="cg-mega-rows">{rows}</div>{bars}{smogon}</div>'
 
 
 def _mega(mega, type_map=None):

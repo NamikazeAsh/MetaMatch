@@ -32,14 +32,68 @@ FORMAT_SOURCE = {"gen9ou": "gen9ou", "gen9uu": "gen9uu", "gen9nationaldex": "gen
 OLD_MECHANICS = re.compile(r"\b(?:Dynamax\w*|Max (?:Airstream|Quake|Knuckle|Steelspike|Overgrowth|Flare|Geyser)|"
                            r"Z-?Moves?|Z-Crystal|\w+ium Z|Mega Evolution|Mega Evolve\w*)\b", re.I)
 MAX_CHARS = 900
+MIRROR = "https://pkmn.github.io/smogon/data/analyses/{}.json"
+
+
+def mega_analysis(base, forme, moves, format_id):
+    """(label, preview, [the rest, by paragraph]) of the Smogon analysis set for a Mega on this team, or None. Smogon files a Mega's
+    analysis under its base species, so the set is the one that talks about this Mega (by name: Mega Charizard Y, not
+    X) and shares the most moves with the team's own. Only the format's own analysis counts: an older game's Mega
+    played in a different metagame, so its text would mislead more than help."""
+    key = FORMAT_SOURCE.get(format_id)
+    if not key:
+        return None
+    entry = _entry(_load(key), base) or _entry(_load(key), forme) or {}
+    head, _, rest = forme.partition("-Mega")
+    called = f"Mega {head}" + (f" {rest.lstrip('-')}" if rest else "")
+    mine = [m.lower() for m in moves]
+    best, score = None, -1
+    for set_name, s in (entry.get("sets") or {}).items():
+        text = _text(s.get("description"))
+        low = text.lower()
+        # A set that only names other Megas ("hits Mega Dragalge") is about the base forme
+        if f"mega {head.lower()}" not in low:
+            continue
+        points = (5 if called.lower() in low else 0) + sum(1 for m in mine if m in low)
+        if points > score:
+            best, score = (set_name, text), points
+    if not best:
+        return None
+    set_name, _ = best
+    html = (entry["sets"][set_name] or {}).get("description") or ""
+    paragraphs = [re.sub(r"\s+", " ", p.get_text(" ", strip=True)) for p in BeautifulSoup(html, "html.parser").find_all("p")]
+    paragraphs = [p for p in paragraphs if p] or [_text(html)]
+    sentences = re.split(r"(?<=[.!?])\s+", paragraphs[0])
+    preview, first_rest = " ".join(sentences[:2]), " ".join(sentences[2:])
+    rest = ([first_rest] if first_rest else []) + paragraphs[1:]
+    return f"{_label(key)}, {set_name} set", preview, rest
 
 
 @lru_cache(maxsize=None)
 def _load(key):
+    """One source's analyses: the local cache, else fetched once from the pkmn.github.io mirror and kept. The cache is
+    gitignored (Smogon's prose isn't republished in the repo), so a cloud deploy fills it on first use instead."""
+    path = CACHE_DIR / f"{key}.json"
     try:
-        return json.loads((CACHE_DIR / f"{key}.json").read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
+        pass
+    if key not in SOURCES:
         return {}
+    try:
+        import requests
+        resp = requests.get(MIRROR.format(key), timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:   # offline or the mirror moved: no card, never an error
+        print(f"Smogon analyses for {key} unavailable: {e}")
+        return {}
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data), encoding="utf-8")
+    except OSError:
+        pass
+    return data
 
 
 def _text(html):

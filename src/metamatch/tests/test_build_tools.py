@@ -295,6 +295,20 @@ class TestMegaPastes(unittest.TestCase):
             self.assertEqual([m["forme"] for m in _mega(team, "gen9championsou")], ["Gengar-Mega"], header)
 
 
+class TestMegaAnalysis(unittest.TestCase):
+    def test_smogon_section_is_about_this_mega(self):
+        from metamatch.rag.cards import mega_analysis
+        y = mega_analysis("Charizard", "Charizard-Mega-Y", ["Heat Wave", "Solar Beam"], "gen9championsou")
+        if y is None:
+            self.skipTest("No Champions analyses cached and the mirror is unreachable")
+        label, preview, rest = y
+        self.assertTrue(label.startswith("From the Champions OU analysis"))
+        self.assertIn("Mega Charizard Y", preview + " ".join(rest))
+        x = mega_analysis("Charizard", "Charizard-Mega-X", ["Dragon Dance", "Flare Blitz"], "gen9championsou")
+        self.assertNotEqual(x[0], label)                               # X and Y have their own sets
+        self.assertIsNone(mega_analysis("Lopunny", "Lopunny-Mega", [], "gen9ou"))   # only the format's own analysis
+
+
 class TestGuideCombos(unittest.TestCase):
     def test_immunity_is_said_apart_from_resistance(self):
         from metamatch.engine.guide import _takes
