@@ -36,6 +36,46 @@ STYLE = """
 .cg-row { display: grid; grid-template-columns: 78px 1fr; gap: 8px; font-size: .84rem; align-items: baseline; margin-top: 4px; }
 .cg-row .k { white-space: nowrap; color: #8fa1bf; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
 .cg-gone { text-decoration: line-through; opacity: .55; }
+.cg-mega { position: relative; padding: 16px 18px; border-radius: 16px; overflow: visible;
+  background: radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--c) 20%, transparent), transparent 50%), linear-gradient(145deg, #1c2232, #141924);
+  border: 1px solid color-mix(in srgb, var(--c) 38%, transparent); box-shadow: 0 10px 24px rgba(0,0,0,.4), inset 1px 1px 0 rgba(255,255,255,.05); }
+.cg-mega-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.cg-mega-evo { display: flex; align-items: center; gap: 4px; }
+.cg-mega-evo img { width: 56px; height: 56px; object-fit: contain; opacity: .75; }
+.cg-mega-to img { width: 80px; height: 80px; opacity: 1; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--c) 70%, transparent)); }
+.cg-mega-arrow { position: relative; display: grid; place-items: center; width: 46px; height: 20px; }
+.cg-mega-arrow::before { content: ""; position: absolute; left: 0; right: 6px; top: 50%; height: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c) 80%, #fff)); }
+.cg-mega-arrow::after { content: ""; position: absolute; right: 0; top: 50%; transform: translateY(-50%); border: 5px solid transparent;
+  border-left: 7px solid color-mix(in srgb, var(--c) 80%, #fff); }
+.cg-stone { z-index: 1; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #0f1219;
+  border: 1px solid color-mix(in srgb, var(--c) 60%, transparent); box-shadow: 0 0 12px -2px var(--c); }
+.cg-stone img { width: 22px; height: 22px; object-fit: contain; opacity: 1; }
+.cg-mega-k { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--c) 70%, #fff); }
+.cg-mega-nm { font-size: 1.3rem; font-weight: 900; color: #fff; line-height: 1.15; }
+.cg-mega-sub { font-size: .8rem; color: #8fa1bf; margin-top: 2px; }
+.cg-mega-rows { display: grid; gap: 8px; margin: 14px 0 4px; }
+.cg-mega-sep { color: #6f7a90; font-weight: 700; margin: 0 2px; }
+.cg-mega-same { font-size: .74rem; color: #6f7a90; }
+.cg-ab { position: relative; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: .78rem;
+  font-weight: 700; color: #c8d1e0; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); cursor: help; outline: none; }
+.cg-ab.new { color: #fff; background: color-mix(in srgb, var(--c) 22%, transparent); border-color: color-mix(in srgb, var(--c) 60%, transparent);
+  box-shadow: 0 0 12px -4px var(--c); }
+.cg-ab:hover .cg-tip, .cg-ab:focus .cg-tip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+.cg-tip.wide { width: 240px; white-space: normal; font-weight: 500; line-height: 1.4; }
+.cg-tip.wide b { display: block; color: #fff; font-weight: 800; margin-bottom: 2px; }
+.cg-stats { display: grid; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.06); }
+.cg-stat { display: grid; grid-template-columns: 40px 1fr 34px 38px; gap: 10px; align-items: center; font-size: .8rem; }
+.cg-stat .k { color: #8fa1bf; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.cg-stat .bar { position: relative; height: 8px; border-radius: 999px; background: rgba(255,255,255,.05); overflow: hidden; }
+.cg-stat .bar i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 999px; }
+.cg-stat .bar .base { background: #3a4358; }
+.cg-stat .bar .gain.up { background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); box-shadow: 0 0 10px var(--c); }
+.cg-stat .bar .gain.down { background: repeating-linear-gradient(45deg, rgba(248,113,113,.55) 0 3px, transparent 3px 6px); }
+.cg-stat .v { color: #e6edf7; font-weight: 700; text-align: right; }
+.cg-stat .d { font-weight: 800; font-size: .74rem; }
+.cg-stat .d.up { color: #5fd38d; } .cg-stat .d.down { color: #f87171; }
+.cg-stat.total { margin-top: 2px; } .cg-mega-bst { color: #aab3c5; font-size: .8rem; } .cg-mega-bst b { color: #fff; }
 .cg-rec { margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.06); display: grid; gap: 7px; }
 .cg-rec-h { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #00d4ff; }
 .cg-rec-row { display: grid; grid-template-columns: 96px 1fr; gap: 8px; align-items: center; }
@@ -231,12 +271,72 @@ def _tera(tera, type_map):
     return '<div class="cg-head">Tera plan</div><div class="cg-cards">' + cards + "</div>" + rest
 
 
-def _mega(mega):
+MEGA_STATS = (("hp", "HP"), ("atk", "Atk"), ("def", "Def"), ("spa", "SpA"), ("spd", "SpD"), ("spe", "Spe"))
+
+
+def _mega_name(forme):
+    """'Lopunny-Mega' -> 'Mega Lopunny', 'Charizard-Mega-Y' -> 'Mega Charizard Y'."""
+    base, _, rest = forme.partition("-Mega")
+    return f"Mega {base}{' ' + rest.lstrip('-') if rest else ''}"
+
+
+def _ability_chip(name, new=False):
+    from metamatch.engine.abilities import describe
+    tip = describe(name) or ""
+    tip_html = f'<span class="cg-tip wide"><b>{escape(name)}</b>{escape(tip)}</span>' if tip else ""
+    return f'<span class="cg-ab{" new" if new else ""}" tabindex="0">{escape(name)}{tip_html}</span>'
+
+
+def _mega_card(x, type_map):
+    from metamatch.sprites import get_item_icon
+    # Tinted by the type the Mega gains (Lopunny's Fighting, not its Normal), else its main type
+    gained = [t for t in x.get("mega_types") or [] if t not in (x.get("base_types") or [])]
+    color = type_map.get((gained or x.get("mega_types") or ["Normal"])[0], {}).get("color", "#00d4ff")
+    stone = get_item_icon(x.get("item"))
+    stone_html = (f'<span class="cg-ti cg-stone" tabindex="0"><img src="{escape(stone)}" alt="">'
+                  f'<span class="cg-tip">{escape(x["item"])}</span></span>') if stone else ""
+    head = (f'<div class="cg-mega-head"><div class="cg-mega-evo">{_img(x["name"])}<span class="cg-mega-arrow">'
+            f'{stone_html}</span><span class="cg-mega-to">{_img(x["forme"])}</span></div>'
+            f'<div><div class="cg-mega-k">Mega Evolution</div><div class="cg-mega-nm">{escape(_mega_name(x["forme"]))}</div>'
+            f'<div class="cg-mega-sub">{escape(x["name"])} holding {escape(x.get("item") or "its stone")}</div></div></div>')
+    rows = ""
+    before, after = x.get("base_types") or [], x.get("mega_types") or []
+    if before or after:
+        icons = lambda ts, new: "".join(_ti(t, type_map, t + (" (new with Mega Evolution)" if new and t not in before else ""),
+                                            new and t not in before) for t in ts)
+        change = (f'{icons(before, False)}<span class="cg-mega-sep">&rarr;</span>{icons(after, True)}'
+                  if after != before else f'{icons(after, False)}<span class="cg-mega-same">unchanged</span>')
+        rows += f'<div class="cg-rec-row"><span class="cg-rec-k">Typing</span><span class="cg-tis">{change}</span></div>'
+    if x.get("mega_ability"):
+        old = x.get("base_ability")
+        change = (f'{_ability_chip(old)}<span class="cg-mega-sep">&rarr;</span>' if old and old != x["mega_ability"] else "")
+        rows += (f'<div class="cg-rec-row"><span class="cg-rec-k">Ability</span><span class="cg-tis">{change}'
+                 f'{_ability_chip(x["mega_ability"], new=old != x["mega_ability"])}</span></div>')
+    bs, ms = x.get("base_stats") or {}, x.get("mega_stats") or {}
+    bars = ""
+    if bs and ms and all(bs.get(k) is not None and ms.get(k) is not None for k, _ in MEGA_STATS):
+        scale = max(180, max(ms.values()))
+        for k, label in MEGA_STATS:
+            b, m = bs[k], ms[k]
+            low, high = min(b, m), max(b, m)
+            delta = m - b
+            cls = "up" if delta > 0 else "down" if delta < 0 else ""
+            bars += (f'<div class="cg-stat"><span class="k">{label}</span><span class="bar">'
+                     f'<i class="base" style="width:{low / scale * 100:.1f}%"></i>'
+                     f'<i class="gain {cls}" style="left:{low / scale * 100:.1f}%;width:{(high - low) / scale * 100:.1f}%"></i></span>'
+                     f'<span class="v">{m}</span><span class="d {cls}">{f"+{delta}" if delta > 0 else delta if delta else ""}</span></div>')
+        total_b, total_m = sum(bs.values()), sum(ms.values())
+        bars += (f'<div class="cg-stat total"><span class="k">Total</span><span class="cg-mega-bst">{total_b} &rarr; '
+                 f'<b>{total_m}</b></span><span class="v"></span><span class="d up">+{total_m - total_b}</span></div>')
+        bars = f'<div class="cg-stats">{bars}</div>'
+    return f'<div class="cg-mega" style="--c:{color}">{head}<div class="cg-mega-rows">{rows}</div>{bars}</div>'
+
+
+def _mega(mega, type_map=None):
     if not mega:
         return '<div class="cg-head">Mega Evolution</div><div class="cg-note">No Mega Stone on this team.</div>'
-    return '<div class="cg-head">Mega Evolution</div><div class="cg-cards">' + "".join(
-        f'<div class="cg-card">{_img(x["forme"])}<div><div class="nm">{escape(x["name"])}</div>{_points(x["points"])}</div></div>'
-        for x in mega) + "</div>"
+    return ('<div class="cg-head">Mega Evolution</div><div class="cg-cards">'
+            + "".join(_mega_card(x, type_map or {}) for x in mega) + "</div>")
 
 
 def _combos(combos):
@@ -333,7 +433,7 @@ def render(type_map=None):
     with left:
         st.markdown(STYLE + _leads(g.leads) + _watch(g.watch), unsafe_allow_html=True)
     with right:
-        st.markdown(STYLE + (_mega(g.mega) if config.format_game(format_id) == "champions" else _tera(g.tera, type_map)),
+        st.markdown(STYLE + (_mega(g.mega, type_map) if config.format_game(format_id) == "champions" else _tera(g.tera, type_map)),
                     unsafe_allow_html=True)
     st.markdown(STYLE + _combos(g.combos), unsafe_allow_html=True)
     st.caption(f"Matchups are one on one against each threat's most common set (top {g.n_threats} by usage); "

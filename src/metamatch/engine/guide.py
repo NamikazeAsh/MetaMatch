@@ -278,7 +278,11 @@ def _mega(team, format_id):
         ability = p.get("Mega Ability") or (mega.get("abilities") or [None])[0]
         if ability:
             points.append(f"Gets {ability}")
-        out.append({"name": p["Pokemon"], "forme": forme, "points": points})
+        # The raw before and after, for the card's stat bars, type icons and ability chips
+        out.append({"name": p["Pokemon"], "forme": forme, "points": points, "item": p.get("Item"),
+                    "base_stats": {k: b.get(k) for k in STAT_LABELS}, "mega_stats": {k: s.get(k) for k in STAT_LABELS},
+                    "base_types": base.get("types") or [], "mega_types": mega.get("types") or [],
+                    "base_ability": p.get("Ability"), "mega_ability": ability})
     return out
 
 
