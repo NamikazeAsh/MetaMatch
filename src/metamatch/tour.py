@@ -32,7 +32,7 @@ STEPS = (
     Step("home", ".st-key-team_hero", "Start with your team",
          "Paste a Showdown export or a PokéPaste link and pick the format above it."),
     Step("home", ".mp-mag", "MetaFlash",
-         "What moved on the ladder this month, from Smogon's usage stats. Hover anything for more info."),
+         "What moved on the ladder this month, from Smogon's usage stats. Hover or tap a Pokémon for more info."),
     Step("team", ".bn", "Your team at a glance",
          "The team's style, the jobs it covers and every member's set. Hover a member for who it beats one on one "
          "and how fast it really is."),

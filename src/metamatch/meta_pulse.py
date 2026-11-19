@@ -357,6 +357,8 @@ def leaderboard(format_id, n=10, history=None, month=None):
             "prev_rank": prev.get(name, (None,))[0] if prev is not None else None,
             "has_prev": prev is not None,
             "types": species["types"] if species else [],
+            # What its hover card shows: types, rank, usage, usual item and ability
+            "info": _partner(name, format_id, now, months[-1]),
         })
     return rows
 

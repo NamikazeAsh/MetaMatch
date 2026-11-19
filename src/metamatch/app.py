@@ -581,7 +581,7 @@ def home_page():
                 st.warning("Paste a team first, or try the sample team.")
 
     # MetaFlash: this month's featured story, top 10 and movers on the ladder
-    tab_meta_pulse.render(st.session_state.format_id, TYPE_MAP)
+    tab_meta_pulse.render(st.session_state.format_id, TYPE_MAP, TEAM_PAGE)
     tour.render()
 
 

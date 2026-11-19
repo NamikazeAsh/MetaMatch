@@ -56,7 +56,8 @@ CSS = """
 .mp-f-set .mp-move { font-size:0.75rem; padding:3px 8px; }
 .mp-f-mates { display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:12px; font-size:0.75rem; color:#8a93a6; align-items:center; }
 .mp-f-mate { display:flex; align-items:center; gap:5px; color:#cfd6e4; }
-.mp-chart { width:320px; height:118px; background-repeat:no-repeat; background-size:contain; }
+.mp-chart { width:100%; max-width:320px; height:118px; background-repeat:no-repeat; background-size:contain;
+  background-position:left center; }
 
 /* Leaderboard */
 .mp-board-title { font-weight:800; font-size:0.95rem; color:#fff; margin-bottom:8px; display:flex; justify-content:space-between; }
@@ -109,9 +110,9 @@ CSS = """
 .mp-spark { flex-shrink:0; background-repeat:no-repeat; }
 
 /* Partner hover cards: open on hover or keyboard focus, anchored left so a panel edge never clips them */
-.mp-mate-wrap { position:relative; display:inline-flex; align-items:center; gap:5px; outline:none; cursor:default; }
+.mp-mate-wrap { position:relative; display:inline-flex; align-items:center; gap:5px; outline:none; cursor:pointer; }
 .mp-mate-wrap .mp-mate { transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
-.mp-mate-wrap:hover .mp-mate, .mp-mate-wrap:focus-visible .mp-mate { transform:scale(1.15);
+.mp-mate-wrap:hover .mp-mate, .mp-mate-wrap:focus .mp-mate, .mp-mate-wrap:focus-within .mp-mate { transform:scale(1.15);
   border-color:var(--pc); box-shadow:0 0 10px -2px var(--pc); }
 .mp-tip { position:absolute; left:-6px; bottom:calc(100% + 10px); z-index:40; display:flex; gap:10px; align-items:center;
   width:max-content; min-width:180px; max-width:240px; padding:10px 12px; border-radius:12px;
@@ -122,7 +123,17 @@ CSS = """
   transition:opacity .14s ease, transform .14s ease, visibility .14s; }
 .mp-tip::after { content:""; position:absolute; left:14px; top:100%; border:6px solid transparent;
   border-top-color:color-mix(in srgb, var(--pc) 55%, transparent); }
-.mp-mate-wrap:hover .mp-tip, .mp-mate-wrap:focus-visible .mp-tip { opacity:1; visibility:visible; transform:translateY(0); }
+.mp-mate-wrap:hover .mp-tip, .mp-mate-wrap:focus .mp-tip, .mp-mate-wrap:focus-within .mp-tip { opacity:1; visibility:visible;
+  transform:translateY(0); }
+/* List rows (Top 10, leads, top players): the sprite is the hover target, sized like the row sprite; the panel lets
+   the card spill over its top edge */
+.mp-list { overflow:visible; }
+.mp-row .mp-mate, .mp-fav .mp-mate { width:30px; height:30px; border:none; background-color:transparent; }
+.mp-row .mp-tip, .mp-fav .mp-tip { left:calc(100% + 8px); bottom:auto; top:50%; transform:translate(4px, -50%); }
+.mp-row .mp-tip::after, .mp-fav .mp-tip::after { left:auto; right:100%; top:50%; transform:translateY(-50%);
+  border-top-color:transparent; border-right-color:color-mix(in srgb, var(--pc) 55%, transparent); }
+.mp-row .mp-mate-wrap:hover .mp-tip, .mp-row .mp-mate-wrap:focus .mp-tip, .mp-fav .mp-mate-wrap:hover .mp-tip,
+.mp-fav .mp-mate-wrap:focus .mp-tip { transform:translate(0, -50%); }
 /* Cards in the last grid column open their hover cards leftward so they never run off the section's edge */
 .mp-stories .mp-card:nth-child(3n) .mp-tip { left:auto; right:-6px; }
 .mp-stories .mp-card:nth-child(3n) .mp-tip::after { left:auto; right:14px; }
@@ -152,12 +163,13 @@ CSS = """
 @media (max-width: 640px) {
   .mp-head { flex-direction:column; align-items:flex-start; }
   .mp-sub { text-align:left; }
-  .mp-title { font-size:1.9rem; }
+  .mp-title { font-size:1.9rem; white-space:normal; }
   .mp-f-top { flex-direction:column; align-items:flex-start; gap:8px; }
   .mp-f-sprite { width:88px; height:88px; }
   .mp-f-name { font-size:1.5rem; }
-  .mp-stories { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:8px; }
-  .mp-stories .mp-card { flex-shrink:0; width:82%; scroll-snap-align:start; }
+  .mp-stories { grid-template-columns:minmax(0, 1fr); }
+  .mp-stories .mp-card .mp-tip { left:-6px; right:auto; }
+  .mp-stories .mp-card .mp-tip::after { left:14px; right:auto; }
 }
 @media (prefers-reduced-motion: reduce) { .mp-card { transition:none; } .mp-card:hover { transform:none; } }
 
@@ -255,10 +267,12 @@ CSS = """
 """
 
 
-def _svg_bg(svg, cls, w, h, label):
+def _svg_bg(svg, cls, w, h, label, fluid=False):
+    """A chart as a background image. fluid lets it shrink below w on a phone instead of being clipped."""
     data = base64.b64encode(svg.encode()).decode()
+    width = f"width:100%;max-width:{w}px" if fluid else f"width:{w}px"
     return (f'<div class="{cls}" role="img" aria-label="{escape(label)}" '
-            f'style="width:{w}px;height:{h}px;background-image:url(data:image/svg+xml;base64,{data});"></div>')
+            f'style="{width};height:{h}px;background-image:url(data:image/svg+xml;base64,{data});"></div>')
 
 
 def _points(series, w, h, pad_x, pad_top, pad_bottom, zero_based=False):
@@ -273,7 +287,7 @@ def _points(series, w, h, pad_x, pad_top, pad_bottom, zero_based=False):
             for i, u in pts]
 
 
-def _sparkline(series, color, w=92, h=28):
+def _sparkline(series, color, w=92, h=28, what="usage"):
     """Small trend line for a story card; months without data are skipped."""
     coords = _points(series, w, h, 2, 3, 3, zero_based=True)
     if not coords:
@@ -283,7 +297,7 @@ def _sparkline(series, color, w=92, h=28):
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">'
            f'<polyline points="{line}" fill="none" stroke="{color}" stroke-width="2" stroke-linejoin="round" '
            f'stroke-linecap="round" opacity="0.9"/><circle cx="{lx:.1f}" cy="{ly:.1f}" r="2.6" fill="{color}"/></svg>')
-    return _svg_bg(svg, "mp-spark", w, h, f"usage over the last {len(series)} months")
+    return _svg_bg(svg, "mp-spark", w, h, f"{what} over the last {len(series)} months")
 
 
 def _chart(series, color, w=320, h=118):
@@ -310,7 +324,7 @@ def _chart(series, color, w=320, h=118):
            f'{dots}<circle cx="{lx:.1f}" cy="{ly:.1f}" r="4" fill="{color}"/>'
            f'<text x="{min(lx, w - 22):.1f}" y="{max(ly - 9, 11):.1f}" text-anchor="middle" font-size="11" font-weight="700" '
            f'font-family="Inter, Segoe UI, sans-serif" fill="#ffffff">{lu:.1f}%</text>{labels}</svg>')
-    return _svg_bg(svg, "mp-chart", w, h, f"usage over the last {len(series)} months")
+    return _svg_bg(svg, "mp-chart", w, h, f"usage over the last {len(series)} months", fluid=True)
 
 
 def _color(types, type_map):
@@ -433,7 +447,7 @@ def _feature(card, type_map, label_fmt=""):
 </div>"""
 
 
-def _board(rows, type_map):
+def _board(rows, type_map, label=""):
     if not rows:
         return ""
     top = rows[0]["usage"] or 1
@@ -452,11 +466,11 @@ def _board(rows, type_map):
             move = '<span class="mp-flat">–</span>'
         items.append(
             f'<div class="mp-row" style="{_vars(color)}"><span class="mp-row-rank">{r["rank"]}</span>'
-            f'<span class="mp-row-sprite" style="{_sprite_bg(r["name"])}"></span>'
+            f'{_partner(r.get("info") or r["name"], type_map, label)}'
             f'<div style="min-width:0"><div class="mp-row-name">{escape(r["name"])}</div>'
             f'<div class="mp-bar" style="width:{max(r["usage"] / top * 100, 4):.0f}%"></div></div>'
             f'<span class="mp-row-usage">{r["usage"]:.1f}%</span><span class="mp-row-move">{move}</span></div>')
-    return (f'<div class="mp-panel"><div class="mp-board-title">Top {len(rows)} by usage<span>rank change vs last month</span></div>'
+    return (f'<div class="mp-panel mp-list"><div class="mp-board-title">Top {len(rows)} by usage<span>rank change vs last month</span></div>'
             f'<div>{"".join(items)}</div></div>')
 
 
@@ -509,6 +523,9 @@ def _trends(format_id, month):
     dex = dex_for_format(format_id)
     names = {r["name"] for k in ("leads", "favorites", "sets") for r in out[k]} | {n for c in out["cores"] for n in c["pair"]}
     out["types"] = {n: ((dex.species(n) or {}).get("types", []) if dex else []) for n in names}
+    now = meta_pulse._table(meta_pulse.load_history(), format_id, month)
+    out["info"] = {r["name"]: meta_pulse._partner(r["name"], format_id, now, month)
+                   for k in ("leads", "favorites") for r in out[k]}
     for t in out["sets"]:
         t["text"] = (f"from {t['prev']:.0f}% last month" if not t["new"] else f"from under {max(t['prev'], 1):.0f}% last month")
     return out
@@ -532,29 +549,29 @@ def _move_chip(rank, prev_rank, has_prev):
     return '<span class="mp-flat">·</span>'
 
 
-def _leads_panel(rows, types, type_map):
+def _leads_panel(rows, types, type_map, info=None, label=""):
     if not rows:
         return ""
     top = rows[0]["share"] or 1
     items = "".join(
         f'<div class="mp-row" style="{_vars(_color(types.get(r["name"]), type_map))}"><span class="mp-row-rank">{r["rank"]}</span>'
-        f'<span class="mp-row-sprite" style="{_sprite_bg(r["name"])}"></span>'
+        f'{_partner((info or {}).get(r["name"]) or {"name": r["name"], "types": types.get(r["name"], [])}, type_map, label)}'
         f'<div style="min-width:0"><div class="mp-row-name">{escape(r["name"])}</div>'
         f'<div class="mp-bar" style="width:{max(r["share"] / top * 100, 4):.0f}%"></div></div>'
         f'<span class="mp-row-usage">{r["share"]:.1f}%</span>'
         f'<span class="mp-row-move">{_move_chip(r["rank"], r["prev_rank"], r["has_prev"])}</span></div>'
         for r in rows)
-    return (f'<div class="mp-panel"><div class="mp-board-title">Leads to expect<span>share of games it leads</span></div>'
+    return (f'<div class="mp-panel mp-list"><div class="mp-board-title">Leads to expect<span>share of games it leads</span></div>'
             f'<div>{items}</div></div>')
 
 
-def _favorites_panel(rows, types, type_map, rating):
+def _favorites_panel(rows, types, type_map, rating, info=None, label=""):
     if not rows:
         return ""
     scale = max(r["top"] for r in rows) or 1
     items = "".join(
         f'<div class="mp-fav" style="{_vars(_color(types.get(r["name"]), type_map))}">'
-        f'<span class="mp-row-sprite" style="{_sprite_bg(r["name"])}"></span>'
+        f'{_partner((info or {}).get(r["name"]) or {"name": r["name"], "types": types.get(r["name"], [])}, type_map, label)}'
         f'<div style="min-width:0"><div class="mp-row-name">{escape(r["name"])}</div><div class="mp-fav-bars">'
         f'<div class="mp-fav-bar mp-fav-top"><span style="width:{max(r["top"] / scale * 100, 3) * 0.7:.0f}%"></span>{r["top"]:.1f}%</div>'
         f'<div class="mp-fav-bar mp-fav-wide"><span style="width:{max(r["wide"] / scale * 100, 3) * 0.7:.0f}%"></span>{r["wide"]:.1f}%</div>'
@@ -563,7 +580,7 @@ def _favorites_panel(rows, types, type_map, rating):
         for r in rows)
     legend = (f'<span class="mp-legend"><span title="Rated {rating}+"><i style="background:#00d4ff"></i>Top players</span>'
               f'<span title="Rated 1500+"><i style="background:rgba(170,180,200,0.5)"></i>Everyone</span></span>')
-    return (f'<div class="mp-panel"><div class="mp-board-title">Top players&#39; picks{legend}</div>'
+    return (f'<div class="mp-panel mp-list"><div class="mp-board-title">Top players&#39; picks{legend}</div>'
             f'<div>{items}</div></div>')
 
 
@@ -576,7 +593,7 @@ def _trend_card(t, types, type_map):
     share = f"&lt;{max(t['share'], 1):.0f}%" if t.get("gone") else f"{t['share']:.0f}%"
     up = t["delta"] > 0
     delta = f'<span class="mp-delta {"mp-up" if up else "mp-down"}">{"▲" if up else "▼"} {abs(t["delta"]):.0f}</span>'
-    spark = _sparkline([(m, v) for m, v in t["series"]], color, w=84, h=26)
+    spark = _sparkline([(m, v) for m, v in t["series"]], color, w=84, h=26, what="share of sets")
     return (f'<div class="mp-trend" style="{_vars(color)}"><div class="mp-trend-top">'
             f'<div class="mp-sprite" style="{_sprite_bg(t["name"])}"></div><div style="min-width:0">'
             f'<span class="mp-cat {t["category"]}">{CAT_LABEL[t["category"]]}</span>'
@@ -589,7 +606,7 @@ def _trend_card(t, types, type_map):
 def _core_card(c, types, type_map):
     a, b = c["pair"]
     ca, cb = _color(types.get(a), type_map), _color(types.get(b), type_map)
-    spark = _sparkline(c["series"], ca, w=84, h=26)
+    spark = _sparkline(c["series"], ca, w=84, h=26, what="share of teams")
     since = "climbing pair" if c["new"] else f"from {c['prev']:.1f}% last month"
     return (f'<div class="mp-trend" style="{_vars(ca)}"><div class="mp-trend-top">'
             f'<div class="mp-duo-sprites"><div class="mp-sprite" style="{_sprite_bg(a)};filter:drop-shadow(0 0 8px {ca}88)"></div>'
@@ -605,7 +622,9 @@ def _trend_sections(trends, format_id, month, type_map):
     rating = fmt["stats"].rsplit("-", 1)[-1]
     types = trends["types"]
     html = ""
-    leads, favs = _leads_panel(trends["leads"], types, type_map), _favorites_panel(trends["favorites"], types, type_map, rating)
+    info, label = trends.get("info") or {}, fmt["label"]
+    leads = _leads_panel(trends["leads"], types, type_map, info, label)
+    favs = _favorites_panel(trends["favorites"], types, type_map, rating, info, label)
     if leads and favs:
         html += _sec("Team preview", "Leads and the top of the ladder")
         html += f'<div class="mp-duo">{leads}{favs}</div>'
@@ -641,7 +660,7 @@ def _threat_line(t, ok_word):
             f'<div style="min-width:0"><b>{escape(t["name"])}</b><small>{rank}</small><br>{answer}</div></div>')
 
 
-def _team_card(team, report):
+def _team_card(team, report, link=True):
     pct = round(100 * report["answered"] / report["total"]) if report["total"] else 0
     names = team.get("pokemon_names") or []
     strip = "".join(f'<span class="mp-mate" style="{_sprite_bg(n)}"></span>' for n in names[:6])
@@ -659,12 +678,15 @@ def _team_card(team, report):
             f'<div class="mp-team-sub">beats {report["answered"]} of this month&#39;s top {report["total"]} threats</div>'
             f'<div class="mp-strip">{strip}</div></div></div>'
             f'<div class="mp-team-lines">{"".join(lines)}</div>'
-            f'<a class="mp-team-open" href="team?t={escape(team["id"])}" target="_self">Open its dashboard →</a></div>')
+            + (f'<a class="mp-team-open" href="team?t={escape(team["id"])}" target="_self">Open its dashboard →</a>' if link else "")
+            + '</div>')
 
 
 @st.fragment
-def _teams_section(format_id, month):
-    """Saved teams (or recent ones) in this format against this month's top threats. The calc runs on request."""
+def _teams_section(format_id, month, team_page=None):
+    """Saved teams (or recent ones) in this format against this month's top threats. The calc runs on request.
+    With team_page each card links to its dashboard through st.page_link, which keeps the session (a plain link
+    reloads the page)."""
     from metamatch import storage
     teams = [t for t in storage.list_teams_detailed() if t.get("format") == format_id][:3]
     if not teams:
@@ -678,11 +700,17 @@ def _teams_section(format_id, month):
                   on_click=lambda: st.session_state.update({key: True}))
         return
     with st.spinner("Running each team against this month's top threats..."):
-        cards = [_team_card(t, _team_report(t["raw_text"], format_id, month)) for t in teams]
-    st.html(f'<div class="mp-teams">{"".join(cards)}</div>')
+        reports = [_team_report(t["raw_text"], format_id, month) for t in teams]
+    if team_page is None:
+        st.html(f'<div class="mp-teams">{"".join(_team_card(t, r) for t, r in zip(teams, reports))}</div>')
+        return
+    for col, t, r in zip(st.columns(3, gap="small"), teams, reports):
+        with col:
+            st.html(_team_card(t, r, link=False))
+            st.page_link(team_page, label="Open its dashboard", icon=":material/arrow_forward:", query_params={"t": t["id"]})
 
 
-def render(format_id, type_map):
+def render(format_id, type_map, team_page=None):
     months = sorted(meta_pulse.load_history().get(format_id, {}), reverse=True)
     if not months:   # no usage history for this format: nothing to show, and no picker on its own
         return
@@ -715,8 +743,8 @@ def render(format_id, type_map):
     lead = meta_pulse.featured_index(cards)
     stories = [c for i, c in enumerate(cards) if i != lead][:6]
     label = fmt["label"]
-    mag = f'<div class="mp-mag" style="margin-top:16px">{_feature(cards[lead], type_map, label)}{_board(rows, type_map)}</div>'
+    mag = f'<div class="mp-mag" style="margin-top:16px">{_feature(cards[lead], type_map, label)}{_board(rows, type_map, label)}</div>'
     grid = f'<div class="mp-stories">{"".join(_card(c, type_map, label) for c in stories)}</div>'
     st.html(CSS + mag + grid + _trend_sections(_trends(format_id, month), format_id, month, type_map))
     if config.LOCAL_MODE and month == latest:
-        _teams_section(format_id, month)
+        _teams_section(format_id, month, team_page)
