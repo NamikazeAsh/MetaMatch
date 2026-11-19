@@ -30,19 +30,19 @@ First time visitors are offered a one minute tour of the real app. Each step lig
 
 ### MetaFlash
 
-Smogon usage stats turned into a front page that rewrites itself every month: the story of the month with its usual set and a year of usage, and the top 10 with rank changes. Any month since the format started can be opened as a back issue.
+Smogon usage stats turned into a front page that rewrites itself every month: the story of the month with its usual set and a year of usage, and the top 10 with rank changes. Any month since the format started can be opened from the month picker.
 
 ![MetaFlash: story of the month and the top 10 leaderboard](images/metaflash.webp)
 
 ### Story cards
 
-The #1, the biggest risers and fallers, newcomers to the top 30 and the fastest common threat. Every headline is chosen by rules from the data, not written by a model.
+The #1, the biggest risers and fallers, newcomers to the top 30 and the fastest of the top 20. Every headline is chosen by rules from the data, not written by a model.
 
 ![MetaFlash story cards: the #1, risers, fallers, newcomers and the fastest threat](images/metaflash_stories.webp)
 
 ### Partner cards
 
-Hover any partner to see its types, ladder rank, usage and usual item.
+Hover or tap any Pokémon to see its types, ladder rank, usage and usual item.
 
 ![A partner hover card on a story card](images/metaflash_hover.webp)
 
@@ -58,9 +58,13 @@ The biggest shift in item, Tera, moves or ability among the top 25, and the pair
 
 ![How sets changed this month and rising cores](images/metaflash_trends.webp)
 
+### Speed to beat, weather and a year on
+
+The usual Speed of the 12 most used Pokémon with their Choice Scarf and Booster Energy shares, how many teams run rain, sun or sand and who they bring, and this month's top 5 next to the same month last year with the year's biggest climbs and drops.
+
 ### Run the gauntlet
 
-Your recent teams against this month's 12 most used Pokémon, with the threats that just arrived and who on the team beats them.
+Your recent teams against this month's top 12 threats, with the ones that just arrived and who on the team beats them.
 
 ![Two recent teams checked against this month's top threats](images/metaflash_teams.webp)
 

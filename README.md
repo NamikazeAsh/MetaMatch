@@ -74,13 +74,17 @@ The home screen opens on a magazine style front page of what the ladder is doing
 
 * **Story of the month:** the biggest move in the top 10, with its usage, rank change, standard set, common partners, a 12 month chart and its all time peak.
 * **Top 10 leaderboard:** usage bars in each Pokémon's type colour and rank changes versus last month.
-* **Story cards:** the #1, the biggest risers and fallers, newcomers breaking into the top 30, and the fastest common threat, each with its standard set and a trend line.
+* **Story cards:** the #1, the biggest risers and fallers, newcomers breaking into the top 30, and the fastest of the top 20, each with its standard set and a trend line. Hover or tap any Pokémon for its rank, usage and usual item.
+* **Speed to beat:** the usual Speed of the 12 most used Pokémon, fastest first, with how many carry Choice Scarf or Booster Energy.
 * **Every month on record:** a month picker goes back to November 2022 (Champions formats since launch), so you can open any past meta.
 * **Leads to expect:** the Pokémon that open games most often, with rank changes, for planning team preview.
 * **Top players' picks:** what the top of the ladder runs more than players at 1500+.
 * **How sets changed:** the biggest shift in item, Tera, moves or ability among the top 25 each month, like Tera Ghost Cinderace jumping from 9% to 34%.
 * **Rising cores:** pairs more teams are building together than last month.
-* **Run the gauntlet:** each saved team against this month's 12 most used Pokémon, flagging threats that just entered the top 12 and climbing ones it barely answers.
+* **Weather on the ladder:** how many teams run rain, sun or sand, and who they bring along (OU).
+* **A year on:** this month's top 5 next to the same month last year, and the year's biggest climbs and drops.
+* **Run the gauntlet:** on your own copy, each saved team against this month's top 12 threats, flagging ones that just entered the top 12 and climbing ones it barely answers.
+* **Says how much data it rests on:** the header gives the month's battle count and flags a small sample.
 * **Written by code, not an LLM:** every card and headline (*"Raging Bolt climbs 8 ranks to #5"*) is picked by fixed rules from the data, with usage floors so tiny tiers can't fake a headline.
 * **Honest charts:** every axis starts at zero, so a dip looks as big as it really was.
 * **Self updating:** the monthly stats workflow appends each new month's usage, leads, sets and 1500+ usage to compact histories, so the page is always current with no manual step.

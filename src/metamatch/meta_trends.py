@@ -29,7 +29,6 @@ SET_TREND_FLOOR = 5.0    # points an option must move to count as news
 NEW_OPTION_FLOOR = 10.0  # share a newly listed option needs (or a dropped one had), so small noise stays out
 FAVORITE_FLOOR = 2.0     # usage % a top players' pick needs at the format's rating
 CORE_POOL = 30
-CATEGORY_WORDS = {"items": "item", "tera": "Tera type", "moves": "move", "abilities": "ability"}
 
 
 # --- Storage -------------------------------------------------------------------------------------
@@ -246,14 +245,6 @@ def set_trends(format_id, month, n=6, history=None, usage=None):
     return found[:n]
 
 
-def set_trend_text(t):
-    """'Choice Scarf on 45% of Gholdengo, up from 38%'."""
-    what = t["option"] if t["category"] != "tera" else f"Tera {t['option']}"
-    if t.get("gone"):
-        return f"{what} dropped from {t['prev']:.0f}% of sets to under {max(t['share'], 1):.0f}%"
-    if t["new"]:
-        return f"{what} jumped to {t['share']:.0f}% of sets from under {max(t['prev'], 1):.0f}%"
-    return f"{what} on {t['share']:.0f}% of sets, {'up' if t['delta'] > 0 else 'down'} from {t['prev']:.0f}%"
 
 
 def ladder_favorites(format_id, month, n=6, wide=None, usage=None):
@@ -413,22 +404,8 @@ def weather_watch(format_id, month):
     return out
 
 
-def history_span(format_id, history=None):
-    """(first month, last month, count) of usage on record for a format."""
-    history = load_history() if history is None else history
-    months = sorted(history.get(format_id, {}))
-    return (months[0], months[-1], len(months)) if months else (None, None, 0)
 
 
-def peak(format_id, name, history=None, month=None):
-    """(best rank, month it was first reached) for a Pokemon across the usage history up to `month`."""
-    history = load_history() if history is None else history
-    best = None
-    for m in _months(history, format_id, month):
-        row = _table(history, format_id, m).get(name)
-        if row and (best is None or row[0] < best[0]):
-            best = (row[0], m)
-    return best
 
 
 def team_report(team, format_id, month, rows=None, usage=None, n=12):
