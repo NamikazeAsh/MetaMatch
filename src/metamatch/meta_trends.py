@@ -367,7 +367,9 @@ def team_report(team, format_id, month, rows=None, usage=None, n=12):
     for r in rows:
         rank, prev_rank = now.get(r["name"], (None,))[0], prev.get(r["name"], (None,))[0]
         item = {"name": r["name"], "rank": rank, "prev_rank": prev_rank, "answers": list(r["answers"])}
-        if prev and (prev_rank is None or prev_rank > n):
+        # The Threat Board skips the team's own species, so its top n can reach ranks 13 to 15: "new in the top n"
+        # needs the real usage rank to be inside it now and outside it last month
+        if prev and rank and rank <= n and (prev_rank is None or prev_rank > n):
             out["new"].append(item)
         elif rank and prev_rank and prev_rank > rank and len(r["answers"]) <= 1:
             out["rising"].append(item)

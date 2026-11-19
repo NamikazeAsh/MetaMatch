@@ -73,6 +73,14 @@ class TestMetaTrends(unittest.TestCase):
         self.assertEqual([t["name"] for t in report["new"]], ["T13"])      # #14 last month, #1 now
         self.assertEqual(report["new"][0]["answers"], [])
 
+    def test_team_report_new_needs_a_real_top_12_rank(self):
+        # The Threat Board skips the team's own species, so its 12 can reach #13: that one is not "new in the top 12"
+        usage = {"gen9ou": {"2026-09": [[f"T{i}", 30.0 - i] for i in range(16)],
+                            "2026-10": [[f"T{i}", 30.0 - i] for i in range(12)] + [["T14", 17.5], ["T13", 17.0]]}}
+        rows = [{"name": "T14", "answers": ["M"], "losses": []}]   # #13 now, #15 last month
+        report = mt.team_report({}, "gen9ou", "2026-10", rows=rows, usage=usage)
+        self.assertEqual(report["new"], [])
+
     def test_lead_rates_measure_estimate_or_stay_neutral(self):
         from unittest.mock import patch
         leads = {"gen9ou": {"2026-10": [["Glimmora", 6.0], ["Torkoal", 2.0]]}}

@@ -33,7 +33,7 @@ class TestMetaPulse(unittest.TestCase):
         self.assertEqual(len({c["name"] for c in cards}), len(cards))  # no duplicates
         b = next(c for c in cards if c["name"] == "B")
         self.assertEqual((b["rank"], b["prev_rank"], b["delta"]), (2, 4, 12.0))
-        self.assertEqual(b["headline"], "Gains 12.0 points of usage")  # only 2 ranks, so the points read better
+        self.assertEqual(b["headline"], "On 12.0% more teams than last month")  # only 2 ranks, so the share reads better
         self.assertEqual(next(c for c in cards if c["name"] == "A")["headline"], "Holds onto the #1 spot")
 
     def test_single_month_has_no_deltas(self):
@@ -74,6 +74,16 @@ class TestMagazine(unittest.TestCase):
         self.assertEqual(cards[mp.featured_index(cards)]["name"], "B")
         only_top = [c for c in cards if c["kind"] != "riser"]
         self.assertEqual(only_top[mp.featured_index(only_top)]["kind"], "top")
+
+    def test_ordinals(self):
+        self.assertEqual([mp._ordinal(n) for n in (3, 7, 11, 12, 13, 21, 22, 23, 101, 111)],
+                         ["third", "7th", "11th", "12th", "13th", "21st", "22nd", "23rd", "101st", "111th"])
+
+    def test_battle_count_from_the_stats_file_head(self):
+        n = mp.battles("gen9ou")
+        if n is None:
+            self.skipTest("no stats file on disk")
+        self.assertGreater(n, 0)
 
 
 if __name__ == "__main__":

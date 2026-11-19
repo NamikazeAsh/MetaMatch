@@ -26,6 +26,7 @@ CSS = """
 .mp-tag { font-size:1rem; color:#aab3c5; margin-top:4px; }
 .mp-sub { font-size:0.78rem; color:#8a93a6; text-align:right; line-height:1.5; }
 .mp-sub b { color:#d6dbe6; font-weight:700; }
+.mp-small { color:#ffd866; font-weight:700; cursor:help; }
 .mp-live { display:inline-block; width:7px; height:7px; border-radius:50%; background:#5fd38d; margin-right:6px;
   box-shadow:0 0 8px #5fd38d; vertical-align:middle; }
 
@@ -64,7 +65,7 @@ CSS = """
   padding:5px 4px; border-radius:8px; }
 .mp-row:hover { background:rgba(255,255,255,0.04); }
 .mp-row-rank { font-size:0.78rem; font-weight:800; color:#8a93a6; text-align:right; }
-.mp-row:nth-child(2) .mp-row-rank { color:#ffd866; }
+.mp-row:first-child .mp-row-rank { color:#ffd866; }
 .mp-row-sprite { width:30px; height:30px; background-size:contain, contain; background-repeat:no-repeat; background-position:center; }
 .mp-row-name { font-size:0.84rem; color:#e6eaf2; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mp-bar { height:4px; border-radius:4px; margin-top:4px; background:var(--tc); box-shadow:0 0 8px -2px var(--tc); opacity:0.85; }
@@ -180,7 +181,7 @@ CSS = """
 /* Leads and top players' picks */
 .mp-legend { display:flex; gap:12px; font-size:0.7rem; color:#8a93a6; font-weight:500; }
 .mp-legend i { display:inline-block; width:10px; height:4px; border-radius:3px; margin-right:5px; vertical-align:middle; }
-.mp-fav { display:grid; grid-template-columns:30px minmax(0, 1fr) 54px; align-items:center; gap:10px; padding:4px 4px; border-radius:8px; }
+.mp-fav { display:grid; grid-template-columns:30px minmax(0, 1fr) auto; align-items:center; gap:10px; padding:4px 4px; border-radius:8px; }
 .mp-fav:hover { background:rgba(255,255,255,0.04); }
 .mp-fav-bars { display:flex; flex-direction:column; gap:2px; margin-top:3px; }
 .mp-fav-bar { display:flex; align-items:center; gap:6px; font-size:0.68rem; color:#8a93a6; }
@@ -398,8 +399,11 @@ def _feature(card, type_map, label_fmt=""):
     rank = f"#{card['rank']}" + (f" (from #{card['prev_rank']})" if card.get("prev_rank") and card["prev_rank"] != card["rank"] else "")
     pills.append(f'<span class="mp-pill"><b>{escape(rank)}</b>rank</span>')
     if card.get("delta") is not None:
-        arrow = "▲" if card["delta"] > 0 else "▼"
-        pills.append(f'<span class="mp-pill"><b>{arrow} {abs(card["delta"]):.1f}</b>points this month</span>')
+        if abs(card["delta"]) < 0.05:
+            pills.append('<span class="mp-pill"><b>Same</b>usage as last month</span>')
+        else:
+            more = "more" if card["delta"] > 0 else "fewer"
+            pills.append(f'<span class="mp-pill"><b>{abs(card["delta"]):.1f}%</b>{more} teams than last month</span>')
     if card.get("speed"):
         pills.append(f'<span class="mp-pill"><b>{card["speed"]}</b>Speed</span>')
     if card.get("lead"):
@@ -463,7 +467,7 @@ def _card(card, type_map, label_fmt=""):
     # Partner sprites open a small card on hover: three names never fit the card width as text
     mate_icons = "".join(_partner(p, type_map, label_fmt) for p in mates)
     mates_html = f'<span>Pairs with</span>{mate_icons}' if mates else ""
-    speed = f" · {card['speed']} Spe" if card.get("speed") else ""
+    speed = f" · {card['speed']} Speed" if card.get("speed") else ""
     return f"""
 <div class="mp-card" style="{_vars(color)}">
   <div class="mp-top">
@@ -554,10 +558,11 @@ def _favorites_panel(rows, types, type_map, rating):
         f'<div style="min-width:0"><div class="mp-row-name">{escape(r["name"])}</div><div class="mp-fav-bars">'
         f'<div class="mp-fav-bar mp-fav-top"><span style="width:{max(r["top"] / scale * 100, 3) * 0.7:.0f}%"></span>{r["top"]:.1f}%</div>'
         f'<div class="mp-fav-bar mp-fav-wide"><span style="width:{max(r["wide"] / scale * 100, 3) * 0.7:.0f}%"></span>{r["wide"]:.1f}%</div>'
-        f'</div></div><span class="mp-gap">+{r["gap"]:.1f}</span></div>'
+        f'</div></div><span class="mp-gap" title="On {r["gap"]:.1f}% more top player teams than across the ladder">'
+        f'+{r["gap"]:.1f}%</span></div>'
         for r in rows)
-    legend = (f'<span class="mp-legend"><span><i style="background:#00d4ff"></i>{rating}+</span>'
-              f'<span><i style="background:rgba(170,180,200,0.5)"></i>1500+</span></span>')
+    legend = (f'<span class="mp-legend"><span title="Rated {rating}+"><i style="background:#00d4ff"></i>Top players</span>'
+              f'<span title="Rated 1500+"><i style="background:rgba(170,180,200,0.5)"></i>Everyone</span></span>')
     return (f'<div class="mp-panel"><div class="mp-board-title">Top players&#39; picks{legend}</div>'
             f'<div>{items}</div></div>')
 
@@ -585,7 +590,7 @@ def _core_card(c, types, type_map):
     a, b = c["pair"]
     ca, cb = _color(types.get(a), type_map), _color(types.get(b), type_map)
     spark = _sparkline(c["series"], ca, w=84, h=26)
-    since = "new pairing" if c["new"] else f"from {c['prev']:.1f}%"
+    since = "climbing pair" if c["new"] else f"from {c['prev']:.1f}% last month"
     return (f'<div class="mp-trend" style="{_vars(ca)}"><div class="mp-trend-top">'
             f'<div class="mp-duo-sprites"><div class="mp-sprite" style="{_sprite_bg(a)};filter:drop-shadow(0 0 8px {ca}88)"></div>'
             f'<div class="mp-sprite" style="{_sprite_bg(b)};filter:drop-shadow(0 0 8px {cb}88)"></div></div>'
@@ -604,17 +609,20 @@ def _trend_sections(trends, format_id, month, type_map):
     if leads and favs:
         html += _sec("Team preview", "Leads and the top of the ladder")
         html += f'<div class="mp-duo">{leads}{favs}</div>'
-    elif leads:
-        html += _sec("Team preview", "Leads to expect")
-        html += f'<div class="mp-solo">{leads}</div>'
+    elif leads or favs:
+        html += _sec("Team preview", "Leads to expect" if leads else "Top players' picks")
+        html += f'<div class="mp-solo">{leads or favs}</div>'
     if trends["sets"]:
         html += _sec("Sets", "How sets changed this month")
         html += f'<div class="mp-grid3">{"".join(_trend_card(t, types, type_map) for t in trends["sets"])}</div>'
     if trends["cores"]:
         html += _sec("Teams", "Rising cores")
         html += f'<div class="mp-grid4">{"".join(_core_card(c, types, type_map) for c in trends["cores"])}</div>'
-    if not trends["sets"] and month < (meta_pulse.current_month() or ""):
-        html += '<div class="mp-quiet">Set trends, top players&#39; picks and rising cores cover the last 12 months.</div>'
+    # Only for months before the set history starts; a format's first months just have nothing to compare yet
+    stored = sorted(meta_trends.sets_history().get(format_id, {}))
+    if not trends["sets"] and stored and month < stored[0]:
+        html += '<div class="mp-quiet">Set changes, top players&#39; picks and rising cores start in ' \
+                f'{escape(meta_pulse.month_label(stored[0]))}.</div>'
     return html
 
 
@@ -639,15 +647,16 @@ def _team_card(team, report):
     strip = "".join(f'<span class="mp-mate" style="{_sprite_bg(n)}"></span>' for n in names[:6])
     lines = []
     if report["new"]:
-        lines.append('<div class="mp-team-k">New in the top 12</div>' + "".join(_threat_line(t, "beaten by") for t in report["new"][:2]))
+        lines.append('<div class="mp-team-k">New in the top 12</div>' + "".join(_threat_line(t, "beaten by your") for t in report["new"][:2]))
     if report["rising"]:
-        lines.append('<div class="mp-team-k">Climbing, thinly answered</div>' + "".join(_threat_line(t, "only beaten by") for t in report["rising"][:2]))
+        lines.append('<div class="mp-team-k">Rising, and you have one answer at most</div>'
+                     + "".join(_threat_line(t, "only beaten by your") for t in report["rising"][:2]))
     if not lines:
         lines.append('<div class="mp-quiet">No new or climbing threats it struggles with this month.</div>')
     title = escape(team.get("name") or ", ".join(names[:3]))
     return (f'<div class="mp-team"><div class="mp-team-top"><div class="mp-ring" style="--p:{pct}"><span>{report["answered"]}/{report["total"]}</span></div>'
             f'<div style="min-width:0"><div class="mp-team-name">{title}</div>'
-            f'<div class="mp-team-sub">answers {report["answered"]} of the {report["total"]} most used Pokémon</div>'
+            f'<div class="mp-team-sub">beats {report["answered"]} of this month&#39;s top {report["total"]} threats</div>'
             f'<div class="mp-strip">{strip}</div></div></div>'
             f'<div class="mp-team-lines">{"".join(lines)}</div>'
             f'<a class="mp-team-open" href="team?t={escape(team["id"])}" target="_self">Open its dashboard →</a></div>')
@@ -674,25 +683,35 @@ def _teams_section(format_id, month):
 
 
 def render(format_id, type_map):
-    latest = meta_pulse.current_month()
     months = sorted(meta_pulse.load_history().get(format_id, {}), reverse=True)
+    if not months:   # no usage history for this format: nothing to show, and no picker on its own
+        return
+    # The newest month on record, even if the stats manifest lags behind the history file
+    latest = max(m for m in (meta_pulse.current_month(), months[0]) if m)
     fmt = config.format_info(format_id)
     rating = fmt["stats"].rsplit("-", 1)[-1]
     head_col, pick_col = st.columns([5, 1.3], vertical_alignment="bottom")
     with pick_col:
-        month = st.selectbox("Month", months or [latest], format_func=meta_pulse.month_label, key=f"mf_month_{format_id}",
-                             help="Browse any month since the format started")
+        month = st.selectbox("Month", months, format_func=meta_pulse.month_label, key=f"mf_month_{format_id}",
+                             label_visibility="collapsed")
     cards, rows = _section(format_id, month)
     if not cards:
         return
     live = '<span class="mp-live"></span>' if month == latest else ""
+    # How many battles the month rests on (known for the month the stats files are from); a small one is flagged
+    count = meta_pulse.battles(format_id) if month == meta_pulse.current_month() else None
+    sample = "<br>Smogon usage stats"
+    if count:
+        sample = f"<br>{count:,} battles · Smogon usage stats"
+        if count < meta_pulse.SMALL_SAMPLE:
+            sample += ' <span class="mp-small" title="Few battles, so a handful of players can swing these numbers">· small sample</span>'
     with head_col:
         st.html(CSS + f'<div class="mp-head" style="margin-bottom:0"><div><div class="mp-kicker">'
-                f'{"This month on the ladder" if month == latest else "Back issue"}</div>'
+                f'{"This month on the ladder" if month == latest else "Past month"}</div>'
                 f'<div class="mp-title">MetaFlash</div>'
                 '<div class="mp-tag">The ladder&#39;s biggest moves, the month they happen.</div></div>'
                 f'<div class="mp-sub">{live}<b>{escape(meta_pulse.month_label(month))}</b><br>'
-                f'{escape(fmt["label"])} ladder {rating}+ · Smogon usage stats</div></div>')
+                f'{escape(fmt["label"])} · top players, rated {rating}+{sample}</div></div>')
     lead = meta_pulse.featured_index(cards)
     stories = [c for i, c in enumerate(cards) if i != lead][:6]
     label = fmt["label"]

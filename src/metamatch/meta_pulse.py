@@ -92,6 +92,22 @@ def current_month():
         return None
 
 
+SMALL_SAMPLE = 5000   # fewer battles than this in a month: the numbers move a lot on a few players' teams
+_BATTLES = re.compile(rb'"number of battles"\s*:\s*(\d+)')
+
+
+def battles(format_id):
+    """How many battles this month's stats come from, read from the head of the chaos file (its info block comes
+    first, so the 7 to 9 MB file is never parsed for one number), or None."""
+    path = config.STATS_DIR / (config.format_info(format_id)["stats"] + ".json")
+    try:
+        with open(path, "rb") as f:
+            m = _BATTLES.search(f.read(600))
+    except OSError:
+        return None
+    return int(m.group(1)) if m else None
+
+
 def month_label(month):
     """'2026-10' -> 'October 2026'."""
     names = ["January", "February", "March", "April", "May", "June", "July",
@@ -205,20 +221,25 @@ def _headline(card, label):
     if kind == "riser":
         if prev_rank and prev_rank - rank >= 3:
             return f"Climbs {prev_rank - rank} ranks to #{rank}"
-        return f"Gains {card['delta']:.1f} points of usage"
+        return f"On {card['delta']:.1f}% more teams than last month"
     if kind == "faller":
         if prev_rank and rank and rank - prev_rank >= 3:
             return f"Slides {rank - prev_rank} ranks to #{rank}"
-        return f"Drops {abs(card['delta']):.1f} points of usage"
+        return f"On {abs(card['delta']):.1f}% fewer teams than last month"
     if kind == "newcomer":
         return f"Breaks into the top {NEWCOMER_TOP}" + (f", up from #{prev_rank}" if prev_rank else "")
     if kind == "fastest":
-        return f"Fastest common threat at {card['speed']} Speed"
+        return f"Fastest of the top {FASTEST_POOL}, at {card['speed']} Speed"
     return f"Top {label} staple"
 
 
 def _ordinal(n):
-    return {3: "third", 4: "fourth", 5: "fifth", 6: "sixth"}.get(n, f"{n}th")
+    """'third' ... 'sixth', then '7th', '11th', '21st', '22nd', '23rd'."""
+    words = {1: "first", 2: "second", 3: "third", 4: "fourth", 5: "fifth", 6: "sixth"}
+    if n in words:
+        return words[n]
+    suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
 
 
 BADGES = {
