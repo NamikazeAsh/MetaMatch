@@ -527,7 +527,7 @@ HERO_HEAD = """
 .th-pill img { width:14px; height:14px; flex-shrink:0; }
 @media (max-width: 520px) { .th-lbl { display:none; } }
 </style>
-<div class="th-row"><div class="th-t">Paste your team to get the full dashboard</div>
+<div class="th-row"><div class="th-t">Paste your team</div>
 <div class="th-pills"><span class="th-lbl">Accepts</span>
 <span class="th-pill">""" + _icon('<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14'
                                    'a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 12h8M8 16h5"/>') + \
