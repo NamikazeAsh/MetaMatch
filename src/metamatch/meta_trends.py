@@ -325,16 +325,17 @@ def rising_cores(format_id, month, n=4, history=None, usage=None):
     return picked
 
 
-SPEED_TOP = 12           # Speed to beat: the most used Pokemon, sorted by their usual Speed
+SPEED_POOL, SPEED_TOP = 25, 5   # Speed to beat: the 5 fastest of the 25 most used (a slow wall is no benchmark)
 SPEED_ITEM_FLOOR = 0.10  # a Choice Scarf or Booster Energy share worth showing
 
 
-def speed_benchmarks(format_id, n=SPEED_TOP):
+def speed_benchmarks(format_id, n=SPEED_TOP, pool=SPEED_POOL):
     """The Speeds to beat this month (current stats only): [{name, speed, share, nature, scarf, scarf_speed,
-    booster}] for the n most used Pokemon, fastest first. share is how many of its sets run that Speed."""
+    booster}] for the n fastest of the `pool` most used Pokemon, fastest first. share is how many of its sets run
+    that Speed."""
     from metamatch.engine.speed_board import meta_speeds
     out = []
-    for r in meta_speeds(format_id, n=n):
+    for r in meta_speeds(format_id, n=pool):
         if not r.speeds:
             continue
         speed, share = r.speeds[0]
@@ -345,7 +346,7 @@ def speed_benchmarks(format_id, n=SPEED_TOP):
                     "scarf_speed": int(speed * 1.5),
                     "booster": r.booster_share if r.booster_share >= SPEED_ITEM_FLOOR else 0.0})
     out.sort(key=lambda x: x["speed"], reverse=True)
-    return out
+    return out[:n]
 
 
 YEAR_TOP, YEAR_MOVERS, YEAR_FLOOR = 5, 3, 3.0

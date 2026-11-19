@@ -75,7 +75,7 @@ The home screen opens on a magazine style front page of what the ladder is doing
 * **Story of the month:** the biggest move in the top 10, with its usage, rank change, standard set, common partners, a 12 month chart and its all time peak.
 * **Top 10 leaderboard:** usage bars in each Pokémon's type colour and rank changes versus last month.
 * **Story cards:** the #1, the biggest risers and fallers, newcomers breaking into the top 30, and the fastest of the top 20, each with its standard set and a trend line. Hover or tap any Pokémon for its rank, usage and usual item.
-* **Speed to beat:** the usual Speed of the 12 most used Pokémon, fastest first, with how many carry Choice Scarf or Booster Energy.
+* **Speed to beat:** the usual Speed of the five fastest of the 25 most used Pokémon, with how many carry Choice Scarf or Booster Energy.
 * **Every month on record:** a month picker goes back to November 2022 (Champions formats since launch), so you can open any past meta.
 * **Leads to expect:** the Pokémon that open games most often, with rank changes, for planning team preview.
 * **Top players' picks:** what the top of the ladder runs more than players at 1500+.

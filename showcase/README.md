@@ -60,7 +60,7 @@ The biggest shift in item, Tera, moves or ability among the top 25, and the pair
 
 ### Speed to beat, weather and a year on
 
-The usual Speed of the 12 most used Pokémon with their Choice Scarf and Booster Energy shares, how many teams run rain, sun or sand and who they bring, and this month's top 5 next to the same month last year with the year's biggest climbs and drops.
+The usual Speed of the five fastest of the 25 most used Pokémon with their Choice Scarf and Booster Energy shares, how many teams run rain, sun or sand and who they bring, and this month's top 5 next to the same month last year with the year's biggest climbs and drops.
 
 ### Run the gauntlet
 

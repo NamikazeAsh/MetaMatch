@@ -235,7 +235,7 @@ CSS = """
 .mp-core-stat small { font-size:0.72rem; color:#8a93a6; }
 
 /* Speed to beat */
-.mp-spd-grid { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:10px; }
+.mp-spd-grid { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:10px; }
 .mp-spd { position:relative; border-radius:14px; padding:10px 12px; min-width:0;
   background:linear-gradient(160deg, var(--tc1a), rgba(255,255,255,0.015) 60%); border:1px solid var(--tc44); }
 .mp-spd-top { display:flex; align-items:center; justify-content:space-between; gap:6px; }
@@ -247,8 +247,8 @@ CSS = """
 .mp-spd-item { display:inline-flex; align-items:center; gap:3px; padding:1px 7px 1px 2px; border-radius:999px; cursor:help;
   background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); font-size:0.68rem; color:#cfd6e4; }
 .mp-spd-item img { width:18px; height:18px; object-fit:contain; }
-.mp-spd:nth-child(6n) .mp-tip, .mp-spd:nth-child(6n-1) .mp-tip { left:auto; right:-6px; }
-.mp-spd:nth-child(6n) .mp-tip::after, .mp-spd:nth-child(6n-1) .mp-tip::after { left:auto; right:14px; }
+.mp-spd:nth-child(5) .mp-tip, .mp-spd:nth-child(4) .mp-tip { left:auto; right:-6px; }
+.mp-spd:nth-child(5) .mp-tip::after, .mp-spd:nth-child(4) .mp-tip::after { left:auto; right:14px; }
 
 /* A year on */
 .mp-year-cols { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
@@ -301,8 +301,8 @@ CSS = """
 .mp-team-open:hover { text-decoration:underline; }
 .mp-quiet { font-size:0.8rem; color:#8a93a6; padding:6px 2px; }
 
-@media (max-width: 1050px) { .mp-spd-grid { grid-template-columns:repeat(4, minmax(0, 1fr)); }
-  .mp-spd:nth-child(6n-1) .mp-tip { left:-6px; right:auto; } .mp-spd:nth-child(4n) .mp-tip { left:auto; right:-6px; } }
+@media (max-width: 1050px) { .mp-spd-grid { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  .mp-spd:nth-child(4) .mp-tip { left:-6px; right:auto; } .mp-spd:nth-child(3n) .mp-tip { left:auto; right:-6px; } }
 @media (max-width: 640px) { .mp-spd-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .mp-spd:nth-child(n) .mp-tip { left:-6px; right:auto; } .mp-spd:nth-child(2n) .mp-tip { left:auto; right:-6px; }
   .mp-year-cols { grid-template-columns:minmax(0, 1fr); } }
