@@ -30,6 +30,9 @@ DEFAULT_FORMAT = "gen9ou"
 # Local single user mode (the default): recent teams, team links, chats and prefs persist in data/user/metamatch.db.
 # Set METAMATCH_LOCAL_MODE=0 on a shared deployment so visitors never see each other's teams.
 LOCAL_MODE = os.environ.get("METAMATCH_LOCAL_MODE", "1") != "0"
+# On a shared deployment each visitor's teams, chats and prefs are kept in their own browser (browser_store.py);
+# METAMATCH_BROWSER_SAVE=0 turns that off, so nothing is remembered between visits
+BROWSER_SAVE = not LOCAL_MODE and os.environ.get("METAMATCH_BROWSER_SAVE", "1") != "0"
 # Coach Chat needs a local Ollama, so a shared deployment turns it off unless METAMATCH_CHAT=1 says otherwise
 CHAT_ENABLED = os.environ.get("METAMATCH_CHAT", "1" if LOCAL_MODE else "0") != "0"
 

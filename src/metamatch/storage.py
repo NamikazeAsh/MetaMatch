@@ -10,6 +10,10 @@ Local persistence in one SQLite file (data/user/metamatch.db, gitignored).
 SQLite instead of JSON files because writes are atomic (a crash or two tabs saving at once can't
 truncate the file and lose every saved team, which the old read, modify, write JSON could) and
 because recent teams, pruning and chats are one query each.
+
+On a shared deployment (METAMATCH_LOCAL_MODE=0) the same functions answer from the visitor's own browser instead
+(browser_store.py): one server serves every visitor and its disk is wiped on every restart. The rest of the app
+only asks enabled() whether saving is available right now.
 """
 import hashlib
 import json
@@ -60,6 +64,27 @@ _init_lock = threading.Lock()
 
 def _now():
     return datetime.now(timezone.utc).isoformat(timespec="microseconds")
+
+
+def _browser():
+    """True on a shared deployment, where each visitor's teams live in their own browser."""
+    return config.BROWSER_SAVE
+
+
+def enabled():
+    """Whether teams, chats and prefs can be saved right now: always on a local copy; on a shared deployment once
+    the visitor's browser copy has been read (the first run of a visit, before that, can't save)."""
+    if config.LOCAL_MODE:
+        return True
+    if _browser():
+        from metamatch import browser_store
+        return browser_store.loaded()
+    return False
+
+
+def _bs():
+    from metamatch import browser_store
+    return browser_store
 
 
 @contextmanager
@@ -128,6 +153,8 @@ def remember_team(raw_text, format_id):
     """Records an analysed team (or bumps it to most recent) and returns its id."""
     text = normalise(raw_text)
     tid = team_id(text, format_id)
+    if _browser():
+        return _bs().remember_team(text, format_id, tid) if enabled() else tid
     now = _now()
     with _db() as c:
         # opened_seq orders recent teams: Windows clock ticks are too coarse for timestamps to break ties
@@ -143,11 +170,15 @@ def remember_team(raw_text, format_id):
 
 def get_team(tid):
     """{id, raw_text, format, name, pokemon_names, ...} or None."""
+    if _browser():
+        return _bs().get_team(tid) if enabled() else None
     with _db() as c:
         return _row(c.execute("SELECT * FROM teams WHERE id = ?", (tid,)).fetchone())
 
 
 def recent_teams(limit=5):
+    if _browser():
+        return _bs().recent_teams(limit) if enabled() else []
     with _db() as c:
         return [_row(r) for r in c.execute("SELECT * FROM teams WHERE in_recent = 1 ORDER BY opened_seq DESC LIMIT ?", (limit,))]
 
@@ -155,6 +186,8 @@ def recent_teams(limit=5):
 def forget_team(tid):
     """Removes a team from recent teams. An unsaved team is deleted with its chat; a saved team only
     leaves the recent list and stays under Saved teams. True if the team existed."""
+    if _browser():
+        return _bs().forget_team(tid) if enabled() else False
     with _db() as c:
         cur = c.execute("DELETE FROM teams WHERE id = ? AND name IS NULL", (tid,))
         if cur.rowcount:
@@ -165,6 +198,8 @@ def forget_team(tid):
 def save_team(name, raw_text, format_id):
     """Names a team so it shows under Saved teams. Reusing a name moves it to this team. Returns the id."""
     tid = remember_team(raw_text, format_id)
+    if _browser():
+        return _bs().save_team(name, tid) if enabled() else tid
     with _db() as c:
         c.execute("UPDATE teams SET name = NULL, saved_at = NULL WHERE name = ? AND id != ?", (name, tid))
         c.execute("UPDATE teams SET name = ?, saved_at = ? WHERE id = ?", (name, _now(), tid))
@@ -173,12 +208,16 @@ def save_team(name, raw_text, format_id):
 
 def list_teams_detailed():
     """Saved teams, newest first."""
+    if _browser():
+        return _bs().list_teams_detailed() if enabled() else []
     with _db() as c:
         return [_row(r) for r in c.execute("SELECT * FROM teams WHERE name IS NOT NULL ORDER BY saved_at DESC, opened_seq DESC")]
 
 
 def delete_team(name):
     """Removes a team from Saved teams (it stays in recent history until pruned). True if it existed."""
+    if _browser():
+        return _bs().delete_team(name) if enabled() else False
     with _db() as c:
         cur = c.execute("UPDATE teams SET name = NULL, saved_at = NULL WHERE name = ?", (name,))
         return cur.rowcount > 0
@@ -187,6 +226,8 @@ def delete_team(name):
 # --- Chats -----------------------------------------------------------------
 
 def chat_messages(tid):
+    if _browser():
+        return _bs().chat_messages(tid) if enabled() else []
     with _db() as c:
         rows = c.execute("SELECT * FROM chats WHERE team_id = ? ORDER BY id", (tid,)).fetchall()
     # Same shape the chat tab builds live: user messages have no name or avatar keys at all
@@ -194,6 +235,10 @@ def chat_messages(tid):
 
 
 def add_chat_message(tid, role, content, name=None, avatar=None):
+    if _browser():
+        if enabled():
+            _bs().add_chat_message(tid, role, content, name=name, avatar=avatar)
+        return
     with _db() as c:
         if c.execute("SELECT 1 FROM teams WHERE id = ?", (tid,)).fetchone():
             c.execute("INSERT INTO chats (team_id, role, name, avatar, content, created_at) VALUES (?, ?, ?, ?, ?, ?)",
@@ -201,6 +246,10 @@ def add_chat_message(tid, role, content, name=None, avatar=None):
 
 
 def clear_chat(tid):
+    if _browser():
+        if enabled():
+            _bs().clear_chat(tid)
+        return
     with _db() as c:
         c.execute("DELETE FROM chats WHERE team_id = ?", (tid,))
 
@@ -208,12 +257,18 @@ def clear_chat(tid):
 # --- Prefs -----------------------------------------------------------------
 
 def get_pref(key, default=None):
+    if _browser():
+        return _bs().get_pref(key, default) if enabled() else default
     with _db() as c:
         r = c.execute("SELECT value FROM prefs WHERE key = ?", (key,)).fetchone()
     return json.loads(r["value"]) if r else default
 
 
 def set_pref(key, value):
+    if _browser():
+        if enabled():
+            _bs().set_pref(key, value)
+        return
     with _db() as c:
         c.execute("INSERT INTO prefs (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
                   (key, json.dumps(value)))

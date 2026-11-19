@@ -48,6 +48,9 @@ st.html(r'''
     /* Streamlit's header bar blends into the page */
     .stApp > header { background-color: transparent; }
 
+    /* The browser store's invisible component (shared deployment) takes no space on the page */
+    .st-key-mm_store_slot { position: absolute !important; width: 0 !important; height: 0 !important; overflow: hidden !important; }
+
     /* Loading: the MetaMatch logo spins in place of Streamlit's default spinner */
     [data-testid="stSpinnerIcon"] { width: 30px !important; height: 30px !important; border: none !important;
         background: url("/app/static/logo_spinner.png") center / contain no-repeat !important;
@@ -181,8 +184,17 @@ TYPE_MAP = {
 }
 
 @st.cache_data(ttl=300)
-def get_cached_teams():
+def _cached_teams():
     return storage.list_teams_detailed()
+
+
+def get_cached_teams():
+    """Saved teams. A shared deployment keeps them per browser, so they must never go through st.cache_data
+    (shared by every visitor)."""
+    return storage.list_teams_detailed() if config.BROWSER_SAVE else _cached_teams()
+
+
+get_cached_teams.clear = _cached_teams.clear
 
 # Session state. The analysed team lives in session; /team?t=<id> can rebuild it from the local store
 if 'pokemon_names' not in st.session_state:
@@ -191,11 +203,22 @@ if 'default_input' not in st.session_state:
     st.session_state.default_input = ""
 if 'chat_messages' not in st.session_state:
     st.session_state.chat_messages = []
+# Shared deployment: mark the run, and take in this visitor's saved teams once their browser has sent them
+if config.BROWSER_SAVE:
+    from metamatch import browser_store
+    browser_store.start_run()
 if 'format_id' not in st.session_state:
     # A new session (first load or refresh): a ?format= link wins, then the last format used on this machine
     linked = st.query_params.get("format")
-    remembered = storage.get_pref("format") if config.LOCAL_MODE else None
+    remembered = storage.get_pref("format") if storage.enabled() else None
     st.session_state.format_id = next((f for f in (linked, remembered) if f in config.FORMATS), config.DEFAULT_FORMAT)
+elif config.BROWSER_SAVE and storage.enabled() and not st.session_state.get("_mm_prefs_applied"):
+    # The browser's copy arrives a run after the session starts: apply its remembered format then, once
+    st.session_state["_mm_prefs_applied"] = True
+    remembered = storage.get_pref("format")
+    if remembered in config.FORMATS and not st.query_params.get("format"):
+        st.session_state.format_id = remembered
+        st.session_state["format_picker"] = remembered
 
 # A real OU team, so anyone can see the dashboard without a Showdown export
 SAMPLE_TEAM = """Gholdengo @ Choice Scarf
@@ -288,12 +311,12 @@ def load_team(pokemon_data, fmt_id):
         }
 
     # The id is a hash of format + paste, so the same team always gets the same link
-    tid = storage.remember_team(pokemon_data, fmt_id) if config.LOCAL_MODE else storage.team_id(pokemon_data, fmt_id)
+    tid = storage.remember_team(pokemon_data, fmt_id) if storage.enabled() else storage.team_id(pokemon_data, fmt_id)
     st.session_state.update(
         analysis=analysis, pokemon_data=pokemon_data, default_input=pokemon_data,
         pokemon_names=extract_pokemon_names(pokemon_data), format_id=fmt_id, team_id=tid,
         # Each team keeps its own coach conversation; a new team never inherits the last one's chat
-        chat_messages=storage.chat_messages(tid) if config.LOCAL_MODE else [], chat_state=None,
+        chat_messages=storage.chat_messages(tid) if storage.enabled() else [], chat_state=None,
     )
     return tid
 
@@ -379,12 +402,14 @@ SIDEBAR_RECENT = 3   # recent teams shown in the sidebar (the store keeps more)
 def recent_teams_sidebar(exclude=None):
     """'Pick up where you left off': the last few analysed teams, each a link to its /team page.
     True when it showed anything, so callers only draw a divider between sections that exist."""
-    if not config.LOCAL_MODE:
+    if not storage.enabled():
         return False
     recents = [t for t in storage.recent_teams(limit=SIDEBAR_RECENT + 1) if t['id'] != exclude][:SIDEBAR_RECENT]
     if not recents:
         return False
     st.markdown("**Pick up where you left off**")
+    if config.BROWSER_SAVE:
+        st.caption("Saved in this browser only")
     for t in recents:
         with st.container(border=True, key=f"recent_{t['id']}"):
             st.html(team_strip(t))
@@ -405,7 +430,7 @@ def render_home_sidebar():
     """Recent teams, saved teams (each opens as a /team link) and paste help."""
     with st.sidebar:
         shown = recent_teams_sidebar()
-        saved_teams_data = get_cached_teams() if config.LOCAL_MODE else []
+        saved_teams_data = get_cached_teams() if storage.enabled() else []
         if saved_teams_data:
             if shown:
                 sidebar_rule()
@@ -436,11 +461,11 @@ def render_team_sidebar():
     with st.sidebar:
         st.page_link(HOME_PAGE, label="Analyze another team", icon=":material/edit_note:", width="stretch")
         # Each section draws its own divider only when it renders, so empty ones never leave a double line
-        if config.LOCAL_MODE and [t for t in storage.recent_teams(limit=2) if t['id'] != st.session_state.get("team_id")]:
+        if storage.enabled() and [t for t in storage.recent_teams(limit=2) if t['id'] != st.session_state.get("team_id")]:
             sidebar_rule()
             recent_teams_sidebar(exclude=st.session_state.get("team_id"))
 
-        if config.LOCAL_MODE:
+        if storage.enabled():
             sidebar_rule()
             with st.expander("💾 Save Team", expanded=True):
                 saved = storage.get_team(st.session_state.team_id) or {}
@@ -489,7 +514,7 @@ def _format_changed():
     if picked and picked in config.FORMATS:
         st.session_state.format_id = picked
         st.query_params["format"] = picked
-        if config.LOCAL_MODE:
+        if storage.enabled():
             storage.set_pref("format", picked)
 
 
@@ -634,8 +659,14 @@ def team_page():
     """The dashboard for the team in session, or the one named by ?t=<id> (refresh, bookmark, second tab)."""
     _sample_toast()
     linked = st.query_params.get("t")
+    if linked and st.session_state.get("team_id") != linked and config.BROWSER_SAVE and not storage.enabled():
+        # A team link in a new visit: wait the moment it takes for this browser's saved teams to arrive
+        from metamatch import browser_store
+        browser_store.mount()
+        st.caption("Loading your teams...")
+        st.stop()
     if linked and st.session_state.get("team_id") != linked:
-        stored = storage.get_team(linked) if config.LOCAL_MODE else None
+        stored = storage.get_team(linked) if storage.enabled() else None
         if not stored:
             team_empty_state("That team isn't saved on this machine. Paste it on Home to analyse it again.")
             return
@@ -652,7 +683,7 @@ def team_page():
     weakness = st.session_state.analysis['weakness']
     team_data = st.session_state.analysis['team']
     # The team banner: archetype and jobs, one card per Pokemon with its set, and the team's numbers this month
-    saved = (storage.get_team(st.session_state.get("team_id")) or {}) if config.LOCAL_MODE else {}
+    saved = (storage.get_team(st.session_state.get("team_id")) or {}) if storage.enabled() else {}
     tab_banner.render(team_data, coverage, weakness, TYPE_MAP, team_name=saved.get("name"))
     st.markdown("---")
 
@@ -743,3 +774,8 @@ TOOL_PAGES = {
 }
 nav = st.navigation([HOME_PAGE, TEAM_PAGE, *TOOL_PAGES.values()], position="top")
 nav.run()
+# Shared deployment: after the page has drawn, read this browser's saved teams (first run of a visit) or write
+# back whatever changed
+if config.BROWSER_SAVE:
+    from metamatch import browser_store
+    browser_store.mount()

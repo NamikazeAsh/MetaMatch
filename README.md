@@ -99,6 +99,7 @@ The home screen opens on a magazine style front page of what the ladder is doing
 * **Always fresh analysis:** saved and recent teams store only the paste, so reopening one runs the current engine and this month's stats.
 * **Guided tour:** first time visitors get a one minute spotlight walkthrough of the real app on the sample team, and it is always one click away in the sidebar.
 * **Crash safe storage:** teams, chats and preferences live in a local SQLite database with atomic writes, so two tabs saving at once can never lose your saved teams. Everything stays on your machine.
+* **Saved in your browser online:** on the shared web version, each visitor's teams, chats and preferences stay in their own browser, so nobody sees anyone else's teams and nothing is stored on the server.
 
 ### 🤖 Multi Agent Chat
 

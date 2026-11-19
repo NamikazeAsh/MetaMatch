@@ -116,7 +116,7 @@ def seen(state):
     """True once the first visit offer was taken or dismissed (remembered on this machine in local mode)."""
     if state.get(SEEN_KEY):
         return True
-    if config.LOCAL_MODE and storage.get_pref(SEEN_KEY):
+    if storage.enabled() and storage.get_pref(SEEN_KEY):
         state[SEEN_KEY] = True
         return True
     return False
@@ -124,7 +124,7 @@ def seen(state):
 
 def mark_seen(state):
     state[SEEN_KEY] = True
-    if config.LOCAL_MODE:
+    if storage.enabled():
         storage.set_pref(SEEN_KEY, True)
 
 

@@ -8,7 +8,7 @@ AVATARS = {"🧪": "🧪", "📜": "📜", "🍳": "🍳"}
 def _persist(role, content, name=None, avatar=None):
     """Keeps the conversation with its team, so a refresh or reopening the team brings it back."""
     tid = st.session_state.get("team_id")
-    if config.LOCAL_MODE and tid:
+    if storage.enabled() and tid:
         storage.add_chat_message(tid, role, content, name=name, avatar=avatar)
 
 
@@ -142,7 +142,7 @@ def _help(team):
 
 def _clear():
     tid = st.session_state.get("team_id")
-    if config.LOCAL_MODE and tid:
+    if storage.enabled() and tid:
         storage.clear_chat(tid)
     st.session_state.chat_messages = []
     st.session_state.chat_state = None

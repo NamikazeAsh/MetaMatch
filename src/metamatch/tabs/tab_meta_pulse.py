@@ -907,5 +907,6 @@ def render(format_id, type_map, team_page=None):
     mag = f'<div class="mp-mag" style="margin-top:16px">{_feature(cards[lead], type_map, label)}{_board(rows, type_map, label)}</div>'
     grid = f'<div class="mp-stories">{"".join(_card(c, type_map, label) for c in stories)}</div>'
     st.html(CSS + mag + grid + _trend_sections(_trends(format_id, month), format_id, month, type_map, _extras(format_id, month)))
-    if config.LOCAL_MODE and month == latest:
+    from metamatch import storage
+    if storage.enabled() and month == latest:
         _teams_section(format_id, month, team_page)
