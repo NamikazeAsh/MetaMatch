@@ -234,6 +234,50 @@ CSS = """
 .mp-core-stat b { font-weight:900; font-size:1.25rem; color:#fff; }
 .mp-core-stat small { font-size:0.72rem; color:#8a93a6; }
 
+/* Speed to beat */
+.mp-spd-grid { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:10px; }
+.mp-spd { position:relative; border-radius:14px; padding:10px 12px; min-width:0;
+  background:linear-gradient(160deg, var(--tc1a), rgba(255,255,255,0.015) 60%); border:1px solid var(--tc44); }
+.mp-spd-top { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+.mp-spd .mp-mate { width:44px; height:44px; border:none; background-color:transparent; filter:drop-shadow(0 0 6px var(--tc88)); }
+.mp-spd-num { font-weight:900; font-size:1.55rem; color:#fff; letter-spacing:-0.5px; line-height:1; }
+.mp-spd-name { font-weight:800; font-size:0.84rem; color:#e6eaf2; margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mp-spd-sub { font-size:0.7rem; color:#8a93a6; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mp-spd-items { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; min-height:22px; }
+.mp-spd-item { display:inline-flex; align-items:center; gap:3px; padding:1px 7px 1px 2px; border-radius:999px; cursor:help;
+  background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); font-size:0.68rem; color:#cfd6e4; }
+.mp-spd-item img { width:18px; height:18px; object-fit:contain; }
+.mp-spd:nth-child(6n) .mp-tip, .mp-spd:nth-child(6n-1) .mp-tip { left:auto; right:-6px; }
+.mp-spd:nth-child(6n) .mp-tip::after, .mp-spd:nth-child(6n-1) .mp-tip::after { left:auto; right:14px; }
+
+/* A year on */
+.mp-year-cols { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
+.mp-year-k { font-size:0.64rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#8a93a6; margin:2px 4px 4px; }
+.mp-year-k.now { color:#7fe6ff; } .mp-year-k.up { color:#5fd38d; margin-top:4px; } .mp-year-k.down { color:#ff7b7b; margin-top:12px; }
+.mp-year-cols .mp-row { grid-template-columns:18px 30px minmax(0, 1fr) 44px 0; }
+.mp-mover { display:grid; grid-template-columns:30px minmax(0, 1fr) auto; align-items:center; gap:10px; padding:4px; border-radius:8px; }
+.mp-mover:hover { background:rgba(255,255,255,0.04); }
+.mp-mover .mp-mate { width:30px; height:30px; border:none; background-color:transparent; }
+.mp-mover-sub { font-size:0.72rem; color:#8a93a6; } .mp-mover-sub b { color:#fff; }
+.mp-mover .mp-tip { left:calc(100% + 8px); bottom:auto; top:50%; transform:translate(4px, -50%); }
+.mp-mover .mp-tip::after { left:auto; right:100%; top:50%; transform:translateY(-50%); border-top-color:transparent;
+  border-right-color:color-mix(in srgb, var(--pc) 55%, transparent); }
+.mp-mover .mp-mate-wrap:hover .mp-tip, .mp-mover .mp-mate-wrap:focus .mp-tip { transform:translate(0, -50%); }
+
+/* Weather on the ladder */
+.mp-wx-head { display:flex; align-items:center; gap:10px; }
+.mp-wx-ico { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; flex-shrink:0;
+  background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--tc) 75%, #fff), var(--tc) 60%);
+  box-shadow:0 0 14px -3px var(--tc), inset 0 -3px 5px rgba(0,0,0,0.25); }
+.mp-wx-ico i { display:block; width:18px; height:18px; background-size:contain; background-repeat:no-repeat; background-position:center; }
+.mp-wx .mp-name { margin-top:0; font-size:1.1rem; }
+.mp-wx-setters { display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:10px; }
+.mp-wx-setter { display:flex; align-items:center; gap:8px; }
+.mp-wx-setter .mp-mate { width:40px; height:40px; border:none; background-color:transparent; filter:drop-shadow(0 0 6px var(--tc88)); }
+.mp-wx-setter b { display:block; font-size:0.86rem; color:#fff; } .mp-wx-setter small { font-size:0.7rem; color:#8a93a6; }
+.mp-wx-k { font-size:0.64rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:#8a93a6; margin-top:12px; }
+.mp-wx-mates { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+
 /* Team check: your teams against this month's top 12 */
 .mp-teams { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
 .mp-team { border-radius:14px; padding:14px; min-width:0; background:linear-gradient(160deg, rgba(0,212,255,0.07), rgba(255,255,255,0.015) 60%);
@@ -257,6 +301,11 @@ CSS = """
 .mp-team-open:hover { text-decoration:underline; }
 .mp-quiet { font-size:0.8rem; color:#8a93a6; padding:6px 2px; }
 
+@media (max-width: 1050px) { .mp-spd-grid { grid-template-columns:repeat(4, minmax(0, 1fr)); }
+  .mp-spd:nth-child(6n-1) .mp-tip { left:-6px; right:auto; } .mp-spd:nth-child(4n) .mp-tip { left:auto; right:-6px; } }
+@media (max-width: 640px) { .mp-spd-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .mp-spd:nth-child(n) .mp-tip { left:-6px; right:auto; } .mp-spd:nth-child(2n) .mp-tip { left:auto; right:-6px; }
+  .mp-year-cols { grid-template-columns:minmax(0, 1fr); } }
 @media (max-width: 1050px) { .mp-grid3, .mp-teams { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .mp-grid4 { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 900px) { .mp-duo, .mp-solo .mp-panel > div:last-child { grid-template-columns:minmax(0, 1fr); } }
@@ -340,8 +389,9 @@ def _sprite_bg(name):
     return f"background-image:url({forme}), url({base});"
 
 
-def _partner(p, type_map, label, show_name=False):
-    """A partner sprite that opens a small card on hover or focus: types, ladder rank, usage and usual item."""
+def _partner(p, type_map, label, show_name=False, extra=()):
+    """A partner sprite that opens a small card on hover or focus: types, ladder rank, usage and usual item.
+    extra: more plain lines for the card (a weather partner's share of the setter's teams)."""
     if isinstance(p, str):
         p = {"name": p, "types": []}
     color = _color(p.get("types"), type_map)
@@ -353,6 +403,7 @@ def _partner(p, type_map, label, show_name=False):
     held = " · ".join(escape(x) for x in (p.get("item"), p.get("ability")) if x)
     if held:
         lines.append(f'<span class="mp-tip-line">{held}</span>')
+    lines += [f'<span class="mp-tip-line">{line}</span>' for line in extra]
     name = escape(p["name"])
     return (f'<span class="mp-mate-wrap" tabindex="0" style="--pc:{color}">'
             f'<span class="mp-mate" style="{_sprite_bg(p["name"])}" role="img" aria-label="{name}"></span>'
@@ -617,12 +668,120 @@ def _core_card(c, types, type_map):
             f'<div class="mp-trend-foot"><span class="mp-trend-text">{escape(since)}</span>{spark}</div></div>')
 
 
-def _trend_sections(trends, format_id, month, type_map):
+@st.cache_data(show_spinner=False)
+def _extras(format_id, month):
+    """Speed to beat (the month the stats files are from only), a year ago vs now, and weather on the ladder, with
+    a hover card for every name in them."""
+    speed = meta_trends.speed_benchmarks(format_id) if month == meta_pulse.current_month() else []
+    year = meta_trends.year_compare(format_id, month)
+    weather = meta_trends.weather_watch(format_id, month)
+    names = {r["name"] for r in speed} | {s[0] for w in weather for s in w["setters"] + w["partners"]}
+    if year:
+        names |= {r[0] for r in year["top_then"] + year["top_now"]} | {c["name"] for c in year["climbs"] + year["drops"]}
+    now = meta_pulse._table(meta_pulse.load_history(), format_id, month)
+    info = {n: meta_pulse._partner(n, format_id, now, month) for n in names}
+    return {"speed": speed, "year": year, "weather": weather, "info": info}
+
+
+def _item_chip(item, share, speed):
+    """An item icon with its share, and what it does to Speed on hover."""
+    from metamatch.sprites import get_item_icon
+    icon = get_item_icon(item)
+    img = f'<img src="{escape(icon)}" alt="">' if icon else ""
+    return (f'<span class="mp-spd-item" title="{escape(item)} on {share * 100:.0f}% of its sets, {speed} Speed">'
+            f'{img}<b>{share * 100:.0f}%</b></span>')
+
+
+def _speed_section(rows, info, type_map, format_id, label):
+    if not rows:
+        return ""
+    cards = ""
+    for r in rows:
+        p = info.get(r["name"]) or {"name": r["name"], "types": []}
+        items = ""
+        if r["scarf"]:
+            items += _item_chip("Choice Scarf", r["scarf"], r["scarf_speed"])
+        if r["booster"]:
+            items += _item_chip("Booster Energy", r["booster"], r["scarf_speed"])
+        nature = f"{escape(r['nature'])} · " if r.get("nature") else ""
+        cards += (f'<div class="mp-spd" style="{_vars(_color(p.get("types"), type_map))}">'
+                  f'<div class="mp-spd-top">{_partner(p, type_map, label)}<div class="mp-spd-num">{r["speed"]}</div></div>'
+                  f'<div class="mp-spd-name">{escape(r["name"])}</div>'
+                  f'<div class="mp-spd-sub">{nature}{r["share"] * 100:.0f}% of its sets</div>'
+                  f'<div class="mp-spd-items">{items}</div></div>')
+    level = " (level 50)" if config.format_game(format_id) == "champions" else ""
+    return (_sec("Speed", f"Speed to beat{level}")
+            + f'<div class="mp-spd-grid">{cards}</div>')
+
+
+def _year_row(name, rank, usage, info, type_map, label):
+    p = info.get(name) or {"name": name, "types": []}
+    return (f'<div class="mp-row" style="{_vars(_color(p.get("types"), type_map))}"><span class="mp-row-rank">{rank}</span>'
+            f'{_partner(p, type_map, label)}<div style="min-width:0"><div class="mp-row-name">{escape(name)}</div></div>'
+            f'<span class="mp-row-usage">{usage:.1f}%</span><span></span></div>')
+
+
+def _mover_row(c, info, type_map, label, up):
+    p = info.get(c["name"]) or {"name": c["name"], "types": []}
+    color = "#5fd38d" if up else "#ff7b7b"
+    spark = _sparkline(c["series"], color, w=84, h=26)
+    return (f'<div class="mp-mover">{_partner(p, type_map, label)}<div style="min-width:0">'
+            f'<div class="mp-row-name">{escape(c["name"])}</div>'
+            f'<div class="mp-mover-sub">{c["then"]:.1f}% &rarr; <b>{c["now"]:.1f}%</b> of teams</div></div>{spark}</div>')
+
+
+def _year_section(year, info, type_map, label):
+    if not year:
+        return ""
+    then, now = meta_pulse.month_label(year["then"]), meta_pulse.month_label(year["now"])
+    rows = lambda top: "".join(_year_row(n, r, u, info, type_map, label) for n, r, u in top)
+    tops = (f'<div class="mp-panel mp-list"><div class="mp-board-title">Top 5, then and now</div><div class="mp-year-cols">'
+            f'<div><div class="mp-year-k">{escape(then)}</div><div>{rows(year["top_then"])}</div></div>'
+            f'<div><div class="mp-year-k now">{escape(now)}</div><div>{rows(year["top_now"])}</div></div></div></div>')
+    climbs = "".join(_mover_row(c, info, type_map, label, True) for c in year["climbs"])
+    drops = "".join(_mover_row(c, info, type_map, label, False) for c in year["drops"])
+    movers = (f'<div class="mp-panel mp-list"><div class="mp-board-title">Biggest changes over the year</div>'
+              + (f'<div class="mp-year-k up">Climbed</div>{climbs}' if climbs else "")
+              + (f'<div class="mp-year-k down">Dropped</div>{drops}' if drops else "") + "</div>")
+    return _sec("A year on", f"{then} vs {now}") + f'<div class="mp-duo">{tops}{movers}</div>'
+
+
+def _weather_section(weather, info, type_map, label):
+    if not weather:
+        return ""
+    from metamatch.sprites import get_type_icon
+    cards = ""
+    for w in weather:
+        color = type_map.get(w["type"], {}).get("color", "#00d4ff")
+        glyph = get_type_icon(w["type"])
+        icon = f'<span class="mp-wx-ico"><i style="background-image:url({glyph})"></i></span>' if glyph else ""
+        weather_word = w["label"].lower()
+        setters = ""
+        for n, u in w["setters"]:
+            sprite = _partner(info.get(n) or n, type_map, label, extra=[f"Sets {weather_word} on <b>{u:.1f}%</b> of teams"])
+            setters += (f'<span class="mp-wx-setter">{sprite}'
+                        f'<span><b>{escape(n)}</b><small>{u:.1f}% of teams</small></span></span>')
+        partners = "".join(
+            _partner(info.get(n) or n, type_map, label,
+                     extra=[f"On <b>{share * 100:.0f}%</b> of {w['label'].lower()} teams",
+                            f"<b>{lift:.0f}x</b> more often than chance"])
+            for n, share, lift in w["partners"][:5])
+        cards += (f'<div class="mp-trend mp-wx" style="{_vars(color)}"><div class="mp-wx-head">{icon}'
+                  f'<span class="mp-name">{escape(w["label"])}</span></div>'
+                  f'<div class="mp-wx-setters">{setters}</div>'
+                  + (f'<div class="mp-wx-k">Usually with</div><div class="mp-wx-mates">{partners}</div>' if partners else "")
+                  + "</div>")
+    return _sec("Weather", "Weather on the ladder") + f'<div class="mp-grid3">{cards}</div>'
+
+
+def _trend_sections(trends, format_id, month, type_map, extras=None):
     fmt = config.format_info(format_id)
     rating = fmt["stats"].rsplit("-", 1)[-1]
     types = trends["types"]
-    html = ""
     info, label = trends.get("info") or {}, fmt["label"]
+    extras = extras or {}
+    more = extras.get("info") or {}
+    html = _speed_section(extras.get("speed"), more, type_map, format_id, label)
     leads = _leads_panel(trends["leads"], types, type_map, info, label)
     favs = _favorites_panel(trends["favorites"], types, type_map, rating, info, label)
     if leads and favs:
@@ -637,11 +796,13 @@ def _trend_sections(trends, format_id, month, type_map):
     if trends["cores"]:
         html += _sec("Teams", "Rising cores")
         html += f'<div class="mp-grid4">{"".join(_core_card(c, types, type_map) for c in trends["cores"])}</div>'
+    html += _weather_section(extras.get("weather"), more, type_map, label)
     # Only for months before the set history starts; a format's first months just have nothing to compare yet
     stored = sorted(meta_trends.sets_history().get(format_id, {}))
     if not trends["sets"] and stored and month < stored[0]:
         html += '<div class="mp-quiet">Set changes, top players&#39; picks and rising cores start in ' \
                 f'{escape(meta_pulse.month_label(stored[0]))}.</div>'
+    html += _year_section(extras.get("year"), more, type_map, label)
     return html
 
 
@@ -745,6 +906,6 @@ def render(format_id, type_map, team_page=None):
     label = fmt["label"]
     mag = f'<div class="mp-mag" style="margin-top:16px">{_feature(cards[lead], type_map, label)}{_board(rows, type_map, label)}</div>'
     grid = f'<div class="mp-stories">{"".join(_card(c, type_map, label) for c in stories)}</div>'
-    st.html(CSS + mag + grid + _trend_sections(_trends(format_id, month), format_id, month, type_map))
+    st.html(CSS + mag + grid + _trend_sections(_trends(format_id, month), format_id, month, type_map, _extras(format_id, month)))
     if config.LOCAL_MODE and month == latest:
         _teams_section(format_id, month, team_page)

@@ -334,6 +334,85 @@ def rising_cores(format_id, month, n=4, history=None, usage=None):
     return picked
 
 
+SPEED_TOP = 12           # Speed to beat: the most used Pokemon, sorted by their usual Speed
+SPEED_ITEM_FLOOR = 0.10  # a Choice Scarf or Booster Energy share worth showing
+
+
+def speed_benchmarks(format_id, n=SPEED_TOP):
+    """The Speeds to beat this month (current stats only): [{name, speed, share, nature, scarf, scarf_speed,
+    booster}] for the n most used Pokemon, fastest first. share is how many of its sets run that Speed."""
+    from metamatch.engine.speed_board import meta_speeds
+    out = []
+    for r in meta_speeds(format_id, n=n):
+        if not r.speeds:
+            continue
+        speed, share = r.speeds[0]
+        spreads = r.spreads.get(speed) or []
+        nature = spreads[0][0].split()[0] if spreads else None
+        out.append({"name": r.name, "speed": speed, "share": share, "nature": nature,
+                    "scarf": r.scarf_share if r.scarf_share >= SPEED_ITEM_FLOOR else 0.0,
+                    "scarf_speed": int(speed * 1.5),
+                    "booster": r.booster_share if r.booster_share >= SPEED_ITEM_FLOOR else 0.0})
+    out.sort(key=lambda x: x["speed"], reverse=True)
+    return out
+
+
+YEAR_TOP, YEAR_MOVERS, YEAR_FLOOR = 5, 3, 3.0
+
+
+def _year_ago(month):
+    year, mon = month.split("-")
+    return f"{int(year) - 1}-{mon}"
+
+
+def year_compare(format_id, month, usage=None):
+    """This month against the same month a year earlier: {then, now (month strings), top_then, top_now: [(name,
+    rank, usage)], climbs, drops: [{name, then, now, delta, series}]}, or None without a year of history.
+    A climb needs YEAR_FLOOR % now, a drop needed it then, so names at the bottom of the list can't headline."""
+    usage = load_history() if usage is None else usage
+    then = _year_ago(month)
+    months = _months(usage, format_id, month)
+    if then not in usage.get(format_id, {}) or not months or months[-1] != month:
+        return None
+    now_t, then_t = _table(usage, format_id, month), _table(usage, format_id, then)
+    top = lambda t: [(nm, r, u) for nm, (r, u) in sorted(t.items(), key=lambda x: x[1][0])[:YEAR_TOP]]
+    span = [m for m in months if m >= then]
+    def series(name):
+        return [(m, (_table(usage, format_id, m).get(name) or (None, None))[1]) for m in span]
+    changes = []
+    for name in set(now_t) | set(then_t):
+        u_now, u_then = now_t.get(name, (None, 0.0))[1], then_t.get(name, (None, 0.0))[1]
+        changes.append({"name": name, "now": u_now, "then": u_then, "delta": round(u_now - u_then, 2),
+                        "rank_now": now_t.get(name, (None,))[0], "rank_then": then_t.get(name, (None,))[0]})
+    climbs = sorted((c for c in changes if c["delta"] > 0 and c["now"] >= YEAR_FLOOR), key=lambda c: -c["delta"])
+    drops = sorted((c for c in changes if c["delta"] < 0 and c["then"] >= YEAR_FLOOR), key=lambda c: c["delta"])
+    climbs, drops = climbs[:YEAR_MOVERS], drops[:YEAR_MOVERS]
+    for c in climbs + drops:
+        c["series"] = series(c["name"])
+    return {"then": then, "now": month, "top_then": top(then_t), "top_now": top(now_t), "climbs": climbs, "drops": drops}
+
+
+WEATHER_LABELS = {"rain": ("Rain", "Water"), "sun": ("Sun", "Fire"), "sand": ("Sand", "Rock")}
+
+
+def weather_watch(format_id, month):
+    """Rain, sun and sand on the ladder this month, from data/json/archetypes.json (engine/archetypes.py):
+    [{key, label, type, setters: [(name, % of teams)], partners: [(name, share of the setters' teams, lift)]}].
+    [] when the file has no rosters for this format and month."""
+    from metamatch.engine.archetypes import _data
+    data = _data().get(format_id) or {}
+    if data.get("month") != month:
+        return []
+    out = []
+    for key, (label, type_) in WEATHER_LABELS.items():
+        entry = data.get(key)
+        if not entry or not entry.get("setters"):
+            continue
+        out.append({"key": key, "label": label, "type": type_, "setters": [tuple(s) for s in entry["setters"]],
+                    "partners": [tuple(p) for p in entry.get("partners", [])]})
+    return out
+
+
 def history_span(format_id, history=None):
     """(first month, last month, count) of usage on record for a format."""
     history = load_history() if history is None else history

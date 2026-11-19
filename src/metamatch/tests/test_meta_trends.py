@@ -73,6 +73,32 @@ class TestMetaTrends(unittest.TestCase):
         self.assertEqual([t["name"] for t in report["new"]], ["T13"])      # #14 last month, #1 now
         self.assertEqual(report["new"][0]["answers"], [])
 
+    def test_year_compare_needs_a_year_and_floors_movers(self):
+        usage = {"gen9ou": {"2025-10": [["A", 30.0], ["B", 10.0], ["C", 2.0]],
+                            "2026-09": [["A", 25.0]], "2026-10": [["B", 28.0], ["A", 20.0], ["C", 2.5]]}}
+        y = mt.year_compare("gen9ou", "2026-10", usage=usage)
+        self.assertEqual((y["then"], y["top_now"][0][0]), ("2025-10", "B"))
+        self.assertEqual([c["name"] for c in y["climbs"]], ["B"])     # C climbed but sits under the 3% floor
+        self.assertEqual([c["name"] for c in y["drops"]], ["A"])
+        self.assertIsNone(mt.year_compare("gen9ou", "2026-09", usage=usage))   # no 2025-09 on record
+
+    def test_weather_watch_only_for_its_own_month(self):
+        from unittest.mock import patch
+        data = {"gen9ou": {"month": "2026-10", "rain": {"setters": [["Pelipper", 3.8]], "partners": [["Barraskewda", 0.45, 24.6]]}}}
+        with patch("metamatch.engine.archetypes._data", return_value=data):
+            w = mt.weather_watch("gen9ou", "2026-10")
+            self.assertEqual([(x["label"], x["setters"]) for x in w], [("Rain", [("Pelipper", 3.8)])])
+            self.assertEqual(mt.weather_watch("gen9ou", "2026-09"), [])
+            self.assertEqual(mt.weather_watch("gen9uu", "2026-10"), [])
+
+    def test_speed_benchmarks_fastest_first(self):
+        rows = mt.speed_benchmarks("gen9ou")
+        if not rows:
+            self.skipTest("no stats file on disk")
+        speeds = [r["speed"] for r in rows]
+        self.assertEqual(speeds, sorted(speeds, reverse=True))
+        self.assertTrue(all(r["scarf"] == 0 or r["scarf"] >= mt.SPEED_ITEM_FLOOR for r in rows))
+
     def test_team_report_new_needs_a_real_top_12_rank(self):
         # The Threat Board skips the team's own species, so its 12 can reach #13: that one is not "new in the top 12"
         usage = {"gen9ou": {"2026-09": [[f"T{i}", 30.0 - i] for i in range(16)],
