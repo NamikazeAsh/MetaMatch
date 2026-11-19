@@ -118,6 +118,16 @@ def main():
     meta_trends.save_all(histories)
     logging.info(f"MetaFlash trends for {args.month}: {done}")
 
+    # Who plays rain, sun and sand (MetaFlash's weather watch and the chat's archetype answers). A failed download
+    # keeps last month's file rather than failing the stats update
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import build_archetypes
+        build_archetypes.rebuild(args.month)
+        logging.info(f"Archetype rosters rebuilt for {args.month}.")
+    except Exception as e:
+        logging.warning(f"Archetype rosters not rebuilt: {e}")
+
     if args.rebuild_index:
         from metamatch.rag import build_index
         build_index.main()

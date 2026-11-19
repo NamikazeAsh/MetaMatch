@@ -13,7 +13,6 @@ Snow, Trick Room, screens and Spikes stacking are left out: their rosters were n
 import argparse
 import json
 import sys
-import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -92,21 +91,30 @@ def build(d, format_id):
     return out
 
 
+def rebuild(month, raw=None):
+    """Downloads the month's gen9ou 1500 chaos file (unless `raw` is given) and writes archetypes.json.
+    scripts/update_meta.py calls this every month, so MetaFlash's weather watch and the chat's archetype answers
+    never lag behind the stats. Returns the written data."""
+    if raw is None:
+        import requests   # certifi's roots: Python's own store can be out of date for smogon.com
+        url = f"https://www.smogon.com/stats/{month}/chaos/gen9ou-1500.json"
+        print(f"Downloading {url}")
+        resp = requests.get(url, timeout=180)
+        resp.raise_for_status()
+        raw = resp.json()
+    data = {"gen9ou": {"month": month, "source": "gen9ou-1500", **build(raw["data"], "gen9ou")}}
+    OUT.write_text(json.dumps(data, indent=1), encoding="utf-8")
+    return data
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--file", help="a local gen9ou-1500 chaos JSON")
     ap.add_argument("--month", help="YYYY-MM to download (defaults to the stats month on disk)")
     args = ap.parse_args()
     month = args.month or json.loads((config.STATS_DIR / "manifest.json").read_text(encoding="utf-8")).get("month")
-    if args.file:
-        raw = json.loads(Path(args.file).read_text(encoding="utf-8"))
-    else:
-        url = f"https://www.smogon.com/stats/{month}/chaos/gen9ou-1500.json"
-        print(f"Downloading {url}")
-        with urllib.request.urlopen(url, timeout=120) as r:
-            raw = json.load(r)
-    data = {"gen9ou": {"month": month, "source": "gen9ou-1500", **build(raw["data"], "gen9ou")}}
-    OUT.write_text(json.dumps(data, indent=1), encoding="utf-8")
+    raw = json.loads(Path(args.file).read_text(encoding="utf-8")) if args.file else None
+    data = rebuild(month, raw)
     for k, v in data["gen9ou"].items():
         if isinstance(v, dict):
             names = [s[0] for s in v.get("setters", [])] + [p[0] for p in v.get("partners", [])] + [w[0] for w in v.get("walls", [])]
