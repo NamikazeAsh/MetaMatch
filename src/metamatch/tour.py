@@ -30,17 +30,15 @@ class Step:
 
 STEPS = (
     Step("home", ".st-key-team_hero", "Start with your team",
-         "Paste a Showdown export or a PokéPaste link and pick the format above it. The whole dashboard builds in "
-         "about a second."),
+         "Paste a Showdown export or a PokéPaste link and pick the format above it."),
     Step("home", ".mp-mag", "MetaFlash",
-         "What moved on the ladder this month, from Smogon's usage stats. Hover a partner sprite for its rank and "
-         "usual item."),
+         "What moved on the ladder this month, from Smogon's usage stats. Hover anything for more info."),
     Step("team", ".bn", "Your team at a glance",
          "The team's style, the jobs it covers and every member's set. Hover a member for who it beats one on one "
          "and how fast it really is."),
     Step("team", '.st-key-dashboard_tab [role="tablist"]', "Go deeper",
          "Each tab looks at the team one way: types, legality, threats, teammates, type charts, Speed and a game "
-         "plan. Only the open tab is worked out, so switching is quick.", tab="Team Overview"),
+         "plan.", tab="Team Overview"),
     Step("team", "table.tb", "Threat Board",
          "Your six against the 12 most used Pokémon, one matchup at a time, every verdict from the damage "
          "calculator. Hover a cell for the numbers.", tab="Threat Board"),
