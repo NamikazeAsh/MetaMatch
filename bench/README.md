@@ -67,6 +67,10 @@ When the coaches give strategy advice, they first look up the relevant Smogon an
 * **Team Completer:** across 882 tests on real ladder teams with one member hidden, its first pick fixes **82%** of the team's weak spots, against 52% for a usage based recommender.
 * **Coach Guide leads:** on held out ladder replays the two picks include the player's actual lead 51% of the time, against 45% for lead popularity alone and 33% by chance.
 
+## Replay Auditor
+
+* **Parser accuracy:** checked against an independent parser on 450 real ladder replays: zero crashes, 445 of 445 winners and 890 of 890 faint lists matched, and every remaining disagreement (Revival Blessing, Future Sight, Illusion) traced to the reference parser being wrong. The whole pool parses in under a second.
+
 ## Real Answers From the Benchmark
 
 Same model, same team, same question. These are trimmed from the benchmark logs.
