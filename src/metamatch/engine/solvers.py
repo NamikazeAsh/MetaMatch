@@ -882,7 +882,8 @@ def solve_checks(plan, dex, game):
         statement += f" {them[0].upper() + them[1:]} OHKOs {_join([mine(m) for m in ohko])}."
     facts = [f"{mine(m)[0].upper() + mine(m)[1:]} vs {them}: {row.cells[m].reason}." for m in answers + losses]
     if row.checks_data:
-        facts.append(f"Smogon's checks data also lists {_join(row.checks_data)} as checks to {name}.")
+        facts.append(f"Smogon's checks data also lists {_join(row.checks_data)} as "
+                     f"{'a check' if len(row.checks_data) == 1 else 'checks'} to {name}.")
     basis = "its most common set, with the details the question states" if plan.opp_overrides else "its most common set"
     facts.append(f"{name} assumed on {basis}; switching, hazards and setup are not counted.")
     from metamatch.engine.facts import basis_fact, exchange_facts
@@ -901,9 +902,8 @@ def solve_checks(plan, dex, game):
         said = f"Nobody on your team beats {opp} one on one."
     if ohko:
         said += f" {cap(opp)} knocks out {_join([mon(m, True) for m in ohko])} in one hit."
-    # "How do I beat X" is Oak's question; "what checks X" is Clemont's
-    return Verdict("checks", ", ".join(answers) or "none", statement, facts, other=name,
-                   persona="strategy" if plan.asks_how else "mechanics",
+    # Matchups are Oak's topic ("how do I beat X" and "what checks X" alike), as the chat's help cards say
+    return Verdict("checks", ", ".join(answers) or "none", statement, facts, other=name, persona="strategy",
                    losers=losses, members=list(row.cells), plain=said, typed=typed)
 
 
