@@ -58,8 +58,28 @@ def packet_for(question, plan, verdict):
         p.why.append(p.facts[0].id)
     for c in getattr(plan, "unhandled", None) or []:
         p.caveats.append(f"{c} is not counted.")
-    p.cards = smogon_cards(plan)
+    p.cards = pair_cards(verdict, plan) + smogon_cards(plan)
     return p
+
+
+def pair_cards(verdict, plan):
+    """For a matchup answer ("what checks Kingambit", "who switches into it", "how does my Corviknight do"), Smogon's
+    sentence about each member and the opponent, quoted under the engine's verdicts: the members that win first.
+    The sentence is never read as a verdict (rag/pair_quotes.py)."""
+    if verdict.intent not in ("checks", "switchins", "matchup") or not verdict.other or plan is None:
+        return []
+    if verdict.intent == "matchup":
+        members = [verdict.subject]
+    else:
+        winners = [m for m in (verdict.answer or "").split(", ") if m and m != "none"]
+        members = winners + [m for m in verdict.losers if m not in winners]
+    try:
+        from metamatch.rag.pair_quotes import quotes_for
+        # Two at most: on held out pairs about one quote in ten was still off (docs/research/rag_2_0_checks_test.md)
+        return quotes_for([m for m in members if m], verdict.other, plan.format_id, limit=2)
+    except Exception as e:   # the analyses are a bonus, never a reason an answer fails
+        print(f"Smogon matchup quotes failed: {e}")
+        return []
 
 
 def smogon_cards(plan):

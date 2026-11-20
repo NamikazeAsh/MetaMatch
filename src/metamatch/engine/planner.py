@@ -29,7 +29,10 @@ OPTION_ASK_RE = re.compile(r"\b(?:common|standard|popular|normal|usual|used|run|
 MATCHUP_RE = re.compile(r"\b(?:beat|beats|win|wins|handle|handles|check|checks|counter|counters|lose|loses|losing) "
                         r"(?:to |against |vs\.? )?|\bmatch ?up\b|\b(?:good|bad|fine) (?:against|vs|into)\b|"
                         r"\b(?:dying|dies|die|died|fainting|faints?) to\b|\bgets? (?:ko'?d|killed|destroyed|swept|walled|"
-                        r"outsped|one ?shot) by\b|\bstruggles? (?:with|against|vs)\b", re.I)
+                        r"outsped|one ?shot) by\b|\bstruggles? (?:with|against|vs)\b|"
+                        # "how does my Corviknight do against Kingambit", "how does it fare vs", "hold up against"
+                        r"\b(?:do|does|doing|fare|fares|faring|hold(?:s)? up|stack(?:s)? up|perform(?:s)?) "
+                        r"(?:against|vs\.?|into)\b", re.I)
 TEAMMATE_FIELD_RE = re.compile(r"\b(?:teammates?|partners?|pairs?|goes with|runs with)\b", re.I)
 # "what EVs does X need to outspeed Y", "how much Speed to outspeed": an investment question, not a yes or no
 SPREAD_ASK_RE = re.compile(r"\b(?:what|which|how many|how much)\s+(?:speed\s+)?(?:evs?|spreads?|investment|natures?|stat points|sp)\b|"
