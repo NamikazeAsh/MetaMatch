@@ -60,7 +60,8 @@ def _board(team_json, format_id, stats_month):
     team = json.loads(team_json)
     rows = tb.threat_board(team, n=N_THREATS, format_id=format_id)
     return [{"name": r.name, "usage": r.usage, "answers": r.answers, "losses": r.losses, "cc": r.checks_data,
-             "cells": {m: {"verdict": c.verdict, "parts": c.parts} for m, c in r.cells.items()}} for r in rows]
+             "cells": {m: {"verdict": c.verdict, "parts": c.parts, "n": tb.cell_numbers(c.exchange)}
+                       for m, c in r.cells.items()}} for r in rows]
 
 
 def _stats_month():

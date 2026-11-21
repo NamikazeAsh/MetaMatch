@@ -402,5 +402,49 @@ class TestMatchupMatrices(unittest.TestCase):
         self.assertEqual(o["Water"], [])
 
 
+def _n(taken_hi, to_be_koed=None, to_ko=None, outspeeds=0.0, prio_move=None, taken_move="Earthquake"):
+    return {"taken_hi": taken_hi, "taken_move": taken_move, "to_be_koed": to_be_koed, "to_ko": to_ko,
+            "outspeeds": outspeeds, "prio_move": prio_move}
+
+
+class TestBoardNumbers(unittest.TestCase):
+    def test_cell_numbers_keep_what_the_guide_reads(self):
+        from metamatch.engine.threat_board import cell_numbers
+        x = {"taken": ("Earthquake", {"percent": [40.1, 47.3]}), "to_be_koed": 3, "to_ko": 2, "outspeeds": 0.8,
+             "priority": (1, "Sucker Punch")}
+        self.assertEqual(cell_numbers(x), _n(47.3, 3, 2, 0.8, "Sucker Punch"))
+        self.assertIsNone(cell_numbers(None))
+        self.assertEqual(cell_numbers({"taken": None, "outspeeds": 0.2, "priority": (0, None)})["taken_hi"], 0.0)
+
+    def test_one_switch_in_rule(self):
+        from metamatch.engine.threat_board import safe_switch
+        self.assertTrue(safe_switch(_n(49.9, 2)))
+        self.assertFalse(safe_switch(_n(50.0, 2)))
+        self.assertTrue(safe_switch(_n(68.0, 3)))       # survives a second hit
+        self.assertFalse(safe_switch(None))
+
+
+class TestWatchAnswers(unittest.TestCase):
+    def test_switch_in_takes_the_least_and_says_when_none_is_safe(self):
+        from metamatch.engine.guide import _switch_in
+        a = _switch_in({"Slowbro": _n(34, 3, taken_move="Crunch"), "Weavile": _n(90, 1)})
+        self.assertEqual((a["member"], a["safe"]), ("Slowbro", True))
+        self.assertIn("at most 34% from Crunch", a["text"])
+        b = _switch_in({"Hatterene": _n(77, 2), "Weavile": _n(120, 1)})
+        self.assertEqual((b["member"], b["safe"]), ("Hatterene", False))
+        self.assertTrue(b["text"].startswith("No safe switch in"))
+        self.assertIn("survives a second hit", _switch_in({"Moltres": _n(68, 3, taken_move="Draco Meteor")})["text"])
+
+    def test_revenge_tiers(self):
+        from metamatch.engine.guide import _revenge
+        fast = {"Weavile": _n(90, 1, to_ko=1, outspeeds=0.9), "Kingambit": _n(30, 4, to_ko=1, prio_move="Sucker Punch")}
+        self.assertIn("outspeeds it and knocks it out in one hit", _revenge(fast)["text"])
+        prio = {"Kingambit": _n(30, 4, to_ko=1, outspeeds=0.1, prio_move="Sucker Punch")}
+        self.assertEqual(_revenge(prio)["text"], "Kingambit's Sucker Punch knocks it out in one hit")
+        two = {"Darkrai": _n(60, 2, to_ko=2, outspeeds=0.7)}
+        self.assertTrue(_revenge(two)["text"].startswith("Wear it down first: Darkrai"))
+        self.assertIsNone(_revenge({"Slowbro": _n(30, 4, to_ko=3, outspeeds=0.1)}))
+
+
 if __name__ == "__main__":
     unittest.main()

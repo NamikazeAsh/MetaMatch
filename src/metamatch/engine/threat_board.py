@@ -73,6 +73,27 @@ class ThreatRow:
         return [n for n, _ in losing]
 
 
+def cell_numbers(x):
+    """The numbers of one exchange that the guide reads, small and JSON friendly so the cached board can keep them:
+    taken_hi (the threat's best hit on the member, high roll %), taken_move, to_be_koed, to_ko, outspeeds (0 to 1)
+    and prio_move (the member's priority move that lands the killing hit). None without an exchange."""
+    if not x:
+        return None
+    taken = x.get("taken")
+    pri = x.get("priority") or (0, None)
+    return {"taken_hi": taken[1]["percent"][1] if taken else 0.0, "taken_move": taken[0] if taken else None,
+            "to_be_koed": x.get("to_be_koed"), "to_ko": x.get("to_ko"), "outspeeds": x.get("outspeeds", 0.0),
+            "prio_move": pri[1] if pri[0] > 0 else None}
+
+
+def safe_switch(n):
+    """The one switch in rule: the threat's strongest hit takes under half the member's HP, or it takes three or more
+    hits to knock it out. Switching in is taking a hit, not winning the one on one."""
+    if not n:
+        return False
+    return n["taken_hi"] < 50 or (n.get("to_be_koed") or 0) >= 3
+
+
 def checks_and_counters(name, format_id, members):
     """Team members Smogon's Checks and Counters data lists against `name` (empty when the month has none)."""
     entry = (load_chaos_data(format_id) or {}).get(name) or {}

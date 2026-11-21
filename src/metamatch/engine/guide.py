@@ -74,6 +74,7 @@ class Guide:
     def named_members(self):
         """Every team member the guide names, for checks."""
         names = [self.win["name"]] if self.win else []
+        names += [a["member"] for w in self.watch for a in (w.get("switch"), w.get("revenge")) if a]
         names += [x["name"] for x in self.leads + self.tera + self.mega] + [n for c in self.combos for n in c["pair"]]
         names += [n for w in self.watch for n in w["answers"]]
         names += [s["name"] for e in self.engines for s in e.setters] + [u.name for e in self.engines for u in e.users]
@@ -81,9 +82,11 @@ class Guide:
 
 
 def board_rows(team, format_id, n=N_THREATS):
-    """Threat Board rows as plain dicts, the same shape the Threat Board tab caches."""
+    """Threat Board rows as plain dicts, the same shape the Threat Board tab caches (with each cell's numbers)."""
     rows = tb.threat_board(team, n=n, format_id=format_id)
-    return [{"name": r.name, "usage": r.usage, "answers": r.answers, "losses": r.losses} for r in rows]
+    return [{"name": r.name, "usage": r.usage, "answers": r.answers, "losses": r.losses,
+             "cells": {m: {"verdict": c.verdict, "n": tb.cell_numbers(c.exchange)} for m, c in r.cells.items()}}
+            for r in rows]
 
 
 def member_facts(team, format_id, rows):
@@ -342,7 +345,8 @@ def _combos(members, n=3):
 
 
 def _watch(rows, n=3):
-    """The most used threats the team answers thinly: one answer or none."""
+    """The most used threats the team answers thinly (one answer or none), each with who switches into it and who
+    knocks it out, read from the board's numbers (one on one, full HP, the threat's most common set)."""
     thin = [r for r in rows if len(r["answers"]) <= 1]
     out = []
     for r in thin[:n]:
@@ -350,8 +354,48 @@ def _watch(rows, n=3):
             text = f"Only {r['answers'][0]} beats it one on one"
         else:
             text = "Nobody on your team beats it one on one"
-        out.append({"name": r["name"], "usage": r["usage"], "answers": list(r["answers"]), "text": text})
+        numbers = {m: c["n"] for m, c in (r.get("cells") or {}).items() if c.get("n")}
+        out.append({"name": r["name"], "usage": r["usage"], "answers": list(r["answers"]), "text": text,
+                    "switch": _switch_in(numbers), "revenge": _revenge(numbers)})
     return out
+
+
+def _pct_hit(x):
+    return f"{x:.0f}%"
+
+
+def _switch_in(numbers):
+    """{member, text, safe} for the member that takes the least from the threat, or None without numbers."""
+    if not numbers:
+        return None
+    m, n = min(numbers.items(), key=lambda mn: (mn[1]["taken_hi"], -(mn[1].get("to_be_koed") or 99)))
+    if not tb.safe_switch(n):
+        return {"member": m, "safe": False, "text": f"No safe switch in. {m} takes the least, up to {_pct_hit(n['taken_hi'])}"}
+    if not n.get("taken_move"):
+        return {"member": m, "safe": True, "text": f"Switch in {m}: its usual attacks do nothing to it"}
+    if n["taken_hi"] >= 50:   # safe because it takes three or more hits, not because one hit is small
+        return {"member": m, "safe": True,
+                "text": f"Switch in {m}: {n['taken_move']} does up to {_pct_hit(n['taken_hi'])}, but it survives a second hit"}
+    return {"member": m, "safe": True,
+            "text": f"Switch in {m}: takes at most {_pct_hit(n['taken_hi'])} from {n['taken_move']}"}
+
+
+def _revenge(numbers):
+    """{member, text} for the member that knocks the threat out from full HP: faster and in one hit, else a priority
+    move in one hit, else faster in two hits (wear it down first). None when nobody does."""
+    fast_one = [(m, n) for m, n in numbers.items() if n.get("to_ko") == 1 and n["outspeeds"] >= 0.5]
+    if fast_one:
+        m, _ = max(fast_one, key=lambda mn: mn[1]["outspeeds"])
+        return {"member": m, "text": f"{m} outspeeds it and knocks it out in one hit"}
+    prio = [(m, n) for m, n in numbers.items() if n.get("to_ko") == 1 and n.get("prio_move")]
+    if prio:
+        m, n = prio[0]
+        return {"member": m, "text": f"{m}'s {n['prio_move']} knocks it out in one hit"}
+    fast_two = [(m, n) for m, n in numbers.items() if n.get("to_ko") == 2 and n["outspeeds"] >= 0.5]
+    if fast_two:
+        m, _ = max(fast_two, key=lambda mn: mn[1]["outspeeds"])
+        return {"member": m, "text": f"Wear it down first: {m} is faster and needs two hits"}
+    return None
 
 
 def _add_abilities(guide, team, format_id):

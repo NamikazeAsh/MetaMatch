@@ -146,6 +146,9 @@ STYLE = """
 .cg-threat img { width: 48px; height: 48px; object-fit: contain; }
 .cg-threat .nm { font-weight: 700; }
 .cg-threat small { color: #fca5a5; font-size: .82rem; }
+.cg-threat .cg-ans { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: .8rem; color: #c8d1e0; line-height: 1.3; }
+.cg-threat .cg-ans img { width: 24px; height: 24px; flex: none; }
+.cg-threat .cg-ans.warn span { color: #fbbf24; }
 @media (max-width: 900px) { .cg-combos, .cg-watch { grid-template-columns: 1fr; } .cg-win { grid-template-columns: 80px 1fr; }
   .cg-win img { width: 80px; height: 80px; } }
 .cg-engs { display:grid; gap:14px; margin:4px 0 6px; }
@@ -456,12 +459,21 @@ def _combos(combos):
     return f'<div class="cg-head">Pairs that cover each other</div><div class="cg-combos">{cards}</div>'
 
 
+def _answer_line(a, cls=""):
+    if not a:
+        return ""
+    return (f'<div class="cg-ans {cls}"><img src="{escape(get_sprite(a["member"]) or "")}" alt="">'
+            f'<span>{escape(a["text"])}</span></div>')
+
+
 def _watch(watch):
     if not watch:
         return ""
     cards = "".join(
         f'<div class="cg-threat">{_img(w["name"])}<div><div class="nm">{escape(w["name"])}</div>'
-        f'<small>{escape(w["text"])} · on {w["usage"]:g}% of teams</small></div></div>' for w in watch)
+        f'<small>{escape(w["text"])} · on {w["usage"]:g}% of teams</small>'
+        + _answer_line(w.get("switch"), "" if (w.get("switch") or {}).get("safe") else "warn")
+        + _answer_line(w.get("revenge")) + '</div></div>' for w in watch)
     return f'<div class="cg-head">Watch out for</div><div class="cg-watch">{cards}</div>'
 
 

@@ -15,7 +15,7 @@ from metamatch import config
 from metamatch.engine import speed_board, synergy
 from metamatch.engine.dex import dex_for_format
 from metamatch.engine.guide import HAZARDS, N_SPEED, N_THREATS, PIVOTS, REMOVAL, SETUP
-from metamatch.engine.threat_board import threat_board
+from metamatch.engine.threat_board import cell_numbers, safe_switch, threat_board
 
 WEIGHTS = {"coverage": 25, "switchins": 15, "hazards": 15, "mutual_cover": 10, "weaknesses": 10, "speed": 10,
            "roles": 10, "cores": 5}
@@ -76,16 +76,15 @@ def score_team(team, format_id=None, rows=None):
     parts.append(Part("coverage", got / total_usage,
                       f"Of the {len(rows)} most used Pokemon, answered thinly: {_join(thin)}."))
 
-    # Switch ins: a member that takes the threat's strongest hit for under 50% of its HP
+    # Switch ins: the one switch in rule (threat_board.safe_switch), shared with the guide and the chat
     got, none_in = 0.0, []
     for r in rows:
-        ins = [m for m, c in r.cells.items() if c.exchange and (not c.exchange.get("taken")
-                                                                or c.exchange["taken"][1]["percent"][1] < 50)]
+        ins = [m for m, c in r.cells.items() if safe_switch(cell_numbers(c.exchange))]
         got += r.usage * (1.0 if len(ins) >= 2 else 0.6 if ins else 0.0)
         if not ins:
             none_in.append(r.name)
     parts.append(Part("switchins", got / total_usage,
-                      f"No member takes the strongest hit for under half its HP from: {_join(none_in)}."))
+                      f"No member takes the strongest hit for under half its HP, or three of them, from: {_join(none_in)}."))
 
     # Hazards: setting them and removing them (three or more Heavy-Duty Boots count as half the removal)
     setters = [p["Pokemon"] for p in team.values() if _moves(p) & set(HAZARDS)]

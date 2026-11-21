@@ -217,7 +217,8 @@ def solve_switchins(plan, dex, game):
                                           + (f", knocking it out {count}." if count else "."),
                                 {"member": member, "move": move, "pct": [lo, hi], "hits": hits}, detail=res.get("desc", ""))
     ranked.sort()
-    good = [m for hi, m, _ in ranked if hi < 50 or ((row.cells[m].exchange or {}).get("to_be_koed") or 0) >= 3]
+    from metamatch.engine.threat_board import cell_numbers, safe_switch
+    good = [m for _, m, _ in ranked if safe_switch(cell_numbers(row.cells[m].exchange))]
     if good:
         verb = "takes" if len(good) == 1 else "take"
         statement = f"Your {_and(good)} {verb} {name}'s attacks best."
