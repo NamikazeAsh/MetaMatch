@@ -29,6 +29,13 @@ PRIORITY = re.compile(r"^\t\tpriority: (-?\d+),")
 SELF_SWITCH = re.compile(r"^\t\tselfSwitch: ")
 SIDE_CONDITION = re.compile(r"^\t\tsideCondition: ")
 TARGET = re.compile(r'^\t\ttarget: "(\w+)",')
+HEAL = re.compile(r"^\t\theal: \[(\d+), (\d+)\],")
+STATUS = re.compile(r"^\t\tstatus: '(\w+)',")
+# A secondary effect block: "secondary: {" or "secondaries: [", with its chance and status a level or two deeper
+SECONDARY_OPEN = re.compile(r"^\t\tsecondar(?:y: \{|ies: \[)\s*$")
+SECONDARY_CHANCE = re.compile(r"^\t\t\t\t?chance: (\d+),")
+SECONDARY_STATUS = re.compile(r"^\t\t\t\t?status: '(\w+)',")
+BLOCK_CLOSE = re.compile(r"^\t\t[}\]],")
 # Move flags an ability, item or rule keys on
 MOVE_FLAGS = {"contact", "sound", "punch", "bite", "bullet", "pulse", "slicing", "wind", "reflectable", "powder",
               "dance", "heal", "bypasssub"}
@@ -36,13 +43,37 @@ MOVE_FLAGS = {"contact", "sound", "punch", "bite", "bullet", "pulse", "slicing",
 
 def _entries(text, field_re):
     """{id: {field: value}} for one table, reading only fields at the entry's own depth."""
-    out, current = {}, None
+    out, current, secondary = {}, None, None
     for line in text.splitlines():
         m = ENTRY.match(line)
         if m:
-            current = out.setdefault(m.group(1), {})
+            current, secondary = out.setdefault(m.group(1), {}), None
             continue
         if current is None:
+            continue
+        # Inside a secondary effect: the first status it inflicts, with its chance (Scald: 30% burn)
+        if secondary is not None:
+            if BLOCK_CLOSE.match(line):
+                if secondary.get("status") and "inflicts" not in current:
+                    current["inflicts"] = {"status": secondary["status"], "chance": secondary.get("chance", 100)}
+                secondary = None
+                continue
+            c, s = SECONDARY_CHANCE.match(line), SECONDARY_STATUS.match(line)
+            if c and "status" not in secondary:
+                secondary["chance"] = int(c.group(1))
+            if s and "status" not in secondary:
+                secondary["status"] = s.group(1)
+            continue
+        if SECONDARY_OPEN.match(line):
+            secondary = {}
+            continue
+        heal = HEAL.match(line)
+        if heal and "heal" not in current:
+            current["heal"] = int(heal.group(1)) / int(heal.group(2))
+            continue
+        status = STATUS.match(line)
+        if status and "inflicts" not in current:
+            current["inflicts"] = {"status": status.group(1), "chance": 100}   # the move's whole point (Will-O-Wisp)
             continue
         f = field_re.match(line)
         if f and f.group(1) not in current:
@@ -105,6 +136,11 @@ def build(texts):
             moves[entry["name"]]["switches"] = True          # the user switches out (U-turn, Parting Shot...)
         if data.get("sideCondition") and data.get("target") == "foeSide":
             moves[entry["name"]]["hazard"] = True            # lays a hazard on the foe's side
+        # Heals the user itself (Slack Off 1/2): not Heal Pulse or Floral Healing, which heal the target
+        if data.get("heal") and data.get("target") in ("self", "allies", "adjacentAllyOrSelf"):
+            moves[entry["name"]]["heals"] = round(data["heal"], 4)
+        if data.get("inflicts"):
+            moves[entry["name"]]["inflicts"] = data["inflicts"]   # {"status": "brn", "chance": 30}
     return {"source": "Pokemon Showdown data/text and data (MIT)", "abilities": dict(sorted(abilities.items())),
             "items": dict(sorted(items.items())), "moves": dict(sorted(moves.items()))}
 

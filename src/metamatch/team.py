@@ -195,7 +195,7 @@ def detectRole(team):
     hazard_moves, removal_moves, setup_moves = set(move_lists.HAZARDS), set(move_lists.REMOVAL), move_lists.SETUP
     support_moves = {"Wish", "Protect", "Heal Bell", "Aromatherapy", "Thunder Wave", "Taunt", "Toxic", "Leech Seed", "Encore", "Light Screen", "Reflect", "Aurora Veil", "Memento", "Parting Shot", "Healing Wish", "Lunar Dance"}
     pivot_moves = set(move_lists.PIVOTS)
-    recovery_moves = {"Recover", "Roost", "Slack Off", "Moonlight", "Soft-Boiled", "Rest", "Shore Up", "Synthesis", "Morning Sun"}
+    recovery_moves = set(move_lists.RECOVERY)
     status_moves = {"Will-O-Wisp", "Toxic", "Thunder Wave", "Sleep Powder", "Spore", "Glare", "Nuzzle"}
     trapping_moves = {"Block", "Mean Look", "Spider Web", "Shadow Tag", "Arena Trap", "Magnet Pull"}
     ko_moves = {"Destiny Bond", "Explosion", "Self-Destruct", "Final Gambit", "Memento"}
@@ -353,7 +353,7 @@ def detectRole(team):
             team[poke]["Roles"].append("Baton Passer")
             
             
-        team[poke]["Roles"] = list(set(team[poke]["Roles"]))
+        team[poke]["Roles"] = list(dict.fromkeys(team[poke]["Roles"]))   # first seen order, the same every run
         
     return team
 

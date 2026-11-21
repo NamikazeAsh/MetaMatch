@@ -3692,7 +3692,11 @@
    "type": "Poison",
    "category": "Physical",
    "basePower": 60,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 50
+   }
   },
   "Barrage": {
    "short": "Hits 2-5 times in one turn.",
@@ -3860,7 +3864,11 @@
    "basePower": 85,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Blazing Torque": {
    "short": "30% chance to burn the target.",
@@ -3868,7 +3876,11 @@
    "type": "Fire",
    "category": "Physical",
    "basePower": 80,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 30
+   }
   },
   "Bleakwind Storm": {
    "short": "30% to lower foe(s) Speed by 1. Rain: can't miss.",
@@ -3888,7 +3900,11 @@
    "basePower": 110,
    "flags": [
     "wind"
-   ]
+   ],
+   "inflicts": {
+    "status": "frz",
+    "chance": 10
+   }
   },
   "Block": {
    "short": "Prevents the target from switching out.",
@@ -3920,7 +3936,11 @@
    "type": "Fire",
    "category": "Special",
    "basePower": 130,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 20
+   }
   },
   "Body Press": {
    "short": "Uses user's Def stat as Atk in damage calculation.",
@@ -3940,7 +3960,11 @@
    "basePower": 85,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Bolt Beak": {
    "short": "Power doubles if user moves before the target.",
@@ -3960,7 +3984,11 @@
    "basePower": 130,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 20
+   }
   },
   "Bone Club": {
    "short": "10% chance to make the target flinch.",
@@ -4003,7 +4031,11 @@
    "type": "Flying",
    "category": "Physical",
    "basePower": 85,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Branch Poke": {
    "short": "No additional effect.",
@@ -4396,7 +4428,11 @@
    "type": "Fighting",
    "category": "Physical",
    "basePower": 100,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Comet Punch": {
    "short": "Hits 2-5 times in one turn.",
@@ -4611,7 +4647,11 @@
    "flags": [
     "contact",
     "slicing"
-   ]
+   ],
+   "inflicts": {
+    "status": "psn",
+    "chance": 10
+   }
   },
   "Crunch": {
    "short": "20% chance to lower the target's Defense by 1.",
@@ -4682,7 +4722,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "slp",
+    "chance": 100
+   }
   },
   "Darkest Lariat": {
    "short": "Ignores the target's stat stage changes.",
@@ -4817,7 +4861,11 @@
    "type": "Electric",
    "category": "Special",
    "basePower": 80,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Dive": {
    "short": "Dives underwater turn 1, strikes turn 2.",
@@ -4947,7 +4995,11 @@
    "type": "Dragon",
    "category": "Special",
    "basePower": 60,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Dragon Cheer": {
    "short": "Ally: Crit ratio +1, or +2 if ally is Dragon type.",
@@ -5263,7 +5315,11 @@
    "type": "Fire",
    "category": "Special",
    "basePower": 40,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Encore": {
    "short": "Target repeats its last move for its next 3 turns.",
@@ -5537,7 +5593,11 @@
    "type": "Fire",
    "category": "Special",
    "basePower": 110,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Fire Fang": {
    "short": "10% chance to burn. 10% chance to flinch.",
@@ -5548,7 +5608,11 @@
    "flags": [
     "bite",
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Fire Lash": {
    "short": "100% chance to lower the target's Defense by 1.",
@@ -5577,7 +5641,11 @@
    "flags": [
     "contact",
     "punch"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Fire Spin": {
    "short": "Traps and damages the target for 4-5 turns.",
@@ -5653,7 +5721,11 @@
    "basePower": 60,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Flamethrower": {
    "short": "10% chance to burn the target.",
@@ -5661,7 +5733,11 @@
    "type": "Fire",
    "category": "Special",
    "basePower": 90,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Flare Blitz": {
    "short": "Has 33% recoil. 10% chance to burn. Thaws user.",
@@ -5671,7 +5747,11 @@
    "basePower": 120,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Flash": {
    "short": "Lowers the target's accuracy by 1.",
@@ -5817,7 +5897,11 @@
    "basePower": 60,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Foresight": {
    "short": "Fighting, Normal hit Ghost. Evasiveness ignored.",
@@ -5856,7 +5940,11 @@
    "type": "Ice",
    "category": "Physical",
    "basePower": 140,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Freeze-Dry": {
    "short": "10% chance to freeze. Super effective on Water.",
@@ -5864,7 +5952,11 @@
    "type": "Ice",
    "category": "Special",
    "basePower": 70,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "frz",
+    "chance": 10
+   }
   },
   "Freezing Glare": {
    "short": "10% chance to freeze the target.",
@@ -5872,7 +5964,11 @@
    "type": "Psychic",
    "category": "Special",
    "basePower": 90,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "frz",
+    "chance": 10
+   }
   },
   "Frenzy Plant": {
    "short": "User cannot move next turn.",
@@ -6332,7 +6428,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 100
+   }
   },
   "Grass Knot": {
    "short": "More power the heavier the target.",
@@ -6361,7 +6461,11 @@
     "bypasssub",
     "reflectable",
     "sound"
-   ]
+   ],
+   "inflicts": {
+    "status": "slp",
+    "chance": 100
+   }
   },
   "Grassy Glide": {
    "short": "User on Grassy Terrain: +1 priority.",
@@ -6469,7 +6573,11 @@
    "type": "Poison",
    "category": "Physical",
    "basePower": 120,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 30
+   }
   },
   "Gust": {
    "short": "Power doubles during Bounce, Fly, and Sky Drop.",
@@ -6616,7 +6724,8 @@
    "basePower": 0,
    "flags": [
     "heal"
-   ]
+   ],
+   "heals": 0.5
   },
   "Heal Pulse": {
    "short": "Heals the target by 50% of its max HP.",
@@ -6678,7 +6787,11 @@
    "basePower": 95,
    "flags": [
     "wind"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Heavy Slam": {
    "short": "More power the heavier the user than the target.",
@@ -6910,7 +7023,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "slp",
+    "chance": 100
+   }
   },
   "Ice Ball": {
    "short": "Power doubles with each hit. Repeats for 5 turns.",
@@ -6929,7 +7046,11 @@
    "type": "Ice",
    "category": "Special",
    "basePower": 90,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "frz",
+    "chance": 10
+   }
   },
   "Ice Burn": {
    "short": "Charges turn 1. Hits turn 2. 30% burn.",
@@ -6937,7 +7058,11 @@
    "type": "Ice",
    "category": "Special",
    "basePower": 140,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 30
+   }
   },
   "Ice Fang": {
    "short": "10% chance to freeze. 10% chance to flinch.",
@@ -6948,7 +7073,11 @@
    "flags": [
     "bite",
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "frz",
+    "chance": 10
+   }
   },
   "Ice Hammer": {
    "short": "Lowers the user's Speed by 1.",
@@ -6970,7 +7099,11 @@
    "flags": [
     "contact",
     "punch"
-   ]
+   ],
+   "inflicts": {
+    "status": "frz",
+    "chance": 10
+   }
   },
   "Ice Shard": {
    "short": "Usually goes first.",
@@ -7041,7 +7174,11 @@
    "type": "Ghost",
    "category": "Special",
    "basePower": 60,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 30
+   }
   },
   "Inferno": {
    "short": "100% chance to burn the target.",
@@ -7049,7 +7186,11 @@
    "type": "Fire",
    "category": "Special",
    "basePower": 100,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 100
+   }
   },
   "Inferno Overdrive": {
    "short": "Power is equal to the base move's Z-Power.",
@@ -7282,7 +7423,11 @@
    "type": "Fire",
    "category": "Special",
    "basePower": 80,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 30
+   }
   },
   "Leaf Blade": {
    "short": "High critical hit ratio.",
@@ -7366,7 +7511,11 @@
    "basePower": 30,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Life Dew": {
    "short": "Heals the user and its allies by 1/4 their max HP.",
@@ -7377,7 +7526,8 @@
    "flags": [
     "bypasssub",
     "heal"
-   ]
+   ],
+   "heals": 0.25
   },
   "Light Screen": {
    "short": "For 5 turns, special damage to allies is halved.",
@@ -7428,7 +7578,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "slp",
+    "chance": 100
+   }
   },
   "Low Kick": {
    "short": "More power the heavier the target.",
@@ -7627,7 +7781,11 @@
    "type": "Poison",
    "category": "Special",
    "basePower": 100,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "tox",
+    "chance": 50
+   }
   },
   "Mat Block": {
    "short": "Protects allies from damaging attacks. Turn 1 only.",
@@ -7645,7 +7803,11 @@
    "basePower": 80,
    "flags": [
     "heal"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 20
+   }
   },
   "Max Airstream": {
    "short": "Base move affects power. Allies: +1 Speed.",
@@ -7963,7 +8125,8 @@
    "basePower": 0,
    "flags": [
     "heal"
-   ]
+   ],
+   "heals": 0.5
   },
   "Mimic": {
    "short": "The last move the target used replaces this one.",
@@ -8111,7 +8274,11 @@
    "basePower": 30,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "psn",
+    "chance": 100
+   }
   },
   "Mountain Gale": {
    "short": "30% chance to make the target flinch.",
@@ -8299,7 +8466,11 @@
    "type": "Poison",
    "category": "Physical",
    "basePower": 100,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 30
+   }
   },
   "Nuzzle": {
    "short": "100% chance to paralyze the target.",
@@ -8309,7 +8480,11 @@
    "basePower": 20,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 100
+   }
   },
   "Oblivion Wing": {
    "short": "User recovers 75% of the damage dealt.",
@@ -8588,7 +8763,11 @@
    "flags": [
     "bite",
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "tox",
+    "chance": 50
+   }
   },
   "Poison Gas": {
    "short": "Poisons the foe(s).",
@@ -8598,7 +8777,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "psn",
+    "chance": 100
+   }
   },
   "Poison Jab": {
    "short": "30% chance to poison the target.",
@@ -8608,7 +8791,11 @@
    "basePower": 80,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "psn",
+    "chance": 30
+   }
   },
   "Poison Powder": {
    "short": "Poisons the target.",
@@ -8618,7 +8805,11 @@
    "flags": [
     "powder",
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "psn",
+    "chance": 100
+   }
   },
   "Poison Sting": {
    "short": "30% chance to poison the target.",
@@ -8626,7 +8817,11 @@
    "type": "Poison",
    "category": "Physical",
    "basePower": 15,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 30
+   }
   },
   "Poison Tail": {
    "short": "High critical hit ratio. 10% chance to poison.",
@@ -8636,7 +8831,11 @@
    "basePower": 50,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "psn",
+    "chance": 10
+   }
   },
   "Pollen Puff": {
    "short": "If the target is an ally, heals 50% of its max HP.",
@@ -8704,7 +8903,11 @@
    "type": "Ice",
    "category": "Special",
    "basePower": 40,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "frz",
+    "chance": 10
+   }
   },
   "Power Gem": {
    "short": "No additional effect.",
@@ -8985,7 +9188,11 @@
    "basePower": 120,
    "flags": [
     "bullet"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 10
+   }
   },
   "Quash": {
    "short": "Forces the target to move last this turn.",
@@ -9130,7 +9337,8 @@
    "basePower": 0,
    "flags": [
     "heal"
-   ]
+   ],
+   "heals": 0.5
   },
   "Recycle": {
    "short": "Restores the item the user last used.",
@@ -9175,7 +9383,11 @@
    "flags": [
     "bypasssub",
     "sound"
-   ]
+   ],
+   "inflicts": {
+    "status": "slp",
+    "chance": 10
+   }
   },
   "Rest": {
    "short": "User sleeps 2 turns and restores HP and status.",
@@ -9387,7 +9599,8 @@
    "basePower": 0,
    "flags": [
     "heal"
-   ]
+   ],
+   "heals": 0.5
   },
   "Rototiller": {
    "short": "Raises Atk/Sp. Atk of grounded Grass types by 1.",
@@ -9422,7 +9635,11 @@
    "type": "Fire",
    "category": "Physical",
    "basePower": 100,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 50
+   }
   },
   "Sacred Sword": {
    "short": "Ignores the target's stat stage changes.",
@@ -9477,7 +9694,11 @@
    "basePower": 100,
    "flags": [
     "wind"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 20
+   }
   },
   "Sandstorm": {
    "short": "For 5 turns, a sandstorm rages. Rock: 1.5× SpD.",
@@ -9502,7 +9723,11 @@
    "type": "Water",
    "category": "Special",
    "basePower": 80,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 30
+   }
   },
   "Scale Shot": {
    "short": "Hits 2-5 times. User: -1 Def, +1 Spe after last hit.",
@@ -9528,7 +9753,11 @@
    "type": "Ground",
    "category": "Special",
    "basePower": 70,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 30
+   }
   },
   "Scratch": {
    "short": "No additional effect.",
@@ -9559,7 +9788,11 @@
    "basePower": 100,
    "flags": [
     "bullet"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 30
+   }
   },
   "Searing Sunraze Smash": {
    "short": "Ignores the Abilities of other Pokemon.",
@@ -9577,7 +9810,11 @@
    "type": "Normal",
    "category": "Physical",
    "basePower": 70,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Secret Sword": {
    "short": "Damages target based on Defense, not Sp. Def.",
@@ -9721,7 +9958,11 @@
    "type": "Poison",
    "category": "Special",
    "basePower": 90,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 20
+   }
   },
   "Shell Smash": {
    "short": "Lowers Def, SpD by 1; raises Atk, SpA, Spe by 2.",
@@ -9817,7 +10058,11 @@
     "bypasssub",
     "reflectable",
     "sound"
-   ]
+   ],
+   "inflicts": {
+    "status": "slp",
+    "chance": 100
+   }
   },
   "Sinister Arrow Raid": {
    "short": "No additional effect.",
@@ -9899,7 +10144,8 @@
    "basePower": 0,
    "flags": [
     "heal"
-   ]
+   ],
+   "heals": 0.5
   },
   "Slam": {
    "short": "No additional effect.",
@@ -9929,7 +10175,11 @@
    "flags": [
     "powder",
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "slp",
+    "chance": 100
+   }
   },
   "Sleep Talk": {
    "short": "User must be asleep. Uses another known move.",
@@ -9945,7 +10195,11 @@
    "type": "Poison",
    "category": "Special",
    "basePower": 65,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 30
+   }
   },
   "Sludge Bomb": {
    "short": "30% chance to poison the target.",
@@ -9955,7 +10209,11 @@
    "basePower": 90,
    "flags": [
     "bullet"
-   ]
+   ],
+   "inflicts": {
+    "status": "psn",
+    "chance": 30
+   }
   },
   "Sludge Wave": {
    "short": "10% chance to poison adjacent Pokemon.",
@@ -9963,7 +10221,11 @@
    "type": "Poison",
    "category": "Special",
    "basePower": 95,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 10
+   }
   },
   "Smack Down": {
    "short": "Removes the target's Ground immunity.",
@@ -9998,7 +10260,11 @@
    "type": "Poison",
    "category": "Special",
    "basePower": 30,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 40
+   }
   },
   "Smokescreen": {
    "short": "Lowers the target's accuracy by 1.",
@@ -10087,7 +10353,8 @@
    "basePower": 0,
    "flags": [
     "heal"
-   ]
+   ],
+   "heals": 0.5
   },
   "Solar Beam": {
    "short": "Charges turn 1. Hits turn 2. No charge in sunlight.",
@@ -10141,7 +10408,11 @@
    "basePower": 65,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Sparkling Aria": {
    "short": "The target is cured of its burn.",
@@ -10293,7 +10564,11 @@
    "flags": [
     "powder",
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "slp",
+    "chance": 100
+   }
   },
   "Spotlight": {
    "short": "Target's foes' moves are redirected to it this turn.",
@@ -10333,7 +10608,11 @@
    "type": "Water",
    "category": "Special",
    "basePower": 110,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "brn",
+    "chance": 30
+   }
   },
   "Steamroller": {
    "short": "30% chance to make the target flinch.",
@@ -10398,7 +10677,11 @@
    "type": "Electric",
    "category": "Special",
    "basePower": 175,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 100
+   }
   },
   "Stomp": {
    "short": "30% chance to make the target flinch.",
@@ -10527,7 +10810,11 @@
    "flags": [
     "powder",
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 100
+   }
   },
   "Submission": {
    "short": "Has 1/4 recoil.",
@@ -10992,7 +11279,11 @@
    "type": "Electric",
    "category": "Special",
    "basePower": 110,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 30
+   }
   },
   "Thunder Cage": {
    "short": "Traps and damages the target for 4-5 turns.",
@@ -11011,7 +11302,11 @@
    "flags": [
     "bite",
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 10
+   }
   },
   "Thunder Punch": {
    "short": "10% chance to paralyze the target.",
@@ -11022,7 +11317,11 @@
    "flags": [
     "contact",
     "punch"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 10
+   }
   },
   "Thunder Shock": {
    "short": "10% chance to paralyze the target.",
@@ -11030,7 +11329,11 @@
    "type": "Electric",
    "category": "Special",
    "basePower": 40,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 10
+   }
   },
   "Thunder Wave": {
    "short": "Paralyzes the target.",
@@ -11040,7 +11343,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 100
+   }
   },
   "Thunderbolt": {
    "short": "10% chance to paralyze the target.",
@@ -11048,7 +11355,11 @@
    "type": "Electric",
    "category": "Special",
    "basePower": 90,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "par",
+    "chance": 10
+   }
   },
   "Thunderclap": {
    "short": "Usually goes first. Fails if target is not attacking.",
@@ -11127,7 +11438,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "tox",
+    "chance": 100
+   }
   },
   "Toxic Spikes": {
    "short": "Poisons grounded foes on switch-in. Max 2 layers.",
@@ -11148,7 +11463,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "psn",
+    "chance": 100
+   }
   },
   "Trailblaze": {
    "short": "100% chance to raise the user's Speed by 1.",
@@ -11275,7 +11594,11 @@
    "type": "Bug",
    "category": "Physical",
    "basePower": 25,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "psn",
+    "chance": 20
+   }
   },
   "Twinkle Tackle": {
    "short": "Power is equal to the base move's Z-Power.",
@@ -11419,7 +11742,11 @@
    "basePower": 120,
    "flags": [
     "contact"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 10
+   }
   },
   "Wake-Up Slap": {
    "short": "Power doubles if target is asleep, and wakes it.",
@@ -11549,7 +11876,11 @@
    "type": "Dark",
    "category": "Physical",
    "basePower": 80,
-   "flags": []
+   "flags": [],
+   "inflicts": {
+    "status": "slp",
+    "chance": 10
+   }
   },
   "Wide Guard": {
    "short": "Protects allies from multi-target moves this turn.",
@@ -11578,7 +11909,11 @@
    "basePower": 100,
    "flags": [
     "wind"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 20
+   }
   },
   "Will-O-Wisp": {
    "short": "Burns the target.",
@@ -11587,7 +11922,11 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "inflicts": {
+    "status": "brn",
+    "chance": 100
+   }
   },
   "Wing Attack": {
    "short": "No additional effect.",
@@ -11700,7 +12039,11 @@
    "basePower": 120,
    "flags": [
     "bullet"
-   ]
+   ],
+   "inflicts": {
+    "status": "par",
+    "chance": 100
+   }
   },
   "Zen Headbutt": {
    "short": "20% chance to make the target flinch.",

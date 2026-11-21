@@ -150,6 +150,26 @@ class TestBuildRulesText(unittest.TestCase):
         self.assertTrue(m["Spikes"]["hazard"])
         self.assertNotIn("hazard", m["Reflect"])                   # a side condition on your own side isn't a hazard
 
+    def test_reads_heals_and_inflicted_status(self):
+        moves = {"slackoff": ("Slack Off", '\t\theal: [1, 2],\n\t\ttarget: "self",\n'),
+                 "healpulse": ("Heal Pulse", '\t\theal: [1, 2],\n\t\ttarget: "any",\n'),
+                 "willowisp": ("Will-O-Wisp", "\t\tstatus: 'brn',\n\t\ttarget: \"normal\",\n"),
+                 "scald": ("Scald", "\t\tsecondary: {\n\t\t\tchance: 30,\n\t\t\tstatus: 'brn',\n\t\t},\n\t\ttarget: \"normal\",\n"),
+                 "firefang": ("Fire Fang", "\t\tsecondaries: [\n\t\t\t{\n\t\t\t\tchance: 10,\n\t\t\t\tstatus: 'brn',\n"
+                                           "\t\t\t}, {\n\t\t\t\tchance: 10,\n\t\t\t\tvolatileStatus: 'flinch',\n\t\t\t},\n\t\t],\n"),
+                 "surf": ("Surf", '\t\tsecondary: null,\n\t\ttarget: "allAdjacent",\n')}
+        texts = {"data/text/abilities.ts": "", "data/text/items.ts": "", "data/abilities.ts": "",
+                 "data/text/moves.ts": "".join(f'\t{k}: {{\n\t\tname: "{n}",\n\t\tshortDesc: "x",\n\t}},\n'
+                                               for k, (n, _) in moves.items()),
+                 "data/moves.ts": "".join(f'\t{k}: {{\n\t\tname: "{n}",\n{body}\t}},\n' for k, (n, body) in moves.items())}
+        m = build_rules_text.build(texts)["moves"]
+        self.assertEqual(m["Slack Off"]["heals"], 0.5)
+        self.assertNotIn("heals", m["Heal Pulse"])                 # heals the target, not the user
+        self.assertEqual(m["Will-O-Wisp"]["inflicts"], {"status": "brn", "chance": 100})
+        self.assertEqual(m["Scald"]["inflicts"], {"status": "brn", "chance": 30})
+        self.assertEqual(m["Fire Fang"]["inflicts"], {"status": "brn", "chance": 10})
+        self.assertNotIn("inflicts", m["Surf"])
+
 
 if __name__ == "__main__":
     unittest.main()

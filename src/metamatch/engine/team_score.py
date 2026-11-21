@@ -15,7 +15,7 @@ from metamatch import config
 from metamatch.engine import speed_board, synergy
 from metamatch.engine.dex import dex_for_format
 from metamatch.engine.guide import N_SPEED, N_THREATS
-from metamatch.engine.moves import HAZARDS, PIVOTS, REMOVAL, SETUP
+from metamatch.engine.moves import HAZARDS, PIVOTS, REMOVAL, SETUP, RECOVERY as MOVE_RECOVERY
 from metamatch.engine.threat_board import cell_numbers, safe_switch, threat_board
 
 WEIGHTS = {"coverage": 25, "switchins": 15, "hazards": 15, "mutual_cover": 10, "weaknesses": 10, "speed": 10,
@@ -23,8 +23,7 @@ WEIGHTS = {"coverage": 25, "switchins": 15, "hazards": 15, "mutual_cover": 10, "
 LABELS = {"coverage": "Coverage of top threats", "switchins": "Switch ins", "hazards": "Hazards",
           "mutual_cover": "Teammates covering each other", "weaknesses": "Shared weaknesses", "speed": "Speed",
           "roles": "Core roles", "cores": "Team engines"}
-RECOVERY = {"Recover", "Roost", "Slack Off", "Soft-Boiled", "Shore Up", "Synthesis", "Moonlight", "Morning Sun",
-            "Strength Sap", "Wish", "Milk Drink", "Rest", "Life Dew", "Lunar Blessing", "Jungle Healing"}
+RECOVERY = set(MOVE_RECOVERY)   # the shared list (engine/moves.py)
 TABLE = config.DATA_DIR / "json" / "team_score_ladder.json"
 
 

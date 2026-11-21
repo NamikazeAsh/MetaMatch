@@ -41,6 +41,21 @@ PRIORITY = frozenset(n for n, m in _moves().items()
                      if m.get("priority", 0) > 0 and m.get("category") != "Status" and n not in CHIP_PRIORITY)
 
 
+# Recovery: move -> share of max HP it heals the user. Showdown states the fraction for the plain ones (Slack Off
+# 1/2); the ones it codes by hand are typed: weather heals at their clear weather amount (synergy.py states the sun
+# and rain changes), Wish lands next turn, Rest heals fully but sleeps, Strength Sap depends on the foe (None)
+RECOVERY = {**{n: m["heals"] for n, m in _moves().items() if m.get("heals")},
+            "Shore Up": 0.5, "Moonlight": 0.5, "Synthesis": 0.5, "Morning Sun": 0.5, "Wish": 0.5, "Rest": 1.0,
+            "Strength Sap": None, "Lunar Blessing": 0.25, "Jungle Healing": 0.25}
+# Status a move inflicts: move -> (status, chance %): Will-O-Wisp ("brn", 100), Scald ("brn", 30), Toxic ("tox", 100)
+STATUS_MOVES = {n: (m["inflicts"]["status"], m["inflicts"]["chance"]) for n, m in _moves().items() if m.get("inflicts")}
+
+
+def category(move):
+    """'Physical', 'Special' or 'Status', or None for a move the data doesn't know."""
+    return (_moves().get(move) or {}).get("category")
+
+
 def is_priority(move, abilities=()):
     """A damaging move that moves first: priority in the data, or priority through the user's own ability."""
     needs = ABILITY_PRIORITY.get(move)
