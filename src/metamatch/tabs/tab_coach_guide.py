@@ -1,5 +1,7 @@
 """Coach Guide tab: a pilot guide written by the engine from the Threat Board, Speed and type data."""
 import json
+import re
+from functools import lru_cache
 from html import escape
 
 import streamlit as st
@@ -75,17 +77,25 @@ STYLE = """
 .cg-stat .v { color: #e6edf7; font-weight: 700; text-align: right; }
 .cg-stat .d { font-weight: 800; font-size: .74rem; }
 .cg-stat .d.up { color: #5fd38d; } .cg-stat .d.down { color: #f87171; }
-.cg-smogon { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.06); }
+.cg-smogon { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.06); }
 .cg-smogon-k { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--c) 70%, #fff); margin-bottom: 6px; }
-.cg-smogon blockquote { margin: 0; padding: 2px 0 2px 12px; border-left: 2px solid color-mix(in srgb, var(--c) 55%, transparent);
-  font-size: .86rem; line-height: 1.55; color: #d6deeb; }
-.cg-smogon-more { margin: 6px 0 0 14px; font-size: .84rem; line-height: 1.55; color: #aab3c5; }
-.cg-smogon-more summary { cursor: pointer; font-size: .74rem; font-weight: 700; color: #7fe6ff; list-style: none; }
-.cg-smogon-more summary::-webkit-details-marker { display: none; }
-.cg-smogon-more summary::before { content: "+ "; }
-.cg-smogon-more[open] summary::before { content: "- "; }
-.cg-smogon-more p { margin: 6px 0 0; }
+  color: color-mix(in srgb, var(--c) 70%, #fff); margin-bottom: 8px; }
+.cg-play { max-width: 72ch; padding: 2px 0 2px 14px; border-left: 2px solid color-mix(in srgb, var(--c) 55%, transparent); }
+.cg-play-lead { margin: 0; font-size: .95rem; line-height: 1.6; color: #eef2f8; }
+.cg-play-more summary { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; padding: 4px 12px;
+  border-radius: 999px; cursor: pointer; list-style: none; font-size: .74rem; font-weight: 700; color: #d6deeb;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); transition: background .15s, border-color .15s; }
+.cg-play-more summary:hover { background: color-mix(in srgb, var(--c) 16%, transparent); border-color: color-mix(in srgb, var(--c) 50%, transparent); }
+.cg-play-more summary::-webkit-details-marker { display: none; }
+.cg-play-more summary::after { content: ""; width: 6px; height: 6px; margin-top: -3px; border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s; }
+.cg-play-more[open] summary::after { transform: rotate(-135deg); margin-top: 3px; }
+.cg-play-more .shut { display: none; } .cg-play-more[open] .shut { display: inline; } .cg-play-more[open] .open { display: none; }
+.cg-play-more summary small { color: #8fa1bf; font-weight: 600; }
+.cg-play-rest p { margin: 12px 0 0; font-size: .86rem; line-height: 1.65; color: #aab3c5; }
+.cg-pk, .cg-mv { white-space: nowrap; font-weight: 600; }
+.cg-pk { color: #dfe5ee; }
+.cg-mv { color: color-mix(in srgb, var(--t) 55%, #c8d1e0); }
 .cg-stat.total { margin-top: 2px; } .cg-mega-bst { color: #aab3c5; font-size: .8rem; } .cg-mega-bst b { color: #fff; }
 .cg-rec { margin-top: 10px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.06); display: grid; gap: 7px; }
 .cg-rec-h { font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #00d4ff; }
@@ -298,6 +308,76 @@ def _ability_chip(name, new=False):
     return f'<span class="cg-ab{" new" if new else ""}" tabindex="0">{escape(name)}{tip_html}</span>'
 
 
+# Capitalised words that open ordinary sentences too ("Return to...", "Simple teams..."): only marked mid sentence
+PLAIN_WORDS = {"Return", "Rest", "Present", "Counter", "Block", "Bounce", "Endure", "Charm", "Swift", "Strength", "Spite",
+               "Cut", "Attract", "Fling", "Trick", "Wish", "Thief", "Struggle", "Splash", "Flatter", "Roar", "Slam", "Bind",
+               "Wrap", "Transform", "Sketch", "Haze", "Mist", "Detect", "Explosion", "Simple", "Competitive", "Moody",
+               "Stall", "Pickup", "Pressure", "Static", "Defiant", "Justified", "Steadfast", "Unaware", "Frisk", "Klutz",
+               "Illusion", "Healer", "Hustle", "Guts", "Harvest", "Download", "Forecast", "Damp", "Scrappy", "Sniper"}
+FORM_PREFIX = r"(?:(?:Mega|Primal|Galarian|Hisuian|Alolan|Paldean) )?"
+
+
+@lru_cache(maxsize=1)
+def _lexicon():
+    """Every Pokemon, move, ability and item name in the dex (National Dex and Champions together), as one regex longest
+    first, and name -> ("pk" | "mv" | "abl" | "itm", move type). Items are matched so "Black Sludge" isn't read as the
+    move Sludge. Names only: the highlight never changes a word of Smogon's text."""
+    from metamatch.engine.dex import dex_for_format
+    kinds = {}
+    for f in ("gen9natdex", "gen9championsou"):
+        dex = dex_for_format(f)
+        if not dex:
+            continue
+        for name in dex.item_data:
+            kinds.setdefault(name, ("itm", None))
+        for name in getattr(dex, "_abilities", {}).values():
+            kinds.setdefault(name, ("abl", None))
+        for name, m in dex.move_data.items():
+            kinds[name] = ("mv", m.get("type"))
+        for name, sp in dex.species_data.items():
+            if not sp.get("baseSpecies"):
+                kinds[name] = ("pk", None)
+    names = sorted(kinds, key=len, reverse=True)
+    pk = "|".join(re.escape(n) for n in names if kinds[n][0] == "pk")
+    other = "|".join(re.escape(n) for n in names if kinds[n][0] != "pk")
+    # A Pokemon with its regional or Mega prefix and short forme tag (Landorus-T, Mega Charizard Y); "Fire-type" is no move
+    rx = re.compile(rf"(?<!\w)(?:(?P<pk>{FORM_PREFIX}(?:{pk})(?:-[A-Z][a-z]*)?(?: [XY](?!\w))?)|(?P<o>{other}))(?![\w-])")
+    return rx, kinds
+
+
+def _rich(text, type_map, seen=None, subject=""):
+    """Smogon's sentence, escaped, with other Pokemon a shade brighter and moves in a soft tint of their type's colour.
+    Light by design: each name is marked once per card (`seen` carries over between paragraphs), the card's own
+    Pokemon (`subject`) never, and abilities and items stay plain (they're matched only so "Black Sludge" isn't read as
+    the move Sludge). A move written as "Fire-type Weather Ball" takes the type the text gives it."""
+    rx, kinds = _lexicon()
+    seen = set() if seen is None else seen
+    out, at = [], 0
+    for m in rx.finditer(text):
+        word = m.group(0)
+        start = m.start()
+        sentence_start = not text[:start].strip() or text[:start].rstrip()[-1:] in ".!?"
+        if m.group("o") and sentence_start and word in PLAIN_WORDS:
+            continue
+        kind = "pk" if m.group("pk") else kinds.get(word, ("abl", None))[0]
+        if word in seen or kind in ("abl", "itm") or (subject and kind == "pk" and re.search(rf"\b{re.escape(subject)}\b", word)):
+            continue
+        seen.add(word)
+        out.append(escape(text[at:start]))
+        if m.group("pk"):
+            out.append(f'<span class="cg-pk">{escape(word)}</span>')
+        else:
+            move_type = kinds[word][1]
+            said = re.search(r"(\w+)-type $", text[max(0, start - 20):start])
+            if said and said.group(1).capitalize() in type_map:
+                move_type = said.group(1).capitalize()
+            color = type_map.get(move_type, {}).get("color", "#c8d1e0")
+            out.append(f'<span class="cg-mv" style="--t:{color}">{escape(word)}</span>')
+        at = m.end()
+    out.append(escape(text[at:]))
+    return "".join(out)
+
+
 def _mega_card(x, type_map):
     from metamatch.sprites import get_item_icon
     # Tinted by the type the Mega gains (Lopunny's Fighting, not its Normal), else its main type
@@ -342,17 +422,20 @@ def _mega_card(x, type_map):
         bars = f'<div class="cg-stats">{bars}</div>'
     smogon = ""
     if x.get("smogon"):
-        import re
         label, preview, rest = x["smogon"]
+        seen = set()   # each name highlighted once across the whole write up, first where it's read first
+        lead = _rich(preview, type_map, seen, x["name"])
         # Smogon's long paragraphs shown three sentences at a time; the words are left exactly as written
         chunks = []
         for p in rest:
             sentences = re.split(r"(?<=[.!?])\s+", p)
             chunks += [" ".join(sentences[i:i + 3]) for i in range(0, len(sentences), 3)]
-        more = (f'<details class="cg-smogon-more"><summary>Read more</summary>'
-                + "".join(f"<p>{escape(c)}</p>" for c in chunks) + "</details>") if chunks else ""
+        more = (f'<details class="cg-play-more"><summary><span class="open">Full write up <small>&middot; {len(rest)} more '
+                f'paragraph{"s" if len(rest) != 1 else ""}</small></span><span class="shut">Show less</span></summary>'
+                f'<div class="cg-play-rest">' + "".join(f"<p>{_rich(c, type_map, seen, x['name'])}</p>" for c in chunks)
+                + "</div></details>") if chunks else ""
         smogon = (f'<div class="cg-smogon"><div class="cg-smogon-k">{escape(label)}</div>'
-                  f'<blockquote>{escape(preview)}</blockquote>{more}</div>')
+                  f'<div class="cg-play"><p class="cg-play-lead">{lead}</p>{more}</div></div>')
     return f'<div class="cg-mega" style="--c:{color}">{head}<div class="cg-mega-rows">{rows}</div>{bars}{smogon}</div>'
 
 

@@ -314,6 +314,25 @@ class TestMegaOutsideChampions(unittest.TestCase):
         self.assertEqual([m["forme"] for m in _mega(team, "gen9natdex")], ["Charizard-Mega-Y"])
 
 
+class TestSmogonHighlight(unittest.TestCase):
+    def test_names_are_marked_once_lightly_and_the_words_kept(self):
+        import re
+        from metamatch.tabs.tab_coach_guide import _rich
+        text = ("Mega Charizard Y's Fire-type Weather Ball and Drought pressure Landorus-T, while Black Sludge "
+                "Galarian Slowking uses Future Sight. Return to form with Rest. Landorus-T and Mega Mewtwo X fear it.")
+        html = _rich(text, {"Fire": {"color": "#f42"}}, set(), "Charizard")
+        marks = re.findall(r'class="cg-(\w+)"[^>]*>([^<]+)<', html)
+        # Not the card's own Pokemon, not abilities or items (Black Sludge isn't the move Sludge), each name once
+        self.assertEqual(marks, [("mv", "Weather Ball"), ("pk", "Landorus-T"), ("pk", "Galarian Slowking"),
+                                 ("mv", "Future Sight"), ("mv", "Rest"), ("pk", "Mega Mewtwo X")])
+        self.assertIn('--t:#f42">Weather Ball', html)                 # the type the text gives, not the dex's Normal
+        self.assertEqual(re.sub(r"<[^>]+>", "", html).replace("&#x27;", "'"), text)
+
+    def test_the_subject_is_matched_as_a_whole_word(self):
+        from metamatch.tabs.tab_coach_guide import _rich
+        self.assertIn('cg-pk">Mewtwo', _rich("Mewtwo walls it.", {}, set(), "Mew"))
+
+
 class TestMegaAnalysis(unittest.TestCase):
     def test_smogon_section_is_about_this_mega(self):
         from metamatch.rag.cards import mega_analysis
