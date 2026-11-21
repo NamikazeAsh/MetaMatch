@@ -457,8 +457,10 @@ def render(type_map=None):
     with left:
         st.markdown(STYLE + _leads(g.leads) + _watch(g.watch), unsafe_allow_html=True)
     with right:
-        st.markdown(STYLE + (_mega(g.mega, type_map) if config.format_game(format_id) == "champions" else _tera(g.tera, type_map)),
-                    unsafe_allow_html=True)
+        # The Mega section where Mega Evolution is allowed (Champions, National Dex), the Tera plan where Tera is
+        plan = ((_mega(g.mega, type_map) if config.has_megas(format_id) else "")
+                + (_tera(g.tera, type_map) if config.has_tera(format_id) else ""))
+        st.markdown(STYLE + plan, unsafe_allow_html=True)
     st.markdown(STYLE + _combos(g.combos), unsafe_allow_html=True)
     st.caption(f"Matchups are one on one against each threat's most common set (top {g.n_threats} by usage); "
                "switching, hazards and setup turns aren't simulated.")

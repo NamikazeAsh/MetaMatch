@@ -57,7 +57,7 @@ def _ladder_lines(name, format_id, dex, owner):
     abilities = _ranked(entry.get("Abilities"), total, lambda k: dex.ability_name(k) or k, n=3)
     if abilities.count("%") > 1:
         lines.append(f"{label}, abilities: {abilities}.")
-    if config.format_game(format_id) != "champions" and entry.get("Tera Types"):
+    if config.has_tera(format_id) and entry.get("Tera Types"):
         lines.append(f"{label}, Tera types: " + _ranked(entry.get("Tera Types"), total, str.capitalize) + ".")
     spreads = _ranked(entry.get("Spreads"), total, lambda k: spread_label(k, format_id), n=3, min_share=0.03)
     if spreads:

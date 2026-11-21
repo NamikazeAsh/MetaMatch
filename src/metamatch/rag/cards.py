@@ -27,7 +27,8 @@ SOURCES = {
     "gen7ou": ("Gen 7", "OU", False), "gen6ou": ("Gen 6", "OU", False),
 }
 # The current format's own analyses, then the rest of its game, then older games
-FORMAT_SOURCE = {"gen9ou": "gen9ou", "gen9uu": "gen9uu", "gen9nationaldex": "gen9nationaldex",
+# Keyed by the app's format ids (config.FORMATS): National Dex is "gen9natdex", its Smogon source "gen9nationaldex"
+FORMAT_SOURCE = {"gen9ou": "gen9ou", "gen9uu": "gen9uu", "gen9natdex": "gen9nationaldex",
                  "gen9championsou": "championsou", "gen9championsuu": "championsou"}
 OLD_MECHANICS = re.compile(r"\b(?:Dynamax\w*|Max (?:Airstream|Quake|Knuckle|Steelspike|Overgrowth|Flare|Geyser)|"
                            r"Z-?Moves?|Z-Crystal|\w+ium Z|Mega Evolution|Mega Evolve\w*)\b", re.I)
@@ -66,7 +67,8 @@ def mega_analysis(base, forme, moves, format_id):
     sentences = re.split(r"(?<=[.!?])\s+", paragraphs[0])
     preview, first_rest = " ".join(sentences[:2]), " ".join(sentences[2:])
     rest = ([first_rest] if first_rest else []) + paragraphs[1:]
-    return f"{_label(key)}, {set_name} set", preview, rest
+    # Smogon is credited in the docs; the card just heads its quote
+    return "The play", preview, rest
 
 
 @lru_cache(maxsize=None)

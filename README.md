@@ -240,7 +240,7 @@ A game plan for your team.
 * **Reads abilities:** shows what each ability really does for your team, like Multiscale letting Dragonite survive any single hit from 11 of the 12 most used Pokémon instead of 7. Hover any ability on the team banner for what it does.
 * **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions), pairs that cover each other, and the threats to watch.
 * **Tera picks from Smogon and the ladder:** every Tera card shows the Tera types on Smogon's set closest to yours and the ladder's top Tera shares, with your own pick ringed.
-* **Mega Evolution cards (Champions):** each Mega's stat changes as bars, its new typing and ability, and Smogon's write up of that Mega when one exists.
+* **Mega Evolution cards (Champions and National Dex):** each Mega's stat changes as bars, its new typing and ability, and Smogon's write up of that Mega when one exists.
 * **Leads that match real games:** the two suggested leads weigh hazards, weather and pivots with how often players actually open with each Pokémon.
 
 ### Multi Format

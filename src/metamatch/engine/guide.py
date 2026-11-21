@@ -65,8 +65,8 @@ class Guide:
     n_threats: int
     win: dict | None = None
     leads: list = field(default_factory=list)
-    tera: list = field(default_factory=list)     # SV: every member's Tera, best first
-    mega: list = field(default_factory=list)     # Champions: each Mega holder
+    tera: list = field(default_factory=list)     # SV OU and UU: every member's Tera, best first
+    mega: list = field(default_factory=list)     # Champions and National Dex: each Mega holder
     combos: list = field(default_factory=list)
     watch: list = field(default_factory=list)
     engines: list = field(default_factory=list)  # synergy.Engine: the cores the team runs, complete first
@@ -260,7 +260,7 @@ def _add_recommended_tera(tera_cards, team, format_id):
 
 
 def _mega(team, format_id):
-    """Champions Megas: the stat and typing changes Mega Evolution brings, straight from the dex."""
+    """Megas (Champions, National Dex): the stat and typing changes Mega Evolution brings, straight from the dex."""
     dex = dex_for_format(format_id)
     out = []
     for p in team.values():
@@ -392,9 +392,10 @@ def team_guide(team, format_id=None, rows=None):
         rates = {}
     guide.leads = _leads(members, n, guide.win["name"] if guide.win else None, entry, rates)
     _add_abilities(guide, team, format_id)
-    if config.format_game(format_id) == "champions":
+    # Each format gets the gimmick it allows: Mega cards in Champions and National Dex, the Tera plan in SV OU and UU
+    if config.has_megas(format_id):
         guide.mega = _mega(team, format_id)
-    else:
+    if config.has_tera(format_id):
         guide.tera = _tera(members, guide.engines)
         _add_recommended_tera(guide.tera, team, format_id)
     guide.combos = _combos(members)

@@ -166,7 +166,7 @@ def _past_set(name, format_id, month):
     top = lambda key: entry[key][0][0] if entry.get(key) else None
     return {
         "item": top("items"), "ability": top("abilities"),
-        "tera": top("tera") if config.format_game(format_id) != "champions" else None,
+        "tera": top("tera") if config.has_tera(format_id) else None,
         "moves": [m for m, _ in entry.get("moves", [])[:4]],
         "teammates": [m for m, _ in entry.get("teammates", [])[:3]],
         "speed": None, "types": species["types"] if species else [],
@@ -189,7 +189,7 @@ def _set_summary(name, format_id, month=None):
     return {
         "item": s["item"],
         "ability": s["ability"],
-        "tera": s["tera"][0] if s.get("tera") and config.format_game(format_id) != "champions" else None,
+        "tera": s["tera"][0] if s.get("tera") and config.has_tera(format_id) else None,
         "moves": [m for m, _ in s["moves"]],
         "teammates": [m for m, _ in mates[:3]],
         "speed": s["speeds"][0][0] if s.get("speeds") else None,

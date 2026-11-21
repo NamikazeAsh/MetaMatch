@@ -295,6 +295,25 @@ class TestMegaPastes(unittest.TestCase):
             self.assertEqual([m["forme"] for m in _mega(team, "gen9championsou")], ["Gengar-Mega"], header)
 
 
+class TestMegaOutsideChampions(unittest.TestCase):
+    def test_smogon_sources_use_the_apps_format_ids(self):
+        from metamatch import config
+        from metamatch.rag.cards import FORMAT_SOURCE
+        self.assertTrue(set(FORMAT_SOURCE) <= set(config.FORMATS), set(FORMAT_SOURCE) - set(config.FORMATS))
+
+    def test_each_format_gets_only_the_gimmick_it_allows(self):
+        from metamatch import config
+        # National Dex runs Terastal Clause and allows Megas; SV OU and UU have Tera and no Megas
+        self.assertEqual([f for f in config.FORMATS if config.has_megas(f)], ["gen9natdex", "gen9championsou", "gen9championsuu"])
+        self.assertEqual([f for f in config.FORMATS if config.has_tera(f)], ["gen9ou", "gen9uu"])
+
+    def test_national_dex_megas_get_their_card(self):
+        from metamatch.engine.guide import _mega
+        team, _ = readTeam("Charizard @ Charizardite Y\nAbility: Blaze\nTimid Nature\n- Flamethrower\n- Solar Beam",
+                           "gen9natdex")
+        self.assertEqual([m["forme"] for m in _mega(team, "gen9natdex")], ["Charizard-Mega-Y"])
+
+
 class TestMegaAnalysis(unittest.TestCase):
     def test_smogon_section_is_about_this_mega(self):
         from metamatch.rag.cards import mega_analysis
@@ -302,10 +321,10 @@ class TestMegaAnalysis(unittest.TestCase):
         if y is None:
             self.skipTest("No Champions analyses cached and the mirror is unreachable")
         label, preview, rest = y
-        self.assertTrue(label.startswith("From the Champions OU analysis"))
+        self.assertEqual(label, "The play")
         self.assertIn("Mega Charizard Y", preview + " ".join(rest))
         x = mega_analysis("Charizard", "Charizard-Mega-X", ["Dragon Dance", "Flare Blitz"], "gen9championsou")
-        self.assertNotEqual(x[0], label)                               # X and Y have their own sets
+        self.assertNotEqual(x[1], preview)                             # X and Y have their own sets
         self.assertIsNone(mega_analysis("Lopunny", "Lopunny-Mega", [], "gen9ou"))   # only the format's own analysis
 
 

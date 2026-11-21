@@ -18,12 +18,14 @@ IMAGES_DIR = ASSETS_DIR / "images"
 
 # Supported formats. "stats" is the Smogon stats file stem (usage .txt and chaos .json),
 # "sets" is the pkmn.github.io sets file stem (None if not published), "game" picks mechanics.
+# "megas" and "tera" say which battle gimmick the format allows: National Dex and Champions allow Mega Evolution
+# and ban Terastallization (Terastal Clause), SV OU and UU the other way round.
 FORMATS = {
-    "gen9ou":          {"label": "OU",           "stats": "gen9ou-1825",          "sets": "gen9ou",          "game": "sv"},
-    "gen9uu":          {"label": "UU",           "stats": "gen9uu-1760",          "sets": "gen9uu",          "game": "sv"},
-    "gen9natdex":      {"label": "NatDex",       "stats": "gen9nationaldex-1760", "sets": "gen9nationaldex", "game": "sv"},
-    "gen9championsou": {"label": "Champions OU", "stats": "gen9championsou-1760", "sets": None,              "game": "champions"},
-    "gen9championsuu": {"label": "Champions UU", "stats": "gen9championsuu-1760", "sets": None,              "game": "champions"},
+    "gen9ou":          {"label": "OU",           "stats": "gen9ou-1825",          "sets": "gen9ou",          "game": "sv", "megas": False, "tera": True},
+    "gen9uu":          {"label": "UU",           "stats": "gen9uu-1760",          "sets": "gen9uu",          "game": "sv", "megas": False, "tera": True},
+    "gen9natdex":      {"label": "NatDex",       "stats": "gen9nationaldex-1760", "sets": "gen9nationaldex", "game": "sv", "megas": True,  "tera": False},
+    "gen9championsou": {"label": "Champions OU", "stats": "gen9championsou-1760", "sets": None,              "game": "champions", "megas": True,  "tera": False},
+    "gen9championsuu": {"label": "Champions UU", "stats": "gen9championsuu-1760", "sets": None,              "game": "champions", "megas": True,  "tera": False},
 }
 DEFAULT_FORMAT = "gen9ou"
 
@@ -47,6 +49,14 @@ def format_info(format_id):
 
 def format_game(format_id):
     return format_info(format_id)["game"]
+
+
+def has_megas(format_id):
+    return format_info(format_id)["megas"]
+
+
+def has_tera(format_id):
+    return format_info(format_id)["tera"]
 
 
 def format_by_label(label):
