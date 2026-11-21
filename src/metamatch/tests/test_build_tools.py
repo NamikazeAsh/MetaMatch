@@ -410,9 +410,11 @@ def _n(taken_hi, to_be_koed=None, to_ko=None, outspeeds=0.0, prio_move=None, tak
 class TestBoardNumbers(unittest.TestCase):
     def test_cell_numbers_keep_what_the_guide_reads(self):
         from metamatch.engine.threat_board import cell_numbers
-        x = {"taken": ("Earthquake", {"percent": [40.1, 47.3]}), "to_be_koed": 3, "to_ko": 2, "outspeeds": 0.8,
+        hits = [("Earthquake", {"percent": [40.1, 47.3]}), ("Ice Spinner", {"percent": [20.0, 24.0]})]
+        x = {"taken": hits[0], "taken_all": hits, "to_be_koed": 3, "to_ko": 2, "outspeeds": 0.8,
              "priority": (1, "Sucker Punch")}
-        self.assertEqual(cell_numbers(x), _n(47.3, 3, 2, 0.8, "Sucker Punch"))
+        self.assertEqual(cell_numbers(x), {**_n(47.3, 3, 2, 0.8, "Sucker Punch"),
+                                           "hits": [["Earthquake", 40.1, 47.3, "Physical"], ["Ice Spinner", 20.0, 24.0, "Physical"]]})
         self.assertIsNone(cell_numbers(None))
         self.assertEqual(cell_numbers({"taken": None, "outspeeds": 0.2, "priority": (0, None)})["taken_hi"], 0.0)
 
@@ -594,6 +596,83 @@ class TestSharedMoveLists(unittest.TestCase):
         self.assertIn("Hazard Remover", roles["Glimmora"])
         self.assertIn("mortalspin", ROLE_FILL_MOVES["Hazard Remover"])
         self.assertIn("chillyreception", ROLE_FILL_MOVES["Pivot"])
+
+
+class TestYourWalls(unittest.TestCase):
+    def test_recovery_and_status_lists(self):
+        from metamatch.engine.moves import RECOVERY, STATUS_MOVES, category
+        self.assertEqual((RECOVERY["Slack Off"], RECOVERY["Roost"], RECOVERY["Shore Up"]), (0.5, 0.5, 0.5))
+        self.assertIsNone(RECOVERY["Strength Sap"])
+        self.assertEqual(STATUS_MOVES["Will-O-Wisp"], ("brn", 100))
+        self.assertEqual(STATUS_MOVES["Scald"], ("brn", 30))
+        self.assertEqual(STATUS_MOVES["Toxic"], ("tox", 100))
+        self.assertEqual(category("Make It Rain"), "Special")
+
+    def test_recovery_lines(self):
+        from metamatch.engine.defense import recovery
+        p = {"Pokemon": "Slowbro", "Ability": "Regenerator", "Item": "Leftovers", "Type": ["Water", "Psychic"],
+             "Moves": [{"name": "Scald"}, {"name": "Slack Off"}]}
+        r = recovery(p)
+        self.assertEqual((r["move"], r["heal"], r["regenerator"], r["passive"]), ("Slack Off", 0.5, True, True))
+        self.assertEqual(r["lines"], ["Slack Off heals 50%", "Regenerator heals 33% when it switches out",
+                                      "Leftovers heals 6% a turn"])
+        rest = recovery({"Pokemon": "Dondozo", "Moves": [{"name": "Rest"}], "Item": "Black Sludge", "Type": ["Water"]})
+        self.assertIsNone(rest["heal"])                                      # asleep: no healing through a hit
+        self.assertFalse(rest["passive"])                                    # Black Sludge hurts a non Poison type
+
+    def test_walls_pivots_and_breaks(self):
+        from metamatch.engine.defense import classify
+        slack = {"heal": 0.5, "regenerator": True}
+        regen = {"heal": None, "regenerator": True}
+        self.assertEqual(classify(_n(34, 3), slack), "walls")
+        self.assertEqual(classify(_n(52, 3), slack), "pivots")            # survives a second hit
+        self.assertEqual(classify(_n(87, 2), slack), "breaks")
+        self.assertEqual(classify(_n(30, 4), regen), "walls")             # Regenerator heals more than it took
+        self.assertEqual(classify(_n(40, 3), regen), "pivots")
+        self.assertIsNone(classify(_n(70, 3, taken_move="x") | {"to_be_koed": None, "taken_hi": 70}, regen))
+
+    def test_bulk_counts_assault_vest_and_eviolite(self):
+        from unittest import mock
+        from metamatch.engine import defense
+        stats = {"hp": 300, "atk": 100, "def": 200, "spa": 100, "spd": 200, "spe": 100}
+        with mock.patch("metamatch.engine.solvers._stats", return_value=stats):
+            av = defense.bulk({"Pokemon": "Goodra", "Item": "Assault Vest", "Moves": [{"name": "Draco Meteor"}]}, "sv")
+            ev = defense.bulk({"Pokemon": "Chansey", "Item": "Eviolite", "Moves": [{"name": "Seismic Toss"}]}, "sv")
+        self.assertEqual((av["physical"], av["special"], av["lean"]), (60000, 90000.0, "special"))
+        self.assertEqual((ev["physical"], ev["special"], ev["lean"]), (90000.0, 90000.0, None))
+
+    def test_who_status_cant_touch(self):
+        from metamatch.engine.defense import HELPED_BY, _immune
+        self.assertTrue(_immune("brn", ["Fire", "Ghost"], "Flash Fire"))
+        self.assertTrue(_immune("psn", ["Steel", "Ghost"], "Good as Gold"))
+        self.assertTrue(_immune("brn", ["Water"], "Water Veil"))
+        self.assertFalse(_immune("brn", ["Ground", "Fighting"], "Protosynthesis"))
+        self.assertIn("Guts", HELPED_BY["brn"])
+
+    def test_summary_names_the_open_side(self):
+        from metamatch.engine.defense import _summary
+        def row(name, cat, takers):
+            cells = {m: {"n": {**_n(30 if m in takers else 70, 3 if m in takers else 2), "hits": [["Hit", 1, 70, cat]]}}
+                     for m in ("Slowbro", "Weavile")}
+            return {"name": name, "cells": cells}
+        cards = [{"name": "Slowbro"}]
+        rows = [row("Great Tusk", "Physical", ["Slowbro"]), row("Gholdengo", "Special", []), row("Raging Bolt", "Special", [])]
+        self.assertEqual(_summary({}, rows, cards), "Slowbro takes the physical hits, but nothing on your team safely "
+                                                    "takes special ones from Gholdengo and Raging Bolt.")
+        self.assertIsNone(_summary({}, rows[:2], cards))                   # one open threat isn't a pattern
+
+    def test_a_burn_halves_physical_hits(self):
+        from metamatch.engine.dex import dex_for_format
+        from metamatch.engine.sets import likely_set
+        from metamatch.logic_engine import best_hits
+        team, _ = readTeam("Slowbro @ Leftovers\nAbility: Regenerator\nEVs: 252 HP / 252 Def / 4 SpD\nBold Nature\n"
+                           "- Scald\n- Slack Off", "gen9ou")
+        p, s = list(team.values())[0], likely_set("Great Tusk", "gen9ou")
+        plain = best_hits(p, s, "sv", dex_for_format("gen9ou"), n=4) if s else None
+        if not plain:
+            self.skipTest("No damage calc or usage data")
+        burned = best_hits(p, dict(s, status="brn"), "sv", dex_for_format("gen9ou"), n=4)
+        self.assertAlmostEqual(burned[1][0][1]["percent"][1], plain[1][0][1]["percent"][1] / 2, delta=1.5)
 
 
 if __name__ == "__main__":

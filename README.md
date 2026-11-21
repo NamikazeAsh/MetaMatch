@@ -241,6 +241,7 @@ A game plan for your team.
 * **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions and National Dex), pairs that cover each other, and the threats to watch.
 * **Answers to the threats to watch:** for each threat your team struggles with, who switches into it and who knocks it out, with the damage on hover.
 * **Your six at a glance:** each member's job, the top threats it can safely switch into, and the ones it has to get out against.
+* **Your walls:** each defender's card shows what heals it, whether it takes physical or special hits best, which top threats it walls, takes a hit from or must avoid, and what its Will-O-Wisp, Scald or Toxic does to them, plus the side nothing on your team takes safely.
 * **Hazard plan:** what Stealth Rock and Spikes take from each member every time it comes in, who sets and clears them on your team, and which top Pokémon bring them.
 * **One fix that helps most:** names your team's biggest hole and the single swap that covers it, one click from all the options.
 * **Tera picks from Smogon and the ladder:** every Tera card shows the Tera types on Smogon's set closest to yours and the ladder's top Tera shares, with your own pick ringed.

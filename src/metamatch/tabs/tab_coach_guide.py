@@ -185,6 +185,33 @@ STYLE = """
 .cg-fix-say { font-size: .95rem; color: #e6edf7; line-height: 1.5; }
 .cg-fix-say b { color: #fff; }
 @media (max-width: 640px) { .cg-fix { grid-template-columns: minmax(0, 1fr); } }
+.cg-walls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.cg-wall { position: relative; padding: 14px 16px; border-radius: 16px;
+  background: radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--c) 16%, transparent), transparent 55%), linear-gradient(145deg, #1c2232, #141924);
+  border: 1px solid color-mix(in srgb, var(--c) 32%, transparent); box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+.cg-wall-head { display: flex; align-items: center; gap: 12px; }
+.cg-wall-head > img { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--c) 50%, transparent)); }
+.cg-wall-nm { font-size: 1.1rem; font-weight: 800; color: #fff; }
+.cg-wall-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.cg-wall-chip { font-size: .72rem; font-weight: 700; padding: 1px 9px; border-radius: 999px; color: #c8d1e0;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+.cg-wall-heal { margin-top: 10px; font-size: .82rem; color: #a7f3d0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.cg-wall-heal span::before { content: "+ "; font-weight: 800; color: #34d399; }
+.cg-bulk { display: grid; gap: 5px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.06); }
+.cg-bulk-row { display: grid; grid-template-columns: 80px 1fr; white-space: nowrap; gap: 10px; align-items: center; font-size: .74rem; color: #8fa1bf;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.cg-bulk-bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,.05); overflow: hidden; }
+.cg-bulk-bar i { display: block; height: 100%; border-radius: 999px; background: color-mix(in srgb, var(--c) 70%, #fff); }
+.cg-bulk-say { font-size: .8rem; color: #c8d1e0; margin-top: 2px; }
+.cg-bulk-say b { color: #fff; }
+.cg-wall .cg-six-l { grid-template-columns: 118px 1fr; }
+.cg-wall .cg-six-l.walls .cg-hz-k { color: #34d399; } .cg-wall .cg-six-l.pivots .cg-hz-k { color: #7fe6ff; }
+.cg-wall .cg-six-l.breaks .cg-hz-k { color: #f87171; }
+.cg-wall-status { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.06); display: grid; gap: 4px;
+  font-size: .8rem; color: #d6deeb; line-height: 1.4; }
+.cg-wall-status div::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 7px;
+  background: #fb923c; vertical-align: middle; }
+@media (max-width: 900px) { .cg-walls { grid-template-columns: minmax(0, 1fr); } }
 .cg-watch { display: grid; gap: 10px; }
 .cg-threat { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px;
   background: rgba(248,113,113,.05); border: 1px solid rgba(248,113,113,.25); }
@@ -549,6 +576,46 @@ def _six(six, n_threats):
     return f'<div class="cg-head">Your six at a glance</div><div class="cg-six">{cards}</div>'
 
 
+def _wall_card(c, type_map, n_threats):
+    """One defender: what heals it, which side it takes hits from, what it walls, pivots on and must avoid."""
+    color = type_map.get((c["types"] or ["Normal"])[0], {}).get("color", "#00d4ff")
+    chips = "".join(f'<span class="cg-wall-chip">{escape(x)}</span>' for x in (c["item"], c["ability"]) if x)
+    heal = "".join(f"<span>{escape(x)}</span>" for x in c["recovery"])
+    heal = f'<div class="cg-wall-heal">{heal}</div>' if heal else ""
+    bulk = ""
+    b = c.get("bulk")
+    if b:
+        top = max(b["physical"], b["special"]) or 1
+        rows = "".join(f'<div class="cg-bulk-row"><span>{label}</span><span class="cg-bulk-bar"><i style="width:'
+                       f'{b[key] / top * 100:.0f}%"></i></span></div>' for key, label in (("physical", "Physical"), ("special", "Special")))
+        weak = "Special" if b["lean"] == "physical" else "Physical" if b["lean"] == "special" else None
+        say = (f"Takes {b['lean']} hits best" if b["lean"] else "Takes physical and special hits about equally")
+        hit = c["worst"].get(weak) if weak else None
+        if hit:
+            how = "knocks it out in one hit" if hit[2] >= 100 else f"does up to {hit[2]:.0f}%"
+            say += f". Worst {weak.lower()} hit: <b>{escape(hit[0])}</b>'s {escape(hit[1])} {how}"
+        bulk = f'<div class="cg-bulk">{rows}<div class="cg-bulk-say">{say}</div></div>'
+    none = f'<span class="cg-six-none">nothing in the top {n_threats}</span>'
+    lists = "".join(
+        f'<div class="cg-six-l {key}"><span class="cg-hz-k">{label}</span><span>'
+        + ("".join(_mon(x["name"], x["tip"]) for x in c[key]) or none) + "</span></div>"
+        for key, label in (("walls", "Walls it"), ("pivots", "Takes a hit, then pivots"), ("breaks", "Breaks it")))
+    status = ('<div class="cg-wall-status">' + "".join(f"<div>{escape(x)}</div>" for x in c["status"]) + "</div>"
+              if c["status"] else "")
+    return (f'<div class="cg-wall" style="--c:{color}"><div class="cg-wall-head">{_img(c["name"])}<div>'
+            f'<div class="cg-wall-nm">{escape(c["name"])}</div><div class="cg-wall-chips">{chips}</div></div></div>'
+            f'{heal}{bulk}<div style="margin-top:8px">{lists}</div>{status}</div>')
+
+
+def _defense(d, type_map, n_threats):
+    """Your walls: the team's defensive gap, then a card per defender."""
+    if not d:
+        return ""
+    say = f'<div class="cg-hz-say">{escape(d["summary"])}</div>' if d.get("summary") else ""
+    cards = "".join(_wall_card(c, type_map, n_threats) for c in d["cards"])
+    return f'<div class="cg-head">Your walls</div>{say}' + (f'<div class="cg-walls">{cards}</div>' if cards else "")
+
+
 def _hazards(h):
     """Hazard plan: what Stealth Rock and Spikes cost each member, the team's setters and removers, and who brings them."""
     if not h:
@@ -706,6 +773,7 @@ def render(type_map=None):
                 + (_tera(g.tera, type_map) if config.has_tera(format_id) else ""))
         st.markdown(STYLE + plan, unsafe_allow_html=True)
     st.markdown(STYLE + _six(g.six, g.n_threats), unsafe_allow_html=True)
+    st.markdown(STYLE + _defense(g.defense, type_map, g.n_threats), unsafe_allow_html=True)
     st.markdown(STYLE + _hazards(g.hazards), unsafe_allow_html=True)
     st.markdown(STYLE + _combos(g.combos), unsafe_allow_html=True)
     with st.spinner("Looking for the swap that helps most..."):

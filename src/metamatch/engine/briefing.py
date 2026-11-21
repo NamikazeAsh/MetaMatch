@@ -113,6 +113,7 @@ def exchange(p, opp_set, game, dex, field=None):
                                              opp_set.get("booster_share", 0.0)),
         "dealt": dealt[0] if dealt else None,
         "taken": taken[0] if taken else None,
+        "taken_all": taken,   # every damaging hit of the opponent's set on the member, strongest first
         "to_ko": to_ko,
         "to_be_koed": to_be_koed,
         # Best case counts (highest roll) and the attacks they rest on, for "in 3 or 4 hits" in the chat's facts

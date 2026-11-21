@@ -66,6 +66,7 @@ class Guide:
     engines: list = field(default_factory=list)  # synergy.Engine: the cores the team runs, complete first
     hazards: dict | None = None                  # hazards.hazard_plan: what entry hazards cost the team
     six: list = field(default_factory=list)      # each member: its jobs, what it switches into, what it must leave
+    defense: dict | None = None                  # defense.defense_plan: the team's walls and its defensive gap
 
     def named_members(self):
         """Every team member the guide names, for checks."""
@@ -73,6 +74,7 @@ class Guide:
         names += [a["member"] for w in self.watch for a in (w.get("switch"), w.get("revenge")) if a]
         names += [x["name"] for x in self.leads + self.tera + self.mega] + [n for c in self.combos for n in c["pair"]]
         names += [n for w in self.watch for n in w["answers"]]
+        names += [c["name"] for c in (self.defense or {}).get("cards", [])]
         names += [s["name"] for e in self.engines for s in e.setters] + [u.name for e in self.engines for u in e.users]
         return names
 
@@ -516,6 +518,11 @@ def team_guide(team, format_id=None, rows=None):
     guide.combos = _combos(members)
     guide.watch = _watch(rows)
     guide.six = _six(team, rows)
+    try:
+        from metamatch.engine.defense import defense_plan
+        guide.defense = defense_plan(team, format_id, rows)
+    except Exception as e:   # a bonus section: never let it break the guide
+        print(f"Defense plan failed: {e}")
     try:
         from metamatch.engine.hazards import hazard_plan   # imports this module, so loaded here
         guide.hazards = hazard_plan(team, format_id)

@@ -76,14 +76,18 @@ class ThreatRow:
 def cell_numbers(x):
     """The numbers of one exchange that the guide reads, small and JSON friendly so the cached board can keep them:
     taken_hi (the threat's best hit on the member, high roll %), taken_move, to_be_koed, to_ko, outspeeds (0 to 1)
-    and prio_move (the member's priority move that lands the killing hit). None without an exchange."""
+    prio_move (the member's priority move that lands the killing hit) and hits (every hit it takes). None without
+    an exchange."""
     if not x:
         return None
+    from metamatch.engine.moves import category
     taken = x.get("taken")
     pri = x.get("priority") or (0, None)
     return {"taken_hi": taken[1]["percent"][1] if taken else 0.0, "taken_move": taken[0] if taken else None,
             "to_be_koed": x.get("to_be_koed"), "to_ko": x.get("to_ko"), "outspeeds": x.get("outspeeds", 0.0),
-            "prio_move": pri[1] if pri[0] > 0 else None}
+            "prio_move": pri[1] if pri[0] > 0 else None,
+            # Every hit of the threat's set on the member: [move, low %, high %, Physical or Special]
+            "hits": [[m, r["percent"][0], r["percent"][1], category(m)] for m, r in (x.get("taken_all") or [])]}
 
 
 def safe_switch(n):
