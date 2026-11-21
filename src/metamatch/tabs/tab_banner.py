@@ -14,8 +14,6 @@ from metamatch.sprites import get_item_icon, get_sprite, get_tera_icon, get_type
 
 TYPES = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground",
          "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
-JOB_ORDER = ["Setup Sweeper", "Hazard Setter", "Hazard Remover", "Pivot", "Wall", "Tank", "Priority User", "Revenge Killer",
-             "Spin Blocker", "Special Sweeper", "Physical Sweeper", "Fast Sweeper", "Bulky Attacker", "Speed Control"]
 ROLE_CHIPS = [("Hazard Setter", "Hazard setter"), ("Hazard Remover", "Hazard removal"), ("Pivot", "Pivots"),
               ("Priority User", "Priority")]
 CORE = {"Hazard Setter", "Hazard Remover", "Pivot"}
@@ -187,6 +185,7 @@ def _tile(p, facts, type_map, game):
             f'<img src="{escape(tera_icon)}" alt=""><span class="bn-tip">Tera {escape(tera_type)}</span></span>') if tera_icon else ""
     moves = "".join(f'<span class="bn-mv" style="--mc:{type_map.get(m.get("type"), {}).get("color", "#5a6375")}">{escape(m["name"])}</span>'
                     for m in p.get("Moves", []))
+    from metamatch.engine.guide import JOB_ORDER
     jobs = [j for j in JOB_ORDER if j in p.get("Roles", [])][:2] or p.get("Roles", [])[:2]
     beats = "".join(f"<span>{escape(n)}</span>" for n in facts["beats"])
     loses = facts["loses"]

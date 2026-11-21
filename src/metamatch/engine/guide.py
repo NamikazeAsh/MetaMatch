@@ -71,6 +71,7 @@ class Guide:
     watch: list = field(default_factory=list)
     engines: list = field(default_factory=list)  # synergy.Engine: the cores the team runs, complete first
     hazards: dict | None = None                  # hazards.hazard_plan: what entry hazards cost the team
+    six: list = field(default_factory=list)      # each member: its jobs, what it switches into, what it must leave
 
     def named_members(self):
         """Every team member the guide names, for checks."""
@@ -361,6 +362,42 @@ def _watch(rows, n=3):
     return out
 
 
+# The jobs worth naming first when a member has several (team.detectRole's vocabulary); the banner uses it too
+JOB_ORDER = ["Setup Sweeper", "Hazard Setter", "Hazard Remover", "Pivot", "Wall", "Tank", "Priority User", "Revenge Killer",
+             "Spin Blocker", "Special Sweeper", "Physical Sweeper", "Fast Sweeper", "Bulky Attacker", "Speed Control"]
+SIX_SHOWN = 3
+
+
+def _six(team, rows):
+    """Each member at a glance: up to two jobs, the top threats it can switch into (the one switch in rule, and it
+    doesn't lose the one on one) and the ones it must get out against (they knock it out in one hit, or are faster,
+    beat it and need only two hits; a long slow loss isn't a reason to leave). Most used first; one hit knockouts
+    lead the second list."""
+    out = []
+    for p in team.values():
+        name = p["Pokemon"]
+        roles = p.get("Roles") or []
+        safe, leave = [], []
+        for r in rows:
+            c = (r.get("cells") or {}).get(name) or {}
+            n = c.get("n")
+            if not n:
+                continue
+            if tb.safe_switch(n) and c.get("verdict") != "lose":
+                tip = (f"takes at most {_pct_hit(n['taken_hi'])} from {n['taken_move']}" if n.get("taken_move")
+                       else "its usual attacks do nothing")
+                safe.append({"name": r["name"], "tip": tip})
+            elif n.get("to_be_koed") == 1 or (c.get("verdict") == "lose" and n["outspeeds"] < 0.5
+                                               and (n.get("to_be_koed") or 99) <= 2):
+                one = n.get("to_be_koed") == 1
+                tip = f"{n['taken_move']} does up to {_pct_hit(n['taken_hi'])}" + (", a one hit knockout" if one else "")
+                leave.append({"name": r["name"], "tip": tip, "one": one})
+        leave.sort(key=lambda x: not x["one"])   # stable: most used first within each group
+        out.append({"name": name, "jobs": [j for j in JOB_ORDER if j in roles][:2] or roles[:2],
+                    "safe": safe[:SIX_SHOWN], "out": leave[:SIX_SHOWN]})
+    return out
+
+
 def _pct_hit(x):
     return f"{x:.0f}%"
 
@@ -445,6 +482,7 @@ def team_guide(team, format_id=None, rows=None):
         _add_recommended_tera(guide.tera, team, format_id)
     guide.combos = _combos(members)
     guide.watch = _watch(rows)
+    guide.six = _six(team, rows)
     try:
         from metamatch.engine.hazards import hazard_plan   # imports this module, so loaded here
         guide.hazards = hazard_plan(team, format_id)

@@ -161,6 +161,19 @@ STYLE = """
 .cg-hz-grp .cg-hz-k { margin-right: 2px; }
 .cg-hz-none { font-size: .8rem; color: #f87171; font-weight: 600; }
 @media (max-width: 640px) { .cg-hz-six { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.cg-six { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cg-six-m { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 12px;
+  background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.08); }
+.cg-six-m > img { width: 56px; height: 56px; object-fit: contain; }
+.cg-six-nm { font-weight: 700; color: #e6edf7; }
+.cg-six-job { font-size: .74rem; color: #8fa1bf; margin-left: 6px; font-weight: 600; }
+.cg-six-l { display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 6px; margin-top: 4px; min-height: 30px; }
+.cg-six-l .cg-hz-k { font-size: .6rem; }
+.cg-six-l.in .cg-hz-k { color: #34d399; } .cg-six-l.out .cg-hz-k { color: #f87171; }
+.cg-six-l .cg-mon img { width: 30px; height: 30px; }
+.cg-six-l .cg-mon.one img { filter: drop-shadow(0 0 4px rgba(248,113,113,.8)); }
+.cg-six-none { font-size: .76rem; color: #6f7a90; }
+@media (max-width: 900px) { .cg-six { grid-template-columns: minmax(0, 1fr); } }
 .cg-watch { display: grid; gap: 10px; }
 .cg-threat { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px;
   background: rgba(248,113,113,.05); border: 1px solid rgba(248,113,113,.25); }
@@ -509,6 +522,22 @@ def _pct_word(x):
     return "nothing" if not x else f"{x:g}%" if x >= 10 else f"{x:.0f}%"
 
 
+def _six(six, n_threats):
+    """Your six at a glance: each member's jobs, the top threats it switches into, and the ones it must get out against."""
+    if not six:
+        return ""
+    none = f'<span class="cg-six-none">nothing in the top {n_threats}</span>'
+    cards = ""
+    for m in six:
+        safe = "".join(_mon(x["name"], f"{x['name']}: {x['tip']}") for x in m["safe"]) or none
+        out = "".join(_mon(x["name"], f"{x['name']}: {x['tip']}", "one" if x["one"] else "") for x in m["out"]) or none
+        jobs = f'<span class="cg-six-job">{escape(" · ".join(m["jobs"]))}</span>' if m["jobs"] else ""
+        cards += (f'<div class="cg-six-m">{_img(m["name"])}<div><div><span class="cg-six-nm">{escape(m["name"])}</span>{jobs}</div>'
+                  f'<div class="cg-six-l in"><span class="cg-hz-k">Safe to switch into</span><span>{safe}</span></div>'
+                  f'<div class="cg-six-l out"><span class="cg-hz-k">Get out against</span><span>{out}</span></div></div></div>')
+    return f'<div class="cg-head">Your six at a glance</div><div class="cg-six">{cards}</div>'
+
+
 def _hazards(h):
     """Hazard plan: what Stealth Rock and Spikes cost each member, the team's setters and removers, and who brings them."""
     if not h:
@@ -623,6 +652,7 @@ def render(type_map=None):
         plan = ((_mega(g.mega, type_map) if config.has_megas(format_id) else "")
                 + (_tera(g.tera, type_map) if config.has_tera(format_id) else ""))
         st.markdown(STYLE + plan, unsafe_allow_html=True)
+    st.markdown(STYLE + _six(g.six, g.n_threats), unsafe_allow_html=True)
     st.markdown(STYLE + _hazards(g.hazards), unsafe_allow_html=True)
     st.markdown(STYLE + _combos(g.combos), unsafe_allow_html=True)
     st.caption(f"Matchups are one on one against each threat's most common set (top {g.n_threats} by usage); "

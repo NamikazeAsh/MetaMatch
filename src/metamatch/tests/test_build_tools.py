@@ -501,5 +501,23 @@ Ability: Mold Breaker
         self.assertNotIn("Boots", said)
 
 
+class TestYourSix(unittest.TestCase):
+    def test_safe_into_and_get_out_against(self):
+        from metamatch.engine.guide import _six
+        team = {"0": {"Pokemon": "Slowbro", "Roles": ["Wall", "Pivot", "Cleric"]}}
+        cell = lambda verdict, n: {"Slowbro": {"verdict": verdict, "n": n}}
+        rows = [{"name": "Great Tusk", "cells": cell("win", _n(30, 4, taken_move="Headlong Rush"))},
+                {"name": "Kingambit", "cells": cell("lose", _n(70, 2, outspeeds=0.0, taken_move="Kowtow Cleave"))},
+                {"name": "Alomomola", "cells": cell("lose", _n(20, 6, outspeeds=0.3))},      # a slow loss: no reason to leave
+                {"name": "Kyurem", "cells": cell("even", _n(45, 3))},
+                {"name": "Gholdengo", "cells": cell("lose", _n(110, 1, outspeeds=0.9, taken_move="Make It Rain"))}]
+        m = _six(team, rows)[0]
+        self.assertEqual(m["jobs"], ["Pivot", "Wall"])                         # the banner's job order
+        self.assertEqual([x["name"] for x in m["safe"]], ["Great Tusk", "Kyurem"])
+        self.assertEqual([x["name"] for x in m["out"]], ["Gholdengo", "Kingambit"])   # one hit knockouts first
+        self.assertIn("a one hit knockout", m["out"][0]["tip"])
+        self.assertEqual(m["safe"][0]["tip"], "takes at most 30% from Headlong Rush")
+
+
 if __name__ == "__main__":
     unittest.main()
