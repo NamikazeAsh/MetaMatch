@@ -446,5 +446,60 @@ class TestWatchAnswers(unittest.TestCase):
         self.assertIsNone(_revenge({"Slowbro": _n(30, 4, to_ko=3, outspeeds=0.1)}))
 
 
+class TestHazardPlan(unittest.TestCase):
+    PASTE = """Charizard @ Charizardite Y
+Ability: Blaze
+- Flamethrower
+
+Volcarona @ Heavy-Duty Boots
+Ability: Flame Body
+- Quiver Dance
+
+Clefable @ Leftovers
+Ability: Magic Guard
+- Moonblast
+
+Rotom-Wash @ Leftovers
+Ability: Levitate
+- Hydro Pump
+
+Hatterene @ Leftovers
+Ability: Magic Bounce
+- Psyshock
+
+Excadrill @ Air Balloon
+Ability: Mold Breaker
+- Rapid Spin
+- Stealth Rock"""
+
+    def setUp(self):
+        from metamatch.engine.hazards import hazard_plan
+        team, _ = readTeam(self.PASTE, "gen9natdex")
+        self.h = hazard_plan(team, "gen9natdex")
+        self.m = {m["name"]: m for m in self.h["members"]}
+
+    def test_stealth_rock_and_spikes_per_member(self):
+        self.assertEqual(self.m["Charizard"]["rocks"], 50.0)
+        self.assertEqual(self.m["Volcarona"]["rocks"], 0.0)                      # Heavy-Duty Boots
+        self.assertEqual(self.m["Clefable"]["protected"], "Magic Guard")
+        self.assertEqual(self.m["Clefable"]["spikes1"], 0.0)
+        for name in ("Charizard", "Rotom-Wash", "Excadrill"):                  # Flying, Levitate, Air Balloon
+            self.assertFalse(self.m[name]["grounded"], name)
+        self.assertEqual(self.m["Hatterene"]["spikes3"], 25.0)
+
+    def test_team_side_and_verdict(self):
+        self.assertEqual(self.h["bounce"], ["Hatterene"])
+        self.assertEqual(self.h["boots"], ["Volcarona"])
+        self.assertEqual([r["name"] for r in self.h["removers"]], ["Excadrill"])
+        self.assertEqual([x["name"] for x in self.h["setters"]], ["Excadrill"])
+        self.assertIn("half of Charizard's HP", self.h["verdict"])
+        self.assertIn("Keep Excadrill healthy", self.h["verdict"])
+
+    def test_never_suggests_boots_for_a_mega(self):
+        from metamatch.engine.hazards import _verdict
+        said = _verdict([{"name": "Charizard", "rocks": 50.0, "spikes1": 0.0, "mega": True}], [], [])
+        self.assertNotIn("Boots", said)
+
+
 if __name__ == "__main__":
     unittest.main()

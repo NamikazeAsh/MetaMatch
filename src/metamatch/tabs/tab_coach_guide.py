@@ -140,6 +140,27 @@ STYLE = """
 .cg-duo img { width: 48px; height: 48px; object-fit: contain; }
 .cg-duo .plus { color: #8fa1bf; font-weight: 700; margin: 0 4px; }
 .cg-combo .nm { font-weight: 700; margin-bottom: 6px; }
+.cg-mon { position: relative; display: inline-flex; cursor: help; outline: none; }
+.cg-mon img { width: 36px; height: 36px; object-fit: contain; transition: transform .12s ease; }
+.cg-mon:hover img, .cg-mon:focus img { transform: scale(1.1); }
+.cg-mon:hover .cg-tip, .cg-mon:focus .cg-tip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+.cg-hz { padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.08); }
+.cg-hz-say { font-size: .9rem; line-height: 1.5; color: #e6edf7; margin-bottom: 12px; padding: 8px 12px; border-radius: 10px;
+  background: rgba(251,191,36,.07); border: 1px solid rgba(251,191,36,.25); }
+.cg-hz-six { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.cg-hz-m { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 10px;
+  background: rgba(255,255,255,.03); }
+.cg-hz-m .cg-mon img { width: 48px; height: 48px; }
+.cg-hz-chip { font-size: .72rem; font-weight: 800; padding: 1px 8px; border-radius: 999px; color: #c8d1e0; background: rgba(255,255,255,.06); }
+.cg-hz-chip.bad { color: #fecaca; background: rgba(248,113,113,.18); border: 1px solid rgba(248,113,113,.45); }
+.cg-hz-chip.meh { color: #fde68a; background: rgba(251,191,36,.14); border: 1px solid rgba(251,191,36,.4); }
+.cg-hz-chip.ok { color: #a7f3d0; background: rgba(52,211,153,.12); }
+.cg-hz-k { font-size: .6rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #8fa1bf; }
+.cg-hz-row { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.06); }
+.cg-hz-grp { display: flex; align-items: center; gap: 6px; }
+.cg-hz-grp .cg-hz-k { margin-right: 2px; }
+.cg-hz-none { font-size: .8rem; color: #f87171; font-weight: 600; }
+@media (max-width: 640px) { .cg-hz-six { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .cg-watch { display: grid; gap: 10px; }
 .cg-threat { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px;
   background: rgba(248,113,113,.05); border: 1px solid rgba(248,113,113,.25); }
@@ -477,6 +498,52 @@ def _watch(watch):
     return f'<div class="cg-head">Watch out for</div><div class="cg-watch">{cards}</div>'
 
 
+def _mon(name, tip, cls=""):
+    """A sprite with its tip on hover or tap."""
+    return (f'<span class="cg-mon {cls}" tabindex="0"><img src="{escape(get_sprite(name) or "")}" alt="{escape(name)}">'
+            f'<span class="cg-tip">{escape(tip)}</span></span>')
+
+
+def _pct_word(x):
+    """12.5%, 25%, 50% as the game states them; the small ones (6.25%, 3.125%) rounded."""
+    return "nothing" if not x else f"{x:g}%" if x >= 10 else f"{x:.0f}%"
+
+
+def _hazards(h):
+    """Hazard plan: what Stealth Rock and Spikes cost each member, the team's setters and removers, and who brings them."""
+    if not h:
+        return ""
+    tiles = ""
+    for m in h["members"]:
+        if m["protected"]:
+            chip, cls = "0%", "ok"
+            tip = f"{m['name']}: no hazard damage ({m['protected']})"
+        else:
+            chip = _pct_word(m["rocks"])
+            cls = "bad" if m["rocks"] >= 50 else "meh" if m["rocks"] >= 25 else ""
+            spikes = (f"Spikes {m['spikes1']:g}% to {m['spikes3']:g}%" if m["grounded"] else "no Spikes damage (not grounded)")
+            tip = f"{m['name']}: Stealth Rock {_pct_word(m['rocks'])}, {spikes}"
+        tiles += (f'<div class="cg-hz-m">{_mon(m["name"], tip)}<span class="cg-hz-chip {cls}">{chip}</span></div>')
+    def group(label, mons):
+        return f'<span class="cg-hz-grp"><span class="cg-hz-k">{label}</span>{mons}</span>'
+    row = group("You set", "".join(_mon(x["name"], f"{x['name']}: {', '.join(x['moves'])}") for x in h["setters"])
+                or '<span class="cg-hz-none">nothing</span>')
+    row += group("You clear", "".join(_mon(x["name"], f"{x['name']}: {', '.join(x['moves'])}") for x in h["removers"])
+                 or '<span class="cg-hz-none">nothing</span>')
+    if h["bounce"]:
+        row += group("Bounces back", "".join(_mon(n, f"{n}: Magic Bounce sends hazard moves back") for n in h["bounce"]))
+    if h["meta"]:
+        def brings(x):
+            parts = [f"Stealth Rock on {x['rocks'] * 100:.0f}%" if x["rocks"] >= 0.05 else "",
+                     f"Spikes on {x['spikes'] * 100:.0f}%" if x["spikes"] >= 0.05 else ""]
+            return f"{x['name']}: " + " and ".join(p for p in parts if p) + " of its sets"
+        row += group("Who brings them", "".join(_mon(x["name"], brings(x)) for x in h["meta"]))
+    say = f'<div class="cg-hz-say">{escape(h["verdict"])}</div>' if h.get("verdict") else ""
+    return (f'<div class="cg-head">Hazard plan</div><div class="cg-hz">{say}'
+            f'<div class="cg-hz-k" style="margin-bottom:6px">Stealth Rock damage on each switch in</div>'
+            f'<div class="cg-hz-six">{tiles}</div><div class="cg-hz-row">{row}</div></div>')
+
+
 def _cond_icon(icon_type, type_map):
     from metamatch.sprites import get_type_icon
     glyph = get_type_icon(icon_type)
@@ -556,6 +623,7 @@ def render(type_map=None):
         plan = ((_mega(g.mega, type_map) if config.has_megas(format_id) else "")
                 + (_tera(g.tera, type_map) if config.has_tera(format_id) else ""))
         st.markdown(STYLE + plan, unsafe_allow_html=True)
+    st.markdown(STYLE + _hazards(g.hazards), unsafe_allow_html=True)
     st.markdown(STYLE + _combos(g.combos), unsafe_allow_html=True)
     st.caption(f"Matchups are one on one against each threat's most common set (top {g.n_threats} by usage); "
                "switching, hazards and setup turns aren't simulated.")

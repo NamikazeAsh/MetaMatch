@@ -70,6 +70,7 @@ class Guide:
     combos: list = field(default_factory=list)
     watch: list = field(default_factory=list)
     engines: list = field(default_factory=list)  # synergy.Engine: the cores the team runs, complete first
+    hazards: dict | None = None                  # hazards.hazard_plan: what entry hazards cost the team
 
     def named_members(self):
         """Every team member the guide names, for checks."""
@@ -444,4 +445,9 @@ def team_guide(team, format_id=None, rows=None):
         _add_recommended_tera(guide.tera, team, format_id)
     guide.combos = _combos(members)
     guide.watch = _watch(rows)
+    try:
+        from metamatch.engine.hazards import hazard_plan   # imports this module, so loaded here
+        guide.hazards = hazard_plan(team, format_id)
+    except Exception as e:   # a bonus section: never let it break the guide
+        print(f"Hazard plan failed: {e}")
     return guide

@@ -161,9 +161,6 @@ def _stall(plan, data):
                    persona="strategy", plain=said, typed=typed)
 
 
-ROCK_WEAK = {2: 25, 4: 50}
-
-
 def _hazards(plan, dex):
     """Hazard stacking: the team's own removal, Boots and Stealth Rock damage, and the top hazard setters' matchups."""
     team, fmt = plan.team or {}, plan.format_id
@@ -173,11 +170,12 @@ def _hazards(plan, dex):
     typed = [Fact("set", f"Hazard removal on your team: {join(mon(n, True) for n in removers) or 'none'}.",
                   {"removers": removers}, role="why"),
              Fact("set", f"Holding Heavy-Duty Boots: {join(mon(n, True) for n in boots) or 'none'}.", {"boots": boots})]
-    for p in team.values():
-        mult = (p.get("Damage From") or {}).get("rock", 1.0)
-        if mult >= 2 and p["Pokemon"] not in boots:
-            typed.append(Fact("damage", f"Stealth Rock takes {ROCK_WEAK.get(int(mult), 25)}% of your {p['Pokemon']}'s HP "
-                                        "each time it switches in.", {"member": p["Pokemon"]}, role="why"))
+    # The same numbers as the Coach Guide's hazard plan (Boots and Magic Guard take nothing)
+    from metamatch.engine.hazards import member_hazards
+    for m in (member_hazards(p) for p in team.values()):
+        if m["rocks"] >= 25:
+            typed.append(Fact("damage", f"Stealth Rock takes {m['rocks']:g}% of your {m['name']}'s HP "
+                                        "each time it switches in.", {"member": m["name"]}, role="why"))
     from metamatch.engine.threat_board import top_threats
     setters = []
     for name, _ in top_threats(fmt, n=30):
