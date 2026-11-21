@@ -1,7 +1,9 @@
 """
 Builds data/json/rules_text.json, the rules lookup behind mechanics answers: every ability's, item's and move's
-description from Pokemon Showdown's text files (data/text/*.ts), plus the move flags (slicing, punch, reflectable...)
-from data/moves.ts and the 'breakable' flag (ignored by Mold Breaker) from data/abilities.ts. Pokemon Showdown is MIT
+description from Pokemon Showdown's text files (data/text/*.ts), plus the move flags (slicing, punch, reflectable...),
+priority, whether the user switches out and whether it lays a hazard on the foe's side from data/moves.ts, and the
+'breakable' flag (ignored by Mold Breaker) from data/abilities.ts. engine/moves.py reads the pivots, hazards and
+priority moves from here. Pokemon Showdown is MIT
 licensed. Only the current generation's text is kept; per generation overrides nested inside an entry are skipped.
 
   python scripts/build_rules_text.py                 # downloads the five files from the Showdown repo
@@ -23,6 +25,10 @@ TEXT_FIELD = re.compile(r'^\t\t(name|shortDesc|desc): "((?:[^"\\]|\\.)*)",')
 DATA_FIELD = re.compile(r'^\t\t(name|type|category|isNonstandard): "((?:[^"\\]|\\.)*)",')
 FLAGS = re.compile(r"^\t\tflags: \{(.*)\},")
 BASE_POWER = re.compile(r"^\t\tbasePower: (\d+),")
+PRIORITY = re.compile(r"^\t\tpriority: (-?\d+),")
+SELF_SWITCH = re.compile(r"^\t\tselfSwitch: ")
+SIDE_CONDITION = re.compile(r"^\t\tsideCondition: ")
+TARGET = re.compile(r'^\t\ttarget: "(\w+)",')
 # Move flags an ability, item or rule keys on
 MOVE_FLAGS = {"contact", "sound", "punch", "bite", "bullet", "pulse", "slicing", "wind", "reflectable", "powder",
               "dance", "heal", "bypasssub"}
@@ -49,6 +55,18 @@ def _entries(text, field_re):
         bp = BASE_POWER.match(line)
         if bp and "basePower" not in current:
             current["basePower"] = int(bp.group(1))
+            continue
+        pri = PRIORITY.match(line)
+        if pri and "priority" not in current:
+            current["priority"] = int(pri.group(1))
+            continue
+        if SELF_SWITCH.match(line):
+            current["selfSwitch"] = True
+        elif SIDE_CONDITION.match(line):
+            current["sideCondition"] = True
+        target = TARGET.match(line)
+        if target and "target" not in current:
+            current["target"] = target.group(1)
     return out
 
 
@@ -81,6 +99,12 @@ def build(texts):
         moves[entry["name"]] = {**text_of(entry), "type": data.get("type"), "category": data.get("category"),
                                 "basePower": data.get("basePower", 0),
                                 "flags": [f for f in data.get("flags", []) if f in MOVE_FLAGS]}
+        if data.get("priority"):
+            moves[entry["name"]]["priority"] = data["priority"]
+        if data.get("selfSwitch"):
+            moves[entry["name"]]["switches"] = True          # the user switches out (U-turn, Parting Shot...)
+        if data.get("sideCondition") and data.get("target") == "foeSide":
+            moves[entry["name"]]["hazard"] = True            # lays a hazard on the foe's side
     return {"source": "Pokemon Showdown data/text and data (MIT)", "abilities": dict(sorted(abilities.items())),
             "items": dict(sorted(items.items())), "moves": dict(sorted(moves.items()))}
 

@@ -1,6 +1,7 @@
 import re
 from metamatch import config
 from metamatch.auditor import load_chaos_data
+from metamatch.engine.moves import HAZARDS, PIVOTS, REMOVAL, ids as _move_ids
 
 
 def is_mega(pokemon_name: str) -> bool:
@@ -23,12 +24,8 @@ def _norm(s: str) -> str:
     return s.lower().replace("-", "").replace(" ", "").replace("'", "")
 
 
-# Moves that fill a core role (ids without spaces or hyphens)
-ROLE_FILL_MOVES = {
-    "Hazard Setter":  {"stealthrock", "spikes", "toxicspikes", "stickyweb"},
-    "Hazard Remover": {"rapidspin", "defog", "courtchange", "tidyup"},
-    "Pivot":          {"uturn", "voltswitch", "flipturn", "teleport", "partingshot", "shedtail"},
-}
+# Moves that fill a core role (ids without spaces or hyphens), from the shared move lists
+ROLE_FILL_MOVES = {"Hazard Setter": _move_ids(HAZARDS), "Hazard Remover": _move_ids(REMOVAL), "Pivot": _move_ids(PIVOTS)}
 ROLE_BOOST = 1.2
 
 

@@ -564,5 +564,37 @@ class TestOneFix(unittest.TestCase):
         self.assertIsNone(fix_pick([{"name": "Gholdengo", "covers": []}], "Great Tusk"))
 
 
+class TestSharedMoveLists(unittest.TestCase):
+    def test_lists_read_from_showdown_data(self):
+        from metamatch.engine import moves
+        self.assertEqual(moves.HAZARDS, ("Stealth Rock", "Spikes", "Toxic Spikes", "Sticky Web"))
+        self.assertTrue({"U-turn", "Volt Switch", "Flip Turn", "Shed Tail", "Chilly Reception"} <= set(moves.PIVOTS))
+        self.assertNotIn("Revival Blessing", moves.PIVOTS)
+        self.assertTrue({"Thunderclap", "Jet Punch", "Water Shuriken", "Sucker Punch", "Extreme Speed"} <= moves.PRIORITY)
+        self.assertFalse({"Fake Out", "Feint", "Bide"} & moves.PRIORITY)
+        self.assertIn("Mortal Spin", moves.REMOVAL)
+
+    def test_priority_through_an_ability(self):
+        from metamatch.engine.moves import is_priority
+        self.assertTrue(is_priority("Grassy Glide", ["Grassy Surge"]))
+        self.assertFalse(is_priority("Grassy Glide", ["Overgrow", None]))
+        self.assertFalse(is_priority("Thunderbolt", ["Protosynthesis", None]))   # None (no Mega ability) matches nothing
+
+    def test_roles_use_the_shared_lists(self):
+        from metamatch.team import detectRole
+        from metamatch.recommender import ROLE_FILL_MOVES
+        paste = ("Raging Bolt @ Booster Energy\nAbility: Protosynthesis\n- Thunderclap\n- Draco Meteor\n\n"
+                 "Barraskewda @ Choice Band\nAbility: Swift Swim\n- Liquidation\n- Flip Turn\n\n"
+                 "Glimmora @ Focus Sash\nAbility: Toxic Debris\n- Mortal Spin\n- Power Gem")
+        team, _ = readTeam(paste, "gen9ou")
+        detectRole(team)
+        roles = {p["Pokemon"]: p["Roles"] for p in team.values()}
+        self.assertIn("Priority User", roles["Raging Bolt"])
+        self.assertIn("Pivot", roles["Barraskewda"])
+        self.assertIn("Hazard Remover", roles["Glimmora"])
+        self.assertIn("mortalspin", ROLE_FILL_MOVES["Hazard Remover"])
+        self.assertIn("chillyreception", ROLE_FILL_MOVES["Pivot"])
+
+
 if __name__ == "__main__":
     unittest.main()

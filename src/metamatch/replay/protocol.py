@@ -12,12 +12,13 @@ import re
 from dataclasses import dataclass, field
 
 from metamatch.engine.dex import get_dex, to_id
+from metamatch.engine.moves import REMOVAL
 
 SIDES = ("p1", "p2")
 # Entry hazards and their maximum layers; everything else on a side (screens, Tailwind) is not a hazard
 HAZARD_LAYERS = {"Stealth Rock": 1, "Spikes": 3, "Toxic Spikes": 2, "Sticky Web": 1, "G-Max Steelsurge": 1}
 HAZARD_DAMAGE = {"Stealth Rock", "Spikes", "G-Max Steelsurge"}
-REMOVAL_MOVES = {"Rapid Spin", "Defog", "Mortal Spin", "Tidy Up", "Court Change"}
+REMOVAL_MOVES = set(REMOVAL)   # the shared list (engine/moves.py)
 SELF_KO_MOVES = {"Explosion", "Self-Destruct", "Misty Explosion", "Final Gambit", "Healing Wish",
                  "Lunar Dance", "Memento"}
 SETUP_MOVES = {"Swords Dance", "Dragon Dance", "Nasty Plot", "Calm Mind", "Quiver Dance", "Bulk Up",

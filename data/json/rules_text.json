@@ -3290,7 +3290,8 @@
    "basePower": 40,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 1
   },
   "Acid": {
    "short": "10% chance to lower the foe(s) Sp. Def by 1.",
@@ -3425,7 +3426,8 @@
    "type": "Psychic",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 2
   },
   "Amnesia": {
    "short": "Raises the user's Sp. Def by 2.",
@@ -3479,7 +3481,8 @@
    "basePower": 40,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 1
   },
   "Aqua Ring": {
    "short": "User recovers 1/16 max HP per turn.",
@@ -3650,7 +3653,8 @@
    "basePower": 60,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": -4
   },
   "Axe Kick": {
    "short": "30% confusion. User loses 50% max HP if miss.",
@@ -3670,7 +3674,8 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "priority": 1
   },
   "Baneful Bunker": {
    "short": "Protects from moves. Contact: poison.",
@@ -3678,7 +3683,8 @@
    "type": "Poison",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Barb Barrage": {
    "short": "50% psn. 2× power if target already poisoned.",
@@ -3712,7 +3718,8 @@
    "type": "Normal",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "switches": true
   },
   "Beak Blast": {
    "short": "Burns on contact with the user before it moves.",
@@ -3722,7 +3729,8 @@
    "basePower": 100,
    "flags": [
     "bullet"
-   ]
+   ],
+   "priority": -3
   },
   "Beat Up": {
    "short": "All healthy allies aid in damaging the target.",
@@ -3785,7 +3793,8 @@
    "basePower": 0,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 1
   },
   "Bind": {
    "short": "Traps and damages the target for 4-5 turns.",
@@ -4122,7 +4131,8 @@
    "flags": [
     "contact",
     "punch"
-   ]
+   ],
+   "priority": 1
   },
   "Bullet Seed": {
    "short": "Hits 2-5 times in one turn.",
@@ -4148,7 +4158,8 @@
    "type": "Fire",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Burning Jealousy": {
    "short": "100% burns a target that had a stat rise this turn.",
@@ -4259,7 +4270,8 @@
    "type": "Ice",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "switches": true
   },
   "Chip Away": {
    "short": "Ignores the target's stat stage changes.",
@@ -4287,7 +4299,8 @@
    "basePower": 60,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": -6
   },
   "Clamp": {
    "short": "Traps and damages the target for 4-5 turns.",
@@ -4539,7 +4552,8 @@
    "basePower": 0,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": -5
   },
   "Court Change": {
    "short": "Swaps user's field effects with the opposing side.",
@@ -4575,7 +4589,8 @@
    "type": "Fairy",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 3
   },
   "Cross Chop": {
    "short": "High critical hit ratio.",
@@ -4738,7 +4753,8 @@
    "type": "Fighting",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Devastating Drake": {
    "short": "Power is equal to the base move's Z-Power.",
@@ -5021,7 +5037,8 @@
    "basePower": 60,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": -6
   },
   "Drain Punch": {
    "short": "User recovers 50% of the damage dealt.",
@@ -5275,7 +5292,8 @@
    "type": "Normal",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Energy Ball": {
    "short": "10% chance to lower the target's Sp. Def by 1.",
@@ -5361,7 +5379,8 @@
    "basePower": 80,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 2
   },
   "Facade": {
    "short": "Power doubles if user is burn/poison/paralyzed.",
@@ -5400,7 +5419,8 @@
    "basePower": 40,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 3
   },
   "Fake Tears": {
    "short": "Lowers the target's Sp. Def by 2.",
@@ -5448,7 +5468,8 @@
    "type": "Normal",
    "category": "Physical",
    "basePower": 30,
-   "flags": []
+   "flags": [],
+   "priority": 2
   },
   "Feint Attack": {
    "short": "This move does not check accuracy.",
@@ -5574,7 +5595,8 @@
    "basePower": 90,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 2
   },
   "Fishious Rend": {
    "short": "Power doubles if user moves before the target.",
@@ -5703,7 +5725,8 @@
    "basePower": 60,
    "flags": [
     "contact"
-   ]
+   ],
+   "switches": true
   },
   "Floral Healing": {
    "short": "Heals the target by 50% of its max HP.",
@@ -5774,7 +5797,8 @@
    "type": "Fighting",
    "category": "Physical",
    "basePower": 150,
-   "flags": []
+   "flags": [],
+   "priority": -3
   },
   "Follow Me": {
    "short": "The foes' moves target the user on the turn used.",
@@ -5782,7 +5806,8 @@
    "type": "Normal",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 2
   },
   "Force Palm": {
    "short": "30% chance to paralyze the target.",
@@ -6673,7 +6698,8 @@
    "basePower": 0,
    "flags": [
     "bypasssub"
-   ]
+   ],
+   "priority": 5
   },
   "Hex": {
    "short": "Power doubles if the target has a status ailment.",
@@ -6952,7 +6978,8 @@
    "type": "Ice",
    "category": "Physical",
    "basePower": 40,
-   "flags": []
+   "flags": [],
+   "priority": 1
   },
   "Ice Spinner": {
    "short": "Ends the effects of terrain.",
@@ -7065,7 +7092,8 @@
    "type": "Electric",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 1
   },
   "Iron Defense": {
    "short": "Raises the user's Defense by 2.",
@@ -7123,7 +7151,8 @@
    "flags": [
     "contact",
     "punch"
-   ]
+   ],
+   "priority": 1
   },
   "Judgment": {
    "short": "Type varies based on the held Plate.",
@@ -7180,7 +7209,8 @@
    "type": "Steel",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Knock Off": {
    "short": "1.5× damage if foe holds an item. Removes item.",
@@ -7484,7 +7514,8 @@
    "flags": [
     "contact",
     "punch"
-   ]
+   ],
+   "priority": 1
   },
   "Magic Coat": {
    "short": "Bounces back certain non-damaging moves.",
@@ -7492,7 +7523,8 @@
    "type": "Psychic",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Magic Powder": {
    "short": "Changes the target's type to Psychic.",
@@ -7661,7 +7693,8 @@
    "type": "Normal",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Max Hailstorm": {
    "short": "Base move affects power. Starts Hail.",
@@ -7981,7 +8014,8 @@
    "type": "Psychic",
    "category": "Special",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": -5
   },
   "Mirror Move": {
    "short": "User uses the target's last used move against it.",
@@ -8293,7 +8327,8 @@
    "type": "Dark",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Oceanic Operetta": {
    "short": "No additional effect.",
@@ -8414,7 +8449,8 @@
     "bypasssub",
     "reflectable",
     "sound"
-   ]
+   ],
+   "switches": true
   },
   "Pay Day": {
    "short": "Scatters coins.",
@@ -8659,7 +8695,8 @@
     "bypasssub",
     "powder",
     "reflectable"
-   ]
+   ],
+   "priority": 1
   },
   "Powder Snow": {
    "short": "10% chance to freeze the foe(s).",
@@ -8770,7 +8807,8 @@
    "type": "Normal",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Psybeam": {
    "short": "10% chance to confuse the target.",
@@ -8965,7 +9003,8 @@
    "basePower": 40,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 1
   },
   "Quick Guard": {
    "short": "Protects allies from priority attacks this turn.",
@@ -8973,7 +9012,8 @@
    "type": "Fighting",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 3
   },
   "Quiver Dance": {
    "short": "Raises the user's Sp. Atk, Sp. Def, Speed by 1.",
@@ -9014,7 +9054,8 @@
    "basePower": 0,
    "flags": [
     "powder"
-   ]
+   ],
+   "priority": 2
   },
   "Raging Bull": {
    "short": "Destroys screens. Type depends on user's form.",
@@ -9184,7 +9225,8 @@
    "basePower": 60,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": -4
   },
   "Reversal": {
    "short": "More power the less HP the user has left.",
@@ -9204,7 +9246,8 @@
    "basePower": 0,
    "flags": [
     "heal"
-   ]
+   ],
+   "switches": true
   },
   "Rising Voltage": {
    "short": "2× power if target is grounded in Electric Terrain.",
@@ -9224,7 +9267,8 @@
     "bypasssub",
     "reflectable",
     "sound"
-   ]
+   ],
+   "priority": -6
   },
   "Roar of Time": {
    "short": "User cannot move next turn.",
@@ -9636,7 +9680,8 @@
    "basePower": 40,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 1
   },
   "Sharpen": {
    "short": "Raises the user's Attack by 1.",
@@ -9659,7 +9704,8 @@
    "type": "Normal",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "switches": true
   },
   "Sheer Cold": {
    "short": "OHKOs non-Ice targets. Fails if user's lower level.",
@@ -9691,7 +9737,8 @@
    "type": "Fire",
    "category": "Special",
    "basePower": 150,
-   "flags": []
+   "flags": [],
+   "priority": -3
   },
   "Shelter": {
    "short": "Raises the user's Defense by 2.",
@@ -9740,7 +9787,8 @@
    "type": "Bug",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Silver Wind": {
    "short": "10% chance to raise all stats by 1 (not acc/eva).",
@@ -9991,7 +10039,8 @@
    "basePower": 0,
    "flags": [
     "bypasssub"
-   ]
+   ],
+   "priority": 4
   },
   "Snipe Shot": {
    "short": "High critical hit ratio. Cannot be redirected.",
@@ -10162,7 +10211,8 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "hazard": true
   },
   "Spiky Shield": {
    "short": "Protects from moves. Contact: loses 1/8 max HP.",
@@ -10170,7 +10220,8 @@
    "type": "Grass",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 4
   },
   "Spin Out": {
    "short": "Lowers the user's Speed by 2.",
@@ -10252,7 +10303,8 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "priority": 3
   },
   "Springtide Storm": {
    "short": "30% chance to lower the foe(s) Attack by 1.",
@@ -10272,7 +10324,8 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "hazard": true
   },
   "Steam Eruption": {
    "short": "30% chance to burn the target. Thaws target.",
@@ -10328,7 +10381,8 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "hazard": true
   },
   "Stockpile": {
    "short": "Raises user's Defense, Sp. Def by 1. Max 3 uses.",
@@ -10508,7 +10562,8 @@
    "basePower": 70,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 1
   },
   "Sunny Day": {
    "short": "For 5 turns, intense sunlight powers Fire moves.",
@@ -10845,7 +10900,9 @@
    "type": "Psychic",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": -6,
+   "switches": true
   },
   "Temper Flare": {
    "short": "Power doubles if the user's last move failed.",
@@ -10999,7 +11056,8 @@
    "type": "Electric",
    "category": "Special",
    "basePower": 70,
-   "flags": []
+   "flags": [],
+   "priority": 1
   },
   "Thunderous Kick": {
    "short": "100% chance to lower the target's Defense by 1.",
@@ -11079,7 +11137,8 @@
    "basePower": 0,
    "flags": [
     "reflectable"
-   ]
+   ],
+   "hazard": true
   },
   "Toxic Thread": {
    "short": "Lowers the target's Speed by 1 and poisons it.",
@@ -11131,7 +11190,8 @@
    "type": "Psychic",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": -7
   },
   "Trick-or-Treat": {
    "short": "Adds Ghost to the target's type(s).",
@@ -11242,7 +11302,8 @@
    "basePower": 70,
    "flags": [
     "contact"
-   ]
+   ],
+   "switches": true
   },
   "Upper Hand": {
    "short": "100% flinch. Fails unless target using priority attack.",
@@ -11252,7 +11313,8 @@
    "basePower": 65,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": 3
   },
   "Uproar": {
    "short": "Lasts 3 turns. Active Pokemon cannot fall asleep.",
@@ -11281,7 +11343,8 @@
    "type": "Fighting",
    "category": "Special",
    "basePower": 40,
-   "flags": []
+   "flags": [],
+   "priority": 1
   },
   "Venom Drench": {
    "short": "Lowers Atk/Sp. Atk/Speed of poisoned foes by 1.",
@@ -11336,7 +11399,8 @@
    "basePower": 70,
    "flags": [
     "contact"
-   ]
+   ],
+   "priority": -1
   },
   "Volt Switch": {
    "short": "User switches out after damaging the target.",
@@ -11344,7 +11408,8 @@
    "type": "Electric",
    "category": "Special",
    "basePower": 70,
-   "flags": []
+   "flags": [],
+   "switches": true
   },
   "Volt Tackle": {
    "short": "Has 33% recoil. 10% chance to paralyze target.",
@@ -11397,7 +11462,8 @@
    "type": "Water",
    "category": "Special",
    "basePower": 15,
-   "flags": []
+   "flags": [],
+   "priority": 1
   },
   "Water Sport": {
    "short": "For 5 turns, Fire-type attacks have 1/3 power.",
@@ -11463,7 +11529,8 @@
     "bypasssub",
     "reflectable",
     "wind"
-   ]
+   ],
+   "priority": -6
   },
   "Wicked Blow": {
    "short": "Always results in a critical hit.",
@@ -11490,7 +11557,8 @@
    "type": "Rock",
    "category": "Status",
    "basePower": 0,
-   "flags": []
+   "flags": [],
+   "priority": 3
   },
   "Wild Charge": {
    "short": "Has 1/4 recoil.",

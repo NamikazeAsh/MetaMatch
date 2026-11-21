@@ -190,15 +190,13 @@ def readTeam(teamRaw, format_id=config.DEFAULT_FORMAT):
 
 def detectRole(team):
     
-    hazard_moves = {"Stealth Rock", "Spikes", "Toxic Spikes", "Sticky Web"}
-    removal_moves = {"Defog", "Rapid Spin", "Court Change", "Tidy Up"}
-    setup_moves = {"Swords Dance", "Dragon Dance", "Calm Mind", "Nasty Plot", "Agility", "Bulk Up", "Quiver Dance", "Shell Smash", "Shift Gear", "Coil"}
+    # The shared move lists (engine/moves.py): pivots, hazards and priority come from Showdown's move data
+    from metamatch.engine import moves as move_lists
+    hazard_moves, removal_moves, setup_moves = set(move_lists.HAZARDS), set(move_lists.REMOVAL), move_lists.SETUP
     support_moves = {"Wish", "Protect", "Heal Bell", "Aromatherapy", "Thunder Wave", "Taunt", "Toxic", "Leech Seed", "Encore", "Light Screen", "Reflect", "Aurora Veil", "Memento", "Parting Shot", "Healing Wish", "Lunar Dance"}
-    pivot_moves = {"U-turn", "Volt Switch", "Teleport", "Baton Pass", "Parting Shot", "Chilly Reception"}
+    pivot_moves = set(move_lists.PIVOTS)
     recovery_moves = {"Recover", "Roost", "Slack Off", "Moonlight", "Soft-Boiled", "Rest", "Shore Up", "Synthesis", "Morning Sun"}
     status_moves = {"Will-O-Wisp", "Toxic", "Thunder Wave", "Sleep Powder", "Spore", "Glare", "Nuzzle"}
-    priority_moves = {"Aqua Jet", "Bullet Punch", "Ice Shard", "Mach Punch", "Shadow Sneak", "Sucker Punch", "Extreme Speed", "First Impression"}
-    revenge_moves = {"Sucker Punch", "Ice Shard", "Bullet Punch", "Mach Punch", "Aqua Jet"}
     trapping_moves = {"Block", "Mean Look", "Spider Web", "Shadow Tag", "Arena Trap", "Magnet Pull"}
     ko_moves = {"Destiny Bond", "Explosion", "Self-Destruct", "Final Gambit", "Memento"}
     cleric_moves = {"Heal Bell", "Aromatherapy", "Refresh", "Natural Cure"}
@@ -275,9 +273,10 @@ def detectRole(team):
             team[poke]["Roles"].append("Special Sweeper")
         if evs.get("Spe", 0) >= 252 and (evs.get("Atk", 0) >= 200 or evs.get("SpA", 0) >= 200):
             team[poke]["Roles"].append("Fast Sweeper")
-        if any(move in moves for move in priority_moves):
+        # A priority attack (Thunderclap, Grassy Glide with Grassy Surge...) picks off weakened foes before they move
+        own = [team[poke].get("Ability"), team[poke].get("Mega Ability")]
+        if any(move_lists.is_priority(move, own) for move in moves):
             team[poke]["Roles"].append("Priority User")
-        if any(move in moves for move in revenge_moves):
             team[poke]["Roles"].append("Revenge Killer")
         
         # Specialized roles

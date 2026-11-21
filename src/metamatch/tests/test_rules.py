@@ -133,6 +133,23 @@ class TestBuildRulesText(unittest.TestCase):
         self.assertEqual(move["flags"], ["contact", "slicing"])
         self.assertEqual(data["items"]["Leftovers"]["short"], "Heals 1/16.")
 
+    def test_reads_priority_pivots_and_hazards(self):
+        # Each move needs a text entry (its name) and a data entry (its fields)
+        moves = {"uturn": ("U-turn", '\t\tpriority: 0,\n\t\tselfSwitch: true,\n\t\ttarget: "normal",\n'),
+                 "aquajet": ("Aqua Jet", '\t\tpriority: 1,\n\t\ttarget: "normal",\n'),
+                 "spikes": ("Spikes", "\t\tsideCondition: 'spikes',\n\t\ttarget: \"foeSide\",\n"),
+                 "reflect": ("Reflect", "\t\tsideCondition: 'reflect',\n\t\ttarget: \"allySide\",\n")}
+        texts = {"data/text/abilities.ts": "", "data/text/items.ts": "", "data/abilities.ts": "",
+                 "data/text/moves.ts": "".join(f'\t{k}: {{\n\t\tname: "{n}",\n\t\tshortDesc: "x",\n\t}},\n'
+                                               for k, (n, _) in moves.items()),
+                 "data/moves.ts": "".join(f'\t{k}: {{\n\t\tname: "{n}",\n{body}\t}},\n' for k, (n, body) in moves.items())}
+        m = build_rules_text.build(texts)["moves"]
+        self.assertTrue(m["U-turn"]["switches"])
+        self.assertNotIn("priority", m["U-turn"])                  # 0 isn't stored
+        self.assertEqual(m["Aqua Jet"]["priority"], 1)
+        self.assertTrue(m["Spikes"]["hazard"])
+        self.assertNotIn("hazard", m["Reflect"])                   # a side condition on your own side isn't a hazard
+
 
 if __name__ == "__main__":
     unittest.main()

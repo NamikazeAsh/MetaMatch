@@ -164,8 +164,8 @@ def _stall(plan, data):
 def _hazards(plan, dex):
     """Hazard stacking: the team's own removal, Boots and Stealth Rock damage, and the top hazard setters' matchups."""
     team, fmt = plan.team or {}, plan.format_id
-    removal_moves = {"Rapid Spin", "Defog", "Mortal Spin", "Court Change", "Tidy Up"}
-    removers = [p["Pokemon"] for p in team.values() if {m["name"] for m in p.get("Moves", [])} & removal_moves]
+    from metamatch.engine.moves import REMOVAL
+    removers = [p["Pokemon"] for p in team.values() if {m["name"] for m in p.get("Moves", [])} & set(REMOVAL)]
     boots = [p["Pokemon"] for p in team.values() if p.get("Item") == "Heavy-Duty Boots"]
     typed = [Fact("set", f"Hazard removal on your team: {join(mon(n, True) for n in removers) or 'none'}.",
                   {"removers": removers}, role="why"),

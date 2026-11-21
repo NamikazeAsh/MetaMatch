@@ -10,19 +10,13 @@ from metamatch import config, meta_trends
 from metamatch.engine import abilities, speed_board
 from metamatch.engine import threat_board as tb
 from metamatch.engine import synergy
-from metamatch.engine.constraints import SETUP_MOVES
+from metamatch.engine.moves import HAZARDS, PIVOTS, REMOVAL, SETUP, is_priority
 from metamatch.engine.dex import dex_for_format
 from metamatch.type_chart import get_multiplier
 
 TYPES = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground",
          "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon", "Dark", "Steel", "Fairy"]
-HAZARDS = ("Stealth Rock", "Spikes", "Toxic Spikes", "Sticky Web")
-REMOVAL = ("Rapid Spin", "Defog", "Mortal Spin", "Court Change", "Tidy Up")
-PIVOTS = ("U-turn", "Volt Switch", "Flip Turn", "Parting Shot", "Teleport", "Shed Tail", "Chilly Reception")
 N_THREATS = 12
-# Setup moves for the guide: the constraint parser's list plus the ones it never needs to read from a question
-SETUP = set(SETUP_MOVES) | {"Growth", "Coil", "Work Up", "Shift Gear", "Curse", "Tail Glow", "Geomancy",
-                            "Clangorous Soul", "No Retreat", "Fillet Away", "Rock Polish"}
 N_SPEED = 25
 # Lead score weight on how often ladder players lead with a member (bench/guide/leads.py --tune picks it)
 LEAD_RATE_WEIGHT = 10.0
@@ -111,7 +105,7 @@ def member_facts(team, format_id, rows):
             speed=speed,
             outspeeds=sum(speed_board.outspeed_share(speed, m) for m in meta) / len(meta) if meta else 0.0,
             setup=[m for m in moves if m in SETUP],
-            priority=[m for m, _ in attacks if data[m].get("priority", 0) > 0],
+            priority=[m for m, _ in attacks if is_priority(m, [p.get("Ability"), p.get("Mega Ability")])],
             hazards=[m for m in moves if m in HAZARDS],
             removal=[m for m in moves if m in REMOVAL],
             pivots=[m for m in moves if m in PIVOTS],

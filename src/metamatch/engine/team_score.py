@@ -14,7 +14,8 @@ from dataclasses import dataclass, field
 from metamatch import config
 from metamatch.engine import speed_board, synergy
 from metamatch.engine.dex import dex_for_format
-from metamatch.engine.guide import HAZARDS, N_SPEED, N_THREATS, PIVOTS, REMOVAL, SETUP
+from metamatch.engine.guide import N_SPEED, N_THREATS
+from metamatch.engine.moves import HAZARDS, PIVOTS, REMOVAL, SETUP
 from metamatch.engine.threat_board import cell_numbers, safe_switch, threat_board
 
 WEIGHTS = {"coverage": 25, "switchins": 15, "hazards": 15, "mutual_cover": 10, "weaknesses": 10, "speed": 10,

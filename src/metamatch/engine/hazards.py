@@ -4,7 +4,8 @@ which of the format's most used Pokemon bring them. Rules only, from the game's 
 12.5% times the Rock weakness, Spikes 12.5% at one layer and 25% at three, grounded Pokemon only. Heavy-Duty Boots
 and Magic Guard take nothing; Magic Bounce sends hazard moves back.
 """
-from metamatch.engine.guide import HAZARDS, REMOVAL, _and
+from metamatch.engine.guide import _and
+from metamatch.engine.moves import HAZARDS, REMOVAL
 from metamatch.engine.sets import chaos_entry
 from metamatch.engine.synergy import _abilities, _grounded
 from metamatch.engine.threat_board import top_threats

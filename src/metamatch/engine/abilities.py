@@ -282,9 +282,9 @@ def _rule(p, ab, moves):
     if ab == "Gale Wings" and flying:
         return AbilityLine(p["Pokemon"], ab, f"Gale Wings gives {_and(flying)} priority at full HP", False)
     if ab == "Regenerator":
-        pivots = {"U-turn", "Volt Switch", "Flip Turn", "Parting Shot", "Teleport", "Chilly Reception"}
+        from metamatch.engine.moves import PIVOTS
         return AbilityLine(p["Pokemon"], ab, "Heals a third of its HP with Regenerator each time it switches out",
-                           False, lead=bool(pivots & {m["name"] for m in moves}))
+                           False, lead=bool(set(PIVOTS) & {m["name"] for m in moves}))
     if ab == "Poison Heal" and p.get("Item") == "Toxic Orb":
         return AbilityLine(p["Pokemon"], ab, "Once Toxic Orb poisons it, Poison Heal restores 1/8 of its HP each turn",
                            False)
