@@ -436,6 +436,45 @@ def _revenge(numbers):
     return None
 
 
+def fix_target(team, rows, guide):
+    """{hole, swap} for the one fix that helps most, or None: the biggest hole is the most used threat nothing beats
+    (else one that only one member beats); the member to swap is the one doing least against the top threats (beats,
+    plus half credit for safe switch ins), never the win condition, a setter of a core the team runs, the only hazard
+    setter or remover, Magic Bounce on a team with no removal, the Mega holder, or the hole's one answer. The pick
+    itself comes from the Team Completer (fix_pick)."""
+    hole = next((r for r in rows if not r["answers"]), None) or next((r for r in rows if len(r["answers"]) == 1), None)
+    if not hole:
+        return None
+    keep = {guide.win["name"]} if guide.win else set()
+    keep |= {st["name"] for e in guide.engines if e.complete for st in e.setters}
+    keep |= set(hole["answers"])
+    h = guide.hazards or {}
+    for side in ("setters", "removers"):
+        if len(h.get(side) or []) == 1:
+            keep.add(h[side][0]["name"])
+    if not h.get("removers"):   # with no removal, Magic Bounce is the team's only hazard control
+        keep |= set(h.get("bounce") or [])
+    keep |= {p["Pokemon"] for p in team.values() if "-Mega" in (p.get("Forme") or "")}
+    # What a member does against the top threats: the ones it beats, and half credit for the ones it switches into,
+    # so a wall that wins few one on ones but takes hits all game isn't the first to go
+    def value(name):
+        beats = sum(name in r["answers"] for r in rows)
+        takes = sum(tb.safe_switch(((r.get("cells") or {}).get(name) or {}).get("n")) for r in rows)
+        return beats + 0.5 * takes, -sum(name in r["losses"] for r in rows)
+    pool = [p["Pokemon"] for p in team.values() if p["Pokemon"] not in keep]
+    if not pool:
+        return None
+    swap = min(pool, key=value)
+    return {"hole": {"name": hole["name"], "usage": hole["usage"], "answers": list(hole["answers"])}, "swap": swap}
+
+
+def fix_pick(picks, hole):
+    """The Team Completer pick for the fix: the best one that beats the hole, else the best overall; None when no
+    pick beats anything. picks: the completer's candidates as dicts, best first."""
+    useful = [c for c in picks if c.get("covers")]
+    return next((c for c in useful if hole in c["covers"]), None) or (useful[0] if useful else None)
+
+
 def _add_abilities(guide, team, format_id):
     """One ability line on the win condition card (what it does for the sweep, measured where the calc can) and on
     a lead card when the ability acts the moment it comes in (Intimidate, Magic Bounce, Prankster...)."""

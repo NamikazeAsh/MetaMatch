@@ -519,5 +519,50 @@ class TestYourSix(unittest.TestCase):
         self.assertEqual(m["safe"][0]["tip"], "takes at most 30% from Headlong Rush")
 
 
+class TestOneFix(unittest.TestCase):
+    def _setup(self, hazards=None, answers_tusk=()):
+        from metamatch.engine.guide import Guide
+        names = ["Kingambit", "Hatterene", "Pelipper", "Charizard", "Weavile", "Clefable"]
+        team = {str(i): {"Pokemon": n} for i, n in enumerate(names)}
+        team["3"]["Forme"] = "Charizard-Mega-Y"
+        g = Guide("gen9ou", 3)
+        g.win = {"name": "Kingambit"}
+        g.hazards = hazards or {"setters": [{"name": "Weavile"}], "removers": [], "bounce": ["Hatterene"]}
+        cells = {n: {"verdict": "even", "n": _n(70, 2)} for n in names}
+        rows = [{"name": "Great Tusk", "usage": 30.0, "answers": list(answers_tusk), "losses": [], "cells": cells},
+                {"name": "Gholdengo", "usage": 25.0, "answers": ["Pelipper", "Weavile"], "losses": ["Clefable"], "cells": cells},
+                {"name": "Kyurem", "usage": 20.0, "answers": ["Clefable", "Kingambit"], "losses": [], "cells": cells}]
+        return team, rows, g
+
+    def test_never_swaps_a_protected_member(self):
+        from metamatch.engine.guide import fix_target
+        team, rows, g = self._setup()
+        t = fix_target(team, rows, g)
+        self.assertEqual(t["hole"]["name"], "Great Tusk")
+        # Kingambit wins, Charizard is the Mega, Weavile the only setter, Hatterene the only hazard control
+        self.assertNotIn(t["swap"], {"Kingambit", "Charizard", "Weavile", "Hatterene"})
+
+    def test_swaps_the_member_doing_least(self):
+        from metamatch.engine.guide import fix_target
+        team, rows, g = self._setup()
+        # Pelipper and Clefable each beat one; Clefable also loses one, so it goes
+        self.assertEqual(fix_target(team, rows, g)["swap"], "Clefable")
+
+    def test_the_holes_one_answer_stays_and_no_hole_means_no_card(self):
+        from metamatch.engine.guide import fix_target
+        team, rows, g = self._setup(answers_tusk=["Clefable"])
+        self.assertEqual(fix_target(team, rows, g)["swap"], "Pelipper")
+        for r in rows:
+            r["answers"] = ["Pelipper", "Clefable"]
+        self.assertIsNone(fix_target(team, rows, g))
+
+    def test_pick_prefers_one_that_beats_the_hole(self):
+        from metamatch.engine.guide import fix_pick
+        picks = [{"name": "Ogerpon", "covers": ["Kyurem"]}, {"name": "Iron Valiant", "covers": ["Great Tusk"]}]
+        self.assertEqual(fix_pick(picks, "Great Tusk")["name"], "Iron Valiant")
+        self.assertEqual(fix_pick(picks, "Zamazenta")["name"], "Ogerpon")
+        self.assertIsNone(fix_pick([{"name": "Gholdengo", "covers": []}], "Great Tusk"))
+
+
 if __name__ == "__main__":
     unittest.main()

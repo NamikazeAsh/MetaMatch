@@ -174,6 +174,17 @@ STYLE = """
 .cg-six-l .cg-mon.one img { filter: drop-shadow(0 0 4px rgba(248,113,113,.8)); }
 .cg-six-none { font-size: .76rem; color: #6f7a90; }
 @media (max-width: 900px) { .cg-six { grid-template-columns: minmax(0, 1fr); } }
+.cg-fix { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; padding: 14px 18px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0,212,255,.07), rgba(52,211,153,.05)); border: 1px solid rgba(0,212,255,.25); }
+.cg-fix-swap { display: flex; align-items: center; gap: 6px; }
+.cg-fix-swap img { width: 56px; height: 56px; object-fit: contain; }
+.cg-fix-swap .gone { opacity: .45; filter: grayscale(.7); }
+.cg-fix-arrow { color: #7fe6ff; font-size: 1.2rem; font-weight: 800; }
+.cg-fix-hole { font-size: .8rem; color: #fca5a5; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.cg-fix-hole img { width: 26px; height: 26px; }
+.cg-fix-say { font-size: .95rem; color: #e6edf7; line-height: 1.5; }
+.cg-fix-say b { color: #fff; }
+@media (max-width: 640px) { .cg-fix { grid-template-columns: minmax(0, 1fr); } }
 .cg-watch { display: grid; gap: 10px; }
 .cg-threat { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px;
   background: rgba(248,113,113,.05); border: 1px solid rgba(248,113,113,.25); }
@@ -627,6 +638,48 @@ def _engines(engines, type_map):
             + "".join(_engine(e, type_map) for e in engines) + "</div>")
 
 
+def _fix_card(target, pick):
+    """One fix that helps most: the biggest hole, and the swap the Team Completer finds for it."""
+    hole, swap = target["hole"], target["swap"]
+    why = ("nothing on your team beats it" if not hole["answers"] else f"only {hole['answers'][0]} beats it")
+    covers = pick["covers"]
+    if hole["name"] in covers:
+        others = len(covers) - 1
+        gain = f"it beats {escape(hole['name'])}" + (f" and {others} more of your weak spots" if others else "")
+    else:
+        gain = (f"no single swap beats {escape(hole['name'])}, but {escape(pick['name'])} beats "
+                f"{len(covers)} of your other weak spots")
+    return (f'<div class="cg-head">One fix that helps most</div><div class="cg-fix">'
+            f'<div class="cg-fix-swap"><img class="gone" src="{escape(get_sprite(swap) or "")}" alt="">'
+            f'<span class="cg-fix-arrow">&rarr;</span>{_img(pick["name"])}</div>'
+            f'<div><div class="cg-fix-hole"><img src="{escape(get_sprite(hole["name"]) or "")}" alt="">'
+            f'Biggest hole: {escape(hole["name"])}, {why} (on {hole["usage"]:g}% of teams)</div>'
+            f'<div class="cg-fix-say">Swap <b>{escape(swap)}</b> for <b>{escape(pick["name"])}</b>: {gain}.</div></div></div>')
+
+
+def _open_recommendations(swap):
+    """The fix card's button: opens the Recommendations tab with that member's slot already open."""
+    st.session_state["tc_replace"] = swap
+    st.session_state["dashboard_tab"] = "Recommendations"
+
+
+def _fix(team, format_id, g, month):
+    """Draws One fix that helps most, or nothing when the team has no hole or nothing can be swapped safely."""
+    from metamatch.tabs import tab_recommender, tab_threats
+    team_json = json.dumps(team, sort_keys=True, default=str)
+    target = engine_guide.fix_target(team, tab_threats._board(team_json, format_id, month), g)
+    if not target or len(team) < 6:
+        return
+    rest = {k: v for k, v in team.items() if v["Pokemon"] != target["swap"]}
+    # The same cached call as the Recommendations tab, so its options match this card and open instantly
+    picks, _, _ = tab_recommender._complete(json.dumps(rest, sort_keys=True, default=str), format_id, month)
+    pick = engine_guide.fix_pick(picks, target["hole"]["name"])
+    if not pick:
+        return
+    st.markdown(STYLE + _fix_card(target, pick), unsafe_allow_html=True)
+    st.button("See all options", key="cg_fix_more", on_click=_open_recommendations, args=(target["swap"],))
+
+
 def render(type_map=None):
     from metamatch.tabs.tab_threats import _stats_month
     type_map = type_map or {}
@@ -655,5 +708,7 @@ def render(type_map=None):
     st.markdown(STYLE + _six(g.six, g.n_threats), unsafe_allow_html=True)
     st.markdown(STYLE + _hazards(g.hazards), unsafe_allow_html=True)
     st.markdown(STYLE + _combos(g.combos), unsafe_allow_html=True)
-    st.caption(f"Matchups are one on one against each threat's most common set (top {g.n_threats} by usage); "
-               "switching, hazards and setup turns aren't simulated.")
+    with st.spinner("Looking for the swap that helps most..."):
+        _fix(team, format_id, g, _stats_month())
+    st.caption(f"Matchups are one on one from full HP against each threat's most common set (top {g.n_threats} by "
+               "usage). Hazards are shown above but not counted in matchups, and setup turns aren't simulated.")

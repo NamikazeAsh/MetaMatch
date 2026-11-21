@@ -238,7 +238,11 @@ A game plan for your team.
 * **Built from your matchups:** every line comes from the Threat Board, Speed Tiers and type chart, so it only names moves your team actually runs.
 * **Knows what your team is built around:** finds your sun, rain, sand, snow, terrain, Trick Room, Tailwind or screens core and measures it with the calc, like a Chlorophyll Venusaur going from 284 to 568 Speed behind Torkoal's sun, and notices when a core is missing its setter.
 * **Reads abilities:** shows what each ability really does for your team, like Multiscale letting Dragonite survive any single hit from 11 of the 12 most used Pokémon instead of 7. Hover any ability on the team banner for what it does.
-* **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions), pairs that cover each other, and the threats to watch.
+* **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions and National Dex), pairs that cover each other, and the threats to watch.
+* **Answers to the threats to watch:** for each threat your team struggles with, who switches into it and who knocks it out, with the damage on hover.
+* **Your six at a glance:** each member's job, the top threats it can safely switch into, and the ones it has to get out against.
+* **Hazard plan:** what Stealth Rock and Spikes take from each member every time it comes in, who sets and clears them on your team, and which top Pokémon bring them.
+* **One fix that helps most:** names your team's biggest hole and the single swap that covers it, one click from all the options.
 * **Tera picks from Smogon and the ladder:** every Tera card shows the Tera types on Smogon's set closest to yours and the ladder's top Tera shares, with your own pick ringed.
 * **Mega Evolution cards (Champions and National Dex):** each Mega's stat changes as bars, its new typing and ability, and Smogon's write up of that Mega when one exists.
 * **Leads that match real games:** the two suggested leads weigh hazards, weather and pivots with how often players actually open with each Pokémon.
