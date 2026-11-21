@@ -184,6 +184,10 @@ STYLE = """
 .cg-fix-hole img { width: 26px; height: 26px; }
 .cg-fix-say { font-size: .95rem; color: #e6edf7; line-height: 1.5; }
 .cg-fix-say b { color: #fff; }
+.cg-fix-fit { display: grid; gap: 3px; margin-top: 8px; font-size: .82rem; color: #c8d1e0; line-height: 1.4; }
+.cg-fix-fit div::before { content: "+"; display: inline-block; width: 14px; font-weight: 800; color: #34d399; }
+.cg-fix-fit div.pair::before { content: "~"; color: #7fe6ff; }
+.cg-fix-fit div.clash::before { content: "!"; color: #fbbf24; }
 @media (max-width: 640px) { .cg-fix { grid-template-columns: minmax(0, 1fr); } }
 .cg-walls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .cg-wall { position: relative; padding: 14px 16px; border-radius: 16px;
@@ -705,7 +709,7 @@ def _engines(engines, type_map):
             + "".join(_engine(e, type_map) for e in engines) + "</div>")
 
 
-def _fix_card(target, pick):
+def _fix_card(target, pick, fit=None):
     """One fix that helps most: the biggest hole, and the swap the Team Completer finds for it."""
     hole, swap = target["hole"], target["swap"]
     why = ("nothing on your team beats it" if not hole["answers"] else f"only {hole['answers'][0]} beats it")
@@ -721,7 +725,28 @@ def _fix_card(target, pick):
             f'<span class="cg-fix-arrow">&rarr;</span>{_img(pick["name"])}</div>'
             f'<div><div class="cg-fix-hole"><img src="{escape(get_sprite(hole["name"]) or "")}" alt="">'
             f'Biggest hole: {escape(hole["name"])}, {why} (on {hole["usage"]:g}% of teams)</div>'
-            f'<div class="cg-fix-say">Swap <b>{escape(swap)}</b> for <b>{escape(pick["name"])}</b>: {gain}.</div></div></div>')
+            f'<div class="cg-fix-say">Swap <b>{escape(swap)}</b> for <b>{escape(pick["name"])}</b>: {gain}.</div>'
+            f'{_fit_lines(fit)}</div></div>')
+
+
+def _fit_lines(fit):
+    """How the pick fits the five it joins: the cores it powers or is powered by, ladder pairing, and clashes."""
+    if not fit:
+        return ""
+    lines = [("", x) for x in fit["cores"]] + ([("pair", fit["pairing"])] if fit["pairing"] else [])
+    lines += [("clash", x[:1].upper() + x[1:]) for x in fit["clashes"]]
+    return ('<div class="cg-fix-fit">' + "".join(f'<div class="{cls}">{escape(t)}</div>' for cls, t in lines) + "</div>"
+            if lines else "")
+
+
+@st.cache_data(show_spinner=False, max_entries=24)
+def _fit(rest_json, pick_json, format_id, month):
+    """fix_fit, cached per team and pick: the core finder runs the damage calc."""
+    try:
+        return engine_guide.fix_fit(json.loads(rest_json), json.loads(pick_json), format_id)
+    except Exception as e:   # a bonus line: never let it break the card
+        print(f"Fix fit failed: {e}")
+        return None
 
 
 def _open_recommendations(swap):
@@ -743,7 +768,8 @@ def _fix(team, format_id, g, month):
     pick = engine_guide.fix_pick(picks, target["hole"]["name"])
     if not pick:
         return
-    st.markdown(STYLE + _fix_card(target, pick), unsafe_allow_html=True)
+    fit = _fit(json.dumps(rest, sort_keys=True, default=str), json.dumps(pick, sort_keys=True, default=str), format_id, month)
+    st.markdown(STYLE + _fix_card(target, pick, fit), unsafe_allow_html=True)
     st.button("See all options", key="cg_fix_more", on_click=_open_recommendations, args=(target["swap"],))
 
 

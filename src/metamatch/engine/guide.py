@@ -471,6 +471,42 @@ def fix_pick(picks, hole):
     return next((c for c in useful if hole in c["covers"]), None) or (useful[0] if useful else None)
 
 
+def fix_fit(rest, pick, format_id):
+    """How the fix's pick fits the five it joins: {pairing, cores, clashes}, each a plain line or list of lines.
+    pairing: how often ladder players already run it with one of them (the Team Completer's lift, as on its cards).
+    cores: what a core it joins does for it, or what it powers up (its Drought for a Protosynthesis member), from the
+    same core finder the guide uses, measured with the calc. clashes: drawbacks the core brings to its own moves
+    (a Water move halved in the team's sun)."""
+    from metamatch.engine.completer import member_from_set
+    from metamatch.engine.sets import likely_set
+    out = {"pairing": None, "cores": [], "clashes": []}
+    # The pairing players lean on most: share of that member's teams running it, and how much above its usual rate
+    member, share, best = next(iter(pick.get("pairs") or []), (None, 0.0, 0.0))
+    if member and best >= 1.15:
+        times = f"{best:.0f}x" if best >= 10 else f"{best:.1f}x"
+        out["pairing"] = (f"Players run it on {share * 100:.0f}% of teams with {member}, {times} more often than usual"
+                          if best >= 1.5 else f"Players sometimes run it with {member}")
+    s = likely_set(pick["name"], format_id)
+    if not s:
+        return out
+    team = dict(rest)
+    team["_fix_pick"] = member_from_set(s, format_id)
+    name = team["_fix_pick"]["Pokemon"]
+    for e in synergy.team_engines(team, format_id):
+        if not e.complete:
+            continue
+        user = next((u for u in e.users if u.name == name and u.major), None)
+        if user:
+            out["cores"].append(synergy.headline(e, user))
+        elif any(st["name"] == name for st in e.setters):
+            helped = [u.name for u in e.users if u.major and u.name != name]
+            if helped:
+                out["cores"].append(f"It sets {synergy._label(e)} for {_and(helped)}")
+        own = f"{name}'s "
+        out["clashes"] += [d[len(own):] for d in e.drawbacks if d.startswith(own)]
+    return out
+
+
 def _add_abilities(guide, team, format_id):
     """One ability line on the win condition card (what it does for the sweep, measured where the calc can) and on
     a lead card when the ability acts the moment it comes in (Intimidate, Magic Bounce, Prankster...)."""

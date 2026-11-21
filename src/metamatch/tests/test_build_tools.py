@@ -675,5 +675,25 @@ class TestYourWalls(unittest.TestCase):
         self.assertAlmostEqual(burned[1][0][1]["percent"][1], plain[1][0][1]["percent"][1] / 2, delta=1.5)
 
 
+class TestFixFit(unittest.TestCase):
+    def test_pairing_line(self):
+        from metamatch.engine.guide import fix_fit
+        often = fix_fit({}, {"name": "Missingno", "pairs": [("Pelipper", 0.12, 57.5)]}, "gen9ou")
+        self.assertEqual(often["pairing"], "Players run it on 12% of teams with Pelipper, 58x more often than usual")
+        self.assertEqual(fix_fit({}, {"name": "Missingno", "pairs": [("Weavile", 0.05, 1.2)]}, "gen9ou")["pairing"],
+                         "Players sometimes run it with Weavile")
+        self.assertIsNone(fix_fit({}, {"name": "Missingno", "pairs": [("Weavile", 0.01, 0.9)]}, "gen9ou")["pairing"])
+
+    def test_the_pick_joins_the_teams_sun(self):
+        from metamatch.engine import calc
+        from metamatch.engine.guide import fix_fit
+        if not calc.available():
+            self.skipTest("No damage calc")
+        rest, _ = readTeam("Charizard @ Charizardite Y\nAbility: Blaze\nTimid Nature\nEVs: 252 SpA / 252 Spe\n"
+                           "- Flamethrower\n- Solar Beam", "gen9natdex")
+        fit = fix_fit(rest, {"name": "Raging Bolt", "pairs": []}, "gen9natdex")
+        self.assertTrue(any("Charizard's sun" in line for line in fit["cores"]), fit)
+
+
 if __name__ == "__main__":
     unittest.main()
