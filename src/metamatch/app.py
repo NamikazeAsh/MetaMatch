@@ -518,6 +518,18 @@ def _format_changed():
             storage.set_pref("format", picked)
 
 
+# What each format means, for players new to Showdown's ladders (the question mark next to the picker)
+FORMAT_HELP = (
+    "**OU (OverUsed):** Pokémon Showdown's main ladder for the latest generation, with the most popular Pokémon. "
+    "Tera allowed.\n\n"
+    "**UU (UnderUsed):** Pokémon that aren't used enough for OU. A good fit if your favorites aren't top tier.\n\n"
+    "**NatDex (National Dex):** the latest generation plus Pokémon from every past game and Mega Evolution. No Tera.\n\n"
+    "**Champions OU / UU:** Showdown's ladders for Pokémon Champions rules: level 50, Megas, stat points instead of "
+    "EVs, no Tera. You bring 3 of your 6.\n\n"
+    "Not sure? Start with OU."
+)
+
+
 def format_picker():
     """The one format picker, shared by Home, Quick Match and Move Search through session state."""
     with st.container(horizontal=True, vertical_alignment="center", horizontal_alignment="center", key="format_row"):
@@ -532,6 +544,7 @@ def format_picker():
             width="content",
             on_change=_format_changed,
         )
+        st.markdown("", help=FORMAT_HELP, width="content")
 
 
 def _icon(paths):
