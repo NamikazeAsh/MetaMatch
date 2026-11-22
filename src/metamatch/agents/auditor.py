@@ -28,6 +28,8 @@ SYSTEM = ("You are Brock, a calm, friendly Pokemon breeder who knows what ladder
           "Suggest only options that appear in the facts. Never add a move, item, ability, type, number, stat or Pokemon "
           "the facts do not state. If the facts do not settle the question, say what they do show.")
 OFFLINE = "_Brock is offline (Ollama isn't running), so here is the ladder data on its own._"
+# The shared web version has no model to start, so visitors get a plain line instead of setup advice
+SHARED = "_Brock's own advice is in the version you run on your computer. Here is the ladder data._"
 UNCHECKED = "_Brock's answer didn't pass the fact check this time, so here is the ladder data on its own._"
 
 
@@ -258,7 +260,7 @@ class AuditorAgent:
         facts = facts_for(query, team_context, plan)
         block = "\n".join(f"* {f}" for f in facts)
         if not ollama_available():
-            yield OFFLINE + "\n\n" + block
+            yield (OFFLINE if config.LOCAL_MODE else SHARED) + "\n\n" + block
             return
         user = "Facts:\n" + "\n".join(f"- {f}" for f in facts) + f"\n\nQuestion: {query}"
         feedback = None

@@ -19,11 +19,11 @@ Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is com
 
 Paste your team, and MetaMatch tells you what beats it, what it beats, how to lead, when to Tera and what to change, then lets you ask three coaches anything about it in plain words. *(Curious how well that holds up? The numbers are in [bench/README.md](bench/README.md).)*
 
-* ⚡ **Instant:** a full team analysis lands in about a second, with no GPU needed for anything but chat.
-* 🔌 **Works offline:** every analysis tab runs on the engine alone. The LLM is an upgrade, not a dependency.
-* 🔒 **Private:** on your own copy your teams never leave your machine, and on the web version they stay in your own browser. No API keys, no paid models.
-* 📡 **Always current:** MetaFlash turns every month of Smogon ladder data since Gen 9 began into a live meta front page, refreshed every month by CI.
-* 🔗 **Every team has a link:** dashboards live at their own URL, so refresh, bookmarks, Back and a second tab all just work.
+* **Instant:** a full team analysis lands in about a second, with no GPU needed for anything but chat.
+* **Works offline:** every analysis tab runs on the engine alone. The LLM is an upgrade, not a dependency.
+* **Private:** on your own copy your teams never leave your machine, and on the web version they stay in your own browser. No API keys, no paid models.
+* **Always current:** MetaFlash turns every month of Smogon ladder data since Gen 9 began into a live meta front page, refreshed every month by CI.
+* **Every team has a link:** dashboards live at their own URL, so refresh, bookmarks, Back and a second tab all just work.
 
 ![MetaMatch Dashboard](showcase/images/dashboard.webp)
 
@@ -116,13 +116,13 @@ graph LR
     P -->|"nothing exact to compute"| G["Say so, cite a guide, offer questions it can answer"]
 ```
 
-1. **Planner (zero LLM):** works out what the question asks (speed, damage, a KO, a type matchup, a set, a matchup, a game plan and so on) and which Pokémon, move and set are involved. Recognizes all 1,400+ species and formes in the bundled dex, plus nicknames (*Lando*, *Pult*, *Tusk*), regional shorthand (*G Slowking*), typos and Mega names, and follow ups like *"what about Gholdengo?"* or *"why?"*.
-2. **Detail reader (zero LLM):** picks up everything the question says about either side, like *"max speed"*, *"specs"*, *"tera fairy"*, *"+2 after a Dragon Dance"*, Reflect, rain or a pasted set, and knows which Pokémon it belongs to. It also reads battle conditions: Tailwind, Trick Room, a burn or paralysis, an HP percentage, Stealth Rock, Spikes or a critical hit, and the answer says what it counted. Anything it can't model, like Sticky Web, is named instead of dropped.
-3. **Solver:** computes the answer with the real damage calculator and the same functions the dashboard tabs use, so the chat and the tabs never disagree. Anything you didn't state comes from the most common ladder set, and the answer says which is which.
-4. **The answer is written by code:** the sentence that answers the question is a template filled in by the engine, never the model's guess. The exact numbers, and any Smogon analysis on the Pokémon, sit in a dropdown under it.
-5. **The coach adds a voice, checked:** the local model writes a short opener and one sentence on why. The opener may not state any fact. The why sentence must restate one of the engine's facts: every number, Pokémon, move and verdict is checked, and if it drifts, the engine's own sentence is shown instead.
-6. **No guessing:** a question the engine has no exact answer for gets an honest "can't work that out exactly", the closest Smogon guide or concept note as a cited card, and clickable questions it can answer.
-7. **Works without the model:** with no model running, each coach uses a stock opener and the engine's facts. That's how the web version runs.
+1. **Planner (no LLM):** works out what you're asking (speed, damage, a KO, a matchup, a set, a game plan) and which Pokémon and moves are involved. Knows all 1,400+ species and formes, nicknames like *Lando* and *Tusk*, typos, Mega names, and follow ups like *"what about Gholdengo?"*.
+2. **Detail reader (no LLM):** picks up what the question says about either side, like *"specs"*, *"tera fairy"*, *"+2 after a Dragon Dance"*, rain, Trick Room, a burn or Stealth Rock. Anything it can't model is named, not dropped.
+3. **Solver:** computes the answer with the real damage calculator and the same functions as the dashboard, so chat and tabs always agree. Anything you didn't state comes from the most common ladder set.
+4. **Written by code:** the answer sentence is filled in by the engine, never guessed by the model. The exact numbers and Smogon's take sit in a dropdown under it.
+5. **Checked voice:** the local model adds a short opener and one sentence on why. Every number, Pokémon and verdict in it is checked against the engine; if it drifts, the engine's own sentence is shown.
+6. **No guessing:** with no exact answer, it says so, offers questions it can answer, and cites the closest guide when running locally.
+7. **Works without the model:** the coaches fall back to stock openers and the engine's facts. That's how the web version runs.
 
 ---
 
@@ -320,7 +320,7 @@ The benchmarks, their results and the commands that run them are in [bench/READM
 | :----------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/metamatch/app.py`, `tabs/`              | Streamlit app, one module per tab                                                                                                                                                                                 |
 | `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, constraint parser, solvers, shared mechanics, name matching, Threat Board, Team Completer, Speed Tiers, Spread Lab, Matchup Preview, Team Check, Coach Guide |
-| `src/metamatch/agents/`                        | Manager (topic routing, follow ups, declines), the answer voice and its checks, open question fallback, the three coaches ([details](src/metamatch/agents/README.md))                                              |
+| `src/metamatch/agents/`                        | Manager (topic routing, follow ups, declines), the answer voice and its checks, open question fallback, the three coaches                                                                                          |
 | `src/metamatch/rag/`                           | Analyses for every SV format, usage cards, guides, chunking, hybrid ChromaDB + BM25 store ([details](src/metamatch/rag/README.md))                                                                                 |
 | `src/metamatch/team.py`                        | Showdown parser, role detection, type math, Mega handling                                                                                                                                                         |
 | `src/metamatch/suggestions.py`                 | Team audit and threat scoring                                                                                                                                                                                     |

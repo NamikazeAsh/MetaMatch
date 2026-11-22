@@ -695,5 +695,17 @@ class TestFixFit(unittest.TestCase):
         self.assertTrue(any("Charizard's sun" in line for line in fit["cores"]), fit)
 
 
+class TestTeraKeepsAbilityImmunities(unittest.TestCase):
+    def test_levitate_air_balloon_and_thick_fat_survive_tera(self):
+        from metamatch.engine.guide import team_guide
+        team, _ = readTeam("Gholdengo @ Air Balloon\nAbility: Good as Gold\nTera Type: Electric\n- Make It Rain\n- Thunderbolt\n\n"
+                           "Rotom-Wash @ Leftovers\nAbility: Levitate\nTera Type: Steel\n- Hydro Pump\n- Volt Switch\n\n"
+                           "Snorlax @ Leftovers\nAbility: Thick Fat\nTera Type: Grass\n- Body Slam\n- Curse", "gen9ou")
+        after = {x["name"]: x["after"] for x in team_guide(team, "gen9ou", rows=[]).tera}
+        self.assertEqual(after["Gholdengo"], [])                          # Tera Electric, but the balloon still floats
+        self.assertNotIn("Ground", after["Rotom-Wash"])                   # Levitate outlasts the Steel typing
+        self.assertFalse({"Fire", "Ice"} & set(after["Snorlax"]))         # Thick Fat still halves them
+
+
 if __name__ == "__main__":
     unittest.main()

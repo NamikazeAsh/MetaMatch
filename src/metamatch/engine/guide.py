@@ -51,6 +51,7 @@ class Member:
     types: list
     weak: list             # types that hit it for 2x or more
     tera: str = ""
+    kept: dict = field(default_factory=dict)   # what its ability or item does to a type, whatever its typing: {"Ground": 0.0}
 
 
 @dataclass
@@ -115,7 +116,21 @@ def member_facts(team, format_id, rows):
             types=list(p.get("Type") or []),
             weak=[t for t in TYPES if (p.get("Damage From") or {}).get(t.lower(), 1.0) >= 2],
             tera=p.get("Tera Type") or "",
+            kept=_kept(p),
         ))
+    return out
+
+
+def _kept(p):
+    """{type: multiplier} its ability or item applies whatever its typing, so it survives Terastallizing: Levitate and
+    Air Balloon's Ground immunity, Flash Fire's Fire immunity, Thick Fat halving Fire and Ice."""
+    from metamatch.team import ABILITY_IMMUNITIES, ABILITY_SCALES
+    ability = (p.get("Mega Ability") or p.get("Ability") or "").lower()
+    out = {t.capitalize(): f for t, f in ABILITY_SCALES.get(ability, {}).items()}
+    if ability in ABILITY_IMMUNITIES:
+        out[ABILITY_IMMUNITIES[ability].capitalize()] = 0.0
+    if (p.get("Item") or "").lower() == "air balloon":
+        out["Ground"] = 0.0
     return out
 
 
@@ -193,10 +208,6 @@ def _leads(members, n, win_name, setters=None, rates=None):
     return out
 
 
-def _weak_to(types):
-    return [t for t in TYPES if _mult(t, types) >= 2]
-
-
 def _mult(attack, types):
     x = 1.0
     for t in types:
@@ -221,7 +232,8 @@ def _tera(members, engines=()):
         if m.tera == "Stellar":
             after, note = list(m.weak), "Stellar keeps its own typing and boosts each attacking type once"
         else:
-            after = _weak_to([m.tera])
+            # The new typing's weaknesses, less what its ability or item still blocks (Levitate, Air Balloon...)
+            after = [t for t in TYPES if _mult(t, [m.tera]) * m.kept.get(t, 1.0) >= 2]
             boosted = [mv for mv, t in m.attacks if t == m.tera]
             verb = ("goes", "gains") if len(boosted) == 1 else ("go", "gain")
             if boosted and m.tera in m.types:

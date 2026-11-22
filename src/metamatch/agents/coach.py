@@ -18,6 +18,12 @@ from metamatch.rag.chunking import body
 # Chunks are 300 to 900 characters plus a header line; the cap guards against odd long ones
 RAG_CHARS = 1000
 OFFLINE_NOTE = "_Professor Oak is offline (Ollama isn't running), so only the engine's numbers are shown. Start Ollama for his advice._"
+# The shared web version has no model to start, so visitors get a plain line instead of setup advice
+SHARED_NOTE = "_Professor Oak's own advice is in the version you run on your computer. Here is what the engine found._"
+
+
+def _offline_note():
+    return OFFLINE_NOTE if config.LOCAL_MODE else SHARED_NOTE
 FAILED_NOTE = "_Professor Oak couldn't answer this time (the model call failed), so only the engine's numbers are shown._"
 RECOMMEND = re.compile(r"\b(answer|counter|handle|best|deal with|check|beat|use|great|ideal|recommend|switch|option|"
                        r"take (?:out|down)|viable|good|strong|effective|key|reliable|bring|send|lead with|pivot)", re.I)
@@ -323,7 +329,7 @@ Pokemon, and never call one an answer to something it loses to.
         notes = "".join(f"\n\n**{_source_label(h['metadata'])}**\n\n> {_trim(body(h['text']))}" for h in hits)
         dropdown = ((briefing.summary or "") + notes).strip()
         if not ollama_available():
-            yield OFFLINE_NOTE
+            yield _offline_note()
             if dropdown:
                 yield "\n\n" + dropdown
             return
@@ -333,7 +339,7 @@ Pokemon, and never call one an answer to something it loses to.
                 advice = self._advise(context, feedback)
             except Exception as e:  # LLM call failed: the engine check still stands on its own
                 print(f"Coach failed: {e}")
-                yield OFFLINE_NOTE if not ollama_available(ttl=0) else FAILED_NOTE
+                yield _offline_note() if not ollama_available(ttl=0) else FAILED_NOTE
                 if dropdown:
                     yield "\n\n" + dropdown
                 return

@@ -780,8 +780,7 @@ def render(type_map=None):
     format_id = config.team_format(team)
     section_header("Game plan", "Team Pilot Guide")
     label = config.FORMATS.get(format_id, {}).get("label", format_id)
-    st.caption(f"Built from your Threat Board, Speed and type matchups against the most used Pokémon in {label}. "
-               "Every line is calculated, not generated, so it only names moves your team actually runs.")
+    st.caption(f"How to play your team against the most used Pokémon in {label}, using only the moves your team runs.")
     with st.spinner("Writing your guide..."):
         g = _guide(json.dumps(team, sort_keys=True, default=str), format_id, _stats_month())
     if not g.win:
