@@ -694,16 +694,16 @@ def team_page():
     asked = tour.pending_tab(st.session_state)
     if asked:
         st.session_state["dashboard_tab"] = asked
-    (tab_overview, tab3, tab4, tab_rec, tab_matrix, tab7, tab8, tab_chat) = st.tabs(
+    (tab_overview, tab8, tab3, tab4, tab_rec, tab_matrix, tab7, tab_chat) = st.tabs(
         list(DASHBOARD_TABS), on_change="rerun", key="dashboard_tab")
     tabs = [
         (tab_overview, lambda: tab_overview_mod.render(coverage, weakness, team_data, TYPE_MAP)),
+        (tab8, lambda: tab_coach_guide.render(TYPE_MAP)),
         (tab3, tab_audit.render),
         (tab4, lambda: tab_threats.render(team_data)),
         (tab_rec, lambda: tab_recommender_mod.render(team_data, st.session_state.pokemon_names)),
         (tab_matrix, lambda: tab_matrix_mod.render(team_data, TYPE_MAP)),
         (tab7, lambda: tab_speed_tiers.render(team_data, TYPE_MAP)),
-        (tab8, lambda: tab_coach_guide.render(TYPE_MAP)),
         (tab_chat, tab_chat_mod.render if config.CHAT_ENABLED else tab_chat_mod.render_disabled),
     ]
     for tab, draw in tabs:

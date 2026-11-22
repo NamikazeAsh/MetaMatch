@@ -37,14 +37,14 @@ STEPS = (
          "The team's style, the jobs it covers and every member's set. Hover a member for who it beats one on one "
          "and how fast it really is."),
     Step("team", '.st-key-dashboard_tab [role="tablist"]', "Go deeper",
-         "Each tab looks at the team one way: types, legality, threats, teammates, type charts, Speed and a game "
-         "plan.", tab="Team Overview"),
+         "Each tab looks at the team one way: types, a game plan, legality, threats, teammates, type charts and "
+         "Speed.", tab="Team Overview"),
+    Step("team", ".cg-win", "Coach Guide",
+         "A game plan from the damage calculator: the win condition, the leads, what to watch out for and the pairs "
+         "that cover each other.", tab="Coach Guide"),
     Step("team", "table.tb", "Threat Board",
          "Your six against the 12 most used Pokémon, one matchup at a time, every verdict from the damage "
          "calculator. Hover a cell for the numbers.", tab="Threat Board"),
-    Step("team", ".cg-win", "Coach Guide",
-         "A game plan written from those numbers: the win condition, the leads, the Tera plan and the pairs that "
-         "cover each other.", tab="Coach Guide"),
     Step("team", ".st-key-speed_chart_card", "Speed Tiers",
          "Your real Speed against every spread the top Pokémon run. Hover a dot for the spreads behind it, and test "
          "a Speed under the chart to see what it costs.", tab="Speed Tiers"),
