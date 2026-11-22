@@ -707,5 +707,23 @@ class TestTeraKeepsAbilityImmunities(unittest.TestCase):
         self.assertFalse({"Fire", "Ice"} & set(after["Snorlax"]))         # Thick Fat still halves them
 
 
+class TestSpeedShareCountsScarf(unittest.TestCase):
+    def test_a_scarf_minority_lowers_the_ladder_share(self):
+        import re
+        from metamatch.engine import calc
+        from metamatch.engine.sets import likely_set
+        if not calc.available() or not likely_set("Dragapult", "gen9championsou"):
+            self.skipTest("No damage calc or Champions data")
+        from metamatch.agents import AgentManager
+        team, w = readTeam("Garchomp @ Choice Scarf\nAbility: Rough Skin\nLevel: 50\nEVs: 2 HP / 32 Atk / 32 Spe\nJolly Nature\n"
+                           "- Earthquake\n- Dragon Claw", "gen9championsou")
+        out = "".join(AgentManager().get_response("Does my Garchomp outspeed Dragapult?", team, w))
+        share = int(re.search(r"Garchomp outspeeds (\d+)%", out).group(1))
+        scarf = likely_set("Dragapult", "gen9championsou")["scarf_share"]
+        self.assertLess(share, 100)                                   # Scarf Dragapult outspeeds Scarf Garchomp
+        self.assertAlmostEqual(share / 100, 1 - scarf, delta=0.02)
+        self.assertIn("carry Choice Scarf", out)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -169,6 +169,10 @@ def _spread_label(plan, s, spec, game):
     return f"running its most common spread ({describe_spread(s, game) if s else 'an uninvested spread'}"
 
 
+# A Choice Scarf share this large gets its own line in a Speed answer, even when Scarf isn't the most common item
+SCARF_NOTE = 0.1
+
+
 def _stats(game, spec, move):
     r = calc.calculate({"game": game, "attacker": spec, "defender": spec, "move": move})
     return r["attacker_stats"] if r else None
@@ -269,16 +273,21 @@ def solve_speed(plan, dex, game):
     plain = (not trick_room and not any(c.side in ("opponent", "both") for c in situation)
              and stated not in mechanics.OPP_SPEED_ITEMS and not plan.opp_overrides.get("boosts"))
     if s and s["speeds"] and not told and plain:
-        faster = sum(share for spe, share in s["speeds"] if spe < us)
-        tied = sum(share for spe, share in s["speeds"] if spe == us)
+        # Choice Scarf and Booster Energy sets mixed in at their ladder shares, as the Threat Board and guide do
+        scarf, booster = s.get("scarf_share", 0.0), s.get("booster_share", 0.0)
+        faster = mechanics.scarf_adjusted_share(us, s["speeds"], scarf, booster)
+        tied = mechanics.scarf_adjusted_tie(us, s["speeds"], scarf, booster)
         facts.append(f"Across all {name} sets on the ladder, {_user_name(p)} outspeeds {_pct(faster)} and ties {_pct(tied)}.")
         typed.append(Fact("speed", f"{cap(me)} outspeeds {_pct(faster)} of ladder {name} sets"
                                    + (f" and ties {_pct(tied)}." if tied >= 0.005 else "."),
                           {"outspeeds_share": round(faster, 3), "ties_share": round(tied, 3)}))
-    if s and s.get("item") == "Choice Scarf" and "item" not in plan.opp_overrides and not plan.opp_overrides.get("no_speed_item"):
-        facts.append(f"{_pct(s['item_share'])} of {name} carry Choice Scarf, reaching {int(them * 1.5)} Speed.")
-        typed.append(Fact("usage", f"{_pct(s['item_share'])} of ladder {name} sets hold Choice Scarf, which takes it to "
-                                   f"{int(them * 1.5)} Speed.", {"item": "Choice Scarf", "share": s["item_share"],
+    # A Scarf share worth knowing, even when Scarf isn't its most common item (23% of Champions Dragapult)
+    scarf_share = s.get("scarf_share", 0.0) if s else 0.0
+    if (s and scarf_share >= SCARF_NOTE and "item" not in plan.opp_overrides and not plan.opp_overrides.get("no_speed_item")
+            and stated not in mechanics.OPP_SPEED_ITEMS):
+        facts.append(f"{_pct(scarf_share)} of {name} carry Choice Scarf, reaching {int(them * 1.5)} Speed.")
+        typed.append(Fact("usage", f"{_pct(scarf_share)} of ladder {name} sets hold Choice Scarf, which takes it to "
+                                   f"{int(them * 1.5)} Speed.", {"item": "Choice Scarf", "share": scarf_share,
                                                                  "speed": int(them * 1.5)}, role="why"))
     if s and s.get("item") == "Booster Energy" and not stated and not plan.raw_stats and opp_speed_spec is not spec:
         boosted = mechanics.final_speed(spec, game, move, _speed_field(plan, "opponent", situation))
