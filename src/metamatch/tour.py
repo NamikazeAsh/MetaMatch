@@ -37,8 +37,8 @@ STEPS = (
          "The team's style, the jobs it covers and every member's set. Hover a member for who it beats one on one "
          "and how fast it really is."),
     Step("team", '.st-key-dashboard_tab [role="tablist"]', "Go deeper",
-         "Each tab looks at the team one way: types, a game plan, legality, threats, teammates, type charts and "
-         "Speed.", tab="Team Overview"),
+         "Each tab looks at the team one way: a game plan, types, legality, threats, teammates, type charts and "
+         "Speed.", tab="Coach Guide"),
     Step("team", ".cg-win", "Coach Guide",
          "A game plan from the damage calculator: the win condition, the leads, what to watch out for and the pairs "
          "that cover each other.", tab="Coach Guide"),

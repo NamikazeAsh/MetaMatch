@@ -8,7 +8,7 @@ from html import escape
 import streamlit as st
 
 # The team page's analysis tabs, in order (the guided tour opens them by these labels)
-DASHBOARD_TABS = ("Team Overview", "Coach Guide", "Audit", "Threat Board", "Recommendations", "Matchup Matrices",
+DASHBOARD_TABS = ("Coach Guide", "Team Overview", "Audit", "Threat Board", "Recommendations", "Matchup Matrices",
                   "Speed Tiers", "Coach Chat")
 
 CSS = """
