@@ -49,8 +49,9 @@ STEPS = (
          "Your real Speed against every spread the top Pokémon run. Hover a dot for the spreads behind it, and test "
          "a Speed under the chart to see what it costs.", tab="Speed Tiers"),
     Step("quick-match", '[class*="st-key-quick_match_select_"]', "Quick Match",
-         "The tools live in the top bar (in the menu on a phone). No team yet? Pick one to five Pokémon here and get "
-         "the partners players really build with them in this format."),
+         "The tools live in the top bar (in the menu on a phone). No team yet? Build one from scratch here: start "
+         "with a Pokémon you love, add the partners players really build with it, then analyze the team or take it "
+         "to Showdown."),
     Step("move-search", ".st-key-move_search_select", "Move Search",
          "Pick a few moves and find every set that runs all of them, from the Smogon Strategy Dex and ladder usage."),
     Step("spread-lab", '[class*="st-key-slrow_"]', "Spread Lab",

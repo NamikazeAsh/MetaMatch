@@ -255,10 +255,14 @@ def spread_text(nature, evs, game):
     return f"{nature} {parts or 'no investment'}" + (" (stat points)" if game == "champions" else "")
 
 
-def showdown_block(name, item, ability, nature, evs, moves):
+def showdown_block(name, item, ability, nature, evs, moves, level=None, tera=None):
     lines = [f"{name}{' @ ' + item if item else ''}"]
     if ability:
         lines.append(f"Ability: {ability}")
+    if level:
+        lines.append(f"Level: {level}")
+    if tera:
+        lines.append(f"Tera Type: {tera}")
     spread = " / ".join(f"{v} {LABELS[k]}" for k, v in evs.items() if v)
     if spread:
         lines.append(f"EVs: {spread}")

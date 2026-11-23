@@ -725,5 +725,67 @@ class TestSpeedShareCountsScarf(unittest.TestCase):
         self.assertIn("carry Choice Scarf", out)
 
 
+class TestQuickMatchBuilder(unittest.TestCase):
+    """Quick Match's builder: each pick gets a full set and the team reads back as a legal Showdown paste."""
+
+    def _read(self, paste, format_id):
+        team, _ = readTeam(paste, format_id)
+        return list(team.values())
+
+    def test_ladder_set_is_complete_with_tera_in_sv(self):
+        from metamatch.engine.builder import member_set, team_paste
+        s = member_set("Gholdengo", "gen9ou")
+        self.assertEqual(s["species"], "Gholdengo")
+        self.assertEqual(len(s["moves"]), 4)
+        paste = team_paste([s], "gen9ou")
+        self.assertIn("Tera Type:", paste)
+        self.assertNotIn("Level:", paste)
+
+    def test_mega_is_written_as_base_species_with_its_stone(self):
+        from metamatch.engine.builder import member_set, team_paste
+        paste = team_paste([member_set("Charizard-Mega-Y", "gen9natdex")], "gen9natdex")
+        self.assertTrue(paste.startswith("Charizard @ Charizardite Y"))
+        self.assertNotIn("Tera Type:", paste)
+        self.assertNotIn("Mega", self._read(paste, "gen9natdex")[0].get("Pokemon", "Mega"))
+
+    def test_champions_paste_is_level_50_in_stat_points(self):
+        from metamatch.engine.builder import member_set, team_paste
+        s = member_set("Garchomp", "gen9championsou")
+        self.assertTrue(all(v <= 32 for v in s["evs"].values()))
+        paste = team_paste([s], "gen9championsou")
+        self.assertIn("Level: 50", paste)
+        self.assertNotIn("Tera Type:", paste)
+
+    def test_smogon_set_is_filled_in_from_the_ladder(self):
+        from metamatch.engine.builder import member_set
+        smogon = {"moves": ["Earthquake", "Stone Edge", "U-turn", "Grass Knot", "Stealth Rock"],
+                  "item": "Choice Scarf", "ability": "None", "nature": ["Jolly", "Naive"], "teratypes": ["Ground"]}
+        s = member_set("Landorus-Therian", "gen9ou", smogon)
+        self.assertEqual(s["item"], "Choice Scarf")
+        self.assertEqual(s["nature"], "Jolly")
+        self.assertEqual(s["tera"], "Ground")
+        self.assertTrue(s["ability"])   # 'None' in Smogon's data falls back to the ladder's ability
+        self.assertEqual(len(s["moves"]), 4)
+        self.assertNotIn("Stealth Rock", s["moves"])   # a Choice item locks out status moves
+
+    def test_smogon_options_match_the_forme(self):
+        from metamatch.engine.builder import smogon_options
+        data = {"Charizard": {"sets": {"Wallbreaker (NatDex)": {"item": "Charizardite Y"},
+                                       "Dragon Dance (NatDex)": {"item": "Charizardite X"},
+                                       "Boots (NatDex)": {"item": "Heavy-Duty Boots"},
+                                       "Boots (OU)": {"item": "Heavy-Duty Boots"}}}}
+        self.assertEqual(smogon_options("Charizard-Mega-Y", data, "NatDex"), ["Wallbreaker (NatDex)"])
+        self.assertEqual(smogon_options("Charizard", data, "NatDex"), ["Boots (NatDex)"])
+        self.assertEqual(smogon_options("Charizard", data, "Champions OU"), [])
+
+    def test_full_team_round_trips(self):
+        from metamatch.engine.builder import member_set, team_paste
+        names = ["Gholdengo", "Great Tusk", "Kingambit", "Dragonite", "Landorus-Therian", "Samurott-Hisui"]
+        paste = team_paste([member_set(n, "gen9ou") for n in names], "gen9ou")
+        members = self._read(paste, "gen9ou")
+        self.assertEqual(len(members), 6)
+        self.assertTrue(all(m.get("Type") for m in members))
+
+
 if __name__ == "__main__":
     unittest.main()

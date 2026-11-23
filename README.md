@@ -204,7 +204,7 @@ Most recommenders suggest whatever is popular. The Team Completer picks your nex
 * **Fills missing roles:** flags picks that add a hazard setter, hazard removal or a pivot.
 * **Calls out filler:** popular picks that wouldn't fix anything are shown separately, so you don't waste the slot.
 * **Works with full teams too:** choose the member you'd swap and get its replacements.
-* **Quick Match:** no team yet? Pick 1 to 5 Pokémon and get the partners players actually build with them in your format, with the numbers on hover.
+* **Quick Match:** no team yet? Pick a few Pokémon, add the partners players actually build with them in your format, and get every member's most common set (or a Smogon set). Then analyze the team in one click, copy it into Showdown, or share it as a PokéPaste link.
 
 ### Speed Tiers
 

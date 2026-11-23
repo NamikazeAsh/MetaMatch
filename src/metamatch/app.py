@@ -728,10 +728,11 @@ def team_page():
 
 def quick_match_page():
     tour.redirect("quick-match", _tour_go)
-    page_header("Team building", "Quick Match", "No team yet? Pick a core and get the partners that pair best with it on the ladder.",
+    page_header("Team building", "Quick Match",
+                "No team yet? Pick a core, add the partners that pair best with it, then analyze it or export it to Showdown.",
                 st.session_state.get("format_id"))
     format_picker()
-    tab_quick_match.render(get_master_strategy_data)
+    tab_quick_match.render(get_master_strategy_data, open_team, TYPE_MAP)
     tour.render()
 
 
