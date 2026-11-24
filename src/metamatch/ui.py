@@ -41,6 +41,9 @@ def _meta(format_id):
     if not format_id:
         return ""
     label = config.format_info(format_id)["label"]
+    # Showdown's Scarlet and Violet formats name their generation; Champions is its own game
+    if config.format_game(format_id) == "sv":
+        label = f"Gen 9 {label}"
     month = meta_pulse.month_label(meta_pulse.current_month())
     return f'<div class="ui-ph-meta"><b>{escape(label)}</b> · {escape(month)}<br>Smogon usage stats</div>'
 

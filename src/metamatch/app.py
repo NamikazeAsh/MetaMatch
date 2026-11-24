@@ -515,10 +515,11 @@ def _format_changed():
 
 # What each format means, for players new to Showdown's ladders (the question mark next to the picker)
 FORMAT_HELP = (
-    "**OU (OverUsed):** Pokémon Showdown's main ladder for the latest generation, with the most popular Pokémon. "
-    "Tera allowed.\n\n"
-    "**UU (UnderUsed):** Pokémon that aren't used enough for OU. A good fit if your favorites aren't top tier.\n\n"
-    "**NatDex (National Dex):** the latest generation plus Pokémon from every past game and Mega Evolution. No Tera.\n\n"
+    "**OU (OverUsed):** Pokémon Showdown's main Gen 9 ladder (the latest generation), with the most popular "
+    "Pokémon. Tera allowed.\n\n"
+    "**UU (UnderUsed):** Gen 9 Pokémon that aren't used enough for OU. A good fit if your favorites aren't top "
+    "tier.\n\n"
+    "**NatDex (National Dex):** Gen 9 plus Pokémon from every past game and Mega Evolution. No Tera.\n\n"
     "**Champions OU / UU:** Showdown's ladders for Pokémon Champions rules: level 50, Megas, stat points instead of "
     "EVs, no Tera. You bring 3 of your 6.\n\n"
     "Not sure? Start with OU."
