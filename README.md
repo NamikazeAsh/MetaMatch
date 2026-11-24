@@ -252,10 +252,12 @@ A game plan for your team.
 
 Gen 9 **OU, UU, National Dex**, plus **Pokémon Champions OU and UU** with Level 50 stats, stat points instead of EVs, and full Mega Evolution support.
 
-### Set Finder & Move Search
+### Move Search
 
-* **Verified Sets:** official Smogon Strategy Dex sets with full spreads.
-* **Experimental Matches:** Pokémon the ladder runs with your move combo, including niche tech nobody has written up yet.
+* **Every Pokémon with your moves:** pick up to four moves and see who runs them in your format, from Smogon sets to the ladder, sorted by usage.
+* **How often they come together:** the share of sets that must run all of your moves at once, so you know a combo is real and not two separate sets.
+* **Hidden picks:** Pokémon that can learn every move but rarely run them, and the ones that run all but one.
+* **Straight into your team:** add any result to Quick Match in one click, with its Smogon set picked.
 
 ### Replay Auditor
 

@@ -52,8 +52,9 @@ STEPS = (
          "The tools live in the top bar (in the menu on a phone). No team yet? Build one from scratch here: start "
          "with a Pokémon you love, add the partners players really build with it, then analyze the team or take it "
          "to Showdown."),
-    Step("move-search", ".st-key-move_search_select", "Move Search",
-         "Pick a few moves and find every set that runs all of them, from the Smogon Strategy Dex and ladder usage."),
+    Step("move-search", '[class*="st-key-move_search_select_"]', "Move Search",
+         "Pick a few moves and find every Pokémon that runs all of them, from Smogon sets and the ladder down to "
+         "hidden picks that learn them. Add any of them to your team in one click."),
     Step("spread-lab", '[class*="st-key-slrow_"]', "Spread Lab",
          "Say what a Pokémon has to do: outspeed a threat, OHKO or 2HKO a target, survive a hit. It finds the smallest "
          "spread that does all of it and checks it with the calculator."),

@@ -485,11 +485,6 @@ def render_team_sidebar():
 def get_master_strategy_data():
     return strategy_data.ensure_strategy_data()
 
-@st.cache_resource
-def get_usage_data():
-    return strategy_data.load_usage_stats()
-
-
 # No st.logo: it forces a sidebar onto every page, and only Home has sidebar content
 LOGO_FILE = Path(__file__).parent / "static" / "logo.png"
 
@@ -738,10 +733,10 @@ def quick_match_page():
 
 def move_search_page():
     tour.redirect("move-search", _tour_go)
-    page_header("Research", "Move Search", "Find sets that run a combination of moves, from the Strategy Dex and ladder usage.",
+    page_header("Research", "Move Search", "Pick moves and find every Pokémon that runs them, or can learn them, in this format.",
                 st.session_state.get("format_id"))
     format_picker()
-    tab_move_search.render(get_master_strategy_data, get_usage_data, TYPE_MAP)
+    tab_move_search.render(get_master_strategy_data, TYPE_MAP, lambda: st.switch_page(TOOL_PAGES["quick-match"]))
     tour.render()
 
 
@@ -787,6 +782,10 @@ TOOL_PAGES = {
     "replay-auditor": st.Page(replay_page, title="Replay Auditor", icon=":material/smart_display:", url_path="replay-auditor"),
 }
 nav = st.navigation([HOME_PAGE, TEAM_PAGE, *TOOL_PAGES.values()], position="top")
+# Streamlit drops a widget's value on any run that doesn't draw it, so the Quick Match team, its sets and the Move
+# Search picks would vanish on a trip to another page. Writing each value back to itself keeps it across pages.
+for _key in [k for k in st.session_state if str(k).startswith(("quick_match_select_", "qm_set_", "move_search_select_"))]:
+    st.session_state[_key] = st.session_state[_key]
 nav.run()
 # Shared deployment: after the page has drawn, read this browser's saved teams (first run of a visit) or write
 # back whatever changed

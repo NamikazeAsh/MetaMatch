@@ -250,11 +250,27 @@ def _team(core, format_id, strat_data, label, open_team_fn, type_map, key):
         open_team_fn(paste, format_id)
 
 
+def take_pending(format_id, key):
+    """Pokemon added from Move Search (tab_move_search._add) join the team before the picker draws, with the
+    Smogon set they were found on picked."""
+    pending = st.session_state.pop(f"qm_pending_{format_id}", None)
+    if not pending:
+        return
+    team = list(st.session_state.get(key) or [])
+    for name, set_name in pending:
+        if name not in team and len(team) < TEAM_SIZE:
+            team.append(name)
+            if set_name:
+                st.session_state[f"qm_set_{format_id}_{name}"] = set_name
+    st.session_state[key] = team
+
+
 def render(get_strat_data_fn, open_team_fn, type_map):
     format_id = st.session_state.get("format_id") or config.DEFAULT_FORMAT
     label = config.format_info(format_id)["label"]
     st.caption(f"Pick up to 6 Pokémon in {label}. Add partners to build a team, then analyze it or take it to Showdown.")
     key = f"quick_match_select_{format_id}"
+    take_pending(format_id, key)
     core = st.multiselect("Your team (up to 6)", options=_options(format_id), max_selections=TEAM_SIZE,
                           placeholder="Search for a Pokémon...", key=key)
     if not core:
