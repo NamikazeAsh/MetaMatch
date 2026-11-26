@@ -71,6 +71,24 @@ def mega_analysis(base, forme, moves, format_id):
     return "The play", preview, rest
 
 
+def refresh(key):
+    """Re-fetch one source's analyses from the mirror into the cache (the index build calls this), keeping the old
+    cache when the mirror can't be reached."""
+    if key not in SOURCES:
+        return
+    try:
+        import requests
+        resp = requests.get(MIRROR.format(key), timeout=20)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:   # offline: the build uses the cache it has
+        print(f"Smogon analyses for {key} not refreshed: {e}")
+        return
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    (CACHE_DIR / f"{key}.json").write_text(json.dumps(data), encoding="utf-8")
+    _load.cache_clear()
+
+
 @lru_cache(maxsize=None)
 def _load(key):
     """One source's analyses: the local cache, else fetched once from the pkmn.github.io mirror and kept. The cache is

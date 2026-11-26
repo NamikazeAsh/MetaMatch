@@ -49,6 +49,23 @@ def split_paragraphs(paras, lo=MIN_CHARS, hi=MAX_CHARS):
     return [c for c in out if len(c) >= 40]
 
 
+DANGLING = re.compile(r"^(?:However|Additionally|Furthermore|Moreover|Also|Alternatively|Otherwise|Similarly|Likewise|"
+                      r"Meanwhile|Instead|Therefore|Thus|Conversely|That said|On the other hand|In addition|As such|"
+                      r"This|These|It|Its|They|Their|That)\b", re.I)
+
+
+def join_dangling(pieces, hi=MAX_CHARS + TAIL_SLACK):
+    """Merges a piece that opens mid argument ('However, ...', 'It also ...') into the one before it when the two
+    fit together, so a chunk never starts by pointing at text it doesn't contain."""
+    out = []
+    for p in pieces:
+        if out and DANGLING.match(p) and len(out[-1]) + 1 + len(p) <= hi:
+            out[-1] += " " + p
+        else:
+            out.append(p)
+    return out
+
+
 def body(text):
     """A chunk's text without its header line, for prompts and source lists."""
     first, _, rest = text.partition("\n")

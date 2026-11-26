@@ -54,12 +54,14 @@ Players don't ask textbook questions. They say *"can my tusk tank a specs bundle
 
 When the coaches give strategy advice, they first look up the relevant Smogon analyses, ladder stats and guides. That lookup was rebuilt from scratch, and answers show which sources were used.
 
-| | Before | Now |
-| :--- | :---: | :---: |
-| Right source found first | 74% | **94%** |
-| Top result contains the exact move or term you asked about | 55% | **95%** |
+| | Before | Development set | Blind held out set |
+| :--- | :---: | :---: | :---: |
+| Right source found first | 74% | **90%** | **93%** |
+| Right source in the top 5 | | 95% | 96% |
+| Top result contains the exact move or term you asked about | 55% | **90%** | 60% |
 
-* **Covers OU, UU and National Dex**, and keeps every answer inside the format you're playing.
+* **Two question sets:** 65 development questions written while the lookup was built, and 80 held out questions written blind (slang, typos, no answer questions) by an agent that never saw the code. The held out set's "exact term" checks were guessed without reading the analyses, so some of those terms never appear in them.
+* **Covers OU, UU, National Dex and Champions OU**, and keeps every answer inside the format you're playing.
 * **Most of the win came from cleaning the data**, not from a bigger model. A heavier AI ranking model was tested and dropped because it was slower and less accurate.
 
 ## Team Building and the Coach Guide

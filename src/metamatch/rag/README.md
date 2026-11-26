@@ -27,7 +27,7 @@ Professor Oak (and Brock, for one supporting passage) answers strategy questions
 
 ## Benchmark
 
-`python bench/rag/score.py` scores 65 strategy questions through the production path: recall@1 went from 0.74 (old index, dense only) to 0.94, and the key term reaching the top hit from 0.55 to 0.95. A small cross encoder reranker was tested and rejected (lower recall@1, 870 ms slower).
+`python bench/rag/score.py` scores 65 development questions through the production path, and `--queries heldout_queries.jsonl` 80 held out ones written blind. recall@1 went from 0.74 (old index, dense only) to 0.90 on the development set and 0.93 on the held out set; `--save` and `--compare` run a paired permutation test between two indexes. A small cross encoder reranker was tested and rejected (lower recall@1, 870 ms slower).
 
 ## Rebuilding
 

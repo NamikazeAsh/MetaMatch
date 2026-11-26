@@ -48,6 +48,19 @@ def load_concepts():
     return chunks
 
 
+def dedupe(chunks):
+    """Drops exact repeats (the same passage under the same header), keeping the first."""
+    seen, out = set(), []
+    for c in chunks:
+        key = c["text"].strip()
+        if key not in seen:
+            seen.add(key)
+            out.append(c)
+    if len(out) < len(chunks):
+        print(f"Dropped {len(chunks) - len(out)} duplicate chunks.")
+    return out
+
+
 def main():
     print("Starting Knowledge Base construction...")
     chunks = scraper.fetch_smogon_strategies()
@@ -62,7 +75,7 @@ def main():
     if not chunks:
         print("No data fetched. Aborting.")
         return
-    store.rebuild_index(chunks)
+    store.rebuild_index(dedupe(chunks))
     print("Done! Knowledge Base is ready.")
 
 

@@ -3,8 +3,8 @@ Local RAG store: Chroma for dense vectors (BAAI/bge-small-en-v1.5) plus an in me
 fused with reciprocal rank fusion. Exact terms ("Knock Off", "Tera Fairy") are where the small
 embedder is weakest and BM25 strongest; chunks about a Pokemon the question names get a small boost.
 Retrieval is scoped to the format: its own analyses and usage cards, plus game wide guides and concepts.
-Measured on bench/rag (65 queries): recall@1 0.74 with the old index and plain dense search, 0.97 with
-clean chunks, headers, the query prefix, BM25 fusion and the name boost.
+Measured on bench/rag: recall@1 0.74 with the old index and plain dense search; with clean chunks, headers,
+the query prefix, BM25 fusion and the name boost, 0.90 on the 65 development queries and 0.93 on 80 held out ones.
 """
 import json
 import math
@@ -171,6 +171,9 @@ def _formats_for(format_id, metadatas):
     formats = {format_id, "any"}
     if format_id not in have and config.format_game(format_id) == "sv":
         formats.add(config.DEFAULT_FORMAT)
+    # Champions UU has no analyses of its own; OU's cover the same Pokemon and mechanics
+    if format_id == "gen9championsuu":
+        formats.add("gen9championsou")
     return formats
 
 
@@ -236,7 +239,8 @@ def query_strategies(query, n_results=3, format_id=None, names=None, keep=None):
         names = find_pokemon(query)
     named = {n.lower() for n in names or ()}
     for i in score:
-        if (metas[i].get("pokemon") or "").lower() in named:
+        # A Mega's set chunk is filed under the Mega with its base as "species", so either name counts
+        if (metas[i].get("pokemon") or "").lower() in named or (metas[i].get("species") or "").lower() in named:
             score[i] += NAME_BOOST
     top = sorted(score, key=score.get, reverse=True)[:n_results]
     return [{"id": ids[i], "text": docs[i], "metadata": metas[i], "distance": distance.get(i)} for i in top]
