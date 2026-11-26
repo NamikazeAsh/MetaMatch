@@ -631,7 +631,7 @@ SAMPLE_TEAMS_FILE = config.JSON_DIR / "sample_teams.json"
 @st.cache_data(show_spinner=False)
 def sample_teams():
     """[{title, author, source, format, team}]: real ladder teams saved from pokepast.es, so the sample button never
-    needs the network. The guided tour and the showcase keep the fixed SAMPLE_TEAM, so their steps always match."""
+    needs the network. The guided tour keeps the fixed SAMPLE_TEAM, so its steps always match."""
     import json
     try:
         return json.loads(SAMPLE_TEAMS_FILE.read_text(encoding="utf-8"))
@@ -643,8 +643,7 @@ def open_sample_team():
     """'Try a sample team': a random one of the saved samples, never the one opened last, credited on the team page."""
     import random
     samples = sample_teams()
-    # The showcase capture sets METAMATCH_FIXED_SAMPLE so its screenshots match their captions
-    if not samples or os.getenv("METAMATCH_FIXED_SAMPLE"):
+    if not samples:
         open_team(SAMPLE_TEAM, "gen9ou")
         return
     last = st.session_state.get("last_sample")

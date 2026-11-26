@@ -9,7 +9,7 @@
 
 Built with [Streamlit](https://streamlit.io/), [Ollama](https://ollama.com/), the [Smogon damage calc](https://github.com/smogon/damage-calc) and [ChromaDB](https://www.trychroma.com/).
 
-**[Try it live](https://metamatch.streamlit.app)** or **[take the visual tour](showcase/)**, every screen of the app with real data and real coach answers.
+**[Try it live](https://metamatch.streamlit.app)**
 
 **MetaMatch** is a hybrid AI system for competitive Pokémon team analysis that runs on your own laptop, with a free web version to try it. It pairs a deterministic battle engine (the official Smogon damage calculator, monthly ladder statistics, type and role logic) with a small local LLM, on one principle:
 
@@ -25,7 +25,7 @@ Paste your team, and MetaMatch tells you what beats it, what it beats, how to le
 * **Always current:** MetaFlash turns every month of Smogon ladder data since Gen 9 began into a live meta front page, refreshed every month by CI.
 * **Every team has a link:** dashboards live at their own URL, so refresh, bookmarks, Back and a second tab all just work.
 
-![MetaMatch Dashboard](showcase/images/dashboard.webp)
+![MetaMatch Dashboard](assets/dashboard.webp)
 
 ---
 
@@ -132,7 +132,7 @@ graph LR
 
 The home screen opens on a magazine style front page of what the ladder is doing right now, for whichever format you pick.
 
-![MetaFlash](showcase/images/metaflash.webp)
+![MetaFlash](assets/metaflash.webp)
 
 * **Story of the month:** the biggest move in the top 10, with its usage, rank change, standard set, common partners, a 12 month chart and its all time peak.
 * **Top 10 leaderboard:** usage bars in each Pokémon's type colour and rank changes versus last month.
