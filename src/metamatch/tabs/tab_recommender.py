@@ -167,3 +167,57 @@ def render(team_data: dict, pokemon_names: list):
                 st.markdown(STYLE + _card(c, holes, dim=True, current=weakest), unsafe_allow_html=True)
     st.caption("\"Beats\" means it wins one on one on both Pokémon's most common sets, worked out by the damage calculator. "
                "Pairing comes from this month's ladder teams; hover a chip for the numbers.")
+    _teams_like_yours(members, format_id)
+
+
+NEAR_STYLE = """
+<style>
+.tl-row { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:10px 14px; margin:8px 0; border-radius:12px;
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); }
+.tl-mons { display:flex; gap:2px; }
+.tl-mons span { position:relative; display:inline-grid; place-items:center; width:46px; height:46px; border-radius:50%; }
+.tl-mons span.shared { background:radial-gradient(circle, rgba(0,212,255,.18), transparent 70%); }
+.tl-mons span.extra { background:radial-gradient(circle, rgba(250,204,21,.22), transparent 70%); }
+.tl-mons span.extra::after { content:"+"; position:absolute; right:2px; top:0; font-weight:900; font-size:.8rem; color:#facc15; }
+.tl-mons img { width:42px; height:42px; object-fit:contain; }
+.tl-meta { font-size:.8rem; color:#aab3c5; }
+.tl-meta b { color:#fff; }
+.tl-meta a { color:#7fe6ff; text-decoration:none; } .tl-meta a:hover { text-decoration:underline; }
+.tl-sub { font-size:.84rem; color:#d6dbe6; margin:6px 0; }
+.tl-sub b { color:#fff; }
+</style>
+"""
+
+
+def _month(ts):
+    import time
+    return time.strftime("%b %Y", time.gmtime(ts)) if ts else ""
+
+
+def _teams_like_yours(members, format_id):
+    """The closest real ladder teams (engine/team_neighbors), with what they run where yours differs."""
+    from metamatch.engine import team_neighbors
+    near = team_neighbors.neighbors(members, format_id, k=20)
+    if not near:
+        return
+    section_header("Real ladder teams", "Teams like yours")
+    st.caption(f"The {len(near)} real ladder teams closest to yours, from public Showdown replays. Members you share "
+               "are lit up, theirs you don't run are marked +. Each links to a game it played.")
+    rows = []
+    for r in near[:5]:
+        mons = "".join(
+            f'<span class="{"shared" if n in r["shared"] else "extra"}" title="{escape(n)}">'
+            f'<img src="{escape(get_sprite(n) or "")}" alt="{escape(n)}"></span>' for n in r["team"])
+        rating = f"<b>{r['rating']:,}</b> rated · " if r["rating"] else ""
+        link = f'<a href="https://replay.pokemonshowdown.com/{escape(r["replays"][0])}" target="_blank" rel="noopener">Watch a game</a>'
+        rows.append(f'<div class="tl-row"><div class="tl-mons">{mons}</div><div class="tl-meta">Shares '
+                    f'<b>{len(r["shared"])} of {len(members)}</b> · {rating}{_month(r["time"])} · {link}</div></div>')
+    subs = team_neighbors.substitutions(members, near)
+    lines = []
+    for name, s in sorted(subs.items(), key=lambda kv: -kv[1]["without"]):
+        if s["without"] < 3 or not s["instead"]:
+            continue
+        runs = ", ".join(f"{escape(x)} ({n})" for x, n in s["instead"])
+        lines.append(f'<div class="tl-sub"><b>{s["without"]} of {len(near)}</b> don&#39;t run {escape(name)}. '
+                     f'Those teams run {runs}.</div>')
+    st.html(NEAR_STYLE + "".join(rows) + "".join(lines[:3]))

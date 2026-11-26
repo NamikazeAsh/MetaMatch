@@ -198,6 +198,7 @@ Your whole team against the format's 12 most used Pokémon, one matchup at a tim
 * **Hover for the full story:** who moves first, the best hit each way and how many hits each side needs.
 * **Spot your holes:** threats with no answer or only one are called out, along with your weakest matchup.
 * **Ask in chat:** *"what checks Kyurem?"* gets the same answer in words.
+* **See it in a real game:** for the threat you pick, a link to a public ladder replay where a team sharing several of your members knocked it out, with the turn it happened.
 
 ### Team Completer
 
@@ -208,6 +209,7 @@ Most recommenders suggest whatever is popular. The Team Completer picks your nex
 * **Fills missing roles:** flags picks that add a hazard setter, hazard removal or a pivot.
 * **Calls out filler:** popular picks that wouldn't fix anything are shown separately, so you don't waste the slot.
 * **Works with full teams too:** choose the member you'd swap and get its replacements.
+* **Teams like yours:** the real ladder teams closest to yours, from public Showdown replays, with links to their games and what they run where your team differs ("17 of your 20 closest teams don't run Gholdengo; those teams run Slowking-Galar").
 * **Quick Match:** no team yet? Pick a few Pokémon, add the partners players actually build with them in your format, and get every member's most common set (or a Smogon set). Then analyze the team in one click, copy it into Showdown, or share it as a PokéPaste link.
 
 ### Speed Tiers

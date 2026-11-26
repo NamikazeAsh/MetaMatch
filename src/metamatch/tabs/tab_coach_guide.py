@@ -221,6 +221,8 @@ STYLE = """
   background: rgba(248,113,113,.05); border: 1px solid rgba(248,113,113,.25); }
 .cg-threat img { width: 48px; height: 48px; object-fit: contain; }
 .cg-threat .nm { font-weight: 700; }
+.cg-real { font-size: .76rem; color: #aab3c5; margin-top: 6px; line-height: 1.4; }
+.cg-real a { color: #7fe6ff; text-decoration: none; white-space: nowrap; } .cg-real a:hover { text-decoration: underline; }
 .cg-threat small { color: #fca5a5; font-size: .82rem; }
 .cg-threat .cg-ans { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: .8rem; color: #c8d1e0; line-height: 1.3; }
 .cg-threat .cg-ans img { width: 24px; height: 24px; flex: none; }
@@ -542,14 +544,30 @@ def _answer_line(a, cls=""):
             f'<span>{escape(a["text"])}</span></div>')
 
 
-def _watch(watch):
+def _precedent(names, threat, format_id):
+    """'See it in a real game': a public ladder replay where a team like yours knocked this threat out."""
+    if not names:
+        return ""
+    try:
+        from metamatch.engine import precedents
+        p = precedents.precedent(names, threat, format_id)
+    except Exception:   # no corpus for this format: no link, never an error
+        return ""
+    if not p:
+        return ""
+    url = f"https://replay.pokemonshowdown.com/{escape(p['id'])}"
+    return (f'<div class="cg-real">{escape(precedents.line(p))} '
+            f'<a href="{url}" target="_blank" rel="noopener">See it in a real game</a></div>')
+
+
+def _watch(watch, names=(), format_id=None):
     if not watch:
         return ""
     cards = "".join(
         f'<div class="cg-threat">{_img(w["name"])}<div><div class="nm">{escape(w["name"])}</div>'
         f'<small>{escape(w["text"])} · on {w["usage"]:g}% of teams</small>'
         + _answer_line(w.get("switch"), "" if (w.get("switch") or {}).get("safe") else "warn")
-        + _answer_line(w.get("revenge")) + '</div></div>' for w in watch)
+        + _answer_line(w.get("revenge")) + _precedent(names, w["name"], format_id) + '</div></div>' for w in watch)
     return f'<div class="cg-head">Watch out for</div><div class="cg-watch">{cards}</div>'
 
 
@@ -791,7 +809,8 @@ def render(type_map=None):
         st.markdown(STYLE + _engines(g.engines, type_map), unsafe_allow_html=True)
     left, right = st.columns(2)
     with left:
-        st.markdown(STYLE + _leads(g.leads) + _watch(g.watch), unsafe_allow_html=True)
+        names = [p.get("Pokemon") for p in team.values()]
+        st.markdown(STYLE + _leads(g.leads) + _watch(g.watch, names, format_id), unsafe_allow_html=True)
     with right:
         # The Mega section where Mega Evolution is allowed (Champions, National Dex), the Tera plan where Tera is
         plan = ((_mega(g.mega, type_map) if config.has_megas(format_id) else "")

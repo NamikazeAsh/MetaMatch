@@ -122,6 +122,20 @@ def _cards(names, threat, row, kind):
     return '<div class="tb-cards">' + "".join(out) + "</div>"
 
 
+def _precedent(members, threat, format_id, answers=()):
+    """A public ladder replay where a team sharing several of your members knocked this threat out."""
+    try:
+        from metamatch.engine import precedents
+        p = precedents.precedent(members, threat, format_id, prefer=answers)
+    except Exception:   # no corpus for this format: nothing to show
+        return ""
+    if not p:
+        return ""
+    url = f"https://replay.pokemonshowdown.com/{escape(p['id'])}"
+    return (f'<div class="tb-note">{escape(precedents.line(p))} '
+            f'<a href="{url}" target="_blank" rel="noopener" style="color:#7fe6ff">See it in a real game</a></div>')
+
+
 def render(team_data):
     format_id = config.team_format(team_data)
     label = config.format_info(format_id)["label"]
@@ -158,7 +172,8 @@ def render(team_data):
     with left:
         st.markdown(STYLE + f'<div class="tb-head">Answers to {escape(pick)} ({len(r["answers"])})</div>'
                     + _cards(r["answers"], pick, r, "win")
-                    + (f'<div class="tb-note">Smogon\'s checks data agrees on {escape(", ".join(r["cc"]))}.</div>' if r["cc"] else ""),
+                    + (f'<div class="tb-note">Smogon\'s checks data agrees on {escape(", ".join(r["cc"]))}.</div>' if r["cc"] else "")
+                    + _precedent(members, pick, format_id, r["answers"]),
                     unsafe_allow_html=True)
     with right:
         st.markdown(STYLE + f'<div class="tb-head">Loses to {escape(pick)} ({len(r["losses"])})</div>'
