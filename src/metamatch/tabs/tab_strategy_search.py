@@ -31,6 +31,7 @@ STYLE = """
 .ss-body { font-size:.9rem; color:#d6dbe6; line-height:1.55; margin-top:10px; }
 .ss-src { font-size:.76rem; color:#8a93a6; margin-top:10px; }
 .ss-src a { color:#7fe6ff; text-decoration:none; } .ss-src a:hover { text-decoration:underline; }
+[class*="st-key-ss_ex_"] button { padding:4px 14px !important; border-radius:999px !important; }
 </style>
 """
 
@@ -64,7 +65,7 @@ def _source(meta, format_id):
         url = "https://www.smogon.com/dex/" + DEX.get(fmt, DEX["gen9ou"]).format(_slug(meta.get("pokemon") or species)) + "/"
         writers = _writers(species, fmt)
         by = f" by {escape(writers)}" if writers else ""
-        return f'From Smogon&#39;s analysis{by}. <a href="{url}" target="_blank" rel="noopener">Read the full analysis</a>'
+        return f'From Smogon&#39;s analysis{by}. <a href="{url}" target="_blank" rel="noopener">Read the full analysis on Smogon</a>'
     if src == "smogon_guide":
         url = meta.get("url")
         link = f' <a href="{escape(url)}" target="_blank" rel="noopener">Read the guide</a>' if url else ""
@@ -90,7 +91,20 @@ def _hit(h, format_id, type_map):
     kicker = meta.get("section") or ""
     return (f'<div class="ss-hit" style="--tc:{color};--tc1a:{color}1a;--tc44:{color}44"><div class="ss-top">{img}<div>'
             f'<div class="ss-k">{escape(kicker)}</div><div class="ss-t">{escape(title or kicker)}</div></div></div>'
-            f'<div class="ss-body">{escape(body(h["text"]))}</div><div class="ss-src">{_source(meta, format_id)}</div></div>')
+            f'<div class="ss-body">{escape(_excerpt(body(h["text"]), meta))}</div><div class="ss-src">{_source(meta, format_id)}</div></div>')
+
+
+def _excerpt(text, meta):
+    """Smogon's and Pokechamp's writing shows as a two sentence excerpt that points to the full piece, so the
+    search sends readers to the source rather than republishing it. MetaMatch's own notes and ladder cards show
+    in full."""
+    if meta.get("source") not in ("smogon_analysis", "smogon_guide", "pokechamp"):
+        return text
+    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+    short = " ".join(sentences[:2])
+    if len(short) > 360:
+        short = short[:357].rsplit(" ", 1)[0] + "..."
+    return short + (" ..." if len(sentences) > 2 and not short.endswith("...") else "")
 
 
 def _ask(question):
@@ -102,11 +116,12 @@ def render(type_map=None):
     format_id = st.session_state.get("format_id") or config.DEFAULT_FORMAT
     label = config.format_info(format_id)["label"]
     section_header("Ask the analyses", "Strategy Search")
-    st.caption(f"Ask a strategy question and get the closest passages from Smogon's {label} analyses, quoted as "
-               "written and linked to the full analysis. The full Coach Chat runs when MetaMatch is on your own computer.")
+    st.caption(f"Search Smogon's {label} analyses with a strategy question. Each result is a short excerpt with a link "
+               "to the full analysis. The Coach Chat runs when MetaMatch is on your own computer.")
     question = st.text_input("Question", key="strategy_search_q", label_visibility="collapsed",
                              placeholder="For example: how do I beat Kingambit?")
     if not question:
+        st.html(STYLE)
         with st.container(horizontal=True):
             for ex in EXAMPLES["champions" if config.format_game(format_id) == "champions" else "sv"]:
                 st.button(ex, key=f"ss_ex_{ex}", type="tertiary", on_click=_ask, args=(ex,))
