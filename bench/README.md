@@ -62,6 +62,7 @@ When the coaches give strategy advice, they first look up the relevant Smogon an
 
 * **Two question sets:** 65 development questions written while the lookup was built, and 80 held out questions written blind (slang, typos, no answer questions) by an agent that never saw the code. The held out set's "exact term" checks were guessed without reading the analyses, so some of those terms never appear in them.
 * **Covers OU, UU, National Dex and Champions OU**, and keeps every answer inside the format you're playing.
+* **The same search on the live site:** Strategy Search runs a lighter version that needs no graphics card (static embeddings in place of the neural model, same keyword search and ranking). It scores 90% on the development set and 96% on the held out set for the right source first, level with the full version (no difference is significant on these sets), and answers in about 10 ms.
 * **Most of the win came from cleaning the data**, not from a bigger model. A heavier AI ranking model was tested and dropped because it was slower and less accurate.
 
 ## Team Building and the Coach Guide

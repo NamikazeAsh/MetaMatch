@@ -7,9 +7,12 @@ from html import escape
 
 import streamlit as st
 
-# The team page's analysis tabs, in order (the guided tour opens them by these labels)
+from metamatch import config
+
+# The team page's analysis tabs, in order (the guided tour opens them by these labels). Without a local model the
+# last tab searches the strategy analyses instead of chatting (tabs/tab_strategy_search.py)
 DASHBOARD_TABS = ("Coach Guide", "Team Overview", "Audit", "Threat Board", "Recommendations", "Matchup Matrices",
-                  "Speed Tiers", "Coach Chat")
+                  "Speed Tiers", "Coach Chat" if config.CHAT_ENABLED else "Strategy Search")
 
 CSS = """
 <style>

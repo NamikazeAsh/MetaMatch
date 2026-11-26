@@ -132,12 +132,7 @@ def _tokens(text):
 def _corpus(count):
     """(ids, documents, metadatas, BM25 term stats) for the whole collection; `count` keys the cache to the index."""
     data = get_collection().get(include=["documents", "metadatas"])
-    terms = [Counter(_tokens(d)) for d in data["documents"]]
-    lengths = [sum(t.values()) for t in terms]
-    df = Counter(w for t in terms for w in t)
-    n = len(terms) or 1
-    idf = {w: math.log(1 + (n - k + 0.5) / (k + 0.5)) for w, k in df.items()}
-    return data["ids"], data["documents"], data["metadatas"], terms, lengths, (sum(lengths) / n) or 1, idf
+    return corpus_stats(data["ids"], data["documents"], data["metadatas"])
 
 
 @lru_cache(maxsize=1)
@@ -207,8 +202,7 @@ def query_strategies(query, n_results=3, format_id=None, names=None, keep=None):
     corpus = _corpus(count)
     ids, docs, metas = corpus[0], corpus[1], corpus[2]
     formats = _formats_for(format_id, metas)
-    allowed = [i for i, m in enumerate(metas) if m.get("game") in (game, "any") and m.get("play") == "singles"
-               and m.get("format", "any") in formats and (keep is None or keep(m))]
+    allowed = allowed_rows(metas, format_id, keep)
     if not allowed:
         return []
     query = canonical(query)
@@ -228,6 +222,33 @@ def query_strategies(query, n_results=3, format_id=None, names=None, keep=None):
         dense_rows = [allowed[j] for j in order]
         distance = {allowed[j]: float(1 - sims[j]) for j in order}
 
+    top = fuse(query, allowed, corpus, dense_rows, names, n_results)
+    return [{"id": ids[i], "text": docs[i], "metadata": metas[i], "distance": distance.get(i)} for i in top]
+
+
+def corpus_stats(ids, docs, metas):
+    """The (ids, documents, metadatas, BM25 term stats) tuple fuse() ranks over, for any list of chunks."""
+    terms = [Counter(_tokens(d)) for d in docs]
+    lengths = [sum(t.values()) for t in terms]
+    df = Counter(w for t in terms for w in t)
+    n = len(terms) or 1
+    idf = {w: math.log(1 + (n - k + 0.5) / (k + 0.5)) for w, k in df.items()}
+    return ids, docs, metas, terms, lengths, (sum(lengths) / n) or 1, idf
+
+
+def allowed_rows(metas, format_id, keep=None):
+    """Rows a question in `format_id` may see: this game's (or game wide) singles chunks for the format."""
+    game = config.format_game(format_id)
+    formats = _formats_for(format_id, metas)
+    return [i for i, m in enumerate(metas) if m.get("game") in (game, "any") and m.get("play") == "singles"
+            and m.get("format", "any") in formats and (keep is None or keep(m))]
+
+
+def fuse(query, allowed, corpus, dense_rows, names=None, n_results=3):
+    """The shared ranking, for the Chroma store and rag/lite alike: reciprocal rank fusion of the dense ranking
+    and BM25 over the allowed rows, plus a small boost for chunks about a Pokemon the question names. `query` is
+    already canonical. Returns row indexes, best first."""
+    metas = corpus[2]
     lexical = _bm25(query, allowed, corpus)
     lexical_rows = sorted(lexical, key=lexical.get, reverse=True)[:POOL]
     score = Counter()
@@ -242,5 +263,4 @@ def query_strategies(query, n_results=3, format_id=None, names=None, keep=None):
         # A Mega's set chunk is filed under the Mega with its base as "species", so either name counts
         if (metas[i].get("pokemon") or "").lower() in named or (metas[i].get("species") or "").lower() in named:
             score[i] += NAME_BOOST
-    top = sorted(score, key=score.get, reverse=True)[:n_results]
-    return [{"id": ids[i], "text": docs[i], "metadata": metas[i], "distance": distance.get(i)} for i in top]
+    return sorted(score, key=score.get, reverse=True)[:n_results]

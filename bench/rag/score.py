@@ -76,6 +76,8 @@ def main():
     ap.add_argument("--save")
     ap.add_argument("--compare", nargs=2)
     ap.add_argument("--show", action="store_true")
+    ap.add_argument("--backend", choices=("chroma", "lite"), default="chroma",
+                    help="chroma: the local store (bge small); lite: rag/lite (static embeddings, runs on the web)")
     args = ap.parse_args()
     if args.compare:
         compare(*args.compare)
@@ -84,14 +86,22 @@ def main():
     from metamatch.rag import store
 
     queries = [json.loads(line) for line in open(HERE / args.queries, encoding="utf-8") if line.strip()]
-    store.get_model()
+    if args.backend == "lite":
+        from metamatch.rag import lite
+        t0 = time.perf_counter()
+        lite.index()
+        print(f"lite index built in {time.perf_counter() - t0:.1f} s")
+        search = lite.query_strategies
+    else:
+        store.get_model()
+        search = store.query_strategies
     n = r1 = r3 = r5 = mrr = nd = s_n = s1 = s3 = oak = nogold = served = 0
     latency, misses, per_query = [], [], {}
     for q in queries:
         t0 = time.perf_counter()
-        hits = store.query_strategies(q["query"], n_results=10, format_id=q["format"])
+        hits = search(q["query"], n_results=10, format_id=q["format"])
         latency.append(time.perf_counter() - t0)
-        oak_hits = references(q["query"], {}, format_id=q["format"])
+        oak_hits = references(q["query"], {}, format_id=q["format"]) if args.backend == "chroma" else []
         if q["gold"] == []:
             nogold += 1
             served += len(oak_hits)

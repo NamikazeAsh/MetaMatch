@@ -111,6 +111,32 @@ class TestCorpusFixes(unittest.TestCase):
         self.assertIn("gen9championsou", formats)
 
 
+class TestSharedRanking(unittest.TestCase):
+    """store.fuse ranks the Chroma store and rag/lite alike; tested on a tiny corpus with no model."""
+
+    def setUp(self):
+        docs = ["Pokemon: Kingambit | Section: Overview | Format: SV OU analysis\nKingambit cleans late game with Sucker Punch.",
+                "Pokemon: Gholdengo | Section: Overview | Format: SV OU analysis\nGholdengo blocks hazard removal.",
+                "Pokemon: Concept | Section: Entry Hazards | Format: concept\nStealth Rock chips every switch in.",
+                "Pokemon: Kingambit | Section: Overview | Format: SV UU analysis\nA UU passage about Kingambit."]
+        metas = [{"pokemon": "Kingambit", "game": "sv", "play": "singles", "format": "gen9ou"},
+                 {"pokemon": "Gholdengo", "game": "sv", "play": "singles", "format": "gen9ou"},
+                 {"pokemon": "Concept", "game": "any", "play": "singles", "format": "any"},
+                 {"pokemon": "Kingambit", "game": "sv", "play": "singles", "format": "gen9uu"}]
+        self.corpus = store.corpus_stats(["a", "b", "c", "d"], docs, metas)
+
+    def test_allowed_rows_keep_the_format_and_game_wide_chunks(self):
+        self.assertEqual(store.allowed_rows(self.corpus[2], "gen9ou"), [0, 1, 2])
+
+    def test_keyword_match_ranks_first_with_no_dense_signal(self):
+        top = store.fuse("stealth rock chip", [0, 1, 2], self.corpus, dense_rows=[], names=[], n_results=3)
+        self.assertEqual(top[0], 2)
+
+    def test_named_pokemon_wins_a_tie(self):
+        top = store.fuse("late game cleaner", [0, 1, 2], self.corpus, dense_rows=[1, 0], names=["Kingambit"], n_results=2)
+        self.assertEqual(top[0], 0)
+
+
 class TestBenchmarkStats(unittest.TestCase):
     def setUp(self):
         import importlib.util

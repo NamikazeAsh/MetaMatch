@@ -169,6 +169,10 @@ Three coaches, each answering the questions in their area:
 * **Points you to the full picture:** answers name the dashboard tab that shows more, and offer clickable follow up questions.
 * **Help that teaches:** an empty chat opens on three coach cards with what each one answers, how to ask, and example questions to click.
 
+### Strategy Search
+
+On the live site, where no local model runs, the coach tab becomes Strategy Search. Ask a strategy question and get the closest passages from Smogon's analyses for your format, quoted as written, with the writers credited and a link to the full analysis. It uses the same search as the coaches, so the answers come from the same sources.
+
 ### Real Damage Calculator
 
 * Every damage roll, KO and Speed number comes from **Smogon's official damage calculator**, the same one Showdown players use.

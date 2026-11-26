@@ -32,7 +32,7 @@ from metamatch.tabs import (
     tab_quick_match, tab_move_search, tab_replay,
     tab_overview as tab_overview_mod, tab_audit, tab_threats,
     tab_coach_guide, tab_recommender as tab_recommender_mod, tab_matrix as tab_matrix_mod,
-    tab_speed_tiers, tab_chat as tab_chat_mod, tab_meta_pulse, tab_spread_lab, tab_preview,
+    tab_speed_tiers, tab_chat as tab_chat_mod, tab_meta_pulse, tab_spread_lab, tab_preview, tab_strategy_search,
 )
 
 st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
@@ -713,7 +713,8 @@ def team_page():
         (tab_rec, lambda: tab_recommender_mod.render(team_data, st.session_state.pokemon_names)),
         (tab_matrix, lambda: tab_matrix_mod.render(team_data, TYPE_MAP)),
         (tab7, lambda: tab_speed_tiers.render(team_data, TYPE_MAP)),
-        (tab_chat, tab_chat_mod.render if config.CHAT_ENABLED else tab_chat_mod.render_disabled),
+        # Without a local model (the web deploy) the tab searches the strategy analyses instead
+        (tab_chat, tab_chat_mod.render if config.CHAT_ENABLED else lambda: tab_strategy_search.render(TYPE_MAP)),
     ]
     for tab, draw in tabs:
         if tab.open:

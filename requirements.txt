@@ -7,3 +7,5 @@ pandas
 altair
 Pillow
 fpdf2
+tokenizers
+safetensors
