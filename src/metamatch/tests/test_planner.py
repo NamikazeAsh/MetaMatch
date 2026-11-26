@@ -55,6 +55,12 @@ class TestPlannerIntents(unittest.TestCase):
     def plan(self, query, team=None):
         return plan_query(query, self.sv if team is None else team)
 
+    def test_how_the_team_does_in_the_meta_is_the_team_score(self):
+        for q in ("how does my team do in the current meta", "how would this team fare on the ladder",
+                  "is my team viable in the current meta", "how does my team stack up"):
+            self.assertEqual(self.plan(q).intent, "score", q)
+        self.assertEqual(self.plan("how does my team work").intent, "gameplan")
+
     def test_speed(self):
         p = self.plan("Is Great Tusk faster than Dragapult?")
         self.assertEqual((p.intent, p.user["Pokemon"], p.opponent), ("speed", "Great Tusk", "Dragapult"))

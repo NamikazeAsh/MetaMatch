@@ -91,7 +91,11 @@ FACING_RE = re.compile(r"\b(?:against|vs\.?|versus|beat\w*|counter\w*|deal\w*|ha
 # "is my team good", "rate my team": the broken down team score (engine/team_score.py)
 SCORE_RE = re.compile(r"\b(?:is|how good is|how strong is) (?:this|my|our) team(?: (?:good|any good|viable|decent|strong|"
                       r"bad|ok|okay|fine))?\b|\b(?:rate|grade|score|judge|review) (?:this|my|our) team\b|"
-                      r"\bteam (?:score|rating|grade)\b|\bhow (?:good|bad|strong|solid) is (?:this|my|our) team\b", re.I)
+                      r"\bteam (?:score|rating|grade)\b|\bhow (?:good|bad|strong|solid) is (?:this|my|our) team\b|"
+                      # "how does my team do in the current meta", "how would this team fare on the ladder"
+                      r"\bhow (?:does|do|will|would|is) (?:this|my|our) team (?:do|doing|fare|faring|hold up|perform|stack up|"
+                      r"match up|look)\b|\bis (?:this|my|our) team (?:meta|viable|good|any good) (?:in|on|for) (?:the|this)\b",
+                      re.I)
 TERA_PLAN_RE = re.compile(r"\b(?:who|which (?:mon|pokemon|member|one)) (?:should|do|would|can) (?:i |we )?(?:tera|terastal\w*)\b|"
                           r"\btera (?:plan|target|user|candidate)s?\b|\bwhen (?:should|do) (?:i|we) (?:tera|terastal\w*)\b|"
                           r"\b(?:best|good) (?:tera|terastal\w*) (?:user|target|candidate)\b", re.I)

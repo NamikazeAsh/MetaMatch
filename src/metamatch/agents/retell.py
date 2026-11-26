@@ -58,7 +58,9 @@ def template(meta, recent=()):
         title = meta.get("title") or section
         options = (f"Good question. Here's the gist of {title.lower()}:", f"Let me explain {title.lower()}:")
     elif meta.get("source") == "smogon_guide":
-        options = ("There's a fine old guide on just this. In short:", "An older guide put it well:")
+        # A guide is matched by topic, not by name, so Oak doesn't claim it settles the question
+        options = ("I can't settle that one exactly, but here's how an older guide puts it:",
+                   "That goes beyond what I can work out exactly. An older guide puts it this way:")
     elif meta.get("source") == "smogon_stats":
         options = (f"Here's what the ladder shows for {who}:",) if who else ("Here's what the ladder shows:",)
     else:
