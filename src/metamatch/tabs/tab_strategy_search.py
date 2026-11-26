@@ -16,10 +16,6 @@ from metamatch.ui import section_header
 SHOW = 4
 EXAMPLES = {"sv": ("How do I beat Kingambit?", "What does Gholdengo do on hyper offense?", "When should I Terastallize?"),
             "champions": ("How do I use Mega Charizard Y?", "What partners does Garchomp want?", "How is Champions different?")}
-# Smogon dex pages per format (the analysis a passage came from)
-DEX = {"gen9ou": "sv/pokemon/{}/ou", "gen9uu": "sv/pokemon/{}/uu", "gen9natdex": "sv/pokemon/{}/national-dex",
-       "gen9championsou": "champions/pokemon/{}/ou", "gen9championsuu": "champions/pokemon/{}/ou"}
-
 STYLE = """
 <style>
 .ss-hit { border-radius:14px; padding:14px 16px; margin:10px 0; background:linear-gradient(160deg, var(--tc1a), rgba(255,255,255,.015) 60%);
@@ -31,6 +27,7 @@ STYLE = """
 .ss-body { font-size:.9rem; color:#d6dbe6; line-height:1.55; margin-top:10px; }
 .ss-src { font-size:.76rem; color:#8a93a6; margin-top:10px; }
 .ss-src a { color:#7fe6ff; text-decoration:none; } .ss-src a:hover { text-decoration:underline; }
+.ss-oak { font-size:1rem; font-weight:700; color:#e6edf7; margin:6px 2px 4px; }
 [class*="st-key-ss_ex_"] button { padding:4px 14px !important; border-radius:999px !important; }
 </style>
 """
@@ -42,10 +39,6 @@ def _ready():
     from metamatch.rag import lite
     lite.index()
     return True
-
-
-def _slug(name):
-    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
 def _writers(species, format_id):
@@ -62,7 +55,8 @@ def _source(meta, format_id):
     if src == "smogon_analysis":
         species = meta.get("species") or meta.get("pokemon")
         fmt = meta.get("format") or format_id
-        url = "https://www.smogon.com/dex/" + DEX.get(fmt, DEX["gen9ou"]).format(_slug(meta.get("pokemon") or species)) + "/"
+        from metamatch.rag.cards import analysis_url
+        url = analysis_url(meta.get("pokemon") or species, fmt) or analysis_url(meta.get("pokemon") or species, "gen9ou")
         writers = _writers(species, fmt)
         by = f" by {escape(writers)}" if writers else ""
         return f'From Smogon&#39;s analysis{by}. <a href="{url}" target="_blank" rel="noopener">Read the full analysis on Smogon</a>'
@@ -77,7 +71,7 @@ def _source(meta, format_id):
     return "A MetaMatch concept note."
 
 
-def _hit(h, format_id, type_map):
+def _hit(h, format_id, type_map, question=""):
     from metamatch.engine.dex import dex_for_format
     from metamatch.rag.chunking import body
     meta = h["metadata"]
@@ -91,20 +85,20 @@ def _hit(h, format_id, type_map):
     kicker = meta.get("section") or ""
     return (f'<div class="ss-hit" style="--tc:{color};--tc1a:{color}1a;--tc44:{color}44"><div class="ss-top">{img}<div>'
             f'<div class="ss-k">{escape(kicker)}</div><div class="ss-t">{escape(title or kicker)}</div></div></div>'
-            f'<div class="ss-body">{escape(_excerpt(body(h["text"]), meta))}</div><div class="ss-src">{_source(meta, format_id)}</div></div>')
+            f'<div class="ss-body">{escape(_excerpt(body(h["text"]), meta, question))}</div><div class="ss-src">{_source(meta, format_id)}</div></div>')
 
 
-def _excerpt(text, meta):
-    """Smogon's and Pokechamp's writing shows as a two sentence excerpt that points to the full piece, so the
-    search sends readers to the source rather than republishing it. MetaMatch's own notes and ladder cards show
-    in full."""
+def _excerpt(text, meta, question=""):
+    """Smogon's and Pokechamp's writing shows as the two sentences that best answer the question (agents/retell
+    picks them), pointing to the full piece, so the search sends readers to the source rather than republishing
+    it. MetaMatch's own notes and ladder cards show in full."""
     if meta.get("source") not in ("smogon_analysis", "smogon_guide", "pokechamp"):
         return text
-    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
-    short = " ".join(sentences[:2])
-    if len(short) > 360:
-        short = short[:357].rsplit(" ", 1)[0] + "..."
-    return short + (" ..." if len(sentences) > 2 and not short.endswith("...") else "")
+    from metamatch.agents.retell import best_sentences
+    short = " ".join(best_sentences(question, text, k=2))
+    if len(short) > 420:
+        short = short[:417].rsplit(" ", 1)[0] + "..."
+    return short + (" ..." if short != text.strip() and not short.endswith("...") else "")
 
 
 def _ask(question):
@@ -137,4 +131,7 @@ def render(type_map=None):
     if not hits:
         st.caption(f"Nothing in the {label} analyses matches that yet.")
         return
-    st.html(STYLE + "".join(_hit(h, format_id, type_map) for h in hits))
+    # Oak's line over the results: a template by what the top passage is, never by what it says (agents/retell)
+    from metamatch.agents.retell import template
+    oak = f'<div class="ss-oak">{escape(template(hits[0]["metadata"]))}</div>'
+    st.html(STYLE + oak + "".join(_hit(h, format_id, type_map, question) for h in hits))

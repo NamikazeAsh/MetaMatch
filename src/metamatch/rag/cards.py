@@ -71,6 +71,18 @@ def mega_analysis(base, forme, moves, format_id):
     return "The play", preview, rest
 
 
+# Smogon dex pages per format, for "read the full analysis" links
+DEX_PATHS = {"gen9ou": "sv/pokemon/{}/ou", "gen9uu": "sv/pokemon/{}/uu", "gen9natdex": "sv/pokemon/{}/national-dex",
+             "gen9championsou": "champions/pokemon/{}/ou", "gen9championsuu": "champions/pokemon/{}/ou"}
+
+
+def analysis_url(pokemon, format_id):
+    """The Smogon dex page holding a Pokemon's analysis for a format, or None."""
+    path = DEX_PATHS.get(format_id)
+    slug = re.sub(r"[^a-z0-9]+", "-", (pokemon or "").lower()).strip("-")
+    return f"https://www.smogon.com/dex/{path.format(slug)}/" if path and slug else None
+
+
 def refresh(key):
     """Re-fetch one source's analyses from the mirror into the cache (the index build calls this), keeping the old
     cache when the mirror can't be reached."""

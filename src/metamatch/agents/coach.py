@@ -189,6 +189,32 @@ def _card_worthy(hit):
     return m.get("type") in ("concept", "guide") and close
 
 
+def _named_analysis(hit, asked):
+    """A Smogon analysis chunk about a Pokemon the question names."""
+    m = hit["metadata"]
+    return m.get("source") == "smogon_analysis" and (_species_key(m.get("pokemon")) in asked
+                                                       or _species_key(m.get("species")) in asked)
+
+
+def _voiced(query, hits, asked, state=None, meta=None):
+    """Oak's framing line, then the passage's own sentences that answer the question, quoted, with the source
+    (agents/retell.py). None when nothing retrieved is worth reading."""
+    hit = next((h for h in hits if _card_worthy(h) or _named_analysis(h, asked)), None)
+    if not hit:
+        return None
+    from metamatch.rag.cards import analysis_url
+    from .retell import frame, quoted
+    m = hit["metadata"]
+    line, by = frame(query, m, getattr(state, "recent_openers", ()))
+    url = m.get("url") or (analysis_url(m.get("pokemon"), m.get("format")) if m.get("source") == "smogon_analysis" else None)
+    note = (f" Written for Gen {m['gen']}: it mentions {m['old_mechanics']}, which the current games don't have."
+            if m.get("old_mechanics") else "")
+    source = f"_From the {_source_label(m)}.{note}_" + (f" [Read the rest]({url})" if url else "")
+    if meta is not None:
+        meta.update({"retell": by})
+    return f"{line}\n\n> {quoted(query, hit)}\n\n{source}"
+
+
 def _card(hit):
     """A retrieved passage shown verbatim with where it comes from, and a note when it predates current mechanics."""
     m = hit["metadata"]
@@ -308,12 +334,20 @@ Pokemon, and never call one an answer to something it loses to.
         if meta is not None:
             meta.update({"opener": "stock", "facts": "fallback"}, opener=line)
         chips = suggestions(query, plan, team_context)
-        # The concept note first: it is written for the current games; a guide adds depth from earlier ones
-        hits = sorted((h for h in references(query, team_context, plan, briefing.facts) if _card_worthy(h)),
-                      key=lambda h: h["metadata"].get("type") != "concept")
-        text = f"*{line}*"
-        if hits:
-            text += "\n\nHere's how it has been explained before:" + "".join(_card(h) for h in hits[:2])
+        found = references(query, team_context, plan, briefing.facts)
+        asked = {_species_key(n) for n in find_pokemon(query)}
+        # Oak frames the closest passage in his own voice and quotes the sentences that answer the question
+        # (agents/retell.py); with nothing worth reading, he says so and offers questions he can answer
+        voiced = _voiced(query, found, asked, state, meta)
+        if voiced:
+            text = voiced
+        else:
+            # The concept note first: it is written for the current games; a guide adds depth from earlier ones
+            hits = sorted((h for h in found if _card_worthy(h) or _named_analysis(h, asked)),
+                          key=lambda h: h["metadata"].get("type") != "concept")
+            text = f"*{line}*"
+            if hits:
+                text += "\n\nHere's how it has been explained before:" + "".join(_card(h) for h in hits[:2])
         # The chips render right under this line
         text += "\n\n" + ("These I can answer exactly for your team:" if chips else
                           "Try asking about a matchup, a member or your game plan.")
