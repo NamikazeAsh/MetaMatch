@@ -119,22 +119,18 @@ A GitHub Action pulls Smogon's stats every month and rebuilds the histories, spe
 ```mermaid
 graph LR
     Q["Question"] --> P["Planner + detail reader"]
-    Q --> K["Classifier picks the kind of question"]
+    Q --> K["Classifier: Model2Vec embeddings + logistic regression"]
     P -->|"Speed, damage, KO, type, stat, usage"| S["Solver"]
     K -->|"sure"| S
-    K -->|"unsure but answerable"| H["Best guess, with 'did you mean' buttons under it"]
-    H --> S
-    K -->|"unsure"| D["'Did you mean' buttons"]
-    S --> A["Engine answer + exact facts"]
-    A --> V["Coach adds an opener and one why sentence"]
+    K -->|"not sure"| D["Best guess with 'did you mean' buttons"]
+    K -->|"how to play it, nothing exact"| G["Oak quotes the Smogon passage, with a link"]
+    S --> V["Engine answer + the coach's opener and why"]
     V --> C{"Checked against the facts"}
     C -->|passes| OUT["Answer"]
-    C -->|fails| F["Engine's own sentence instead"]
-    P -->|"opponent unclear"| Q2["Ask which Pokémon"]
-    K -->|"how to play it, or nothing exact"| G["Oak quotes the Smogon passage that answers it, with a link"]
+    C -->|fails| F["Engine's own sentence"]
 ```
 
-1. **Question classifier (no LLM):** a small trained model reads the question with the names swapped out ("does my pokemon outspeed their pokemon") and picks what kind it is, out of 29: a matchup, a lead, a compare, a mechanic, the meta and so on. It runs in plain numpy, so it works on the live site too. When it isn't sure, the chat answers its best guess with "did you mean" buttons underneath, or offers the buttons alone. Measured on questions it never saw, written blind.
+1. **Question classifier (no LLM):** a logistic regression over Model2Vec sentence embeddings (potion retrieval 32M) plus cue words, trained on about 2,000 labelled questions. It reads the question with the names swapped out ("does my pokemon outspeed their pokemon") and picks what kind it is, out of 29: a matchup, a lead, a compare, a mechanic, the meta and so on. It runs in plain numpy, so it works on the live site too. When it isn't sure, the chat answers its best guess with "did you mean" buttons underneath, or offers the buttons alone. Measured on questions it never saw, written blind.
 2. **Planner (no LLM):** works out what you're asking (speed, damage, a KO, a matchup, a set, a game plan) and which Pokémon and moves are involved. Knows all 1,400+ species and formes, nicknames like *Lando* and *Tusk*, typos, Mega names, and follow ups like *"what about Gholdengo?"*.
 3. **Detail reader (no LLM):** picks up what the question says about either side, like *"specs"*, *"tera fairy"*, *"+2 after a Dragon Dance"*, rain, Trick Room, a burn or Stealth Rock. Anything it can't model is named, not dropped.
 4. **Solver:** computes the answer with the real damage calculator and the same functions as the dashboard, so chat and tabs always agree. Anything you didn't state comes from the most common ladder set.
