@@ -258,11 +258,58 @@ def solve_compare(plan, dex, game):
     return Verdict("compare", answer, said, facts, persona="builder", plain=said, typed=typed)
 
 
+def _fit(plan, name):
+    """'Can I use Charizard on my team': the Team Completer's reading of one named Pokemon for the team's next slot,
+    the threats the team struggles with that it beats, the roles it adds, how it pairs, and where it ranks."""
+    from metamatch.auditor import load_chaos_data
+    from metamatch.engine.completer import complete
+    label = config.format_info(plan.format_id)["label"]
+    if name not in (load_chaos_data(plan.format_id) or {}):
+        said = f"{name} isn't on the {label} ladder this month (no usage data), so I can't weigh it for your team here."
+        return Verdict("teammate", "unknown", said, [said], persona="builder", plain=said,
+                       typed=[Fact("usage", said, {"pokemon": name}, role="why")])
+    ranked, _, board = complete(plan.team or {}, plan.format_id, top_n=500, extra=[name])
+    struggles = [r.name for r in board if len(r.answers) <= 1]
+    c = next((x for x in ranked if to_id(x.name) == to_id(name)), None)
+    if c is None:
+        return None
+    rank = ranked.index(c) + 1
+    typed = []
+    if c.covers:
+        typed.append(Fact("matchup", f"{c.name} beats {join(c.covers[:4])} one on one, which your team struggles with.",
+                          {"covers": c.covers}, role="why"))
+    if c.roles:
+        typed.append(Fact("role", f"{c.name} adds a role your team lacks: {join(r.lower() for r in c.roles)}.",
+                          {"roles": c.roles}, role="why"))
+    if c.best_pair and c.best_pair[1]:
+        typed.append(Fact("usage", f"On the ladder it pairs with your {c.best_pair[0]} {c.best_pair[1]:.1f} times as "
+                                   "often as chance.", {"pair": c.best_pair[0], "lift": round(c.best_pair[1], 2)}))
+    top = [x.name for x in ranked[:3] if x is not c]
+    standing = f"It ranks #{rank} of the {len(ranked)} Pokemon the Team Completer scored for your next slot"
+    standing += f"; the top picks are {join(top[:2])}." if rank > 3 and top else "."
+    if c.covers or c.roles:
+        said = f"Yes, {c.name} can fit: " + ("it beats " + join(c.covers[:3]) + ", which your team struggles with"
+                                              if c.covers else f"it adds {join(r.lower() for r in c.roles)}") + ". "
+    elif not struggles:
+        # Nothing to cover: the team already has two answers to each of the most used Pokemon
+        said = (f"Your team already has two or more answers to each of the {len(board)} most used Pokemon, so there's "
+                f"no gap for {c.name} to fill, and it adds no role your team lacks. ")
+    else:
+        said = (f"{c.name} adds little here: it beats none of {join(struggles[:3])}, the threats your team struggles "
+                "with, and fills no missing role. ")
+    said += standing
+    typed.append(Fact("rank", standing, {"rank": rank, "of": len(ranked)}))
+    return Verdict("teammate", c.name, said, [f.text for f in typed], persona="builder", plain=said, typed=typed)
+
+
 def solve_teammate(plan, dex, game):
     """'Suggest a teammate', 'what should I replace Corviknight with': Team Completer picks (they beat threats the team
     struggles with, fill missing roles, and pair well on the ladder), never a Pokemon already on the team."""
     from metamatch.engine.completer import complete
     team = plan.team or {}
+    candidate = next((n for k, n in plan.options if k == "pokemon"), None)
+    if candidate:
+        return _fit(plan, candidate)
     replacing = plan.user if plan.user is not None and plan.user_named and plan.replace else None
     rest = {k: v for k, v in team.items() if v is not replacing} if replacing else team
     picks, _, _ = complete(rest, plan.format_id, top_n=4)

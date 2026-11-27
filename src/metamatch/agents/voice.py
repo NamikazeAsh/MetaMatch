@@ -301,7 +301,8 @@ def speak(packet, verdict=None, team_names=(), recent_openers=(), recent_moods=(
     else:
         report["opener_rejected"] = check_opener(opener, recent_openers)
         opener = stock_opener(persona, recent_openers)
-    why = repair_why(why, cited, team_names)
+    # The model sometimes wraps its sentence in quotes: '"It pairs with your Dragapult..."'
+    why = repair_why((why or "").strip().strip('"“”'), cited, team_names)
     reason = check_why(why, cited, packet, verdict, team_names)
     # A why that only says the answer again adds nothing: show a fact instead
     if reason is None and _closeness(why, [type("A", (), {"text": packet.answer})()]) >= 0.9:

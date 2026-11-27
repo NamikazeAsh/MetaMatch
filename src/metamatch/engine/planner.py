@@ -418,6 +418,20 @@ PLANNED_KINDS = {"speed", "ko", "damage", "type", "stat", "usage", "team_type", 
                  "compare", "rules", "learn"}
 
 
+# "can I use Charizard on my team", "would kyurem fit this team", "is zapdos good for my team"
+FIT_RE = re.compile(r"\b(?:use|run|add|bring|fit|slot|put|try)\b[^?.!]{0,30}\b(?:on|in|into|onto|for|with)\s+"
+                    r"(?:my|this|the)\s+(?:team|squad|comp)\b|\bfit\w*\s+(?:my|this)\s+(?:team|squad)\b|"
+                    r"\b(?:good|worth it|viable|work)\s+(?:on|for|with|in)\s+(?:my|this)\s+(?:team|squad)\b", re.I)
+
+
+def _fit_candidate(plan):
+    """The one Pokemon a fit question names that the team doesn't already run, or None."""
+    from metamatch.recommender import base_species
+    own = {base_species(p["Pokemon"]) for p in (plan.team or {}).values()}
+    outside = [n for n in dict.fromkeys(plan.opponents) if base_species(n) not in own]
+    return outside[0] if len(outside) == 1 else None
+
+
 # "run" is left out: "does gambit run sucker punch usually" asks about its set, not whether it can learn the move
 LEARN_VERB_RE = re.compile(r"\b(?:learn\w*|gets?|have|has|access to|give)\s+(?:the move\s+|an?\s+)?", re.I)
 
@@ -477,6 +491,8 @@ def _force(plan, kind, q, scrubbed, names_only, raw_spans, dex, format_id, targe
             plan.options = _pokemon_options([n for _, _, n in raw_spans], plan.team) or plan.options
     elif kind == "teammate":
         plan.replace = bool(REPLACE_ASK_RE.search(q)) and plan.user_named
+        if FIT_RE.search(q) and _fit_candidate(plan):
+            plan.options = [("pokemon", _fit_candidate(plan))]
     elif kind == "rules":
         plan.rules = rules.find_named(q, [(a, b) for a, b, _ in raw_spans])
     elif kind == "usage":
@@ -612,6 +628,10 @@ def plan_query(query, team, force=None):
     elif len(names) == 1 and _learn_move(q, dex):
         plan.intent = "learn"
         plan.move = _learn_move(q, dex)
+    elif team and plan.opponents and FIT_RE.search(q) and _fit_candidate(plan):
+        # "can I use Charizard on my team": would a Pokemon the team doesn't run fit as a teammate
+        plan.intent = "teammate"
+        plan.options = [("pokemon", _fit_candidate(plan))]
     elif team and SWITCH_TYPE_RE.search(q):
         plan.intent = "team_type"
         plan.atk_type = SWITCH_TYPE_RE.search(q).group(1).capitalize()

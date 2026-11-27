@@ -124,6 +124,11 @@ class TestForcedPlans(unittest.TestCase):
         self.assertIsNotNone(decline_for("how do i evolve eevee into sylveon", "gen9ou"))
         self.assertIsNone(decline_for("can i catch iron valiant on the switch", "gen9ou"))
 
+    def test_fit_question_judges_the_named_candidate(self):
+        p = plan_query("Can I use Charizard on my team", self.team)
+        self.assertEqual((p.intent, p.options), ("teammate", [("pokemon", "Charizard")]))
+        self.assertEqual(plan_query("how do i beat charizard", self.team).intent, "checks")
+
     def test_kinds_without_a_solver_stay_open(self):
         p = plan_query("whats rising this month", self.team, force="meta_trends")
         self.assertEqual((p.intent, p.kind), ("open", "meta_trends"))

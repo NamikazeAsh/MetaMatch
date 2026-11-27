@@ -304,7 +304,9 @@ class AgentManager:
         if guess and guess["kind"] == "out_of_scope" and guess["confidence"] >= SURE_OUT_OF_SCOPE:
             return Turn(query, reading, plan, route="decline", persona=PERSONAS["strategy"],
                         meta={**meta, "decline": OUT_OF_SCOPE.format(label=_label(plan.format_id))})
-        rules_first = guess is None or plan.intent in RULE_KINDS
+        # A fit question naming its candidate ("can I use Charizard on my team") is as precise as a calculator one:
+        # the classifier read it as "how do I beat Charizard"
+        rules_first = guess is None or plan.intent in RULE_KINDS or (plan.intent == "teammate" and bool(plan.options))
         verdict = solve(plan) if plan.intent not in ("open", "clarify") and rules_first else None
         if verdict:
             return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona], meta=meta)
