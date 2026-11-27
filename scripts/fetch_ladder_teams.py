@@ -10,6 +10,7 @@ rating, the upload time, the replay id (which links back to the public replay) a
   python scripts/fetch_ladder_teams.py --build-only          # rebuild the JSON from the replays on disk
 """
 import argparse
+import hashlib
 import json
 import sys
 import time
@@ -142,7 +143,7 @@ def records(data):
 
 def build(formats, cap, per_player):
     """Write ladder_teams.json from every cached replay, newest first: at most `per_player` records from any one
-    player, one per distinct team of theirs, and `cap` records per format. Player names are not written."""
+    player, one per distinct team of theirs, and `cap` records per format. Player names are not written, only a short one way tag per player."""
     corpus = {}
     for format_id in formats:
         rows = []
@@ -160,6 +161,8 @@ def build(formats, cap, per_player):
                 continue
             seen.add(key)
             per[who] += 1
+            # A short one way tag, not the name: benchmarks keep each player's teams on one side of a split
+            r["p"] = hashlib.sha1((who or "").lower().encode()).hexdigest()[:8]
             kept.append(r)
         corpus[format_id] = kept[:cap]
         print(f"  {format_id}: {len(corpus[format_id])} teams from {len(per)} players")
