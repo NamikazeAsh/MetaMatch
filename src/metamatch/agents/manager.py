@@ -318,6 +318,11 @@ class AgentManager:
             verdict = solve(plan) if plan.intent not in ("open", "clarify") else None
             if verdict:
                 return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona], meta=meta)
+            # A calculator kind the engine couldn't fill ("specs draco into raging bolt" never names the attacker):
+            # offer the filled in questions instead of Brock's set listing for a Pokemon it names
+            if guess["kind"] in RULE_KINDS:
+                return Turn(query, reading, plan, route="unsure", persona=PERSONAS["strategy"],
+                            meta={**meta, "options": [k for k, _ in guess["top"]]})
         elif guess and plan.intent != "clarify" and not (_is_building(reading.text) and guess["kind"] in BUILDING_KINDS):
             # Unsure, but the engine can answer its best guess: answer it, with the other readings as chips under it.
             # On the 2026 11 27 sealed set, unsure questions above the floor whose guess solved were right 18 times,
