@@ -101,10 +101,20 @@ def _add(key, name):
 TEAM_SIZE = 6
 
 
+def _species(name, format_id):
+    """The species a Pokemon counts as under Species Clause: Sceptile-Mega and Rotom-Heat count as Sceptile and Rotom."""
+    from metamatch.engine.dex import dex_for_format
+    dex = dex_for_format(format_id)
+    s = dex.species(name) if dex else None
+    return (s.get("baseSpecies") or s["name"]) if s else name.split("-")[0]
+
+
 def _partners(core, format_id, key, strat_data, label):
     # The pairing ranking, reordered by what the closest real ladder teams run (engine/team_neighbors.reorder)
     from metamatch.engine import team_neighbors
-    partners = team_neighbors.reorder(core, format_id, core_partners(core, format_id, n=30))[:16]
+    taken = {_species(n, format_id) for n in core}
+    partners = [p for p in team_neighbors.reorder(core, format_id, core_partners(core, format_id, n=30))
+                if _species(p["name"], format_id) not in taken][:16]
     if not partners:
         st.caption("No ladder data pairs with this core yet.")
         return
@@ -254,6 +264,19 @@ def _team(core, format_id, strat_data, label, open_team_fn, type_map, key):
         open_team_fn(paste, format_id)
 
 
+def _one_per_species(key, format_id):
+    """Keeps the first of each species when one pick adds several ("select all matches" on Sceptile adds its Mega)."""
+    seen, kept = set(), []
+    for name in st.session_state.get(key) or []:
+        species = _species(name, format_id)
+        if species not in seen:
+            seen.add(species)
+            kept.append(name)
+    if len(kept) < len(st.session_state.get(key) or []):
+        st.session_state[key] = kept
+        st.toast("Species Clause: one of each Pokémon per team.", icon=":material/info:")
+
+
 def take_pending(format_id, key):
     """Pokemon added from Move Search (tab_move_search._add) join the team before the picker draws, with the
     Smogon set they were found on picked."""
@@ -262,7 +285,8 @@ def take_pending(format_id, key):
         return
     team = list(st.session_state.get(key) or [])
     for name, set_name in pending:
-        if name not in team and len(team) < TEAM_SIZE:
+        if (name not in team and len(team) < TEAM_SIZE
+                and _species(name, format_id) not in {_species(t, format_id) for t in team}):
             team.append(name)
             if set_name:
                 st.session_state[f"qm_set_{format_id}_{name}"] = set_name
@@ -274,8 +298,13 @@ def render(get_strat_data_fn, open_team_fn, type_map):
     label = config.format_info(format_id)["label"]
     key = f"quick_match_select_{format_id}"
     take_pending(format_id, key)
-    core = st.multiselect("Your team (up to 6)", options=_options(format_id), max_selections=TEAM_SIZE,
-                          placeholder="Search for a Pokémon...", key=key)
+    # Species Clause: once a Pokemon is on the team, its other formes and its Mega leave the list
+    chosen = st.session_state.get(key) or []
+    taken = {_species(n, format_id) for n in chosen}
+    options = [n for n in _options(format_id) if n in chosen or _species(n, format_id) not in taken]
+    core = st.multiselect("Your team (up to 6)", options=options, max_selections=TEAM_SIZE,
+                          placeholder="Search for a Pokémon...", key=key, on_change=_one_per_species,
+                          args=(key, format_id))
     if not core:
         return
     strat_data = get_strat_data_fn()
