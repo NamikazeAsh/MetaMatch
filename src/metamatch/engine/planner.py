@@ -33,7 +33,8 @@ MATCHUP_RE = re.compile(r"\b(?:beat|beats|win|wins|handle|handles|check|checks|c
                         # "how does my Corviknight do against Kingambit", "how does it fare vs", "hold up against"
                         r"\b(?:do|does|doing|fare|fares|faring|hold(?:s)? up|stack(?:s)? up|perform(?:s)?) "
                         r"(?:against|vs\.?|into)\b", re.I)
-TEAMMATE_FIELD_RE = re.compile(r"\b(?:teammates?|partners?|pairs?|goes with|runs with)\b", re.I)
+TEAMMATE_FIELD_RE = re.compile(r"\b(?:teammates?|partners?|pairs?|goes with|runs with|alongside|paired with|"
+                               r"(?:bring|brings|brought) (?:\w+ )?with)\b", re.I)
 # "what EVs does X need to outspeed Y", "how much Speed to outspeed": an investment question, not a yes or no
 SPREAD_ASK_RE = re.compile(r"\b(?:what|which|how many|how much)\s+(?:speed\s+)?(?:evs?|spreads?|investment|natures?|stat points|sp)\b|"
                            r"\bevs?\s+(?:to|for|needed|do i need|does it need)|\bneeds? to (?:outspeed|survive|live|tank)|"
@@ -284,7 +285,20 @@ def _usage_field(query):
                          (r"(?:move)?sets?|builds?|runs?|running|ran", "set")):
         if re.search(rf"\b{pattern}\b", query, re.I):
             return fld
-    return "item"
+    # "do Zapdos mostly have static": a named ability, item or move, in any case, says which field
+    return _named_any_case(query) or "item"
+
+
+def _named_any_case(query):
+    """The usage field of the first ability, item or move named in `query`, ignoring case. find_named keeps short
+    names case sensitive so everyday words aren't read as moves; a usage question is already about a set."""
+    lowered = query.lower()
+    table = rules.table()
+    for fld, key in (("ability", "abilities"), ("item", "items"), ("move", "moves")):
+        for name in table[key]:
+            if len(name) >= 5 and re.search(rf"(?<![\w-]){re.escape(name.lower())}(?![\w-])", lowered):
+                return fld
+    return None
 
 
 def _archetype(text, format_id):

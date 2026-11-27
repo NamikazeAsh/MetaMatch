@@ -25,9 +25,10 @@ CALC_DOWN = ("The damage calculator isn't running (it needs Node.js and `npm ins
              "so I can't work that out right now, and I won't guess at damage or Speed numbers.")
 # "thanks!", "hi": a friendly line, not a strategy essay built on whatever the index returns for "thanks"
 SMALLTALK_RE = re.compile(r"^\s*(?:thanks?(?: a lot| so much)?|thank you(?: so much)?|thx|ty|cheers|ok(?:ay)?|cool|nice|great|"
-                          r"got it|perfect|awesome|hi|hello|hey|yo|good morning|good evening)[\s!.]*(?:oak|brock|clemont)?[\s!.]*$",
+                          r"got it|perfect|awesome|hi|hello|hey|yo|sup|wh?at'?s up|good morning|good evening)"
+                          r"(?:[\s,!.]*how(?:'?s| is) it go(?:in'?|ing))?[\s!.?]*(?:oak|brock|clemont)?[\s!.?]*$",
                           re.I)
-GREETING_RE = re.compile(r"^\s*(?:hi|hello|hey|yo|good morning|good evening)\b", re.I)
+GREETING_RE = re.compile(r"^\s*(?:hi|hello|hey|yo|sup|wh?at'?s up|good morning|good evening)\b", re.I)
 GREETING = ("Hello there! Ask me about any matchup, your leads, your win condition, a set or a teammate, "
             "and I'll check it against the engine.")
 THANKS = "Anytime! Ask away whenever something comes up, like a matchup, a lead or a set to check."
@@ -114,6 +115,11 @@ def _is_building(text):
 
 # The learned classifier (engine/intent.py) only declines over a rule's answer when it is this sure
 SURE_OUT_OF_SCOPE = 0.9
+# Calculator and lookup questions the planner's rules answer first: they read the details exactly (MetaBench 100%)
+RULE_KINDS = {"speed", "speed_spread", "ko", "damage", "type", "stat", "usage"}
+# An unsure question with building words goes to Brock only when the classifier also leans to a building kind: an
+# item word alone ("specs draco into assault vest raging bolt") sent damage and Speed questions to his set listing
+BUILDING_KINDS = {"sets", "teammate", "compare", "how_to_use", "usage"}
 OUT_OF_SCOPE = ("That's outside what I cover: I'm built for {label} singles with the team you pasted. Ask me about a "
                 "matchup, a member, your threats or your game plan.")
 IN_BATTLE_PREFIX = ("I can't see the battle itself, so I can't call this turn for you. Here's how your team lines up "
@@ -128,6 +134,8 @@ NEEDS_OPPONENT = {"speed", "ko", "damage", "checks", "switchins", "matchup"}
 KIND_QUESTIONS = {
     "checks": "How do I beat {opp}?", "switchins": "What switches into {opp}?",
     "matchup": "How does my {me} do against {opp}?", "speed": "Does my {me} outspeed {opp}?",
+    "damage": "How much damage does my {mine} do to {opp}?", "ko": "How much damage does my {mine} do to {opp}?",
+    "stat": "What are {any}'s stats?",
     "member": "What does my {me} do on my team?", "usage": "What does {any} usually run?",
     "sets": "What set should {any} run?", "how_to_use": "How do I use {any}?", "type": "What is {any} weak to?",
     "score": "Is my team good?", "threats": "What are my biggest threats?", "gameplan": "Walk me through my game plan",
@@ -157,18 +165,40 @@ def _label(format_id):
     return config.format_info(format_id)["label"] if format_id else "OU"
 
 
+def named_attack(text, team):
+    """(member, move) when the question names a move exactly one of your members carries, by name or nickname."""
+    from metamatch.engine.constraints import MOVE_NICKNAMES
+    lowered = (text or "").lower()
+    asked = {full for nick, full in MOVE_NICKNAMES.items() if re.search(rf"\b{re.escape(nick)}\b", lowered)}
+    hits = []
+    for member in (team or {}).values():
+        for move in member.get("Moves") or []:
+            name = move.get("name") if isinstance(move, dict) else move
+            if name and (name in asked or re.search(rf"\b{re.escape(name.lower())}\b", lowered)):
+                hits.append((member["Pokemon"], name))
+    return hits[0] if len({m for m, _ in hits}) == 1 else (None, None)
+
+
 def unsure_options(kinds, plan, team):
     """The "did you mean" questions for the classifier's top kinds, skipping ones that need a Pokemon it lacks."""
     me = (plan.user or next(iter((team or {}).values()), {}) or {}).get("Pokemon")
     opp = plan.opponent
-    names = {"me": me, "opp": opp, "any": opp or (plan.user or {}).get("Pokemon")}
+    # A damage chip names only a member the question named, or the one member carrying the move it names:
+    # guessing the attacker would answer something else
+    mine = (plan.user or {}).get("Pokemon")
+    attacker, move = named_attack(getattr(plan, "query", ""), team)
+    names = {"me": me, "mine": mine or attacker, "opp": opp, "any": opp or mine}
     out = []
     for kind in kinds:
         template = KIND_QUESTIONS.get(kind)
+        if kind in ("damage", "ko") and move and names["mine"] == attacker and opp:
+            # Keep the opposing item the question stated: Assault Vest turns 149% into 100% on Raging Bolt
+            item = (getattr(plan, "opp_overrides", None) or {}).get("item")
+            template = f"How much damage does my {{mine}}'s {move} do to {item + ' ' if item else ''}{{opp}}?"
         if not template:
             continue
         needed = re.findall(r"\{(\w+)\}", template)
-        if all(names.get(n) for n in needed):
+        if all(names.get(n) for n in needed) and template.format(**names) not in out:
             out.append(template.format(**names))
     return out
 
@@ -235,8 +265,13 @@ class AgentManager:
         return ("### LIKELY SETS FOR POKEMON YOU ASKED ABOUT\n" + "\n".join(lines) + "\n") if lines else ""
 
     def prepare(self, query: str, team_context: dict, state: dialogue.DialogueState = None) -> Turn:
-        """Reads the question in the context of the conversation, plans it and solves it if the engine can. The
-        planner's rules go first; the learned classifier (engine/intent.py) takes the questions they don't place."""
+        """Reads the question in the context of the conversation, plans it and solves it if the engine can.
+
+        Who decides what was asked, measured on a sealed blind set (docs/research/intent_2026_11_27, 168 questions):
+        the planner's rules keep the calculator questions (Speed, KO, damage, type, stat, usage), where they read
+        every detail precisely; the learned classifier (engine/intent.py) decides the rest when it is sure; when it
+        isn't, the chat asks "did you mean". That order got 62% of questions right and only 11 confidently wrong,
+        against 54% and 41 for rules first (the rules misread about half of the new phrasings they did place)."""
         reading = dialogue.resolve(query, state, team_context)
         plan = plan_query(reading.text, team_context)
         if reading.why_of is not None:
@@ -249,17 +284,21 @@ class AgentManager:
         if guess and guess["kind"] == "out_of_scope" and guess["confidence"] >= SURE_OUT_OF_SCOPE:
             return Turn(query, reading, plan, route="decline", persona=PERSONAS["strategy"],
                         meta={**meta, "decline": OUT_OF_SCOPE.format(label=_label(plan.format_id))})
-        verdict = solve(plan) if plan.intent not in ("open", "clarify") else None
+        rules_first = guess is None or plan.intent in RULE_KINDS
+        verdict = solve(plan) if plan.intent not in ("open", "clarify") and rules_first else None
         if verdict:
             return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona], meta=meta)
         if SMALLTALK_RE.match(query):
             return Turn(query, reading, plan, route="smalltalk", persona=PERSONAS["strategy"])
-        # The rules placed nothing (or their answer couldn't be worked out): the classifier's turn
+        # The classifier's turn: everything but the calculator questions the rules placed
         if guess and guess["sure"] and not (plan.intent == "clarify" and guess["kind"] in ("speed", "ko", "damage")):
             turn = self._classified(query, reading, plan, guess["kind"], team_context, meta)
             if turn:
                 return turn
-        elif guess and plan.intent != "clarify" and not _is_building(reading.text):
+            verdict = solve(plan) if plan.intent not in ("open", "clarify") else None
+            if verdict:
+                return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona], meta=meta)
+        elif guess and plan.intent != "clarify" and not (_is_building(reading.text) and guess["kind"] in BUILDING_KINDS):
             # Unsure, and the rules would only give Oak's generic fallback: offer the likely readings instead
             return Turn(query, reading, plan, route="unsure", persona=PERSONAS["strategy"],
                         meta={**meta, "options": [k for k, _ in guess["top"]]})

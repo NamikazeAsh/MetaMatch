@@ -199,6 +199,35 @@ def _move_regex(dex):
     return _MOVE_RX[id(dex)]
 
 
+# Short names players use for attacks ("specs draco into raging bolt")
+MOVE_NICKNAMES = {"draco": "Draco Meteor", "eq": "Earthquake", "quake": "Earthquake", "cc": "Close Combat",
+                  "knock": "Knock Off", "sucker": "Sucker Punch", "volt": "Volt Switch", "hydro": "Hydro Pump",
+                  "headlong": "Headlong Rush", "spinner": "Ice Spinner", "fblast": "Focus Blast",
+                  "mir": "Make It Rain", "cudgel": "Ivy Cudgel", "tbolt": "Thunderbolt", "sneak": "Shadow Sneak",
+                  "kowtow": "Kowtow Cleave"}
+TARGET_WORD_RE = re.compile(r"\b(?:into|on|vs\.?|versus|against|to|at)\b", re.I)
+
+
+def _starts_with_move(text, dex):
+    """True when `text` opens with a move name or nickname: "specs draco ..." is an item on the attacker."""
+    text = text.lstrip(" '")
+    nick = re.match(r"([a-z]+)\b", text, re.I)
+    if nick and nick.group(1).lower() in MOVE_NICKNAMES:
+        return True
+    return bool(dex and _move_regex(dex).match(text))
+
+
+def _attacker_side(marks, b, blanked):
+    """For a set detail glued to a move before any Pokemon: the side using the move. "specs draco into Raging Bolt"
+    names the target after "into", so the attacker is the other side; "specs draco from their Dragapult" names it."""
+    nxt = next((s for s in marks if s[0] >= b), None)
+    if not nxt:
+        return None
+    if TARGET_WORD_RE.search(blanked[b:nxt[0]]):
+        return "user" if nxt[3] == "opponent" else "opponent"
+    return nxt[3]
+
+
 def _move_runs(query, dex, least=3):
     """(start, end, moves) for runs of `least` or more move names separated only by list punctuation."""
     if not dex:
@@ -287,6 +316,9 @@ def extract(query, spans, dex, user_item=None, subject="user", survive=False):
     loose = {}
     for a, b, key, value, style in sorted(hits, key=lambda h: h[0]):
         owner = _owner(marks, a, b, style, blanked, query, subject, survive)
+        before = any(s[1] <= a for s in marks)
+        if key == "item" and style == "prefix" and not before and _starts_with_move(query[b:], dex):
+            owner = _attacker_side(marks, b, blanked) or owner
         side = getattr(out, owner)
         if key == "setup":
             move, count = value

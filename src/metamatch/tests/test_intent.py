@@ -108,6 +108,32 @@ class TestChatRouting(unittest.TestCase):
         self.assertIn("How do I beat Iron Valiant?", options)
         self.assertIn("What's my win condition?", options)
 
+    def test_an_item_word_doesnt_send_a_damage_question_to_the_set_listing(self):
+        from metamatch.agents.manager import AgentManager
+        turn = AgentManager().prepare("rough % for specs draco into assault vest raging bolt?", self.team)
+        self.assertNotEqual(turn.route, "builder")
+
+    def test_damage_chip_names_the_member_carrying_the_move_and_the_stated_item(self):
+        from metamatch.agents.manager import unsure_options
+        team, _ = readTeam(TEAM + "\n\nDragapult @ Choice Specs\nAbility: Infiltrator\nEVs: 252 SpA / 4 SpD / 252 Spe\n"
+                           "Timid Nature\n- Draco Meteor\n- Shadow Ball\n- Flamethrower\n- U-turn", "gen9ou")
+        plan = plan_query("rough % for specs draco into assault vest raging bolt?", team)
+        self.assertEqual((plan.user_overrides.get("item"), plan.opp_overrides.get("item")),
+                         ("Choice Specs", "Assault Vest"))
+        self.assertIn("How much damage does my Dragapult's Draco Meteor do to Assault Vest Raging Bolt?",
+                      unsure_options(["damage"], plan, team))
+
+    def test_greetings_are_smalltalk(self):
+        from metamatch.agents.manager import SMALLTALK_RE
+        for q in ("sup hows it goin", "what's up", "hey, how's it going?"):
+            self.assertTrue(SMALLTALK_RE.match(q), q)
+
+    def test_usage_field_reads_named_abilities_and_teammate_words(self):
+        from metamatch.engine.planner import _usage_field
+        self.assertEqual(_usage_field("do zapdos on the ladder mostly have static"), "ability")
+        self.assertEqual(_usage_field("who do people usually bring alongside kingambit"), "teammates")
+        self.assertEqual(_usage_field("what item do people use with great tusk"), "item")
+
     def test_meta_trends_reads_the_ladder_history(self):
         from metamatch.agents.manager import meta_trends
         text = meta_trends("gen9ou")
