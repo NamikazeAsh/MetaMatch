@@ -57,6 +57,12 @@ class TestTeamNeighbors(unittest.TestCase):
         self.assertEqual(subs["Zapdos"]["without"], len(near))
         self.assertIn("Slowking-Galar", dict(subs["Zapdos"]["instead"]))
 
+    def test_reorder_lifts_what_close_teams_run(self):
+        partners = [{"name": "Toxapex"}, {"name": "Slowking-Galar"}, {"name": "Corviknight"}]
+        order = [p["name"] for p in tn.reorder(A[:5], "gen9ou", partners)]
+        self.assertEqual(order[0], "Slowking-Galar")
+        self.assertEqual(sorted(order), sorted(p["name"] for p in partners))
+
     def test_mega_compares_as_its_base(self):
         self.assertEqual(tn.base("Charizard-Mega-Y"), "Charizard")
         self.assertEqual(tn.base("Landorus-Therian"), "Landorus-Therian")

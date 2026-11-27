@@ -147,6 +147,22 @@ def substitutions(team_names, near):
     return out
 
 
+def reorder(core, format_id, partners, k=20):
+    """Quick Match's partner cards (completer.core_partners, best first) reordered by fusing their order with what
+    the closest real teams run (reciprocal rank fusion, k=10). On held out ladder teams with one member hidden
+    (bench/recommender/neighbors.py, 2026 11 27) this put the hidden member in the top 5 more often than the pairing
+    order alone: OU 34% to 38%, Champions OU 25% to 27%, National Dex 16% to 17% (paired tests, p 0.05 or less)."""
+    near = neighbors(core, format_id, k=k, min_shared=min(MIN_SHARED, max(1, len(core))))
+    if not near:
+        return partners
+    by_teams = [x for x, _, _ in additions(core, near, limit=30)]
+    score = {}
+    for ranking in ([base(p["name"]) for p in partners], by_teams):
+        for rank, name in enumerate(ranking):
+            score[name] = score.get(name, 0) + 1 / (10 + rank + 1)
+    return sorted(partners, key=lambda p: -score.get(base(p["name"]), 0))
+
+
 def additions(team_names, near, limit=5):
     """Pokemon your closest teams run that you don't, weighted by how close each team is: [(pokemon, score, teams)]."""
     mine = {base(n) for n in team_names}

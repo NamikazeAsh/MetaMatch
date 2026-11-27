@@ -104,7 +104,9 @@ TEAM_SIZE = 6
 
 
 def _partners(core, format_id, key, strat_data, label):
-    partners = core_partners(core, format_id, n=16)
+    # The pairing ranking, reordered by what the closest real ladder teams run (engine/team_neighbors.reorder)
+    from metamatch.engine import team_neighbors
+    partners = team_neighbors.reorder(core, format_id, core_partners(core, format_id, n=30))[:16]
     if not partners:
         st.caption("No ladder data pairs with this core yet.")
         return
@@ -124,7 +126,7 @@ def _partners(core, format_id, key, strat_data, label):
                     unsafe_allow_html=True)
                 st.button("Add to team", key=f"qm_add_{format_id}_{r['name']}", icon=":material/add:", width="stretch",
                           on_click=_add, args=(key, r["name"]))
-    st.caption("Ranked by how often teams with your core run each partner, boosted when that's well above its usual usage. "
+    st.caption("Ranked by how often teams with your core run each partner and by what the closest real ladder teams run. "
                "Hover a card for its sets and a chip for the numbers.")
 
 
