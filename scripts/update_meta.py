@@ -63,12 +63,47 @@ def planned_downloads(month_url):
             yield month_url + "moveset/", fmt["stats"] + ".txt", fmt["stats"] + ".moveset.txt"
 
 
+def all_ratings(month_url, src_dir, dest_dir):
+    """Writes <format>-allratings.json for every format: the rarely used Pokemon's sets from Smogon's all ratings
+    stats (metamatch.auditor.trim_all_ratings), so a pick the top ladder never brings still gets a real set. A format
+    whose file fails is skipped with a warning: the main stats are what the month needs."""
+    from metamatch.auditor import all_ratings_path, trim_all_ratings
+    for fid, fmt in config.FORMATS.items():
+        base = fmt["stats"].rsplit("-", 1)[0]
+        raw = f"{base}-0.json"
+        if not scrapers.download_stat_file(month_url + "chaos/", raw, raw, dest_dir=dest_dir):
+            logging.warning(f"Skipped the all ratings stats for {fid}")
+            continue
+        try:
+            low = json.loads((dest_dir / raw).read_text(encoding="utf-8")).get("data", {})
+            high = json.loads((src_dir / (fmt["stats"] + ".json")).read_text(encoding="utf-8")).get("data", {})
+        except (OSError, ValueError) as e:
+            logging.warning(f"Skipped the all ratings stats for {fid}: {e}")
+            continue
+        finally:
+            (dest_dir / raw).unlink(missing_ok=True)
+        rare = trim_all_ratings(low, high)
+        (dest_dir / all_ratings_path(fid).name).write_text(json.dumps({"data": rare}, separators=(",", ":")),
+                                                            encoding="utf-8")
+        logging.info(f"Kept {len(rare)} rarely used Pokemon for {fid}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--month", default=previous_month(), help="YYYY-MM, defaults to last month")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--rebuild-index", action="store_true")
+    parser.add_argument("--all-ratings-only", action="store_true",
+                        help="only (re)build the rarely used Pokemon files for the month already on disk")
     args = parser.parse_args()
+
+    if args.all_ratings_only:
+        month = read_manifest().get("month") or args.month
+        with tempfile.TemporaryDirectory() as tmp:
+            all_ratings(f"https://www.smogon.com/stats/{month}/", config.STATS_DIR, Path(tmp))
+            for path in Path(tmp).iterdir():
+                shutil.move(str(path), config.STATS_DIR / path.name)
+        return
 
     if read_manifest().get("month") == args.month and not args.force:
         logging.info(f"Stats for {args.month} are already on disk.")
@@ -96,6 +131,7 @@ def main():
         if failed:
             logging.error(f"Aborting, {len(failed)} files failed: {', '.join(failed)}")
             sys.exit(1)
+        all_ratings(month_url, tmp_dir, tmp_dir)
         for path in tmp_dir.iterdir():
             shutil.move(str(path), config.STATS_DIR / path.name)
 

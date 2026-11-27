@@ -4,7 +4,6 @@ from html import escape
 import streamlit as st
 
 from metamatch import config
-from metamatch.auditor import load_chaos_data
 from metamatch.engine.dex import dex_for_format
 from metamatch.engine.sets import likely_set
 from metamatch.engine.spread_lab import (LABELS, STATS, Benchmark, Lab, _budget, check_spread, ladder_spreads,
@@ -65,8 +64,8 @@ STYLE = """
 
 
 def _pokemon_options(format_id, team):
-    data = load_chaos_data(format_id) or {}
-    ranked = [n for n, e in sorted(data.items(), key=lambda kv: kv[1].get("usage", 0), reverse=True) if e.get("usage", 0) > 0.002]
+    from metamatch.auditor import format_roster
+    ranked = format_roster(format_id, min_usage=0.002)
     mine = [p["Pokemon"] for p in (team or {}).values()]
     return list(dict.fromkeys(mine + ranked)), set(mine)
 

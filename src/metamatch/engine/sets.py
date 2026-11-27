@@ -6,7 +6,7 @@ tera), not whole sets, so each field is picked independently. Anything the user
 already knows (a revealed item, ability or move) overrides the prior.
 """
 from metamatch import config
-from metamatch.auditor import load_chaos_data
+from metamatch.auditor import load_all_ratings, load_chaos_data
 from metamatch.engine.dex import dex_for_format, to_id
 from metamatch.utils import calculate_speed
 
@@ -62,17 +62,18 @@ def _parse_spread(spread):
     return nature, {s: int(v) for s, v in zip(STATS, vals.split("/"))}
 
 
-def chaos_entry(name, format_id):
-    """(chaos key, entry) for a Pokemon, matching names loosely, or (None, None)."""
-    data = load_chaos_data(format_id) or {}
-    if name in data:
-        return name, data[name]
-    target = to_id(name)
-    for key, entry in data.items():
-        if to_id(key) == target:
-            return key, entry
+def chaos_entry(name, format_id, rare=True):
+    """(chaos key, entry) for a Pokemon, matching names loosely, or (None, None). rare: fall back to the all ratings
+    stats for a Pokemon the top ladder rarely brings (its entry carries all_ratings=True)."""
+    for data in (load_chaos_data(format_id) or {}, load_all_ratings(format_id) if rare else {}):
+        if name in data:
+            return name, data[name]
+        target = to_id(name)
+        for key, entry in data.items():
+            if to_id(key) == target:
+                return key, entry
     twin = _stats_twin(name, format_id)
-    return chaos_entry(twin, format_id) if twin else (None, None)
+    return chaos_entry(twin, format_id, rare) if twin else (None, None)
 
 
 def _stats_twin(name, format_id):
@@ -183,6 +184,8 @@ def likely_set(name, format_id, known=None):
     return {
         "name": key,
         "usage": entry.get("usage", 0),
+        # From Smogon's all ratings stats: a pick the top of the ladder rarely brings (auditor.load_all_ratings)
+        "all_ratings": bool(entry.get("all_ratings")),
         "nature": nature,
         "evs": evs,
         "spread_share": spreads[0][1] if spreads else 0.0,

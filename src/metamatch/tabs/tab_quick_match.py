@@ -5,7 +5,6 @@ from html import escape
 import streamlit as st
 
 from metamatch import config
-from metamatch.auditor import load_chaos_data
 from metamatch.engine import builder
 from metamatch.engine.completer import core_partners
 from metamatch.tabs.tab_recommender import STYLE as CARD_STYLE
@@ -39,10 +38,9 @@ div[data-testid="stElementContainer"]:has(.qm-card:hover) { position: relative; 
 
 
 def _options(format_id):
-    """The format's Pokemon, most used first."""
-    data = load_chaos_data(format_id) or {}
-    ranked = sorted(data.items(), key=lambda kv: kv[1].get("usage", 0), reverse=True)
-    return [name for name, entry in ranked if entry.get("usage", 0) > 0.001]
+    """The format's Pokemon, most used first, rarely used picks included (auditor.format_roster)."""
+    from metamatch.auditor import format_roster
+    return format_roster(format_id)
 
 
 def _chip(r):
@@ -227,11 +225,15 @@ def _team(core, format_id, strat_data, label, open_team_fn, type_map, key):
                     if s:
                         sets.append(s)
                         tile.html(_tile(s, name, dex, type_map))
+                        if s.get("all_ratings"):
+                            # Rare at the top of the ladder: its usual set comes from players at every rating
+                            st.caption(":material/explore: Rare pick: its set comes from players at all ratings.")
                     else:
                         missing.append(name)
                         tile.html(f'<div class="bn-nm">{escape(name)}</div>')
     if missing:
-        st.caption(f"No ladder set for {', '.join(missing)} this month, so it's left out of the paste.")
+        st.caption(f"No set on record for {', '.join(missing)} this month, so it's left out of the paste. Add it in "
+                   "Showdown and pick its moves there.")
     paste = builder.team_paste(sets, format_id)
     if not paste:
         return

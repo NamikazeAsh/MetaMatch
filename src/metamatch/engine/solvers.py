@@ -654,7 +654,8 @@ def _usual_set(target, plan, game):
     if s.get("tera") and game != "champions":
         facts.append(f"Most common Tera: {s['tera'][0]} ({_pct(s['tera'][1])}).")
     from metamatch.engine.packet import spread_words
-    lad = f"ladder {s['name']}"
+    # A rare pick's numbers come from players at every rating: say so wherever the ladder is named
+    lad = f"ladder {s['name']}" + (" (all ratings)" if s.get("all_ratings") else "")
     unit = "stat points" if game == "champions" else "EVs"
     typed = [Fact("usage", f"{_pct(s['item_share'])} of {lad} sets hold {s['item']}.", {"item": s["item"],
                                                                                         "share": s["item_share"]}, role="why"),
@@ -740,7 +741,7 @@ def solve_usage(plan, dex, game):
             "teammates": "teammate"}[plan.usage_field]
     top, share = ranked[0]
     facts = [f"Top {noun}s: " + ", ".join(f"{display(k)} {_pct(v)}" for k, v in ranked) + "."]
-    lad = f"ladder {key}"
+    lad = f"ladder {key}" + (" (all ratings)" if entry.get("all_ratings") else "")
     unit = "of its teams" if plan.usage_field == "teammates" else f"of {lad} sets"
 
     def words(k):

@@ -41,6 +41,10 @@ class TestLikelySet(unittest.TestCase):
         patcher = patch("metamatch.engine.sets.load_chaos_data", return_value=CHAOS)
         patcher.start()
         self.addCleanup(patcher.stop)
+        # The main stats alone: the all ratings fallback has its own tests (test_rare_picks.py)
+        rare = patch("metamatch.engine.sets.load_all_ratings", return_value={})
+        rare.start()
+        self.addCleanup(rare.stop)
 
     def test_picks_most_common_fields_with_display_names(self):
         s = likely_set("kingambit", "gen9ou")

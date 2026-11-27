@@ -13,6 +13,50 @@ def load_chaos_data(format_id=config.DEFAULT_FORMAT):
     return _load_chaos_file(str(chaos_path), chaos_path.stat().st_mtime)
 
 
+# Pokemon the top ladder rarely brings (Sceptile in National Dex) still have real sets in Smogon's all ratings stats.
+# scripts/update_meta.py keeps those, trimmed, in data/stats/<format>-allratings.json: only Pokemon missing from the
+# main file, with at least this many sets behind them
+ALL_RATINGS_MIN_SETS = 20
+ALL_RATINGS_FIELDS = (("Abilities", 4), ("Items", 6), ("Moves", 12), ("Spreads", 5), ("Tera Types", 4), ("Teammates", 12))
+
+
+def all_ratings_path(format_id):
+    return config.STATS_DIR / (config.format_info(format_id)["stats"].rsplit("-", 1)[0] + "-allratings.json")
+
+
+def trim_all_ratings(low, high):
+    """The all ratings entries for Pokemon the main (high rating) file lacks or barely has, trimmed to the fields the
+    app reads; each is marked all_ratings so answers can say where the numbers come from."""
+    kept = {k for k, v in high.items() if v.get("usage", 0) > 0.001}
+    out = {}
+    for name, entry in low.items():
+        if name in kept or sum(entry.get("Abilities", {}).values()) < ALL_RATINGS_MIN_SETS:
+            continue
+        out[name] = {"usage": entry.get("usage", 0), "all_ratings": True,
+                     **{fld: dict(sorted((entry.get(fld) or {}).items(), key=lambda kv: -kv[1])[:n])
+                        for fld, n in ALL_RATINGS_FIELDS}}
+    return out
+
+
+def load_all_ratings(format_id=config.DEFAULT_FORMAT):
+    """{name: entry} for the format's rarely used Pokemon (see trim_all_ratings), or {} without the file."""
+    path = all_ratings_path(format_id)
+    if not path.exists():
+        return {}
+    return _load_chaos_file(str(path), path.stat().st_mtime) or {}
+
+
+def format_roster(format_id, min_usage=0.001):
+    """Every Pokemon a player can pick in the format, most used first: the main stats above min_usage, then the
+    rarely used ones from the all ratings stats (Sceptile in National Dex), so an unusual pick is never missing."""
+    data = load_chaos_data(format_id) or {}
+    main = [n for n, e in sorted(data.items(), key=lambda kv: -kv[1].get("usage", 0)) if e.get("usage", 0) > min_usage]
+    seen = set(main)
+    rare = [n for n, _ in sorted(load_all_ratings(format_id).items(), key=lambda kv: -kv[1].get("usage", 0))
+            if n not in seen]
+    return main + rare
+
+
 @lru_cache(maxsize=8)
 def _load_chaos_file(path, mtime):
     try:

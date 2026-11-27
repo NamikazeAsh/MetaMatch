@@ -83,7 +83,8 @@ def member_set(name, format_id, smogon=None):
         return None
     else:
         s = {"item": ladder["item"], "ability": ladder["ability"], "nature": ladder["nature"], "evs": ladder["evs"],
-             "moves": [m for m, _ in ladder["moves"]], "tera": (ladder.get("tera") or (None,))[0]}
+             "moves": [m for m, _ in ladder["moves"]], "tera": (ladder.get("tera") or (None,))[0],
+             "all_ratings": ladder.get("all_ratings", False)}
     if not config.has_tera(format_id):
         s["tera"] = None
     return {"species": paste_species(name), **s}

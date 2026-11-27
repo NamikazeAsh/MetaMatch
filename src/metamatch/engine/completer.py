@@ -159,6 +159,12 @@ def core_partners(core, format_id, n=16, min_usage=0.01):
     own usage, so a real pairing beats a Pokemon that is simply on every team.
     """
     data = load_chaos_data(format_id) or {}
+    # A rare pick (Sceptile in National Dex) brings its own teammates from the all ratings stats; candidates still
+    # come from the main stats, so the suggestions stay what strong players run
+    from metamatch.auditor import load_all_ratings
+    rare = {c: e for c, e in load_all_ratings(format_id).items() if c in core and c not in data}
+    if rare:
+        data = {**data, **rare}
     core = [c for c in core if c in data]
     if not core:
         return []
