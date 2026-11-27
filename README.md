@@ -301,7 +301,7 @@ The benchmarks, their results and the commands that run them are in [bench/READM
 
 ---
 
-## 🙏 Acknowledgements
+## Acknowledgements
 
 * **[Smogon University](https://www.smogon.com/)**: usage statistics, strategy analyses and [`@smogon/calc`](https://github.com/smogon/damage-calc).
 * **[PokeAPI](https://pokeapi.co/)**: Pokémon relational data.

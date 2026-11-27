@@ -35,7 +35,9 @@ from metamatch.tabs import (
     tab_speed_tiers, tab_chat as tab_chat_mod, tab_meta_pulse, tab_spread_lab, tab_preview, tab_strategy_search,
 )
 
-st.set_page_config(page_title="MetaMatch", page_icon="⚪", layout="wide")
+# The tab icon is the logo's emblem without the wordmark (assets/images/favicon.png)
+st.set_page_config(page_title="MetaMatch", page_icon=str(config.BASE_DIR / "assets" / "images" / "favicon.png"),
+                   layout="wide")
 
 # App wide styles
 st.html(r'''
