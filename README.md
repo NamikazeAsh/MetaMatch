@@ -27,7 +27,7 @@ Paste a team and MetaMatch shows what beats it, what it beats, how to lead, when
 
 ---
 
-## How It Works
+## ⚙️ How It Works
 
 ```mermaid
 graph TD
@@ -136,7 +136,7 @@ graph LR
 
 ---
 
-## Features
+## ✨ Features
 
 ### MetaFlash
 
@@ -221,7 +221,7 @@ Gen 9 **OU, UU and National Dex**, plus **Pokémon Champions OU and UU** with Le
 
 ---
 
-## Setup
+## 🚀 Setup
 
 ### Prerequisites
 
@@ -256,7 +256,7 @@ Ollama and Node are both optional. Without Ollama, every analysis tab still work
 
 ---
 
-## Tests
+## 🧪 Tests
 
 ```bash
 pytest
@@ -266,7 +266,7 @@ The benchmarks, their results and the commands that run them are in [bench/READM
 
 ---
 
-## Module Overview
+## 🗂️ Module Overview
 
 <details>
 <summary>Where things live</summary>
@@ -290,7 +290,7 @@ The benchmarks, their results and the commands that run them are in [bench/READM
 
 ---
 
-## Limitations & Future Outlook
+## 🧭 Limitations & Future Outlook
 
 * **Real questions are harder.** On 48 questions from Smogon's forums, 74% of the questions it answers get a useful answer, but "why does X run Y" and opinion questions often get "did you mean" instead.
 * **Weak spots:** in battle calls (it can't see the game), Tera timing and open strategy.
@@ -301,7 +301,7 @@ The benchmarks, their results and the commands that run them are in [bench/READM
 
 ---
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 * **[Smogon University](https://www.smogon.com/)**: usage statistics, strategy analyses and [`@smogon/calc`](https://github.com/smogon/damage-calc).
 * **[PokeAPI](https://pokeapi.co/)**: Pokémon relational data.
