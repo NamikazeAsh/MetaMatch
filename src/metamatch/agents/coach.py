@@ -210,6 +210,24 @@ def _named_analysis(hit, asked, query="", how_to_use=False):
                                                        or _species_key(m.get("species")) in asked)
 
 
+def _overview(name, team):
+    """The opening chunk of `name`'s Smogon overview, as a one hit list (empty without one). "How do I play X" wants
+    the analysis's summary: matching words picked set details instead (the 2026 11 27 sealed set, 6 of 6 fallbacks)."""
+    from metamatch.rag.cards import card
+    format_id = config.team_format(team)
+    # The index keeps set chunks only; the analysis files hold the overview (rag/cards.py, current game first, then
+    # an older game's labelled as such). A Mega's analysis sits under its base species
+    found = card(name, format_id) or card(name.split("-Mega")[0], format_id)
+    if not found:
+        return []
+    label, text, note = found
+    label = label.removeprefix("From the ")
+    section = "Set " + label.split(", ")[1][:-4] if label.endswith(" set") and ", " in label else "Overview"
+    return [{"text": text, "overview": True, "label": label + (f". {note}" if note else ""),
+             "metadata": {"source": "smogon_analysis", "pokemon": name, "species": name, "section": section,
+                          "format": format_id}}]
+
+
 def _voiced(query, hits, asked, state=None, meta=None):
     """Oak's framing line, then the passage's own sentences that answer the question, quoted, with the source
     (agents/retell.py). None when nothing retrieved is worth reading."""
@@ -224,10 +242,11 @@ def _voiced(query, hits, asked, state=None, meta=None):
     url = m.get("url") or (analysis_url(m.get("pokemon"), m.get("format")) if m.get("source") == "smogon_analysis" else None)
     note = (f" Written for Gen {m['gen']}: it mentions {m['old_mechanics']}, which the current games don't have."
             if m.get("old_mechanics") else "")
-    source = f"_From the {_source_label(m)}.{note}_" + (f" [Read the rest]({url})" if url else "")
+    source = f"_From the {hit.get('label') or _source_label(m)}.{note}_" + (f" [Read the rest]({url})" if url else "")
     if meta is not None:
         meta.update({"retell": by})
-    return f"{line}\n\n> {quoted(query, hit)}\n\n{source}"
+    # An overview's opening sentences are its summary: quote those, not the ones that share words with the question
+    return f"{line}\n\n> {quoted('' if hit.get('overview') else query, hit)}\n\n{source}"
 
 
 def _card(hit):
@@ -350,7 +369,10 @@ Pokemon, and never call one an answer to something it loses to.
             meta.update({"opener": "stock", "facts": "fallback"}, opener=line)
         chips = suggestions(query, plan, team_context)
         found = references(query, team_context, plan, briefing.facts)
-        asked = {_species_key(n) for n in find_pokemon(query)}
+        names = find_pokemon(query)
+        asked = {_species_key(n) for n in names}
+        if (meta or {}).get("kind") == "how_to_use" and len(set(names)) == 1:
+            found = _overview(names[0], team_context) + found
         # Oak frames the closest passage in his own voice and quotes the sentences that answer the question
         # (agents/retell.py); with nothing worth reading, he says so and offers questions he can answer
         voiced = _voiced(query, found, asked, state, meta)
