@@ -109,6 +109,21 @@ class TestForcedPlans(unittest.TestCase):
         self.assertTrue(v.statement.startswith("This plays as "))
         self.assertIn("Early on, lead with your", v.statement)
 
+    def test_learn_questions_read_the_move_after_the_verb(self):
+        from metamatch.engine.solvers import solve
+        p = plan_query("can you give gholdengo shell smash", self.team)
+        self.assertEqual((p.intent, p.move), ("learn", "Shell Smash"))
+        v = solve(p)
+        if v:   # learnset data present
+            self.assertTrue(v.statement.startswith("No: Gholdengo can't learn Shell Smash"))
+        self.assertNotEqual(plan_query("does tusk get knocked out by iron valiant moonblast", self.team).intent, "learn")
+        self.assertNotEqual(plan_query("does gambit run sucker punch usually", self.team).intent, "learn")
+
+    def test_other_game_questions_decline(self):
+        from metamatch.agents.manager import decline_for
+        self.assertIsNotNone(decline_for("how do i evolve eevee into sylveon", "gen9ou"))
+        self.assertIsNone(decline_for("can i catch iron valiant on the switch", "gen9ou"))
+
     def test_kinds_without_a_solver_stay_open(self):
         p = plan_query("whats rising this month", self.team, force="meta_trends")
         self.assertEqual((p.intent, p.kind), ("open", "meta_trends"))

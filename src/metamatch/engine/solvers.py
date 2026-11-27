@@ -1118,9 +1118,35 @@ def solve_rules(plan, dex, game):
                                                or rules.entry(kind, name).get("desc")], plain=statement, typed=typed)
 
 
+def solve_learn(plan, dex, game):
+    """'Can Gholdengo learn Shell Smash': whether the Pokemon can have the move in this format (engine/learnsets.py,
+    Champions' own movepools there), and how often ladder sets run it when it can."""
+    from metamatch.engine.learnsets import learns
+    who = plan.user if plan.user is not None and plan.user_named else None
+    name = (who.get("Forme") or who["Pokemon"]) if who else plan.opponent
+    if not name or not plan.move:
+        return None
+    pool = learns(name, plan.format_id)
+    if not pool:
+        return None
+    label = config.format_info(plan.format_id)["label"]
+    can = to_id(plan.move) in pool
+    said = f"{'Yes' if can else 'No'}: {name} {'can' if can else 'can’t'} learn {plan.move} in {label}."
+    said = said.replace("’", "'")
+    typed = [Fact("learnset", said, {"pokemon": name, "move": plan.move, "learns": can}, role="why")]
+    if can:
+        key, entry = chaos_entry(name, plan.format_id)
+        if entry:
+            total = sum(entry.get("Abilities", {}).values()) or 1
+            share = next((v / total for k, v in (entry.get("Moves") or {}).items() if to_id(k) == to_id(plan.move)), 0)
+            typed.append(Fact("usage", f"{round(share * 100)}% of ladder {key} sets run it.", {"share": round(share, 3)}))
+    return Verdict("learn", "yes" if can else "no", said, [f.text for f in typed], persona="mechanics", plain=said,
+                   typed=typed)
+
+
 SOLVERS = {"speed": solve_speed, "ko": solve_ko, "damage": solve_damage, "type": solve_type, "stat": solve_stat,
            "usage": solve_usage, "checks": solve_checks, "team_type": solve_team_type, "rules": solve_rules,
-           "speed_spread": solve_speed_spread, "matchup": solve_matchup}
+           "speed_spread": solve_speed_spread, "matchup": solve_matchup, "learn": solve_learn}
 
 
 def solve(plan):

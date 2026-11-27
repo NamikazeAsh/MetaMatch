@@ -415,7 +415,28 @@ def _move_boosts(plan, src, dst, boosts):
 # in_battle, out_of_scope, smalltalk) stay "open" with plan.kind set, for the chat to route
 PLANNED_KINDS = {"speed", "ko", "damage", "type", "stat", "usage", "team_type", "checks", "switchins", "matchup",
                  "member", "score", "threats", "gameplan", "win", "lead", "tera", "archetype", "weather", "teammate",
-                 "compare", "rules"}
+                 "compare", "rules", "learn"}
+
+
+# "run" is left out: "does gambit run sucker punch usually" asks about its set, not whether it can learn the move
+LEARN_VERB_RE = re.compile(r"\b(?:learn\w*|gets?|have|has|access to|give)\s+(?:the move\s+|an?\s+)?", re.I)
+
+
+def _learn_move(q, dex):
+    """'can gholdengo learn shell smash', 'does tusk get knock off', 'give kingambit u-turn': the move named right after
+    the verb (after the Pokemon for "give"), in any case, so "does tusk get knocked out by" names none; or None."""
+    if not dex:
+        return None
+    for m in LEARN_VERB_RE.finditer(q):
+        starts = [m.end()]
+        if m.group(0).lower().startswith("give"):
+            starts += [m.end() + w.end() for w in re.finditer(r"\S+\s+", q[m.end():m.end() + 40])][:3]
+        for start in starts:
+            tail = to_id(q[start:start + 30])
+            hits = [n for n in dex.move_data if len(to_id(n)) > 3 and tail.startswith(to_id(n))]
+            if hits:
+                return max(hits, key=len)
+    return None
 
 
 def _force(plan, kind, q, scrubbed, names_only, raw_spans, dex, format_id, target, survive):
@@ -588,6 +609,9 @@ def plan_query(query, team, force=None):
     elif tab:
         # A question about a dashboard tab gets that tab's own answer (same functions, so the numbers match)
         plan.intent = tab
+    elif len(names) == 1 and _learn_move(q, dex):
+        plan.intent = "learn"
+        plan.move = _learn_move(q, dex)
     elif team and SWITCH_TYPE_RE.search(q):
         plan.intent = "team_type"
         plan.atk_type = SWITCH_TYPE_RE.search(q).group(1).capitalize()

@@ -35,7 +35,7 @@ THANKS = "Anytime! Ask away whenever something comes up, like a matchup, a lead 
 # Questions nobody can answer from data: a fixed, honest line and the nearest thing the engine can answer instead
 DECLINES = [
     ("other_game", re.compile(r"\bpok[eé]mon go\b|\b(?:great|ultra|master) league\b|\b(?:pocket|tcg|unite|nuzlocke)\b|"
-                              r"\btrading card\b", re.I),
+                              r"\btrading card\b|\bevolv\w*\b|\bbreed\w*\b|\bshiny hunt\w*", re.I),
      "I only know competitive {label} singles on Showdown, so I can't help with other Pokemon games."),
     ("events", re.compile(r"\bwho (?:will|is going to|gonna) win\b|\b(?:worlds|nationals|regionals|naic|euic|ocic)\b", re.I),
      "I can't predict who wins tournaments: games come down to the players. I can show you how your team lines up "
@@ -118,7 +118,7 @@ SURE_OUT_OF_SCOPE = 0.9
 # Below the sure threshold but at least this confident, an answerable best guess is answered with chips under it
 ANSWER_FLOOR = 0.2
 # Calculator and lookup questions the planner's rules answer first: they read the details exactly (MetaBench 100%)
-RULE_KINDS = {"speed", "speed_spread", "ko", "damage", "type", "stat", "usage"}
+RULE_KINDS = {"speed", "speed_spread", "ko", "damage", "type", "stat", "usage", "learn"}
 # An unsure question with building words goes to Brock only when the classifier also leans to a building kind: an
 # item word alone ("specs draco into assault vest raging bolt") sent damage and Speed questions to his set listing
 BUILDING_KINDS = {"sets", "teammate", "compare", "how_to_use", "usage"}
