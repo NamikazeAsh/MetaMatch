@@ -108,6 +108,20 @@ class TestChatRouting(unittest.TestCase):
         self.assertIn("How do I beat Iron Valiant?", options)
         self.assertIn("What's my win condition?", options)
 
+    def test_unsure_but_answerable_is_answered_with_the_other_readings_under_it(self):
+        from unittest import mock
+        from metamatch.agents import manager
+        from metamatch.agents.grounded import FACTS_MARK
+        guess = {"kind": "threats", "confidence": 0.3, "sure": False,
+                 "top": [("threats", 0.3), ("win", 0.2), ("lead", 0.1)]}
+        with mock.patch.object(manager, "_classify", lambda text, team: guess):
+            m = manager.AgentManager()
+            turn = m.prepare("hmm what could run through me", self.team)
+            self.assertEqual(turn.verdict.intent, "threats")
+            self.assertIn("What's my win condition?", turn.meta["also"])
+            spoken = "".join(m.respond(turn, self.team)).partition(FACTS_MARK)[0]
+            self.assertIn(manager.ALSO, spoken)
+
     def test_an_item_word_doesnt_send_a_damage_question_to_the_set_listing(self):
         from metamatch.agents.manager import AgentManager
         turn = AgentManager().prepare("rough % for specs draco into assault vest raging bolt?", self.team)

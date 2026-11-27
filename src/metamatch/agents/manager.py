@@ -115,6 +115,8 @@ def _is_building(text):
 
 # The learned classifier (engine/intent.py) only declines over a rule's answer when it is this sure
 SURE_OUT_OF_SCOPE = 0.9
+# Below the sure threshold but at least this confident, an answerable best guess is answered with chips under it
+ANSWER_FLOOR = 0.2
 # Calculator and lookup questions the planner's rules answer first: they read the details exactly (MetaBench 100%)
 RULE_KINDS = {"speed", "speed_spread", "ko", "damage", "type", "stat", "usage"}
 # An unsure question with building words goes to Brock only when the classifier also leans to a building kind: an
@@ -148,6 +150,24 @@ KIND_QUESTIONS = {
 def _prefixed(prefix, chunks):
     yield prefix + "\n\n"
     yield from chunks
+
+
+ALSO = "_Not what you asked? Try one of these:_"
+
+
+def _with_also(chunks, questions):
+    """The answer with "did you mean" chips under its spoken part, before the collapsed engine facts."""
+    from .grounded import FACTS_MARK
+    from .suggest import marker
+    extra = f"\n\n{ALSO}" + marker(questions)
+    done = False
+    for chunk in chunks:
+        if not done and FACTS_MARK in chunk:
+            head, _, tail = chunk.partition(FACTS_MARK)
+            chunk, done = head + extra + FACTS_MARK + tail, True
+        yield chunk
+    if not done:
+        yield extra
 
 
 def _classify(text, team):
@@ -299,6 +319,15 @@ class AgentManager:
             if verdict:
                 return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona], meta=meta)
         elif guess and plan.intent != "clarify" and not (_is_building(reading.text) and guess["kind"] in BUILDING_KINDS):
+            # Unsure, but the engine can answer its best guess: answer it, with the other readings as chips under it.
+            # On the 2026 11 27 sealed set, unsure questions above the floor whose guess solved were right 18 times,
+            # had the right reading among the chips 6 times, and were wrong with no way back once
+            if guess["confidence"] >= ANSWER_FLOOR and guess["kind"] not in ("out_of_scope", "smalltalk"):
+                turn = self._classified(query, reading, plan, guess["kind"], team_context, meta)
+                if turn and turn.verdict:
+                    others = [k for k, _ in guess["top"][1:]]
+                    turn.meta = {**turn.meta, "also": unsure_options(others, turn.plan, team_context)}
+                    return turn
             # Unsure, and the rules would only give Oak's generic fallback: offer the likely readings instead
             return Turn(query, reading, plan, route="unsure", persona=PERSONAS["strategy"],
                         meta={**meta, "options": [k for k, _ in guess["top"]]})
@@ -364,7 +393,8 @@ class AgentManager:
         if turn.verdict:
             answer = self.grounded.run(turn.text, turn.verdict, team_context, plan=turn.plan, state=state, meta=turn.meta)
             prefix = turn.meta.get("prefix")
-            return _prefixed(prefix, answer) if prefix else answer
+            answer = _prefixed(prefix, answer) if prefix else answer
+            return _with_also(answer, turn.meta["also"]) if turn.meta.get("also") else answer
         if turn.plan.intent == "clarify":
             return iter([CLARIFY])
         if turn.route == "calc_down":
