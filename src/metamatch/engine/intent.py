@@ -21,7 +21,7 @@ PATH = config.JSON_DIR / "intent_model.json"
 
 KINDS = ("speed", "ko", "damage", "type", "stat", "usage", "team_type", "checks", "switchins", "matchup", "member",
          "score", "threats", "gameplan", "win", "lead", "tera", "archetype", "weather", "sets", "teammate", "compare",
-         "rules", "how_to_use", "meta_trends", "in_battle", "out_of_scope", "smalltalk")
+         "rules", "how_to_use", "meta_trends", "in_battle", "out_of_scope", "smalltalk", "learn")
 
 TYPES = ("normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground", "flying", "psychic",
          "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy", "stellar")

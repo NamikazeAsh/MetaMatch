@@ -28,7 +28,7 @@ from metamatch.team import readTeam  # noqa: E402
 DATA = ROOT / "data" / "intent"
 SEED, DEV_SHARE = 0, 0.15
 EPOCHS, LR, L2 = 400, 0.05, 1e-4
-TARGET_PRECISION = 0.92   # confident answers must be right this often on the dev split
+TARGET_PRECISION = 0.95   # confident answers must be right this often on the dev split (unsure ones still get answered, with chips)
 
 
 def _teams():
