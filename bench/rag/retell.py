@@ -39,7 +39,7 @@ def main():
         n += 1
         hits = coach.references(q["query"], {}, format_id=q["format"])
         asked = {coach._species_key(x) for x in find_pokemon(q["query"])}
-        hit = next((h for h in hits if coach._card_worthy(h) or coach._named_analysis(h, asked)), None)
+        hit = next((h for h in hits if coach._card_worthy(h) or coach._named_analysis(h, asked, q["query"])), None)
         if not hit:
             rows.append({"query": q["query"], "passage": None})
             continue

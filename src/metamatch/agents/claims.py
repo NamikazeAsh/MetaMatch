@@ -284,6 +284,9 @@ def group_clash(text, verdict):
         return None
     members = [n for names in groups.values() for n in names]
     name_rx = re.compile("|".join(rf"\b{re.escape(n)}\b" for n in sorted(members, key=len, reverse=True)), re.I)
+    # "Kingambit resists Ghost attacks because it is weak to them": a clause that names no member but says "it" or
+    # "they" is about the last member named (the 2026 11 26 coverage audit's broken answer)
+    last = []
     for clause in clauses(text):
         # "Gholdengo is immune, Hatterene takes 0.25x" is two claims; "Venusaur, Dragapult and Alomomola resist" is one
         # claim about a list, so a comma part holding only names joins the part after it
@@ -294,7 +297,11 @@ def group_clash(text, verdict):
                 continue
             segment, pending = pending + part, ""
             named = [n for n in members if re.search(rf"\b{re.escape(n)}\b", segment, re.I)]
-            if not named:
+            if named:
+                last = named
+            elif last and re.search(r"\b(?:it|its|it's|they|them|both)\b", segment, re.I):
+                named = last
+            else:
                 continue
             for group, rx in GROUP_WORDS.items():
                 m = rx.search(segment)

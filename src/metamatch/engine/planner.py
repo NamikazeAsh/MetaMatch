@@ -158,7 +158,12 @@ RULES_ADVICE_RE = re.compile(r"\bhow (?:do|can|should) (?:i|we)\b|\bwhat (?:do|s
 # "stat boosts" and "stat changes" are assumptions in matchup questions, not stat questions
 STAT_RE = re.compile(r"\bstat\b(?!\s+(?:boost|change|stage|drop|raise))", re.I)
 # "how much Speed does my X have", "what Speed does my X hit": a stat question when no opponent is named
-STAT_ASK_RE = re.compile(r"\b(how much|what)\s+(speed|attack|defense|special attack|special defense|hp)\b", re.I)
+STAT_ASK_RE = re.compile(r"\b(how much|what)\s+(speed|attack|defense|special attack|special defense|hp)\b|"
+                         r"\bhow fast (?:is|are)\b", re.I)
+# "who switches into a Ghost move safely", "who takes Fire hits": the team's resists to one attacking type
+SWITCH_TYPE_RE = re.compile(r"\bwho(?: on (?:my|our) team)? (?:switch(?:es)? into|takes?|tanks?|eats?|handles?|walls?) "
+                            r"(?:a |an )?(normal|fire|water|electric|grass|ice|fighting|poison|ground|flying|psychic|bug|"
+                            r"rock|ghost|dragon|dark|steel|fairy)(?:[- ]type)? (?:moves?|attacks?|hits?)\b", re.I)
 
 
 @dataclass
@@ -465,6 +470,10 @@ def plan_query(query, team):
     if tab:
         # A question about a dashboard tab gets that tab's own answer (same functions, so the numbers match)
         plan.intent = tab
+    elif team and SWITCH_TYPE_RE.search(q):
+        plan.intent = "team_type"
+        plan.atk_type = SWITCH_TYPE_RE.search(q).group(1).capitalize()
+        plan.team_ask = "resist"
     elif (team and TEAM_WIDE_RE.search(q) and TYPE_ASK_RE.search(q) and not TEAM_ADVICE_RE.search(q)
             and not SPEED_RE.search(q)):
         # A type chart lookup over the whole team: one type, the opponent's usual attacks, or every shared weakness

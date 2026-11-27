@@ -189,9 +189,22 @@ def _card_worthy(hit):
     return m.get("type") in ("concept", "guide") and close
 
 
-def _named_analysis(hit, asked):
-    """A Smogon analysis chunk about a Pokemon the question names."""
+# A Pokemon's own analysis answers "how do I use, play or build around X" and "what's X's role", not a matchup
+# ("what can I do vs Iron Valiant"), a decision in a game ("pult locked into draco, now what") or a mechanic
+# ("does infiltrator matter on dragapult"): the 2026 11 26 coverage audit found 22 such questions quoted an unrelated
+# set or teammate passage about a Pokemon they merely named
+USE_RE = re.compile(r"\bhow (?:do|to|should|can|would|does) (?:i |you |we |one )?(?:use|play|run|build|pilot)\b|"
+                    r"\b(?:role|job|purpose|playstyle)\b|\bwhat(?:'s| is| does)\b[^?.!]{0,30}\b(?:do|doing|for)\b|"
+                    r"\bbuild(?:ing)? (?:a team )?around\b|\b(?:viable|worth using|good on|fit\w* on)\b", re.I)
+NOT_USE_RE = re.compile(r"\b(?:vs\.?|versus|against|now|this turn|turn \d+|locked|click|sack|switch(?:es)? (?:to|into)|"
+                        r"send (?:in|out)|goes in|matter|work|works|happens?|immune|resist\w*|weak\w*)\b", re.I)
+
+
+def _named_analysis(hit, asked, query=""):
+    """A Smogon analysis chunk about a Pokemon the question names, when the question asks how to use that Pokemon."""
     m = hit["metadata"]
+    if not (USE_RE.search(query) and not NOT_USE_RE.search(query)):
+        return False
     return m.get("source") == "smogon_analysis" and (_species_key(m.get("pokemon")) in asked
                                                        or _species_key(m.get("species")) in asked)
 
@@ -199,7 +212,7 @@ def _named_analysis(hit, asked):
 def _voiced(query, hits, asked, state=None, meta=None):
     """Oak's framing line, then the passage's own sentences that answer the question, quoted, with the source
     (agents/retell.py). None when nothing retrieved is worth reading."""
-    hit = next((h for h in hits if _card_worthy(h) or _named_analysis(h, asked)), None)
+    hit = next((h for h in hits if _card_worthy(h) or _named_analysis(h, asked, query)), None)
     if not hit:
         return None
     from metamatch.rag.cards import analysis_url
@@ -343,7 +356,7 @@ Pokemon, and never call one an answer to something it loses to.
             text = voiced
         else:
             # The concept note first: it is written for the current games; a guide adds depth from earlier ones
-            hits = sorted((h for h in found if _card_worthy(h) or _named_analysis(h, asked)),
+            hits = sorted((h for h in found if _card_worthy(h) or _named_analysis(h, asked, query)),
                           key=lambda h: h["metadata"].get("type") != "concept")
             text = f"*{line}*"
             if hits:

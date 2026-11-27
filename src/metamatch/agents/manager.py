@@ -33,6 +33,21 @@ GREETING = ("Hello there! Ask me about any matchup, your leads, your win conditi
 THANKS = "Anytime! Ask away whenever something comes up, like a matchup, a lead or a set to check."
 # Questions nobody can answer from data: a fixed, honest line and the nearest thing the engine can answer instead
 DECLINES = [
+    ("other_game", re.compile(r"\bpok[eé]mon go\b|\b(?:great|ultra|master) league\b|\b(?:pocket|tcg|unite|nuzlocke)\b|"
+                              r"\btrading card\b", re.I),
+     "I only know competitive {label} singles on Showdown, so I can't help with other Pokemon games."),
+    ("events", re.compile(r"\bwho (?:will|is going to|gonna) win\b|\b(?:worlds|nationals|regionals|naic|euic|ocic)\b", re.I),
+     "I can't predict who wins tournaments: games come down to the players. I can show you how your team lines up "
+     "against the Pokemon you'll face."),
+    ("illegal", re.compile(r"\bhack(?:ed|s|ing)?\b|\billegal\b|\bcheat\w*\b", re.I),
+     "I only help with legal sets. The Audit tab checks your team's legality, and I can suggest legal sets that do "
+     "the job."),
+    ("autopilot", re.compile(r"\bplay (?:the game |it |a game )?for me\b|\b(?:battle|ladder) for me\b|\bbot\b", re.I),
+     "I can't play for you, but I can tell you how each of your Pokemon does against whatever you're facing."),
+    ("hidden", re.compile(r"\bbefore team preview\b|\bopponent'?s? (?:team|set|moves?) before\b|\bsee their team\b",
+                          re.I),
+     "I can't see your opponent's team before team preview. Once you see it, paste it into Matchup Preview to see "
+     "every matchup."),
     ("next_move", re.compile(r"\bwhat will (?:they|my opponent|the opponent|he|she)\b|\bpredict\w*\b|"
                              r"\b(?:will|is going to|gonna|would)\b[^?.!]*\b(?:they|he|she|the opponent|my opponent|opp)\b[^?.!]*"
                              r"\b(?:lead|click|use|switch|go for|do|bring|send)\b", re.I),
@@ -45,7 +60,7 @@ DECLINES = [
     ("luck", re.compile(r"\bhax\w*\b|\bwhy did i lose\b|\b(?:bad )?luck\w*\b|\brigged\b", re.I),
      "Luck in a past game isn't something I can measure. If you name a move or ability, I can tell you exactly how "
      "it works."),
-    ("format", re.compile(r"\b(?:in|for|playing|play) doubles\b|\bdoubles (?:format|battles?|tiers?|teams?)\b|"
+    ("format", re.compile(r"\bdoubles\b|"
                           r"\b(?:vgc|random battles?|randbats|battle stadium|bss|little cup|monotype|"
                           r"gen ?[1-8]\b|ubers)\b", re.I),
      "I'm built for {label} singles with your team, so I can't judge other formats like VGC, doubles or older "
@@ -81,6 +96,20 @@ BUILDER_RE = re.compile(r"\b(?:items?|moves?|movesets?|sets?(?! up)|evs?|spreads
 STRATEGY_RE = re.compile(r"\bhow (?:do|can|should) (?:i|we) (?:beat|play|win|handle|deal|stop|counter|use|pilot)\b|"
                          r"\b(?:win ?con\w*|game ?plan|lead\w*|against|vs\.?|versus|matchups?|archetype|stall|offense|rain|sun)\b",
                          re.I)
+
+
+# A set word inside a question about Speed, typing, a mechanic or a moment in a game doesn't make it a set question:
+# the 2026 11 26 coverage audit found "what does tera steel do for tusk defensively", "how does choice lock work if i
+# tera" and "should i tera kingambit now" all answered with Brock's set listing
+# "speed" alone would catch the move Extreme Speed in "Dragonite sets? tera normal extreme speed or something else"
+NOT_BUILDING_RE = re.compile(r"\b(?:fast|faster|slower|outspeed\w*|speed (?:tier|stat|control)\w*|defensive\w*|resist\w*|"
+                             r"weak\w*|immun\w*|"
+                             r"switch(?:es)? into|how does\b[^?.!]*\bwork|how do\b[^?.!]*\bwork|does\b[^?.!]*\bwork|"
+                             r"what happens|now|this turn|save it|survive\w*|tank\w*|live)\b", re.I)
+
+
+def _is_building(text):
+    return bool(BUILDER_RE.search(text) and not STRATEGY_RE.search(text) and not NOT_BUILDING_RE.search(text))
 
 
 @dataclass
@@ -157,7 +186,7 @@ class AgentManager:
             from .router import get_router
             route, _ = get_router().route_query(text)
             return "builder" if BUILDER_RE.search(text) and not STRATEGY_RE.search(text) else route
-        return "builder" if BUILDER_RE.search(text) and not STRATEGY_RE.search(text) else "strategy"
+        return "builder" if _is_building(text) else "strategy"
 
     def respond(self, turn: Turn, team_context: dict, team_weakness: dict = None, state: dialogue.DialogueState = None):
         """The answer to a prepared turn, as a generator of text chunks."""
