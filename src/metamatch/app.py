@@ -65,6 +65,15 @@ st.html(r'''
     [data-testid="stTopNavLink"][aria-current="page"] p { color: #dff9ff; }
     [data-testid="stTopNavLink"][aria-current="page"] [data-testid="stIconMaterial"] { color: #00d4ff; }
 
+    /* Format picker: big, easy targets, the one you're on lit like the top bar */
+    .st-key-format_row p { font-size: 1.05rem; }
+    .st-key-format_row button { min-height: 44px; padding: 8px 20px; }
+    .st-key-format_row button p { font-size: 1rem; font-weight: 600; }
+
+    /* The paste box starts short and grows to full height once you click in or paste a team */
+    .st-key-team_hero textarea { transition: height 0.25s ease; }
+    .st-key-team_hero textarea:focus, .st-key-team_hero textarea:not(:placeholder-shown) { height: 220px !important; }
+
     /* The browser store's invisible component (shared deployment) takes no space on the page */
     .st-key-mm_store_slot { position: absolute !important; width: 0 !important; height: 0 !important; overflow: hidden !important; }
 
@@ -607,6 +616,7 @@ def home_page():
     render_logo()
     # Start screen: the team input is the hero, this month's MetaFlash sits under it; recent teams live in the sidebar
     format_picker()
+    st.caption("Sets your team's format and the MetaFlash below.", text_alignment="center")
     with st.container(border=True, key="team_hero"):
         st.html(HERO_HEAD)
         with st.form("team_form", border=False):
@@ -614,7 +624,7 @@ def home_page():
                 "Team",
                 value=st.session_state.default_input,
                 placeholder="Paste a Showdown export or a pokepast.es link\n\nGholdengo @ Choice Scarf\nAbility: Good as Gold\n...",
-                height=220,
+                height=96,
                 label_visibility="collapsed",
             )
             with st.container(horizontal=True, vertical_alignment="center"):
