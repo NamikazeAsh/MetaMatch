@@ -38,8 +38,9 @@ graph TD
 
     subgraph DATA ["Data, refreshed monthly"]
         CI["GitHub Action"]
-        STATS["Smogon stats: chaos, leads, movesets"]
+        STATS["Smogon stats: chaos, leads, movesets, plus all ratings sets for rare picks"]
         HIST["Usage, lead, set and weather histories"]
+        REPLAYS["Public ladder replays: real teams and knockouts"]
     end
     CI --> STATS
     STATS --> HIST
@@ -70,27 +71,39 @@ graph TD
     BOARD --> DASH
     BOARD --> GUIDE
     MECH --> TOOLS
+    REPLAYS -->|"teams like yours, real game precedents"| DASH
 
     subgraph CHAT ["Coach chat"]
         PL["Planner and detail reader"]
+        CLS["Question classifier: Model2Vec features + logistic regression"]
         SO["Solvers, the same functions as the tabs"]
         PK["Engine answer and exact facts"]
         VO["Coach's opener and one why sentence, both checked"]
-        FB["No exact answer: cited reference and questions it can answer"]
+        DYM["Unsure: best guess answered with 'did you mean' buttons, or the buttons alone"]
+        FB["No exact answer: Oak quotes the closest Smogon passage, cited"]
     end
     APP --> PL
-    PL -->|"engine can answer"| SO
+    APP --> CLS
+    PL -->|"calculator questions"| SO
+    CLS -->|"every other kind, when sure"| SO
+    CLS -->|"not sure"| DYM
+    DYM --> SO
     MECH --> SO
     SO --> PK
     PK --> VO
-    PL -->|"nothing exact to compute"| FB
+    CLS -->|"how to play a Pokemon, nothing exact to compute"| FB
 
-    subgraph REFS ["References, always shown as cited cards"]
+    subgraph REFS ["References, always shown as cited quotes"]
         SRC["Smogon analyses and guides, concept notes"]
-        IDX["ChromaDB (BGE small) + BM25"]
+        IDX["ChromaDB (BGE small) + BM25, on your machine"]
+        LITE["Model2Vec static embeddings + BM25, on the web version"]
+        SS["Strategy Search"]
     end
     SRC --> IDX
+    SRC --> LITE
     IDX --> FB
+    LITE --> SS
+    APP --> SS
     SRC -->|"Tera picks, Mega write ups"| GUIDE
 
     LLM["Ollama, local 3B model (optional)"]
@@ -106,23 +119,29 @@ A GitHub Action pulls Smogon's stats every month and rebuilds the histories, spe
 ```mermaid
 graph LR
     Q["Question"] --> P["Planner + detail reader"]
-    P -->|"engine can answer"| S["Solver"]
+    Q --> K["Classifier picks the kind of question"]
+    P -->|"Speed, damage, KO, type, stat, usage"| S["Solver"]
+    K -->|"sure"| S
+    K -->|"unsure but answerable"| H["Best guess, with 'did you mean' buttons under it"]
+    H --> S
+    K -->|"unsure"| D["'Did you mean' buttons"]
     S --> A["Engine answer + exact facts"]
     A --> V["Coach adds an opener and one why sentence"]
     V --> C{"Checked against the facts"}
     C -->|passes| OUT["Answer"]
     C -->|fails| F["Engine's own sentence instead"]
     P -->|"opponent unclear"| Q2["Ask which Pokémon"]
-    P -->|"nothing exact to compute"| G["Say so, cite a guide, offer questions it can answer"]
+    K -->|"how to play it, or nothing exact"| G["Oak quotes the Smogon passage that answers it, with a link"]
 ```
 
-1. **Planner (no LLM):** works out what you're asking (speed, damage, a KO, a matchup, a set, a game plan) and which Pokémon and moves are involved. Knows all 1,400+ species and formes, nicknames like *Lando* and *Tusk*, typos, Mega names, and follow ups like *"what about Gholdengo?"*.
-2. **Detail reader (no LLM):** picks up what the question says about either side, like *"specs"*, *"tera fairy"*, *"+2 after a Dragon Dance"*, rain, Trick Room, a burn or Stealth Rock. Anything it can't model is named, not dropped.
-3. **Solver:** computes the answer with the real damage calculator and the same functions as the dashboard, so chat and tabs always agree. Anything you didn't state comes from the most common ladder set.
-4. **Written by code:** the answer sentence is filled in by the engine, never guessed by the model. The exact numbers and Smogon's take sit in a dropdown under it.
-5. **Checked voice:** the local model adds a short opener and one sentence on why. Every number, Pokémon and verdict in it is checked against the engine; if it drifts, the engine's own sentence is shown.
-6. **No guessing:** with no exact answer, it says so, offers questions it can answer, and cites the closest guide when running locally.
-7. **Works without the model:** the coaches fall back to stock openers and the engine's facts. That's how the web version runs.
+1. **Question classifier (no LLM):** a small trained model reads the question with the names swapped out ("does my pokemon outspeed their pokemon") and picks what kind it is, out of 29: a matchup, a lead, a compare, a mechanic, the meta and so on. It runs in plain numpy, so it works on the live site too. When it isn't sure, the chat answers its best guess with "did you mean" buttons underneath, or offers the buttons alone. Measured on questions it never saw, written blind.
+2. **Planner (no LLM):** works out what you're asking (speed, damage, a KO, a matchup, a set, a game plan) and which Pokémon and moves are involved. Knows all 1,400+ species and formes, nicknames like *Lando* and *Tusk*, typos, Mega names, and follow ups like *"what about Gholdengo?"*.
+3. **Detail reader (no LLM):** picks up what the question says about either side, like *"specs"*, *"tera fairy"*, *"+2 after a Dragon Dance"*, rain, Trick Room, a burn or Stealth Rock. Anything it can't model is named, not dropped.
+4. **Solver:** computes the answer with the real damage calculator and the same functions as the dashboard, so chat and tabs always agree. Anything you didn't state comes from the most common ladder set.
+5. **Written by code:** the answer sentence is filled in by the engine, never guessed by the model. The exact numbers and Smogon's take sit in a dropdown under it.
+6. **Checked voice:** the local model adds a short opener and one sentence on why. Every number, Pokémon and verdict in it is checked against the engine; if it drifts, the engine's own sentence is shown.
+7. **No guessing:** with no exact answer, Oak quotes the Smogon passage that answers it, with a link to the full analysis, when there is one, or says so and offers questions it can answer.
+8. **Works without the model:** the coaches fall back to stock openers and the engine's facts. That's how the web version runs.
 
 ---
 
