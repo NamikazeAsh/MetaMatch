@@ -26,7 +26,7 @@ from metamatch import storage
 from metamatch import tour
 from metamatch import strategy_data
 from metamatch import meta_pulse
-from metamatch.ui import DASHBOARD_TABS, page_header, section_header
+from metamatch.ui import how_it_works, DASHBOARD_TABS, page_header, section_header
 from metamatch.tabs import (
     tab_banner,
     tab_quick_match, tab_move_search, tab_replay,
@@ -745,8 +745,9 @@ def team_page():
 def quick_match_page():
     tour.redirect("quick-match", _tour_go)
     page_header("Team building", "Quick Match",
-                "No team yet? Pick a core, add the partners that pair best with it, then analyze it or export it to Showdown.",
+                "No team yet? Pick a core, add the partners that pair best with it, then analyze or export it.",
                 st.session_state.get("format_id"))
+    how_it_works("quick-match")
     format_picker()
     tab_quick_match.render(get_master_strategy_data, open_team, TYPE_MAP)
     tour.render()
@@ -756,6 +757,7 @@ def move_search_page():
     tour.redirect("move-search", _tour_go)
     page_header("Research", "Move Search", "Pick moves and find every Pokémon that runs them, or can learn them, in this format.",
                 st.session_state.get("format_id"))
+    how_it_works("move-search")
     format_picker()
     tab_move_search.render(get_master_strategy_data, TYPE_MAP, lambda: st.switch_page(TOOL_PAGES["quick-match"]))
     tour.render()
@@ -765,6 +767,7 @@ def spread_lab_page():
     tour.redirect("spread-lab", _tour_go)
     page_header("Team building", "Spread Lab", "The smallest spread that hits every benchmark you need, checked by the damage calculator.",
                 st.session_state.get("format_id"))
+    how_it_works("spread-lab")
     format_picker()
     tab_spread_lab.render((st.session_state.get("analysis") or {}).get("team"))
     tour.render()
@@ -775,6 +778,7 @@ def matchup_preview_page():
     page_header("Before the battle", "Matchup Preview",
                 "Your team against the one you're about to face, every matchup worked out by the damage calculator.",
                 st.session_state.get("format_id"))
+    how_it_works("matchup-preview")
     team = (st.session_state.get("analysis") or {}).get("team")
     if not team:
         format_picker()
@@ -785,6 +789,7 @@ def matchup_preview_page():
 def replay_page():
     tour.redirect("replay-auditor", _tour_go)
     page_header("After the battle", "Replay Auditor", "Paste a Showdown replay for a turn by turn review of your battle.")
+    how_it_works("replay-auditor")
     tab_replay.render()
     tour.render()
 
