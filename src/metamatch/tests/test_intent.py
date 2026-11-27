@@ -83,6 +83,23 @@ class TestForcedPlans(unittest.TestCase):
         p = plan_query("rain teams scare me", self.team, force="archetype")
         self.assertEqual((p.intent, p.archetype), ("archetype", "rain"))
 
+    def test_compare_reads_tera_types_lowercase_abilities_and_two_pokemon(self):
+        p = plan_query("tera fairy or tera steel for my gholdengo", self.team)
+        self.assertEqual((p.intent, p.options), ("compare", [("tera", "Fairy"), ("tera", "Steel")]))
+        p = plan_query("gholdengo good as gold or something else, which one", self.team, force="compare")
+        self.assertIn(("ability", "Good as Gold"), p.options)
+        p = plan_query("tusk or gambit for this slot", self.team, force="compare")
+        self.assertEqual(p.options, [("pokemon", "Great Tusk"), ("pokemon", "Kingambit")])
+
+    def test_tera_compare_names_a_pick_with_both_counts(self):
+        from metamatch.engine import calc
+        from metamatch.engine.solvers import solve
+        if not calc.available():
+            self.skipTest("no damage calculator")
+        v = solve(plan_query("tera fairy or tera steel for my gholdengo", self.team))
+        self.assertIn("Tera Fairy", v.statement)
+        self.assertIn("Tera Steel", v.statement)
+
     def test_kinds_without_a_solver_stay_open(self):
         p = plan_query("whats rising this month", self.team, force="meta_trends")
         self.assertEqual((p.intent, p.kind), ("open", "meta_trends"))

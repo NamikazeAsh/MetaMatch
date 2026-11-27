@@ -308,13 +308,53 @@ def _archetype(text, format_id):
     return key if key and available(key, format_id) else None
 
 
+TERA_OPTION_RE = re.compile(r"\btera(?:stal(?:ize)?)?[\s-]*(?:type\s+)?(" + "|".join(constraints.TYPES) + r")\b", re.I)
+
+
 def _options(text):
-    """[(kind, name)] for the items, moves and abilities a question names, casual item names included ("specs")."""
-    found = [(kind, name) for kind, name in rules.find_named(text) if kind in ("item", "move", "ability")]
+    """[(kind, name)] for the items, moves, abilities and Tera types a question names, casual item names included
+    ("specs"). Tera types read as ("tera", "Fairy") from "tera fairy or tera steel"."""
+    found = [("tera", m.group(1).capitalize()) for m in TERA_OPTION_RE.finditer(text)]
+    found += [(kind, name) for kind, name in rules.find_named(text) if kind in ("item", "move", "ability")]
     for alias, item in constraints.ITEM_ALIASES.items():
         if re.search(rf"\b{re.escape(alias)}\b", text, re.I) and ("item", item) not in found:
             found.append(("item", item))
     return list(dict.fromkeys(found))
+
+
+def _species_options(text, species, format_id):
+    """Options the question names among what `species` actually runs on the ladder, in any case ("zapdos static vs
+    pressure"): find_named keeps short everyday words case sensitive, which a compare question about one Pokemon's
+    set doesn't need."""
+    from metamatch.engine.dex import to_id
+    from metamatch.engine.sets import chaos_entry
+    _, entry = chaos_entry(species, format_id)
+    if not entry:
+        return []
+    table = rules.table()
+    names = {}
+    for kind, field, key in (("ability", "Abilities", "abilities"), ("item", "Items", "items"), ("move", "Moves", "moves")):
+        ids = {to_id(k) for k in (entry.get(field) or {})}
+        names.update({n.lower(): (kind, n) for n in table[key] if to_id(n) in ids})
+    words = re.findall(r"[a-z][a-z'-]*", text.lower())
+    found = []
+    for i in range(len(words)):
+        for size in (2, 1):   # two word names first: "Iron Head" before "iron"
+            hit = names.get(" ".join(words[i:i + size]))
+            if hit:
+                if hit not in found:
+                    found.append(hit)
+                break
+    return found
+
+
+def _pokemon_options(names, team):
+    """[("pokemon", name)] for two Pokemon a compare question weighs ("mega lop or mega zard"), a team member's own
+    name (its Mega or forme) standing in for the species it shares."""
+    from metamatch.recommender import base_species
+    own = {base_species(p["Pokemon"]): p["Pokemon"] for p in (team or {}).values()}
+    picked = list(dict.fromkeys(own.get(base_species(n), n) for n in names))
+    return [("pokemon", n) for n in picked[:2]] if len(picked) >= 2 else []
 
 
 PRONOUN_RE = re.compile(r"\b(i|we|it|you|he|she|they)\b", re.I)
@@ -404,6 +444,11 @@ def _force(plan, kind, q, scrubbed, names_only, raw_spans, dex, format_id, targe
                           if word else None)
     elif kind == "compare":
         plan.options = _options(names_only)
+        subject = (plan.user or {}).get("Pokemon") if plan.user is not None and plan.user_named else plan.opponent
+        if len(plan.options) < 2 and subject:
+            plan.options = list(dict.fromkeys(plan.options + _species_options(names_only, subject, format_id)))
+        if len(plan.options) < 2:
+            plan.options = _pokemon_options([n for _, _, n in raw_spans], plan.team) or plan.options
     elif kind == "teammate":
         plan.replace = bool(REPLACE_ASK_RE.search(q)) and plan.user_named
     elif kind == "rules":

@@ -33,6 +33,7 @@ NICKNAMES = {
     "pawm": "Pawmot", "sneas": "Sneasler", "annihil": "Annihilape", "prim": "Primarina",
     "hatt": "Hatterene", "ceru": "Ceruledge", "staraptor": "Staraptor", "bundle": "Iron Bundle",
     "kart": "Kartana", "barra": "Barraskewda", "bolt": "Raging Bolt", "rmoon": "Roaring Moon",
+    "lop": "Lopunny", "mega lop": "Lopunny-Mega", "mega lopunny": "Lopunny-Mega",
 }
 
 # Nicknames that are also ordinary English: they only count in a Pokemon slot (see _nickname_ok)
