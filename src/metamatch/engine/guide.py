@@ -35,6 +35,34 @@ def _pct(x):
     return f"{x * 100:.0f}%"
 
 
+def playstyle(team):
+    """The team's archetype from member roles (team.detectRole, run on a copy when the team has none yet): Trick
+    Room, Weather Offense, Volt Turn, Stall, Hyper Offense, Bulky Offense or Balanced. The banner shows it and the
+    chat's game plan opens with it."""
+    if not any(p.get("Roles") for p in team.values() if isinstance(p, dict)):
+        import copy
+        from metamatch.team import detectRole
+        team = copy.deepcopy(team)
+        for p in team.values():
+            p.setdefault("Roles", [])
+        detectRole(team)
+    roles = [r for p in team.values() for r in p.get("Roles", [])]
+    mon_roles = [set(p.get("Roles", [])) for p in team.values() if isinstance(p, dict)]
+    if roles.count("Trick Room Setter") >= 1:
+        return "Trick Room"
+    if roles.count("Weather Setter") >= 1 and roles.count("Weather Setter") + roles.count("Weather Abuser") >= 2:
+        return "Weather Offense"
+    if roles.count("Pivot") >= 3:
+        return "Volt Turn"
+    if sum(1 for r in mon_roles if r & {"Wall", "Tank"}) >= 4:
+        return "Stall"
+    if sum(1 for r in mon_roles if any("Sweeper" in x or "Breaker" in x for x in r)) >= 4:
+        return "Hyper Offense"
+    if sum(1 for r in mon_roles if r & {"Bulky Attacker", "Tank"}) >= 3:
+        return "Bulky Offense"
+    return "Balanced"
+
+
 @dataclass
 class Member:
     name: str

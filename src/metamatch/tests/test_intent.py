@@ -100,6 +100,15 @@ class TestForcedPlans(unittest.TestCase):
         self.assertIn("Tera Fairy", v.statement)
         self.assertIn("Tera Steel", v.statement)
 
+    def test_game_plan_names_the_playstyle_and_phases(self):
+        from metamatch.engine import calc
+        from metamatch.engine.solvers import solve
+        if not calc.available():
+            self.skipTest("no damage calculator")
+        v = solve(plan_query("walk me through my game plan", self.team))
+        self.assertTrue(v.statement.startswith("This plays as "))
+        self.assertIn("Early on, lead with your", v.statement)
+
     def test_kinds_without_a_solver_stay_open(self):
         p = plan_query("whats rising this month", self.team, force="meta_trends")
         self.assertEqual((p.intent, p.kind), ("open", "meta_trends"))

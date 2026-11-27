@@ -108,7 +108,9 @@ HKO_WORDS = {"O": "knock out in one hit", "2": "knock out in two hits", "3": "kn
 def plainify(text):
     """Engine shorthand in plain words: '2HKO 6 of the 12' -> 'knock out in two hits 6 of the 12', 'Pokémon' -> 'Pokemon',
     'goes from 1.5x to 2x STAB' -> 'gets a stronger same type bonus (2 times instead of 1.5)'."""
-    text = re.sub(r"\b(O|\d)HKOs?\b", lambda m: HKO_WORDS.get(m.group(1), f"knock out in {m.group(1)} hits"), text)
+    # "Heat Wave 2HKOs 6 of the 12": the verb keeps its s ("knocks out")
+    text = re.sub(r"\b(O|\d)HKO(s?)\b", lambda m: ("knocks" if m.group(2) else "knock") + HKO_WORDS.get(
+        m.group(1), f"knock out in {m.group(1)} hits")[5:], text)
     text = re.sub(r"\b(goes|go) from 1\.5x to 2x STAB\b", lambda m: ("gets" if m.group(1) == "goes" else "get")
                   + " a stronger same type bonus (2 times instead of 1.5)", text)
     text = re.sub(r"\b(gains|gain) STAB\b", lambda m: m.group(1) + " the same type bonus (1.5 times)", text)

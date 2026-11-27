@@ -124,10 +124,51 @@ def solve_threats(plan, dex, game):
                    typed=_watch_typed(g))
 
 
+PLAYSTYLE_WORDS = {"Balanced": "balance", "Hyper Offense": "hyper offense", "Bulky Offense": "bulky offense",
+                   "Stall": "stall", "Volt Turn": "Volt Turn", "Weather Offense": "weather offense",
+                   "Trick Room": "Trick Room"}
+
+
+def _phases(g, team):
+    """The game plan in three short phases from the Coach Guide: (early, mid, late) sentences, any of them None."""
+    early = []
+    if g.leads:
+        lead = g.leads[0]
+        how = next((p for p in lead["points"] if p.startswith(("Pivots", "Sets"))), None)
+        early.append(f"lead with your {lead['name']}" + (f", which {how[0].lower() + how[1:]}" if how else ""))
+    haz = g.hazards or {}
+    if haz.get("setters"):
+        s = haz["setters"][0]
+        early.append(f"get {s['moves'][0]} up with your {s['name']}")
+    if haz.get("removers"):
+        r = haz["removers"][0]
+        early.append(f"keep hazards off with your {r['name']}'s {r['moves'][0]}")
+    mid = None
+    if g.combos:
+        a, b = g.combos[0]["pair"]
+        mid = f"pivot between your {a} and your {b}, which cover each other's bad matchups"
+    late = None
+    if g.win:
+        keep = g.win.get("threats") or []
+        late = (f"bring your {g.win['name']} in to clean once {_and(keep)} " + ("is" if len(keep) == 1 else "are")
+                + " worn down") if keep else f"close with your {g.win['name']}"
+    # ", and" between the early steps: the lead's own clause ("which pivots out with Volt Switch") ends the first
+    early_text = ", then ".join(early[:-1]) + (", and " if len(early) > 1 else "") + early[-1] if early else None
+    return early_text, mid, late
+
+
 def solve_gameplan(plan, dex, game):
     g = _guide(plan)
     if not g.win and not g.leads:
         return None
+    from metamatch.engine.guide import playstyle
+    style = PLAYSTYLE_WORDS.get(playstyle(plan.team or {}), "balance")
+    early, mid, late = _phases(g, plan.team or {})
+    said = [f"This plays as {style}."]
+    for when, text in (("Early on", early), ("In the mid game", mid), ("To close", late)):
+        if text:
+            said.append(f"{when}, {text}.")
+    phased = " ".join(said)
     parts, facts = [], []
     if g.leads:
         parts.append(f"lead with your {g.leads[0]['name']}")
@@ -142,8 +183,7 @@ def solve_gameplan(plan, dex, game):
     if g.combos:
         pair = g.combos[0]
         facts.append(f"{_and(pair['pair'])} cover each other: {pair['points'][0]}.")
-    statement = (parts[0][0].upper() + parts[0][1:] + (", " + ", ".join(parts[1:-1]) if len(parts) > 2 else "")
-                 + (f", and {parts[-1]}." if len(parts) > 1 else "."))
+    statement = phased
     typed = (_lead_typed(g.leads[:1], why=False) + (_win_facts(g) if g.win else []) + _watch_typed(g, why=False)[:2])
     if g.combos:
         pair = g.combos[0]
