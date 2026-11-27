@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass, field
 
 from metamatch.engine import dialogue
+from metamatch.engine.names import find_pokemon
 from metamatch.engine.planner import plan_query
 from metamatch.engine.solvers import solve
 from metamatch.engine.sets import likely_set
@@ -66,6 +67,15 @@ DECLINES = [
                           r"gen ?[1-8]\b|ubers)\b", re.I),
      "I'm built for {label} singles with your team, so I can't judge other formats like VGC, doubles or older "
      "generations."),
+    # Questions about the app itself: the chat doesn't know MetaMatch's pages, and answering them with team facts
+    # ("how do I use quick match" got the game plan on 2026 11 28) is worse than saying so
+    ("app", re.compile(r"\bmeta ?match\b|\bmeta ?flash\b|\bthreat board\b|\bquick match\b|\bspread lab\b|\bcoach guide\b|"
+                       r"\bmatchup preview\b|\bmove search\b|\breplay auditor\b|\bteam completer\b|"
+                       r"\b(?:this|the) (?:app|site|website)\b|\bwho are you\b|\bwhat are you\b|"
+                       r"\bwhat can you (?:do|help)\b|\bexport\b|\bpokepaste\b|\breview my replay\b|\bteam saved\b|"
+                       r"\bchange the format\b|\byour (?:numbers|data|calcs?)\b", re.I),
+     "I can't walk you through the app itself: I answer questions about your team and the meta. Ask me about a "
+     "matchup, a member's set, your leads, threats or game plan, or how a move or ability works."),
     ("future", re.compile(r"\b(?:will|gonna|going to|get)\b[^?.!]*\b(?:banned|ban|suspect\w*|tier ?shift\w*|drop to|"
                           r"rise to)\b", re.I),
      "I can't predict bans or tier shifts. The Meta page shows which Pokemon are rising and falling in usage."),
@@ -117,6 +127,33 @@ def _is_building(text):
 SURE_OUT_OF_SCOPE = 0.9
 # Below the sure threshold but at least this confident, an answerable best guess is answered with chips under it
 ANSWER_FLOOR = 0.2
+# Answers about the player's team as a whole
+TEAM_KINDS = {"score", "archetype", "threats", "gameplan", "win", "lead", "team_type", "weather", "tera", "member"}
+# "What is AV Rillaboom countering": the named Pokemon is the one doing the checking, not the one to be checked
+REVERSE_RE = re.compile(r"\bwhat (?:is|does|do|are)\b[^?.!]{0,40}\b(?:counter(?:ing|s)?|check(?:ing|s)?|wall(?:ing|s)?)\b",
+                        re.I)
+# An unsure meta guess is answered with the monthly movers only when the question talks about the ladder: "does GXE
+# decay along with ELO" and "a repository of high ladder replays" got them on the 2026 11 28 forum rerun
+META_WORD_RE = re.compile(r"\b(?:meta|metagame|right now|this month|currently|current|rising|falling|trend\w*|usage|"
+                          r"popular|best|top|tier|good)\b", re.I)
+SPREAD_WORD_RE = re.compile(r"\b(?:natures?|evs?|ivs?|spreads?|investment|speed ?creep\w*)\b", re.I)
+
+
+def _blocked_kinds(text, plan, team):
+    """Answer kinds that would answer a different question than this one. On the 2026 11 28 forum questions, 6 of
+    14 wrong answers were "your team against X" for a question about X itself: what AV Rillaboom checks, natures for
+    Hoopa-U, an up to date Ychu team."""
+    from metamatch.engine.planner import SELF_RE
+    own = {p["Pokemon"] for p in (team or {}).values()}
+    blocked = set()
+    if REVERSE_RE.search(text):
+        blocked |= {"checks", "matchup", "switchins"}
+    mine = SELF_RE.search(text) or plan.user_named
+    if SPREAD_WORD_RE.search(text) and not mine:
+        blocked |= {"checks", "matchup", "switchins", "stat"}
+    if any(n not in own for n in plan.opponents) and not mine:
+        blocked |= TEAM_KINDS
+    return blocked
 # Calculator and lookup questions the planner's rules answer first: they read the details exactly (MetaBench 100%)
 RULE_KINDS = {"speed", "speed_spread", "ko", "damage", "type", "stat", "usage", "learn"}
 # An unsure question with building words goes to Brock only when the classifier also leans to a building kind: an
@@ -300,6 +337,13 @@ class AgentManager:
         if declined:
             return Turn(query, reading, plan, route="decline", persona=PERSONAS["strategy"], meta={"decline": declined})
         guess = _classify(reading.text, team_context)
+        # Readings that would answer a different question than this one are off the table for rules and classifier
+        blocked = _blocked_kinds(reading.text, plan, team_context)
+        if plan.intent in blocked:
+            plan.intent = "open"
+        if guess and guess["kind"] in blocked:
+            top = [(k, c) for k, c in guess["top"] if k not in blocked] or guess["top"]
+            guess = {**guess, "kind": top[0][0], "confidence": top[0][1], "sure": False, "top": top}
         meta = {"kind": guess["kind"], "confidence": round(guess["confidence"], 3)} if guess else {}
         if guess and guess["kind"] == "out_of_scope" and guess["confidence"] >= SURE_OUT_OF_SCOPE:
             return Turn(query, reading, plan, route="decline", persona=PERSONAS["strategy"],
@@ -329,12 +373,31 @@ class AgentManager:
             # Unsure, but the engine can answer its best guess: answer it, with the other readings as chips under it.
             # On the 2026 11 27 sealed set, unsure questions above the floor whose guess solved were right 18 times,
             # had the right reading among the chips 6 times, and were wrong with no way back once
+            kinds = [k for k, _ in guess["top"]]
+            # The rules and one of the classifier's readings agree: two weak signals that point the same way
+            # ("I hate iron moth how do i play against it": the rules read checks, the classifier's second guess)
+            if plan.intent in kinds and plan.intent not in ("open", "clarify"):
+                verdict = solve(plan)
+                if verdict:
+                    others = [k for k in kinds if k != plan.intent]
+                    return Turn(query, reading, plan, verdict, persona=PERSONAS[verdict.persona],
+                                meta={**meta, "also": unsure_options(others, plan, team_context)})
             if guess["confidence"] >= ANSWER_FLOOR and guess["kind"] not in ("out_of_scope", "smalltalk"):
                 turn = self._classified(query, reading, plan, guess["kind"], team_context, meta)
                 if turn and turn.verdict:
                     others = [k for k, _ in guess["top"][1:]]
                     turn.meta = {**turn.meta, "also": unsure_options(others, turn.plan, team_context)}
                     return turn
+                # Kinds answered without a verdict: a named Pokemon's analysis, this month's ladder
+                if guess["kind"] == "how_to_use" and len(set(find_pokemon(reading.text))) == 1:
+                    return Turn(query, reading, plan, route="strategy", persona=PERSONAS["strategy"], meta=meta)
+                if guess["kind"] == "meta_trends" and META_WORD_RE.search(reading.text):
+                    return Turn(query, reading, plan, route="meta", persona=PERSONAS["builder"], meta=meta)
+            # A Smogon passage about a Pokemon the question names, or a close guide or concept note: Oak quotes it
+            # rather than ask (2026 11 28 forum questions: 6 "did you mean" answers had the passage in the index)
+            if self._passage(reading.text, team_context, plan):
+                return Turn(query, reading, plan, route="strategy", persona=PERSONAS["strategy"],
+                            meta={**meta, "quote": True})
             # Unsure, and the rules would only give Oak's generic fallback: offer the likely readings instead
             return Turn(query, reading, plan, route="unsure", persona=PERSONAS["strategy"],
                         meta={**meta, "options": [k for k, _ in guess["top"]]})
@@ -385,6 +448,22 @@ class AgentManager:
             return Turn(query, reading, plan, route="strategy", persona=PERSONAS["strategy"], meta=meta)
         return None
 
+    def _passage(self, text, team, plan):
+        """Whether retrieval has something worth quoting for this question: a Smogon analysis chunk about a Pokemon
+        it names, or a concept note or guide close to it."""
+        from .coach import _species_key, references
+        asked = {_species_key(n) for n in find_pokemon(text)}
+        if not asked:
+            # Guides and concept notes matched by topic alone quoted Mega stall history for "how to use Mega Kang" and
+            # a priority note for a PP question (2026 11 28 forum rerun): only a named Pokemon's analysis qualifies
+            return False
+        for h in references(text, team, plan):
+            m = h["metadata"]
+            if m.get("source") == "smogon_analysis" and asked & {_species_key(m.get("pokemon")),
+                                                                 _species_key(m.get("species"))}:
+                return True
+        return False
+
     def _open_route(self, text):
         """Category of an open question: building words go to Brock, everything else to Oak. The old embedding router
         (and Clemont's free text) is only loaded for the legacy voice kept for the final comparison."""
@@ -393,7 +472,11 @@ class AgentManager:
             from .router import get_router
             route, _ = get_router().route_query(text)
             return "builder" if BUILDER_RE.search(text) and not STRATEGY_RE.search(text) else route
-        return "builder" if _is_building(text) else "strategy"
+        # Brock's listing is about a Pokemon: with none named and no "my", it audited the sample team for "are there
+        # any sets that use choice scarf without max speed investment"
+        from metamatch.engine.planner import SELF_RE
+        about = find_pokemon(text) or SELF_RE.search(text)
+        return "builder" if _is_building(text) and about else "strategy"
 
     def respond(self, turn: Turn, team_context: dict, team_weakness: dict = None, state: dialogue.DialogueState = None):
         """The answer to a prepared turn, as a generator of text chunks."""

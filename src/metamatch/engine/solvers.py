@@ -681,7 +681,16 @@ def _usage_rank(target, plan):
         return None
     row = next((r for r in board if to_id(r["name"]) == to_id(target)), None)
     if row is None:
-        said = f"{target} is outside the top {len(board)} on the {label} ladder this month."
+        # The history keeps the top 100; this month's full stats rank the rest ("Greninja-Mega", 0.24%)
+        from metamatch.auditor import load_chaos_data
+        data = load_chaos_data(plan.format_id) or {}
+        order = sorted(data, key=lambda k: -data[k].get("usage", 0))
+        key = next((k for k in order if to_id(k) == to_id(target)), None)
+        if key:
+            said = (f"{key} is #{order.index(key) + 1} on the {label} ladder this month, on "
+                    f"{data[key]['usage'] * 100:.2f}% of teams, outside the top {len(board)}.")
+        else:
+            said = f"{target} doesn't show up in this month's {label} usage stats."
         typed = [Fact("usage", said, {"rank": None}, role="why")]
     else:
         said = f"{row['name']} is #{row['rank']} on the {label} ladder this month, on {row['usage']:.1f}% of teams."
@@ -1100,6 +1109,11 @@ def solve_team_type(plan, dex, game):
     return Verdict("team_type", ", ".join(weak_types) or "none", statement, facts, plain=statement, typed=typed)
 
 
+NOT_DESCRIBE_RE = re.compile(r"\bwhy\b|\bworth\b|\bdeal(?:s|ing)? with\b|\b(?:legal|banned|allowed)\b|"
+                             r"\b(?:end|ends|last|lasts|stay|stays|persist\w*|wear off)\b|\bswitch(?:ed|es|ing)? out\b|"
+                             r"\bpractical\b|\bviable\b|\binstead of\b|\bover (?:something|other|the)\b", re.I)
+
+
 def solve_rules(plan, dex, game):
     """What the named abilities, items, moves or weather do, from Showdown's text, and what that means for the team.
     Yes or no rules questions the data settles exactly (a move flag, a Mold Breaker bypass, a weather or ability
@@ -1110,6 +1124,11 @@ def solve_rules(plan, dex, game):
     if not named:
         return None
     decided = rules.yes_no(plan.query, named, ABILITY_SCALES, ABILITY_IMMUNITIES)
+    # The rule text says what a move or item does; "why does Scizor run Sitrus Berry", "is King's Rock legal", "does
+    # the Booster Energy boost end on switching out" ask something it doesn't say (2026 11 28 forum questions: 6 of 14
+    # wrong answers were a description recited for a question like these)
+    if not decided and NOT_DESCRIBE_RE.search(plan.query or ""):
+        return None
     facts = []
     for kind, name in named:
         line = rules.text_line(kind, name, full=True)

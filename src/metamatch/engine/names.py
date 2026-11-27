@@ -57,6 +57,7 @@ COMMON_WORDS = {
     "outspeed", "outspeeds", "faster", "slower", "survive", "survives", "damage", "percent", "percentage",
     "attack", "attacks", "special", "defense", "immune", "resist", "resists", "neutral", "effective",
     "common", "spread", "ladder", "ability", "abilities", "health", "boosts", "effects", "evolving",
+    "speaking", "seeking", "breaking",   # Seaking, one letter off
     "evolves", "running", "assume", "ignore", "item", "items", "stat", "stats", "speed", "level",
     "champions", "against", "should", "would", "could", "which", "where", "there", "their", "about",
     "after", "before", "usage", "smogon", "standard", "pokemon", "team", "teams", "matchup", "switch",

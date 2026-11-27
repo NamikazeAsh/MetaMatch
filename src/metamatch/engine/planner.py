@@ -418,6 +418,12 @@ PLANNED_KINDS = {"speed", "ko", "damage", "type", "stat", "usage", "team_type", 
                  "compare", "rules", "learn"}
 
 
+# The question is the player's own ("my", "I", "we", "this team"): team answers need it (see agents/manager)
+SELF_RE = re.compile(r"\b(?:my|me|i|i'm|im|i've|ive|our|we|us|mine)\b|\b(?:this|the) team\b", re.I)
+# "how is Mega Greninja in this format", "is Garganacl dead on arrival", "is blissey still good"
+PERFORMANCE_RE = re.compile(r"\bhow(?:'s| is| are| has)\b[^?.!]{0,30}\b(?:doing|performing|been|in|on) (?:this|the) "
+                            r"(?:format|meta|metagame|tier|ladder)\b|\bdead on arrival\b|\b(?:is|are) \w+(?:[ -]\w+)? dead\b|"
+                            r"\bfallen off\b|\b(?:still|even) (?:good|viable|usable)\b", re.I)
 # "can I use Charizard on my team", "would kyurem fit this team", "is zapdos good for my team"
 FIT_RE = re.compile(r"\b(?:use|run|add|bring|fit|slot|put|try)\b[^?.!]{0,30}\b(?:on|in|into|onto|for|with)\s+"
                     r"(?:my|this|the)\s+(?:team|squad|comp)\b|\bfit\w*\s+(?:my|this)\s+(?:team|squad)\b|"
@@ -628,6 +634,9 @@ def plan_query(query, team, force=None):
     elif len(names) == 1 and _learn_move(q, dex):
         plan.intent = "learn"
         plan.move = _learn_move(q, dex)
+    elif len(names) == 1 and plan.opponents and PERFORMANCE_RE.search(q) and not SELF_RE.search(q):
+        # "how is Mega Greninja in this format", "is Garganacl dead on arrival": where it stands on the ladder
+        plan.intent, plan.usage_field = "usage", "rank"
     elif team and plan.opponents and FIT_RE.search(q) and _fit_candidate(plan):
         # "can I use Charizard on my team": would a Pokemon the team doesn't run fit as a teammate
         plan.intent = "teammate"

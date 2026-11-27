@@ -129,6 +129,32 @@ class TestForcedPlans(unittest.TestCase):
         self.assertEqual((p.intent, p.options), ("teammate", [("pokemon", "Charizard")]))
         self.assertEqual(plan_query("how do i beat charizard", self.team).intent, "checks")
 
+    def test_rule_text_isnt_the_answer_to_a_why_question(self):
+        from metamatch.engine.solvers import solve
+        self.assertIsNone(solve(plan_query("why does utility scizor run sitrus berry", self.team, force="rules")))
+        self.assertIsNone(solve(plan_query("is King's Rock legal", self.team, force="rules")))
+
+    def test_performance_questions_read_as_usage_rank(self):
+        p = plan_query("How is Iron Valiant in this format so far?", self.team)
+        self.assertEqual((p.intent, p.usage_field), ("usage", "rank"))
+        self.assertNotEqual(plan_query("is my kingambit still good", self.team).usage_field, "rank")
+
+    def test_questions_about_another_pokemon_dont_get_team_answers(self):
+        from metamatch.agents.manager import _blocked_kinds
+        p = plan_query("What is Assault Vest Rillaboom countering, exactly?", self.team)
+        self.assertIn("checks", _blocked_kinds(p.query, p, self.team))
+        p = plan_query("how do i beat rillaboom", self.team)
+        self.assertNotIn("checks", _blocked_kinds(p.query, p, self.team))
+
+    def test_app_questions_get_an_honest_line(self):
+        from metamatch.agents.manager import decline_for
+        self.assertIsNotNone(decline_for("how do i use quick match", "gen9ou"))
+        self.assertIsNone(decline_for("how do i beat kingambit", "gen9ou"))
+
+    def test_speaking_is_not_seaking(self):
+        from metamatch.engine.names import find_pokemon
+        self.assertEqual(find_pokemon("Speaking of items, is the item clause going away?"), [])
+
     def test_kinds_without_a_solver_stay_open(self):
         p = plan_query("whats rising this month", self.team, force="meta_trends")
         self.assertEqual((p.intent, p.kind), ("open", "meta_trends"))

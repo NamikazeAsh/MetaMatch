@@ -228,10 +228,12 @@ def _overview(name, team):
                           "format": format_id}}]
 
 
-def _voiced(query, hits, asked, state=None, meta=None):
+def _voiced(query, hits, asked, state=None, meta=None, format_id=None):
     """Oak's framing line, then the passage's own sentences that answer the question, quoted, with the source
     (agents/retell.py). None when nothing retrieved is worth reading."""
-    how_to_use = (meta or {}).get("kind") == "how_to_use"
+    # The chat routed here because a passage names the question's Pokemon (manager._passage): any analysis chunk about
+    # it may be quoted, not only for "how do I use" questions
+    how_to_use = (meta or {}).get("kind") == "how_to_use" or bool((meta or {}).get("quote"))
     hit = next((h for h in hits if _card_worthy(h) or _named_analysis(h, asked, query, how_to_use)), None)
     if not hit:
         return None
@@ -240,8 +242,11 @@ def _voiced(query, hits, asked, state=None, meta=None):
     m = hit["metadata"]
     line, by = frame(query, m, getattr(state, "recent_openers", ()))
     url = m.get("url") or (analysis_url(m.get("pokemon"), m.get("format")) if m.get("source") == "smogon_analysis" else None)
-    note = (f" Written for Gen {m['gen']}: it mentions {m['old_mechanics']}, which the current games don't have."
-            if m.get("old_mechanics") else "")
+    old = m.get("old_mechanics") or ""
+    # Champions has Mega Evolution, so an older analysis mentioning Megas isn't out of date there
+    if old and config.format_game(format_id) == "champions" and "mega" in old.lower():
+        old = ""
+    note = f" Written for Gen {m['gen']}: it mentions {old}, which the current games don't have." if old else ""
     source = f"_From the {hit.get('label') or _source_label(m)}.{note}_" + (f" [Read the rest]({url})" if url else "")
     if meta is not None:
         meta.update({"retell": by})
@@ -375,7 +380,7 @@ Pokemon, and never call one an answer to something it loses to.
             found = _overview(names[0], team_context) + found
         # Oak frames the closest passage in his own voice and quotes the sentences that answer the question
         # (agents/retell.py); with nothing worth reading, he says so and offers questions he can answer
-        voiced = _voiced(query, found, asked, state, meta)
+        voiced = _voiced(query, found, asked, state, meta, config.team_format(team_context))
         if voiced:
             text = voiced
         else:
