@@ -11,19 +11,17 @@ Built with [Streamlit](https://streamlit.io/), [Ollama](https://ollama.com/), th
 
 **[Try it live](https://metamatch.streamlit.app)**
 
-**MetaMatch** is a hybrid AI system for competitive Pokémon team analysis that runs on your own laptop, with a free web version to try it. It pairs a deterministic battle engine (the official Smogon damage calculator, monthly ladder statistics, type and role logic) with a small local LLM, on one principle:
+**MetaMatch** is a competitive Pokémon coach that runs on your laptop, with a free web version. It pairs a deterministic battle engine (Smogon's damage calculator, monthly ladder stats, type and role logic) with a small local LLM, on one principle:
 
 > ### The engine does the thinking. The LLM does the talking.
 
-Every factual answer (damage rolls, KOs, speed, immunities, stats, usage) is computed by code before the model ever sees the question. The LLM only explains a verdict that is already correct, and a verifier throws out any explanation that contradicts it.
+Every fact (damage, KOs, Speed, immunities, stats, usage) is computed by code before the model sees the question. The model only phrases a verdict that is already correct, and a checker rejects anything that contradicts it. *(Results: [bench/README.md](bench/README.md).)*
 
-Paste your team, and MetaMatch tells you what beats it, what it beats, how to lead, when to Tera and what to change, then lets you ask three coaches anything about it in plain words. *(Curious how well that holds up? The numbers are in [bench/README.md](bench/README.md).)*
+Paste a team and MetaMatch shows what beats it, what it beats, how to lead, when to Tera and what to change. Then ask three coaches anything about it.
 
-* **Instant:** a full team analysis lands in about a second, with no GPU needed for anything but chat.
-* **Works offline:** every analysis tab runs on the engine alone. The LLM is an upgrade, not a dependency.
-* **Private:** on your own copy your teams never leave your machine, and on the web version they stay in your own browser. No API keys, no paid models.
-* **Always current:** MetaFlash turns every month of Smogon ladder data since Gen 9 began into a live meta front page, refreshed every month by CI.
-* **Every team has a link:** dashboards live at their own URL, so refresh, bookmarks, Back and a second tab all just work.
+* **Fast and offline:** a full analysis in about a second, no GPU, and every tab works without the LLM.
+* **Private and free:** your teams stay on your machine, or in your own browser on the web version. No API keys, no paid models.
+* **Always current:** refreshed every month from Smogon's ladder data.
 
 ![MetaMatch Dashboard](assets/dashboard.webp)
 
@@ -110,9 +108,9 @@ graph TD
     LLM -.->|"opener and why only"| VO
 ```
 
-Everything above the chat is plain code: the dashboard, MetaFlash, the Coach Guide and every tool work without any language model. The model only ever adds the coach's voice to an answer the engine already worked out.
+Everything outside the chat is plain code. The model only adds the coach's voice to an answer the engine already worked out.
 
-A GitHub Action pulls Smogon's stats every month and rebuilds the histories, speed tiers and weather rosters in one all or nothing step. The test gate answers from a pinned stats snapshot, so a new month of data can never break CI or shift the answer keys.
+A monthly GitHub Action pulls Smogon's stats and rebuilds the histories in one all or nothing step. Tests answer from a pinned snapshot, so new data never breaks CI.
 
 ### How a coach answers
 
@@ -130,166 +128,96 @@ graph LR
     C -->|fails| F["Engine's own sentence"]
 ```
 
-1. **Question classifier (no LLM):** a logistic regression over Model2Vec sentence embeddings (potion retrieval 32M) plus cue words, trained on about 2,000 labelled questions. It reads the question with the names swapped out ("does my pokemon outspeed their pokemon") and picks what kind it is, out of 29: a matchup, a lead, a compare, a mechanic, the meta and so on. It runs in plain numpy, so it works on the live site too. When it isn't sure, the chat answers its best guess with "did you mean" buttons underneath, or offers the buttons alone. Measured on questions it never saw, written blind.
-2. **Planner (no LLM):** works out what you're asking (speed, damage, a KO, a matchup, a set, a game plan) and which Pokémon and moves are involved. Knows all 1,400+ species and formes, nicknames like *Lando* and *Tusk*, typos, Mega names, and follow ups like *"what about Gholdengo?"*.
-3. **Detail reader (no LLM):** picks up what the question says about either side, like *"specs"*, *"tera fairy"*, *"+2 after a Dragon Dance"*, rain, Trick Room, a burn or Stealth Rock. Anything it can't model is named, not dropped.
-4. **Solver:** computes the answer with the real damage calculator and the same functions as the dashboard, so chat and tabs always agree. Anything you didn't state comes from the most common ladder set.
-5. **Written by code:** the answer sentence is filled in by the engine, never guessed by the model. The exact numbers and Smogon's take sit in a dropdown under it.
-6. **Checked voice:** the local model adds a short opener and one sentence on why. Every number, Pokémon and verdict in it is checked against the engine; if it drifts, the engine's own sentence is shown.
-7. **No guessing:** with no exact answer, Oak quotes the Smogon passage that answers it, with a link to the full analysis, when there is one, or says so and offers questions it can answer.
-8. **Works without the model:** the coaches fall back to stock openers and the engine's facts. That's how the web version runs.
+1. **Classifier:** a logistic regression over Model2Vec embeddings (potion retrieval 32M) plus cue words, trained on about 2,000 labelled questions. It reads the question with the names swapped out ("does my pokemon outspeed their pokemon") and picks one of 29 kinds. When it isn't sure, it answers its best guess with "did you mean" buttons underneath. Plain numpy, so it runs on the live site too.
+2. **Planner and detail reader:** find the Pokémon and moves, nicknames like *Lando* and *Tusk*, follow ups like *"what about Gholdengo?"* and stated details like *"specs"*, *"+2"*, rain or Trick Room. Anything it can't model is named, not dropped.
+3. **Solver:** computes the answer with the damage calculator and the same functions as the dashboard, so chat and tabs always agree. Details you didn't state come from the most common ladder set.
+4. **Checked voice:** the engine writes the answer and the local model adds an opener and one "why" sentence. If any number, Pokémon or verdict in it drifts from the engine, the engine's own sentence is shown instead.
+5. **No guessing:** with nothing exact to compute, Oak quotes the Smogon passage that answers it, with a link, or says so. Without the model, the coaches use stock openers and the engine's facts.
 
 ---
 
 ## Features
 
-### MetaFlash: The Meta Front Page
+### MetaFlash
 
-The home screen opens on a magazine style front page of what the ladder is doing right now, for whichever format you pick.
+The home page: what the ladder is doing this month, for any format.
 
 ![MetaFlash](assets/metaflash.webp)
 
-* **Story of the month:** the biggest move in the top 10, with its usage, rank change, standard set, common partners, a 12 month chart and its all time peak.
-* **Top 10 leaderboard:** usage bars in each Pokémon's type colour and rank changes versus last month.
-* **Story cards:** the #1, the biggest risers and fallers, newcomers breaking into the top 30, and the fastest of the top 20, each with its standard set and a trend line. Hover or tap any Pokémon for its rank, usage and usual item.
-* **Speed to beat:** the usual Speed of the five fastest of the 25 most used Pokémon, with how many carry Choice Scarf or Booster Energy.
-* **Every month on record:** a month picker goes back to November 2022 (Champions formats since launch), so you can open any past meta.
-* **Leads to expect:** the Pokémon that open games most often, with rank changes, for planning team preview.
-* **Top players' picks:** what the top of the ladder runs more than players at 1500+.
-* **How sets changed:** the biggest shift in item, Tera, moves or ability among the top 25 each month, like Tera Ghost Cinderace jumping from 9% to 34%.
-* **Rising cores:** pairs more teams are building together than last month.
-* **Weather on the ladder:** how many teams run rain, sun or sand, and who they bring along (OU).
-* **A year on:** this month's top 5 next to the same month last year, and the year's biggest climbs and drops.
-* **Run the gauntlet:** on your own copy, each saved team against this month's top 12 threats, flagging ones that just entered the top 12 and climbing ones it barely answers.
-* **Says how much data it rests on:** the header gives the month's battle count and flags a small sample.
-* **Always this month's numbers:** the page updates itself as soon as Smogon publishes a new month.
+* **Story of the month:** the biggest move in the top 10, with its set, partners and a 12 month chart.
+* **Top 10 and movers:** usage bars, risers, fallers, newcomers and the fastest of the top 20.
+* **Meta trends:** leads to expect, what top players run, set shifts (Tera Ghost Cinderace from 9% to 34%), rising cores and weather.
+* **Every month since November 2022,** plus a year on comparison.
+* **Run the gauntlet:** each saved team against this month's top 12, on your own copy.
 
-### Pages, Links & Memory
+### Pages and Memory
 
-* **Every tool one click away:** Home, Team, Quick Match, Move Search, Spread Lab, Matchup Preview and Replay Auditor sit in the top bar.
-* **Every team has its own link:** refresh, bookmark it, open it in a second tab or go Back, and your dashboard is still there.
-* **Pick up where you left off:** your last teams sit in the sidebar as sprite cards, one click from reopening.
-* **A coach chat per team:** each team keeps its own conversation, and it survives a refresh.
-* **Always up to date:** reopening a saved team checks it against this month's stats.
-* **Guided tour:** first time visitors get a one minute spotlight walkthrough of the real app on the sample team, and it is always one click away in the sidebar.
-* **Your teams stay yours:** on your own copy they're saved on your machine; on the web version they stay in your own browser, so nobody sees anyone else's.
+* **Every tool in the top bar,** each with a "How it works" guide.
+* **Every team has its own link** that survives refresh, bookmarks and Back.
+* **Recent teams in the sidebar,** each with its own coach chat.
+* **A one minute guided tour** for first time visitors.
 
 ### The Coaches
 
-Three coaches, each answering the questions in their area:
+* **Clemont:** Speed, damage, KOs, types and mechanics.
+* **Professor Oak:** matchups, switch ins, leads, win conditions, weather and archetypes, plus Smogon's advice when there's nothing exact to compute.
+* **Brock:** sets, comparisons that pick an option, teammates and Tera types, from Smogon and ladder shares.
 
-* **Clemont (Speed, types and mechanics):** who outspeeds whom, damage and KOs, what a member is weak to, and how moves, abilities and items work, from the calc, the type chart and Showdown's rules.
-* **Professor Oak (Matchups and game plan):** how to beat a Pokémon, who switches into it, leads, win conditions, weather, and how to play against rain, sun, sand, stall or hazard stacking, each checked one on one against the real ladder roster.
-* **Brock (Sets and building):** what a Pokémon usually runs, which of two options to pick, teammates and Tera types, with Smogon's recommendation and exact ladder shares.
-* **Smogon's advice, read by Oak:** strategy questions the engine can't work out exactly get Oak's take from the closest Smogon analysis or guide: a line in his voice, then the sentences that answer your question, quoted as written with a link to the rest.
-* **Points you to the full picture:** answers name the dashboard tab that shows more, and offer clickable follow up questions.
-* **Help that teaches:** an empty chat opens on three coach cards with what each one answers, how to ask, and example questions to click.
-
-### Strategy Search
-
-On the live site, where no local model runs, the coach tab becomes Strategy Search. Ask a strategy question and get the closest passages from Smogon's analyses for your format: the sentences that best answer it, with the writers credited and a link to the full analysis. It uses the same search as the coaches, so the answers come from the same sources.
+On the live site, where no model runs, the chat tab becomes **Strategy Search**: the Smogon passages that best answer your question, with the writers credited.
 
 ### Real Damage Calculator
 
-* Every damage roll, KO and Speed number comes from **Smogon's official damage calculator**, the same one Showdown players use.
-* Speed answers count every spread the opponent runs on the ladder, not just one.
-* Booster Energy, Protosynthesis and Quark Drive boosts count whenever they would trigger in battle.
+Every damage roll, KO and Speed number comes from Smogon's official calculator. Speed counts every spread the opponent runs, and Booster Energy, Protosynthesis and Quark Drive trigger when they would in battle.
 
 ### Team Audit
 
-Instant checks on every team:
-
-* **Team Check:** legality in plain English (species, moves, items, EV or stat point limits, Tera, Species Clause, Mega rules), a one click conversion between SV EVs and Champions stat points, and a downloadable team report to share.
-* **Item and Ability Synergy Flags:** *Drought* without *Heat Rock*, *Guts* without an Orb, *Magic Guard* without *Life Orb*, each with a plain English explanation.
-* **Role Gap Detection:** flags a missing *Hazard Setter*, *Hazard Remover* or *Pivot*.
-* **Type Coverage Holes:** types none of your damaging moves hit super effectively.
-* **Usage Warnings:** moves and items under 5% ladder usage, with the most common alternatives.
-* **Role Detection:** about 35 competitive roles (*Wall, Setup Sweeper, Stallbreaker, Forced Switcher...*) and team archetypes (*Hyper Offense, Stall, Volt Turn, Weather, Trick Room*).
+* **Legality in plain English:** moves, items, EVs or stat points, Tera, Species Clause and Megas, plus a downloadable report.
+* **Synergy flags:** *Drought* without *Heat Rock*, *Guts* without an Orb.
+* **Gaps:** a missing hazard setter, remover or pivot, types none of your moves hit super effectively, and moves or items under 5% usage.
 
 ### Threat Board
 
-Your whole team against the format's 12 most used Pokémon, one matchup at a time, every verdict worked out by the real damage calculator.
-
-* **See every matchup at a glance:** a win or lose grid, with each threat's usage beside it.
-* **Hover for the full story:** who moves first, the best hit each way and how many hits each side needs.
-* **Spot your holes:** threats with no answer or only one are called out, along with your weakest matchup.
-* **Ask in chat:** *"what checks Kyurem?"* gets the same answer in words.
-* **See it in a real game:** for the threat you pick, a link to a public ladder replay where a team sharing several of your members knocked it out, with the turn it happened.
+Your team against the format's 12 most used Pokémon, every verdict from the calc. Hover a cell for who moves first and the hits each way. Holes are called out, and for a threat you pick, a public replay shows a team like yours knocking it out.
 
 ### Team Completer
 
-Most recommenders suggest whatever is popular. The Team Completer picks your next teammate by what it adds.
+Picks your next teammate by what it adds, not by popularity: threats it beats that you struggle with, roles it fills, and how often players pair it with your team. Popular filler is shown separately.
 
-* **Fixes your weak spots:** candidates are ranked by which of your thin matchups they actually beat, checked by the damage calculator.
-* **Real pairings, not popularity:** shows how often players put each pick next to your Pokémon, compared with an average team. Hover for the numbers.
-* **Fills missing roles:** flags picks that add a hazard setter, hazard removal or a pivot.
-* **Calls out filler:** popular picks that wouldn't fix anything are shown separately, so you don't waste the slot.
-* **Works with full teams too:** choose the member you'd swap and get its replacements.
-* **Teams like yours:** the real ladder teams closest to yours, from public Showdown replays, with links to their games and what they run where your team differs ("17 of your 20 closest teams don't run Gholdengo; those teams run Slowking-Galar").
-* **Quick Match:** no team yet? Pick a few Pokémon, add the partners players actually build with them in your format, and get every member's most common set (or a Smogon set). Then analyze the team in one click, copy it into Showdown, or share it as a PokéPaste link.
+* **Teams like yours:** the real ladder teams closest to yours, with replay links and what they run instead ("17 of your 20 closest teams don't run Gholdengo").
+* **Quick Match:** no team? Pick a Pokémon, add the partners players build with it (rare picks included), then analyze, export or share it as a PokéPaste.
 
 ### Speed Tiers
 
-Speed against what players actually run, not a guess.
-
-* **Real spreads for your format:** every spread the top 25 Pokémon run this month, with Choice Scarf sets marked.
-* **Your true Speed:** worked out with your item and IVs, so Choice Scarf and Trick Room sets are right.
-* **What if?:** pick a Speed or a benchmark and see who you'd outspeed more of, and what it costs in EVs or nature.
+Every spread the top 25 Pokémon run this month, your true Speed with your item, and what it costs to outspeed more of them.
 
 ### Spread Lab
 
-Tell it what your Pokémon needs to do and it finds the smallest spread that does all of it.
-
-* **Pick your benchmarks:** outspeed a threat (its usual spread or every common one, even with Choice Scarf), OHKO or 2HKO a target, or survive a specific hit.
-* **The least investment:** the smallest spread that hits every benchmark, double checked before it's shown.
-* **Honest about the impossible:** a benchmark no spread can reach is named, with the reason, and the rest are still solved.
-* **Compared with the ladder:** shows how the most common spreads do on the same benchmarks, and gives you a ready to paste set.
-* **Champions ready:** works in stat points with the 66 point budget.
+Pick benchmarks (outspeed a threat, OHKO or 2HKO a target, survive a hit) and get the smallest spread that meets them all, compared with the ladder's spreads and ready to paste. A benchmark no spread can reach is named with the reason. Works with Champions stat points.
 
 ### Matchup Preview
 
-Paste the team you're about to face, even just the six names from team preview.
-
-* **Every matchup:** the same win or lose grid and hover detail as the Threat Board, using their sets exactly when you paste them.
-* **Champions bring 3:** picks the three that hold up best against any three they could bring, checked against all 20 of their options.
+Paste the team you're facing, even just the six names from team preview, for every matchup. In Champions it picks your best three to bring.
 
 ### Coach Guide
 
-A game plan for your team.
+A game plan built from your matchups, so it only names moves your team actually runs.
 
-* **Built from your matchups:** every line comes from the Threat Board, Speed Tiers and type chart, so it only names moves your team actually runs.
-* **Knows what your team is built around:** finds your sun, rain, sand, snow, terrain, Trick Room, Tailwind or screens core and measures it with the calc, like a Chlorophyll Venusaur going from 284 to 568 Speed behind Torkoal's sun, and notices when a core is missing its setter.
-* **Reads abilities:** shows what each ability really does for your team, like Multiscale letting Dragonite survive any single hit from 11 of the 12 most used Pokémon instead of 7. Hover any ability on the team banner for what it does.
-* **The whole plan:** your win condition and what to remove before it can sweep, two leads, a Tera plan (Mega Evolution in Champions and National Dex), pairs that cover each other, and the threats to watch.
-* **Answers to the threats to watch:** for each threat your team struggles with, who switches into it and who knocks it out, with the damage on hover.
-* **Your six at a glance:** each member's job, the top threats it can safely switch into, and the ones it has to get out against.
-* **Your walls:** each defender's card shows what heals it, whether it takes physical or special hits best, which top threats it walls, takes a hit from or must avoid, and what its Will-O-Wisp, Scald or Toxic does to them, plus the side nothing on your team takes safely.
-* **Hazard plan:** what Stealth Rock and Spikes take from each member every time it comes in, who sets and clears them on your team, and which top Pokémon bring them.
-* **One fix that helps most:** names your team's biggest hole and the single swap that covers it, one click from all the options.
-* **Tera picks from Smogon and the ladder:** every Tera card shows the Tera types on Smogon's set closest to yours and the ladder's top Tera shares, with your own pick ringed.
-* **Mega Evolution cards (Champions and National Dex):** each Mega's stat changes as bars, its new typing and ability, and Smogon's write up of that Mega when one exists.
-* **Leads that match real games:** the two suggested leads weigh hazards, weather and pivots with how often players actually open with each Pokémon.
-
-### Multi Format
-
-Gen 9 **OU, UU, National Dex**, plus **Pokémon Champions OU and UU** with Level 50 stats, stat points instead of EVs, and full Mega Evolution support.
+* **The plan:** your win condition and what to remove first, two leads, a Tera or Mega plan, pairs that cover each other, and the threats to watch with who answers them.
+* **Cores and abilities, measured:** Chlorophyll Venusaur going from 284 to 568 Speed behind Torkoal's sun, or Multiscale Dragonite surviving any hit from 11 of the top 12 instead of 7.
+* **Your six and your walls:** each member's job, what it can switch into, and what each defender walls or must avoid.
+* **Hazards and one fix:** what Stealth Rock and Spikes cost each member, and the single swap that closes your biggest hole.
 
 ### Move Search
 
-* **Every Pokémon with your moves:** pick up to four moves and see who runs them in your format, from Smogon sets to the ladder, sorted by usage.
-* **How often they come together:** the share of sets that must run all of your moves at once, so you know a combo is real and not two separate sets.
-* **Hidden picks:** Pokémon that can learn every move but rarely run them, and the ones that run all but one.
-* **Straight into your team:** add any result to Quick Match in one click, with its Smogon set picked.
+Pick up to four moves to see every Pokémon that runs them together, how often they come as a combo, and who can learn them but rarely does. Add any result to Quick Match in one click.
 
 ### Replay Auditor
 
-Paste a Showdown replay link (shared and private links both work) and get a review of the game. Every review gets its own link, so you can reopen or share it.
+Paste a Showdown replay link for a turn by turn review: a health chart, the real cause of every faint, mistakes dated to their turn, and everything the opponent revealed. Handles Illusion, Megas, forme changes and Champions' bring 3, and every review gets its own link.
 
-* **Reads every battle right:** Illusion, Mega Evolution, forme changes and Champions' bring 3 are all handled.
-* **Versus banner:** both teams as sprites, who is left on each side and the result.
-* **Team Health Chart** turn by turn with a dot on every faint, and a **Faint Timeline** with the real cause of every KO: the move, hazards, status, recoil, Destiny Bond or Perish Song.
-* **Mistakes and Notes**, each dated to its turn: losing your only hazard remover, letting a setup sweeper run through you, moves into immune targets, bounced hazards, Destiny Bond and hazard chip.
-* **Both teams at the end:** how each Pokémon finished (HP, status, hazard chip taken) and every item, ability, Tera type and move the opponent showed.
+### Formats
+
+Gen 9 **OU, UU and National Dex**, plus **Pokémon Champions OU and UU** with Level 50 stats, stat points and Megas.
 
 ---
 
@@ -340,35 +268,36 @@ The benchmarks, their results and the commands that run them are in [bench/READM
 
 ## Module Overview
 
-| Path                                             | What it does                                                                                                                                                                                                      |
-| :----------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/metamatch/app.py`, `tabs/`              | Streamlit app, one module per tab                                                                                                                                                                                 |
-| `src/metamatch/engine/`                        | Damage calc bridge, dex, likely sets, query planner, constraint parser, solvers, shared mechanics, name matching, Threat Board, Team Completer, Speed Tiers, Spread Lab, Matchup Preview, Team Check, Coach Guide |
-| `src/metamatch/agents/`                        | Manager (topic routing, follow ups, declines), the answer voice and its checks, open question fallback, the three coaches                                                                                          |
-| `src/metamatch/rag/`                           | Analyses for every SV format, usage cards, guides, chunking, hybrid ChromaDB + BM25 store ([details](src/metamatch/rag/README.md))                                                                                 |
-| `src/metamatch/team.py`                        | Showdown parser, role detection, type math, Mega handling                                                                                                                                                         |
-| `src/metamatch/suggestions.py`                 | Team audit and threat scoring                                                                                                                                                                                     |
-| `src/metamatch/recommender.py`, `auditor.py` | Teammate synergy and usage checks from chaos data                                                                                                                                                                 |
-| `src/metamatch/replay/`                        | Showdown protocol parser, team health, mistake and note rules                                                                                                                                                     |
-| `src/metamatch/meta_pulse.py`                  | MetaFlash: usage history, story selection rules, leaderboard, template headlines                                                                                                                                  |
-| `src/metamatch/meta_trends.py`                 | MetaFlash trends: leads, set changes, top players' picks, rising cores, saved team report                                                                                                                         |
-| `src/metamatch/storage.py`                     | SQLite store for teams, per team chats and preferences, with a one time import of the old JSON saves                                                                                                              |
-| `src/metamatch/browser_store.py`               | The same store kept in each visitor's own browser on the web version                                                                                                                                              |
-| `scripts/update_meta.py`                       | Monthly stats pipeline (also run by GitHub Actions), including the MetaFlash histories                                                                                                                            |
-| `bench/`                                       | MetaBench question generators, runner, grader, report, and pinned stats snapshots in `bench/fixtures/`                                                                                                          |
-| `bench/extraction/`, `bench/rag/`            | Question understanding benchmark (260 labelled questions) and retrieval benchmark                                                                                                                                 |
-| `bench/guide/`                                 | Coach Guide lead check against the leads in local ladder replays                                                                                                                                                  |
+<details>
+<summary>Where things live</summary>
+
+| Path | What it does |
+| :--- | :--- |
+| `src/metamatch/app.py`, `tabs/` | Streamlit app, one module per tab |
+| `src/metamatch/engine/` | Damage calc bridge, dex, likely sets, planner, solvers, mechanics, Threat Board, Team Completer, Speed Tiers, Spread Lab, Coach Guide |
+| `src/metamatch/engine/intent.py` | The question classifier (trained by `scripts/train_intent.py` on `data/intent/`) |
+| `src/metamatch/engine/team_neighbors.py`, `precedents.py` | Teams like yours and real game precedents, from `data/json/ladder_teams.json` |
+| `src/metamatch/agents/` | Routing, follow ups, declines, the answer voice and its checks, the three coaches |
+| `src/metamatch/rag/` | Smogon analyses, guides, chunking, the ChromaDB + BM25 store and the lightweight web search (`lite.py`) |
+| `src/metamatch/team.py` | Showdown parser, role detection, type math, Mega handling |
+| `src/metamatch/replay/` | Replay parser, team health, mistake rules |
+| `src/metamatch/meta_pulse.py`, `meta_trends.py` | MetaFlash stories, leaderboard and trends |
+| `src/metamatch/storage.py`, `browser_store.py` | Teams, chats and prefs on disk, or in the visitor's browser |
+| `scripts/update_meta.py` | Monthly stats pipeline, also run by GitHub Actions |
+| `bench/` | MetaBench, the question understanding and retrieval benchmarks, pinned stats snapshots |
+
+</details>
 
 ---
 
 ## Limitations & Future Outlook
 
-* **Strategy is the frontier.** Facts are solved, and questions with no exact answer get cited references instead of made up advice, but open ended strategy is not benchmarked yet. A rubric graded strategy benchmark is next.
-* **Fresh set results.** The first run of the [201 question frozen set](bench/README.md#frozen-fresh-test-set) showed MetaMatch skipping details people stated, like a given spread or Tera, which is what the new detail reader fixes. A second blind set comes next to measure it.
-* **Assumed sets.** Anything you don't state comes from the most common ladder set. Sticky Web, doubles effects like Helping Hand, and plans over several turns aren't modelled yet, and the answer says so.
-* **Champions data.** Smogon has written up only about 57 Champions Pokémon so far, so many have no analysis yet, and verified sets are SV only.
+* **Real questions are harder.** On 48 questions from Smogon's forums, 74% of the questions it answers get a useful answer, but "why does X run Y" and opinion questions often get "did you mean" instead.
+* **Weak spots:** in battle calls (it can't see the game), Tera timing and open strategy.
+* **Assumed sets.** Anything you don't state comes from the most common ladder set. Sticky Web, doubles effects and plans over several turns aren't modelled, and answers say so.
+* **Champions data.** Smogon has written up only about 57 Champions Pokémon so far.
 
-**The bet:** you should not need a frontier model to calculate a Speed stat. Code is perfect for rules, language models are good at explaining them, and keeping everything local means your teams stay private. MetaMatch is a proof that a small model that knows how to use tools can beat a raw model at the same size by a wide margin.
+**The bet:** you shouldn't need a frontier model to calculate a Speed stat. Code is perfect for rules, small models are good at explaining them, and staying local keeps your teams private. MetaMatch shows that a small model with the right tools beats the same model on its own by a wide margin.
 
 ---
 
