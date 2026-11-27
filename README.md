@@ -136,7 +136,7 @@ graph LR
 
 ---
 
-## ✨ Features
+## 📦 Features
 
 ### MetaFlash
 
@@ -221,7 +221,7 @@ Gen 9 **OU, UU and National Dex**, plus **Pokémon Champions OU and UU** with Le
 
 ---
 
-## 🚀 Setup
+## 🛠️ Setup
 
 ### Prerequisites
 
@@ -266,7 +266,7 @@ The benchmarks, their results and the commands that run them are in [bench/READM
 
 ---
 
-## 🗂️ Module Overview
+## 🧩 Module Overview
 
 <details>
 <summary>Where things live</summary>
@@ -290,7 +290,7 @@ The benchmarks, their results and the commands that run them are in [bench/READM
 
 ---
 
-## 🧭 Limitations & Future Outlook
+## ⚠️ Limitations & Future Outlook
 
 * **Real questions are harder.** On 48 questions from Smogon's forums, 74% of the questions it answers get a useful answer, but "why does X run Y" and opinion questions often get "did you mean" instead.
 * **Weak spots:** in battle calls (it can't see the game), Tera timing and open strategy.
