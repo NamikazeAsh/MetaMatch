@@ -243,6 +243,10 @@ def add_chat_message(tid, role, content, name=None, avatar=None):
         if c.execute("SELECT 1 FROM teams WHERE id = ?", (tid,)).fetchone():
             c.execute("INSERT INTO chats (team_id, role, name, avatar, content, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                       (tid, role, name, avatar, content, _now()))
+            # Only the last few messages come back when the team is reopened (config.CHAT_KEEP_MESSAGES)
+            c.execute("DELETE FROM chats WHERE team_id = ? AND id NOT IN "
+                      "(SELECT id FROM chats WHERE team_id = ? ORDER BY id DESC LIMIT ?)",
+                      (tid, tid, config.CHAT_KEEP_MESSAGES))
 
 
 def clear_chat(tid):

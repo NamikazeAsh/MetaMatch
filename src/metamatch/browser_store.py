@@ -15,12 +15,14 @@ from datetime import datetime, timezone
 
 import streamlit as st
 
-STATE = "_mm_browser_store"      # the working copy: {"teams", "chats", "prefs", "seq"}
+from metamatch import config
+
+STATE ="_mm_browser_store"      # the working copy: {"teams", "chats", "prefs", "seq"}
 VERSION = "_mm_browser_store_v"  # bumped on every change, so the component knows to write
 KEY = "mm_browser_store"         # the component's key (its state holds what the browser sent)
 STORAGE_KEY = "metamatch.v1"     # the localStorage key
 KEEP_RECENT = 20
-KEEP_MESSAGES = 60               # per team: chats are the bulk of the size
+KEEP_MESSAGES = config.CHAT_KEEP_MESSAGES   # per team: chats are the bulk of the size
 MAX_BYTES = 2_000_000            # localStorage gives about 5 MB per site; stay well under it
 
 _JS = """

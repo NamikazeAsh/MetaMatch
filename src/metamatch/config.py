@@ -37,6 +37,8 @@ LOCAL_MODE = os.environ.get("METAMATCH_LOCAL_MODE", "1") != "0"
 BROWSER_SAVE = not LOCAL_MODE and os.environ.get("METAMATCH_BROWSER_SAVE", "1") != "0"
 # Coach Chat needs a local Ollama, so a shared deployment turns it off unless METAMATCH_CHAT=1 says otherwise
 CHAT_ENABLED = os.environ.get("METAMATCH_CHAT", "1" if LOCAL_MODE else "0") != "0"
+# Each team keeps its last this many chat messages (user and coach together), on disk or in the browser
+CHAT_KEEP_MESSAGES = 10
 
 # Champions replaces EVs with stat points: 66 total, 32 max per stat, level 50, IVs fixed at 31
 CHAMPIONS_SP_TOTAL = 66

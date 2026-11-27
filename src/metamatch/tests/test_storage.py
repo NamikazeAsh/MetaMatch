@@ -119,6 +119,15 @@ class TestChatsAndPrefs(StorageTest):
         self.assertEqual(storage.chat_messages(a), [])
         storage.add_chat_message("missing", "user", "ignored")  # unknown team: no error, nothing stored
 
+    def test_chat_keeps_only_the_last_messages(self):
+        from metamatch import config
+        a = storage.remember_team(TEAM, "gen9ou")
+        for i in range(config.CHAT_KEEP_MESSAGES + 4):
+            storage.add_chat_message(a, "user", f"q{i}")
+        msgs = storage.chat_messages(a)
+        self.assertEqual(len(msgs), config.CHAT_KEEP_MESSAGES)
+        self.assertEqual(msgs[-1]["content"], f"q{config.CHAT_KEEP_MESSAGES + 3}")
+
     def test_prefs_round_trip(self):
         self.assertEqual(storage.get_pref("format", "gen9ou"), "gen9ou")
         storage.set_pref("format", "gen9championsou")
