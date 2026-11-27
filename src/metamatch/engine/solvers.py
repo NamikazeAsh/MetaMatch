@@ -779,6 +779,21 @@ def solve_usage(plan, dex, game):
             statement = f"{advice} {statement}"
             facts.insert(0, advice)
             top_facts = [Fact("usage", advice, {"field": "tera", "source": "smogon"}, role="why")] + top_facts
+    # "What tera does my Hatterene have": the player's own set first, then what Smogon and the ladder run
+    own_key = {"tera": "Tera Type", "item": "Item", "ability": "Ability"}.get(plan.usage_field)
+    if own_key and plan.user is not None and plan.user_named and not plan.opponent and plan.user.get(own_key):
+        value = plan.user[own_key]
+        mine = f"Your {_user_name(plan.user)} runs {'Tera ' + value if plan.usage_field == 'tera' else value}."
+        own_fact = Fact("set", mine, {"field": plan.usage_field, "value": value}, role="why")
+        if re.search(r"\b(?:should|best|recommend\w*|better|ideal)\b", plan.query or "", re.I):
+            # "What tera should my Gholdengo run": the recommendation leads, their own pick follows as context
+            said, statement = f"{said} {mine}", f"{statement} {mine}"
+            facts.append(mine)
+            top_facts = top_facts + [own_fact]
+        else:
+            said, statement = f"{mine} {said}", f"{mine} {statement}"
+            facts.insert(0, mine)
+            top_facts = [own_fact] + top_facts
     return Verdict("usage", display(top), statement, facts, persona="builder", plain=said, typed=top_facts)
 
 
