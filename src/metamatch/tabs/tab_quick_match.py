@@ -267,15 +267,34 @@ def take_pending(format_id, key):
     st.session_state[key] = team
 
 
+GUIDE = (
+    (":material/search:", "Pick one you like",
+     "Search for a Pokémon you want to build around in {label}. One is enough to start."),
+    (":material/group_add:", "Add its partners",
+     "Cards show who players pair with it most this month in {label}. Add the ones you like until you have six."),
+    (":material/rocket_launch:", "Analyze or play",
+     "Every member gets its usual set. Analyze the team here, export it to Showdown or share a PokéPaste link."),
+)
+
+
+def _guide(label):
+    """How Quick Match works, in three short steps, while the team is still empty."""
+    with st.container(horizontal=True, gap="small", key="qm_guide"):
+        for n, (icon, title, text) in enumerate(GUIDE, 1):
+            with st.container(border=True):
+                st.markdown(f"{icon} **{n}. {title}**")
+                st.caption(text.format(label=label))
+
+
 def render(get_strat_data_fn, open_team_fn, type_map):
     format_id = st.session_state.get("format_id") or config.DEFAULT_FORMAT
     label = config.format_info(format_id)["label"]
-    st.caption(f"Pick up to 6 Pokémon in {label}. Add partners to build a team, then analyze it or take it to Showdown.")
     key = f"quick_match_select_{format_id}"
     take_pending(format_id, key)
     core = st.multiselect("Your team (up to 6)", options=_options(format_id), max_selections=TEAM_SIZE,
                           placeholder="Search for a Pokémon...", key=key)
     if not core:
+        _guide(label)
         return
     strat_data = get_strat_data_fn()
     _team(core, format_id, strat_data, label, open_team_fn, type_map, key)

@@ -48,6 +48,21 @@ st.html(r'''
     /* Streamlit's header bar blends into the page */
     .stApp > header { background-color: transparent; }
 
+    /* Top bar: pill links, the page you're on lit in the brand cyan, a fading line under the bar */
+    .stApp > header { background-image: linear-gradient(90deg, rgba(0,212,255,0.45), rgba(0,255,204,0.12) 45%, transparent 85%);
+        background-size: 100% 1px; background-repeat: no-repeat; background-position: bottom; }
+    [data-testid="stTopNavLinkContainer"] { gap: 4px; }
+    [data-testid="stTopNavLink"] { border-radius: 999px; padding: 6px 14px; border: 1px solid transparent;
+        background: transparent; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+    [data-testid="stTopNavLink"] p { font-weight: 600; color: #aab3c5; transition: color 0.15s ease; }
+    [data-testid="stTopNavLink"] [data-testid="stIconMaterial"] { color: #7f8aa0; transition: color 0.15s ease; }
+    [data-testid="stTopNavLink"]:hover { background: rgba(0,212,255,0.07); border-color: rgba(0,212,255,0.22); }
+    [data-testid="stTopNavLink"]:hover p, [data-testid="stTopNavLink"]:hover [data-testid="stIconMaterial"] { color: #e8ecf3; }
+    [data-testid="stTopNavLink"][aria-current="page"] { background: rgba(0,212,255,0.13); border-color: rgba(0,212,255,0.5);
+        box-shadow: 0 0 14px rgba(0,212,255,0.16), inset 0 1px 0 rgba(255,255,255,0.05); }
+    [data-testid="stTopNavLink"][aria-current="page"] p { color: #dff9ff; }
+    [data-testid="stTopNavLink"][aria-current="page"] [data-testid="stIconMaterial"] { color: #00d4ff; }
+
     /* The browser store's invisible component (shared deployment) takes no space on the page */
     .st-key-mm_store_slot { position: absolute !important; width: 0 !important; height: 0 !important; overflow: hidden !important; }
 
@@ -605,6 +620,11 @@ def home_page():
                 sample_clicked = st.form_submit_button("Try a sample team", icon=":material/science:")
                 st.caption("Damage calcs, threats, speed tiers and the coach chat, all from one paste." if config.CHAT_ENABLED
                            else "Damage calcs, threats, speed tiers and a game plan, all from one paste.")
+
+        # No team to paste: Quick Match builds one from a Pokemon the player picks
+        with st.container(horizontal=True, vertical_alignment="center", gap="small", key="hero_build"):
+            st.caption("No team yet?", width="content")
+            st.page_link(TOOL_PAGES["quick-match"], label="Build one with Quick Match", icon=":material/group_add:")
 
         if sample_clicked:
             open_sample_team()
