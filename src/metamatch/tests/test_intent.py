@@ -164,6 +164,8 @@ class TestChatRouting(unittest.TestCase):
         self.assertEqual(_usage_field("do zapdos on the ladder mostly have static"), "ability")
         self.assertEqual(_usage_field("who do people usually bring alongside kingambit"), "teammates")
         self.assertEqual(_usage_field("what item do people use with great tusk"), "item")
+        self.assertEqual(_usage_field("is great tusk still top 10 or did it fall"), "rank")
+        self.assertEqual(_usage_field("how common is kingambit right now"), "rank")
 
     def test_meta_trends_reads_the_ladder_history(self):
         from metamatch.agents.manager import meta_trends

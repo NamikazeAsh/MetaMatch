@@ -672,10 +672,36 @@ def _usual_set(target, plan, game):
     return Verdict("usage", s["item"] or s["name"], statement, facts, persona="builder", plain=said, typed=typed)
 
 
+def _usage_rank(target, plan):
+    """'Is Great Tusk still top 10': its usage rank this month and last, from MetaFlash's history (top 100)."""
+    from metamatch import meta_pulse
+    label = config.format_info(plan.format_id)["label"]
+    board = meta_pulse.leaderboard(plan.format_id, n=100)
+    if not board:
+        return None
+    row = next((r for r in board if to_id(r["name"]) == to_id(target)), None)
+    if row is None:
+        said = f"{target} is outside the top {len(board)} on the {label} ladder this month."
+        typed = [Fact("usage", said, {"rank": None}, role="why")]
+    else:
+        said = f"{row['name']} is #{row['rank']} on the {label} ladder this month, on {row['usage']:.1f}% of teams."
+        prev = row.get("prev_rank")
+        if prev:
+            move = ("up from" if prev > row["rank"] else "down from" if prev < row["rank"] else "the same as")
+            said += f" That's {move} #{prev} last month."
+        elif row.get("has_prev"):
+            said += " It wasn't in last month's top 100."
+        typed = [Fact("usage", said, {"rank": row["rank"], "usage": row["usage"], "prev_rank": prev}, role="why")]
+    return Verdict("usage", str(row["rank"]) if row else "unranked", said, [said], persona="builder", plain=said,
+                   typed=typed)
+
+
 def solve_usage(plan, dex, game):
     target = plan.opponent or (plan.user["Forme"] if plan.user.get("Forme") else plan.user["Pokemon"])
     if plan.usage_field == "set":
         return _usual_set(target, plan, game)
+    if plan.usage_field == "rank":
+        return _usage_rank(target, plan)
     key, entry = chaos_entry(target, plan.format_id)
     if not entry:
         return None

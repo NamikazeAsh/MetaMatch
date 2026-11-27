@@ -18,7 +18,7 @@ STAT_WORDS = {"hp": "hp", "attack": "atk", "atk": "atk", "defense": "def", "def"
               "special attack": "spa", "spa": "spa", "special defense": "spd", "spd": "spd",
               "speed": "spe", "spe": "spe"}
 
-USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|standard (?:set|item|spread)|what (?:item|ability|tera|nature|spread|moves?)|"
+USAGE_RE = re.compile(r"\b(most common|most used|usage|popular|what rank|ranked|ranking|standard (?:set|item|spread)|what (?:item|ability|tera|nature|spread|moves?)|"
                       r"which (?:item|ability|tera)|usual(?:ly)?|typical(?:ly)?|carr(?:y|ies)|common\s+(?:\w+\s+)?sets?|"
                       r"teammates? (?:of|for)|(?:who|what) (?:pairs?|goes|runs) (?:well )?with|"
                       r"(?:common|standard|popular|normal) (?:on|for))\b|\bsets?\W*$", re.I)
@@ -33,6 +33,9 @@ MATCHUP_RE = re.compile(r"\b(?:beat|beats|win|wins|handle|handles|check|checks|c
                         # "how does my Corviknight do against Kingambit", "how does it fare vs", "hold up against"
                         r"\b(?:do|does|doing|fare|fares|faring|hold(?:s)? up|stack(?:s)? up|perform(?:s)?) "
                         r"(?:against|vs\.?|into)\b", re.I)
+# "is great tusk still top 10", "what rank is kingambit", "did gholdengo fall off": where it sits on the ladder
+RANK_FIELD_RE = re.compile(r"\b(?:rank\w*|top \d+|top ten|number one|#\d+|still (?:used|popular|good|relevant|common)|"
+                           r"fall(?:en|ing)? off|fell|dropp?(?:ed|ing) off|how (?:popular|used|common) is)\b", re.I)
 TEAMMATE_FIELD_RE = re.compile(r"\b(?:teammates?|partners?|pairs?|goes with|runs with|alongside|paired with|"
                                r"(?:bring|brings|brought) (?:\w+ )?with)\b", re.I)
 # "what EVs does X need to outspeed Y", "how much Speed to outspeed": an investment question, not a yes or no
@@ -280,6 +283,8 @@ def _usage_field(query):
     """Which usage field is asked for; whole words only, so 'Terapagos' is not 'tera'."""
     if TEAMMATE_FIELD_RE.search(query):
         return "teammates"
+    if RANK_FIELD_RE.search(query):
+        return "rank"
     for pattern, fld in ((r"tera", "tera"), (r"abilit(?:y|ies)", "ability"), (r"items?", "item"),
                          (r"spreads?", "spread"), (r"natures?", "spread"), (r"moves?", "move"),
                          (r"(?:move)?sets?|builds?|runs?|running|ran", "set")):
