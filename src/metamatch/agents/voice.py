@@ -129,6 +129,10 @@ def check_why(text, cited, packet, verdict=None, team_names=()):
         return "empty"
     if len(re.findall(r"[.!?](?:\s|$)", text)) > 1 or len(text.split()) > 40:
         return "more than one sentence"
+    # "Why does Tera Fairy add Poison and Steel weaknesses?": the model restated the question instead of answering it
+    # (16 to 19 of 182 answers on the 2026 11 28 sealed set)
+    if text.endswith("?"):
+        return "a question, not a reason"
     # The answer sentence is shown right before the why, so what it names may be named again
     source = " ".join(f.text for f in cited) + " " + (packet.answer if packet else "")
     low_source = _norm(source)
