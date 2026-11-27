@@ -169,6 +169,7 @@ SWITCH_TYPE_RE = re.compile(r"\bwho(?: on (?:my|our) team)? (?:switch(?:es)? int
 @dataclass
 class Plan:
     intent: str = "open"            # speed, speed_spread, ko, damage, type, stat, usage, checks, team_type, rules, clarify, open
+    kind: str = ""                  # the classifier's kind when it planned this (engine/intent.py), else ""
     format_id: str = config.DEFAULT_FORMAT
     user: dict | None = None        # team member entry from readTeam
     user_named: bool = False        # False when `user` is just the only member of a one Pokemon team
@@ -351,8 +352,59 @@ def _move_boosts(plan, src, dst, boosts):
         del a["boosts"]
 
 
-def plan_query(query, team):
-    """Builds a Plan for a chat question about `team` (readTeam output)."""
+# Classifier kinds that are planner intents (solved by engine/solvers.py); the rest (sets, how_to_use, meta_trends,
+# in_battle, out_of_scope, smalltalk) stay "open" with plan.kind set, for the chat to route
+PLANNED_KINDS = {"speed", "ko", "damage", "type", "stat", "usage", "team_type", "checks", "switchins", "matchup",
+                 "member", "score", "threats", "gameplan", "win", "lead", "tera", "archetype", "weather", "teammate",
+                 "compare", "rules"}
+
+
+def _force(plan, kind, q, scrubbed, names_only, raw_spans, dex, format_id, target, survive):
+    """Fills the slots a classifier chosen kind needs, the way that kind's rule branch would, without its guards."""
+    plan.kind = kind
+    if kind not in PLANNED_KINDS:
+        return
+    plan.intent = kind
+    if kind == "team_type":
+        m = SWITCH_TYPE_RE.search(q)
+        plan.atk_type = m.group(1).capitalize() if m else _attack_type(scrubbed, plan.move, dex)
+        plan.team_ask = next((ask for ask, pattern in TEAM_ASKS if pattern.search(q)), "resist")
+    elif kind == "stat":
+        plan.stat_target = target or "user"
+        plan.stat = _find_stat(scrubbed) or "spe"
+    elif kind == "ko":
+        hits = re.search(r"\b(o|\d)hko", q, re.I)
+        plan.ko_hits = 1 if not hits or hits.group(1).lower() == "o" else int(hits.group(1))
+        plan.survive = survive
+    elif kind == "type":
+        plan.atk_type = _attack_type(scrubbed, plan.move, dex)
+        if not plan.atk_type:
+            plan.team_ask = next((ask for ask, pattern in TEAM_ASKS if pattern.search(q)), None) or (
+                "resist" if RESIST_RE.search(q) else "weak")
+    elif kind == "checks":
+        plan.asks_how = bool(BEAT_RE.search(q))
+    elif kind in ("archetype", "weather"):
+        word = WEATHER_WORD_RE.search(q)
+        plan.archetype = (_archetype(q, format_id) if kind == "archetype" else
+                          {"weather": None, "sandstorm": "sand"}.get(word.group(1).lower(), word.group(1).lower())
+                          if word else None)
+    elif kind == "compare":
+        plan.options = _options(names_only)
+    elif kind == "teammate":
+        plan.replace = bool(REPLACE_ASK_RE.search(q)) and plan.user_named
+    elif kind == "rules":
+        plan.rules = rules.find_named(q, [(a, b) for a, b, _ in raw_spans])
+    elif kind == "usage":
+        plan.usage_field = _usage_field(names_only)
+        option = [(k, name) for k, name in rules.find_named(names_only) if k in ("item", "move", "ability")]
+        if OPTION_ASK_RE.search(q) and option and plan.usage_field != "teammates":
+            plan.usage_field, plan.usage_option = option[0]
+
+
+def plan_query(query, team, force=None):
+    """Builds a Plan for a chat question about `team` (readTeam output). `force`: a question kind from the learned
+    classifier (engine/intent.py) to plan instead of the rule chain; the shared extraction (names, moves, stated
+    details) is the same either way, and only the kind's own slots are filled."""
     team = team or {}
     format_id = config.team_format(team)
     dex = dex_for_format(format_id)
@@ -467,7 +519,9 @@ def plan_query(query, team):
     target = ("user" if plan.user is not None and (plan.user_named or not plan.opponents)
               else "opponent" if plan.opponents else None)
     tab = next((intent for pattern, intent in TABS if pattern.search(q)), None) if team and TAB_ASK_RE.search(q) else None
-    if tab:
+    if force:
+        _force(plan, force, q, scrubbed, names_only, raw_spans, dex, format_id, target, survive)
+    elif tab:
         # A question about a dashboard tab gets that tab's own answer (same functions, so the numbers match)
         plan.intent = tab
     elif team and SWITCH_TYPE_RE.search(q):

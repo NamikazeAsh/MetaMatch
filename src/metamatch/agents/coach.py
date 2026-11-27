@@ -200,10 +200,11 @@ NOT_USE_RE = re.compile(r"\b(?:vs\.?|versus|against|now|this turn|turn \d+|locke
                         r"send (?:in|out)|goes in|matter|work|works|happens?|immune|resist\w*|weak\w*)\b", re.I)
 
 
-def _named_analysis(hit, asked, query=""):
-    """A Smogon analysis chunk about a Pokemon the question names, when the question asks how to use that Pokemon."""
+def _named_analysis(hit, asked, query="", how_to_use=False):
+    """A Smogon analysis chunk about a Pokemon the question names, when the question asks how to use that Pokemon
+    (by the patterns, or `how_to_use` when the classifier read it that way)."""
     m = hit["metadata"]
-    if not (USE_RE.search(query) and not NOT_USE_RE.search(query)):
+    if not how_to_use and not (USE_RE.search(query) and not NOT_USE_RE.search(query)):
         return False
     return m.get("source") == "smogon_analysis" and (_species_key(m.get("pokemon")) in asked
                                                        or _species_key(m.get("species")) in asked)
@@ -212,7 +213,8 @@ def _named_analysis(hit, asked, query=""):
 def _voiced(query, hits, asked, state=None, meta=None):
     """Oak's framing line, then the passage's own sentences that answer the question, quoted, with the source
     (agents/retell.py). None when nothing retrieved is worth reading."""
-    hit = next((h for h in hits if _card_worthy(h) or _named_analysis(h, asked, query)), None)
+    how_to_use = (meta or {}).get("kind") == "how_to_use"
+    hit = next((h for h in hits if _card_worthy(h) or _named_analysis(h, asked, query, how_to_use)), None)
     if not hit:
         return None
     from metamatch.rag.cards import analysis_url

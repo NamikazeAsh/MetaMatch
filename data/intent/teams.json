@@ -1,0 +1,18 @@
+{
+ "A": [
+  "Great Tusk @ Heavy-Duty Boots\nAbility: Protosynthesis\nTera Type: Steel\nEVs: 252 Atk / 4 SpD / 252 Spe\nJolly Nature\n- Headlong Rush\n- Rapid Spin\n- Ice Spinner\n- Close Combat\n\nGholdengo @ Choice Scarf\nAbility: Good as Gold\nTera Type: Fairy\nEVs: 252 SpA / 4 SpD / 252 Spe\nTimid Nature\n- Shadow Ball\n- Make It Rain\n- Trick\n- Focus Blast\n\nKingambit @ Leftovers\nAbility: Supreme Overlord\nTera Type: Ghost\nEVs: 248 HP / 252 Atk / 8 Def\nAdamant Nature\n- Sucker Punch\n- Swords Dance\n- Iron Head\n- Low Kick\n\nDragapult @ Choice Specs\nAbility: Infiltrator\nTera Type: Ghost\nEVs: 4 HP / 252 SpA / 252 Spe\nTimid Nature\n- Draco Meteor\n- U-turn\n- Shadow Ball\n- Hex\n\nOgerpon-Wellspring @ Wellspring Mask\nAbility: Water Absorb\nTera Type: Water\nEVs: 252 Atk / 4 SpD / 252 Spe\nJolly Nature\n- Ivy Cudgel\n- Swords Dance\n- Power Whip\n- Knock Off\n\nZapdos @ Heavy-Duty Boots\nAbility: Static\nTera Type: Steel\nEVs: 4 Def / 252 SpA / 252 Spe\nTimid Nature\n- Hurricane\n- Volt Switch\n- Roost\n- Thunder Wave",
+  "gen9ou"
+ ],
+ "B": [
+  "Lopunny @ Lopunnite\nAbility: Cute Charm\nLevel: 50\nEVs: 2 HP / 32 Atk / 32 Spe\nJolly Nature\n- Fake Out\n- High Jump Kick\n- Return\n- Ice Punch\n\nCharizard @ Charizardite Y\nAbility: Blaze\nLevel: 50\nEVs: 2 HP / 32 SpA / 32 Spe\nTimid Nature\n- Heat Wave\n- Solar Beam\n- Air Slash\n- Protect\n\nGarchomp @ Choice Scarf\nAbility: Rough Skin\nLevel: 50\nEVs: 2 HP / 32 Atk / 32 Spe\nJolly Nature\n- Earthquake\n- Dragon Claw\n- Rock Slide\n- Stone Edge\n\nRotom-Wash @ Leftovers\nAbility: Levitate\nLevel: 50\nEVs: 32 HP / 2 Def / 32 SpD\nCalm Nature\n- Hydro Pump\n- Volt Switch\n- Will-O-Wisp\n- Protect\n\nKingambit @ Black Glasses\nAbility: Supreme Overlord\nLevel: 50\nEVs: 32 HP / 32 Atk / 2 SpD\nAdamant Nature\n- Kowtow Cleave\n- Sucker Punch\n- Iron Head\n- Swords Dance\n\nSylveon @ Leftovers\nAbility: Pixilate\nLevel: 50\nEVs: 32 HP / 2 Def / 32 SpA\nModest Nature\n- Hyper Voice\n- Moonblast\n- Protect\n- Calm Mind",
+  "gen9championsou"
+ ],
+ "XA": [
+  "Great Tusk @ Booster Energy\nAbility: Protosynthesis\nEVs: 252 Atk / 4 SpD / 252 Spe\nJolly Nature\n- Headlong Rush\n- Ice Spinner\n- Knock Off\n- Rapid Spin\n\nRillaboom @ Choice Scarf\nAbility: Grassy Surge\nEVs: 252 Atk / 4 SpD / 252 Spe\nAdamant Nature\n- Wood Hammer\n- Grassy Glide\n- U-turn\n- Knock Off\n\nCorviknight @ Leftovers\nAbility: Pressure\nEVs: 252 HP / 168 Def / 88 SpD\nImpish Nature\n- Brave Bird\n- U-turn\n- Roost\n- Defog",
+  "gen9ou"
+ ],
+ "XB": [
+  "Gholdengo @ Choice Specs\nAbility: Good as Gold\nEVs: 252 SpA / 4 SpD / 252 Spe\nTimid Nature\n- Make It Rain\n- Shadow Ball\n- Trick\n- Focus Blast\n\nDragonite @ Heavy-Duty Boots\nAbility: Multiscale\nEVs: 252 Atk / 4 Def / 252 Spe\nAdamant Nature\n- Extreme Speed\n- Earthquake\n- Fire Punch\n- Dragon Dance\n\nToxapex @ Black Sludge\nAbility: Regenerator\nEVs: 252 HP / 252 Def / 4 SpD\nBold Nature\n- Surf\n- Toxic\n- Recover\n- Haze\n\nIron Valiant @ Booster Energy\nAbility: Quark Drive\nEVs: 252 SpA / 4 SpD / 252 Spe\nTimid Nature\n- Moonblast\n- Close Combat\n- Knock Off\n- Psyshock",
+  "gen9ou"
+ ]
+}

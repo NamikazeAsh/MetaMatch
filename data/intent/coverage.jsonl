@@ -1,0 +1,216 @@
+{"text": "is my team good?", "kind": "score", "team": "A"}
+{"text": "rate my team out of 10", "kind": "score", "team": "A"}
+{"text": "how does this team do in the current OU meta", "kind": "score", "team": "A"}
+{"text": "is this team ladder ready or nah", "kind": "score", "team": "A"}
+{"text": "whats the win condition here, i built it but im not sure lol", "kind": "win", "team": "A"}
+{"text": "Could you give me an honest assessment of the team's structure: hazards, removal, pivoting, and win conditions?", "kind": "score", "team": "A"}
+{"text": "is the team too offensive? feels like i have nothing that can take a hit", "kind": "score", "team": "A"}
+{"text": "strengths and weaknesses of my team pls", "kind": "score", "team": "A"}
+{"text": "would this team do well vs stall", "kind": "archetype", "team": "A"}
+{"text": "how does it handle hyper offense, rain and sun teams", "kind": "archetype", "team": "A"}
+{"text": "whats my team's biggest flaw in one sentence", "kind": "threats", "team": "A"}
+{"text": "my team keeps losing around 1500, is it the team or is it me", "kind": "score", "team": "A"}
+{"text": "does this team have good synergy", "kind": "score", "team": "A"}
+{"text": "how good is my champions team overall", "kind": "score", "team": "B"}
+{"text": "what threatens my team", "kind": "threats", "team": "A"}
+{"text": "worst matchups in the top 12?", "kind": "threats", "team": "A"}
+{"text": "is opposing kingambit a problem for me", "kind": "checks", "team": "A"}
+{"text": "how do i beat dragonite with this team, multiscale is annoying", "kind": "checks", "team": "A"}
+{"text": "what about rain? pelipper barraskewda stuff", "kind": "archetype", "team": "A"}
+{"text": "Which hazard stackers give me trouble? I don't run Defog.", "kind": "threats", "team": "A"}
+{"text": "who walls my team completely", "kind": "threats", "team": "A"}
+{"text": "what can i do vs iron valiant", "kind": "checks", "team": "A"}
+{"text": "holes in my team?", "kind": "threats", "team": "A"}
+{"text": "gliscor keeps walling me, help", "kind": "checks", "team": "A"}
+{"text": "whats the scariest setup sweeper for this team", "kind": "threats", "team": "A"}
+{"text": "does volcarona just sweep me", "kind": "checks", "team": "A"}
+{"text": "which mons in top usage beat at least 4 of my guys", "kind": "threats", "team": "A"}
+{"text": "are faster ghosts an issue? like opposing pult", "kind": "checks", "team": "A"}
+{"text": "what's gambit's job on this team", "kind": "member", "team": "A"}
+{"text": "how do i use pult on this team", "kind": "member", "team": "A"}
+{"text": "should I lead with Great Tusk?", "kind": "lead", "team": "A"}
+{"text": "when do i tera ogerpon", "kind": "tera", "team": "A"}
+{"text": "what does zapdos actually do here? seems kinda random", "kind": "member", "team": "A"}
+{"text": "Is my Choice Scarf Gholdengo meant to be a revenge killer or a Trick user?", "kind": "member", "team": "A"}
+{"text": "when shouldnt i click sucker punch", "kind": "rules", "team": "A"}
+{"text": "why does my tusk have ice spinner", "kind": "member", "team": "A"}
+{"text": "why tera ghost on kingambit", "kind": "sets", "team": "A"}
+{"text": "which mon do i usually sack first", "kind": "gameplan", "team": "A"}
+{"text": "how to play ogerpon wellspring vs gliscor and lando", "kind": "matchup", "team": "A"}
+{"text": "is zapdos supposed to stay in vs opposing great tusk", "kind": "matchup", "team": "A"}
+{"text": "when do i bring dragapult in", "kind": "member", "team": "A"}
+{"text": "what's rotom wash doing on my champions team", "kind": "member", "team": "B"}
+{"text": "best set for great tusk", "kind": "sets", "team": "A"}
+{"text": "what tera type should gholdengo run", "kind": "sets", "team": "A"}
+{"text": "whats the standard kingambit set rn", "kind": "usage", "team": "A"}
+{"text": "what does opposing gliscor usually run", "kind": "usage", "team": "A"}
+{"text": "Dragonite sets? tera normal extreme speed or something else", "kind": "usage", "team": "A"}
+{"text": "Is Jolly or Adamant better on my Ogerpon?", "kind": "compare", "team": "A"}
+{"text": "can zapdos run something besides boots", "kind": "sets", "team": "A"}
+{"text": "evs for gambit to survive great tusk cc", "kind": "sets", "team": "A"}
+{"text": "what item does iron valiant usually hold", "kind": "usage", "team": "A"}
+{"text": "whats the most popular dragapult set right now", "kind": "usage", "team": "A"}
+{"text": "what abilities can great tusk have", "kind": "sets", "team": "A"}
+{"text": "better tera for zapdos instead of steel?", "kind": "sets", "team": "A"}
+{"text": "what spread do people run on raging bolt", "kind": "usage", "team": "A"}
+{"text": "best spread for mega lopunny in champions with stat points", "kind": "sets", "team": "B"}
+{"text": "what should i replace on this team", "kind": "teammate", "team": "A"}
+{"text": "whats the one swap that helps most", "kind": "teammate", "team": "A"}
+{"text": "i need a hazard setter, who do i add", "kind": "teammate", "team": "A"}
+{"text": "good partners for kingambit", "kind": "teammate", "team": "A"}
+{"text": "could i turn this into a rain team", "kind": "weather", "team": "A"}
+{"text": "Should I add a Defogger or is Tusk enough for removal?", "kind": "teammate", "team": "A"}
+{"text": "find me teams like mine on the ladder", "kind": "teammate", "team": "A"}
+{"text": "need a fire resist that isnt slow", "kind": "teammate", "team": "A"}
+{"text": "what fits in for zapdos if i drop it", "kind": "teammate", "team": "A"}
+{"text": "how would i make this more balance instead of HO", "kind": "teammate", "team": "A"}
+{"text": "who checks fighting types for this team, do i need something", "kind": "team_type", "team": "A"}
+{"text": "build me a team around ogerpon wellspring", "kind": "how_to_use", "team": "A"}
+{"text": "Is having both Dragapult and Gholdengo as Ghosts redundant?", "kind": "teammate", "team": "A"}
+{"text": "who should i swap in on my champions team for a better fairy check", "kind": "teammate", "team": "B"}
+{"text": "does pult outspeed iron valiant", "kind": "speed", "team": "A"}
+{"text": "who on my team outspeeds dragonite after a dragon dance", "kind": "speed", "team": "A"}
+{"text": "is ogerpon faster than iron moth", "kind": "speed", "team": "A"}
+{"text": "how fast is scarf gholdengo", "kind": "stat", "team": "A"}
+{"text": "what speed control does my team have", "kind": "speed", "team": "A"}
+{"text": "Does Great Tusk outspeed Landorus Therian after one Rapid Spin?", "kind": "speed", "team": "A"}
+{"text": "can kingambit outspeed anything lol", "kind": "speed", "team": "A"}
+{"text": "is zapdos faster than garchomp", "kind": "speed", "team": "A"}
+{"text": "who outspeeds my whole team", "kind": "speed", "team": "A"}
+{"text": "speed tiers vs the top 12 in ou, where do i sit", "kind": "speed", "team": "A"}
+{"text": "if i thunder wave a weavile does kingambit outspeed it", "kind": "speed", "team": "A"}
+{"text": "does dragapult outspeed opposing dragapult", "kind": "speed", "team": "A"}
+{"text": "is it worth running max speed on zapdos or can i dump some into hp", "kind": "sets", "team": "A"}
+{"text": "booster energy roaring moon vs my pult and gholdengo, who's faster", "kind": "speed", "team": "A"}
+{"text": "in champions does scarf garchomp outspeed mega lopunny", "kind": "speed", "team": "B"}
+{"text": "does +2 gambit sucker punch ohko dragapult", "kind": "ko", "team": "A"}
+{"text": "specs draco on dragonite, does it ko through multiscale", "kind": "ko", "team": "A"}
+{"text": "how much does tusk headlong rush do to gholdengo", "kind": "damage", "team": "A"}
+{"text": "does zapdos survive a kyurem ice beam", "kind": "ko", "team": "A"}
+{"text": "can ogerpon ohko gliscor after swords dance", "kind": "ko", "team": "A"}
+{"text": "What does Make It Rain do to Iron Valiant from my Scarf Gholdengo?", "kind": "damage", "team": "A"}
+{"text": "does opposing great tusk close combat just kill my kingambit", "kind": "ko", "team": "A"}
+{"text": "will dragapult survive a sucker punch from kingambit", "kind": "ko", "team": "A"}
+{"text": "does gholdengo focus blast ohko kingambit", "kind": "ko", "team": "A"}
+{"text": "how much does zapdos hurricane do to great tusk", "kind": "damage", "team": "A"}
+{"text": "Does Kingambit at +0 Iron Head 2HKO Iron Valiant?", "kind": "ko", "team": "A"}
+{"text": "if tusk teras steel how much does it take from dragapult draco", "kind": "damage", "team": "A"}
+{"text": "with 3 dead teammates how strong is gambit sucker punch", "kind": "damage", "team": "A"}
+{"text": "does stealth rock plus one hex kill an iron moth", "kind": "ko", "team": "A"}
+{"text": "does mega zard y heat wave ohko kingambit in champions", "kind": "ko", "team": "B"}
+{"text": "what is my team weak to", "kind": "team_type", "team": "A"}
+{"text": "how many of my mons are weak to fire", "kind": "team_type", "team": "A"}
+{"text": "what types do i not hit super effectively", "kind": "team_type", "team": "A"}
+{"text": "is ground a problem? gholdengo and gambit both weak", "kind": "team_type", "team": "A"}
+{"text": "what does tera steel do for tusk defensively", "kind": "type", "team": "A"}
+{"text": "which of my guys resist fairy", "kind": "team_type", "team": "A"}
+{"text": "Who switches into a Ghost move safely?", "kind": "team_type", "team": "A"}
+{"text": "dark moves hit gholdengo and pult right", "kind": "team_type", "team": "A"}
+{"text": "is ice a big deal for my team", "kind": "team_type", "team": "A"}
+{"text": "whats ogerpon wellspring weak to", "kind": "type", "team": "A"}
+{"text": "what is gholdengo immune to", "kind": "type", "team": "A"}
+{"text": "does anything on my team resist dragon", "kind": "team_type", "team": "A"}
+{"text": "is fighting coverage good vs my team or bad", "kind": "team_type", "team": "A"}
+{"text": "what is my champions team weak to", "kind": "team_type", "team": "B"}
+{"text": "how does supreme overlord work", "kind": "rules", "team": "A"}
+{"text": "does good as gold block my own trick", "kind": "rules", "team": "A"}
+{"text": "does protosynthesis activate on my tusk without booster energy", "kind": "rules", "team": "A"}
+{"text": "how does hex work with thunder wave", "kind": "rules", "team": "A"}
+{"text": "rapid spin gives speed now?", "kind": "rules", "team": "A"}
+{"text": "What happens when Ogerpon Wellspring terastallizes?", "kind": "rules", "team": "A"}
+{"text": "does sucker punch work if they switch", "kind": "rules", "team": "A"}
+{"text": "can my opponent defog or spin when my gholdengo is in", "kind": "rules", "team": "A"}
+{"text": "does infiltrator matter on dragapult", "kind": "rules", "team": "A"}
+{"text": "how does knock off work again, does it do more damage", "kind": "rules", "team": "A"}
+{"text": "does static activate on u turn", "kind": "rules", "team": "A"}
+{"text": "how does choice lock work if i tera", "kind": "rules", "team": "A"}
+{"text": "when do leftovers heal, and how does low kick damage work", "kind": "rules", "team": "A"}
+{"text": "does make it rain lower my spa every time", "kind": "rules", "team": "A"}
+{"text": "whats popular in ou right now", "kind": "meta_trends", "team": "A"}
+{"text": "what's rising this month", "kind": "meta_trends", "team": "A"}
+{"text": "is kingambit still the most used", "kind": "usage", "team": "A"}
+{"text": "whats falling off in the meta lately", "kind": "meta_trends", "team": "A"}
+{"text": "how common is dragapult", "kind": "usage", "team": "A"}
+{"text": "Which archetypes are dominant on the ladder this month?", "kind": "meta_trends", "team": "A"}
+{"text": "is rain good rn", "kind": "meta_trends", "team": "A"}
+{"text": "how many of my team are top 12", "kind": "meta_trends", "team": "A"}
+{"text": "what tera types are people using most this month", "kind": "meta_trends", "team": "A"}
+{"text": "what do high elo players use vs lower ladder", "kind": "meta_trends", "team": "A"}
+{"text": "anything new and broken i should prep for", "kind": "meta_trends", "team": "A"}
+{"text": "most common teammates of great tusk?", "kind": "usage", "team": "A"}
+{"text": "is my team meta or off meta", "kind": "score", "team": "A"}
+{"text": "how did the meta change since last month", "kind": "meta_trends", "team": "A"}
+{"text": "whats top usage in champions ou", "kind": "meta_trends", "team": "B"}
+{"text": "which 3 should i bring vs a rain team", "kind": "archetype", "team": "B"}
+{"text": "can i mega both lopunny and charizard", "kind": "rules", "team": "B"}
+{"text": "how do stat points work in champions", "kind": "rules", "team": "B"}
+{"text": "is my spread legal? the 2 32 32 stuff", "kind": "rules", "team": "B"}
+{"text": "whats my best lead in champions", "kind": "lead", "team": "B"}
+{"text": "does mega lopunny get scrappy", "kind": "rules", "team": "B"}
+{"text": "zard y or lopunny for the mega, which one more often", "kind": "compare", "team": "B"}
+{"text": "is there tera in champions", "kind": "rules", "team": "B"}
+{"text": "why do i have heat wave rock slide and hyper voice on a singles team, are spread moves bad", "kind": "sets", "team": "B"}
+{"text": "what do i bring vs a team with garchomp and kingambit", "kind": "checks", "team": "B"}
+{"text": "does kingambit work in champions like in sv ou", "kind": "rules", "team": "B"}
+{"text": "does level 50 change damage much", "kind": "rules", "team": "B"}
+{"text": "Is Sylveon worth a slot or should I bring something else? Calm Mind seems slow in a 3v3.", "kind": "teammate", "team": "B"}
+{"text": "is my team legal in champions? scarf garchomp ok?", "kind": "rules", "team": "B"}
+{"text": "their gambit is in at +2, i have tusk and ogerpon left, what do i do", "kind": "in_battle", "team": "A"}
+{"text": "opposing dragapult came in on my gholdengo scarf locked into make it rain, stay or switch", "kind": "in_battle", "team": "A"}
+{"text": "they have a gliscor and hazards are on my side, spin now or attack", "kind": "in_battle", "team": "A"}
+{"text": "turn 1 my tusk vs their landorus, what do i click", "kind": "in_battle", "team": "A"}
+{"text": "should i tera kingambit now or save it", "kind": "in_battle", "team": "A"}
+{"text": "They have Iron Valiant and I have Dragapult and Zapdos left. Who goes in after my Ogerpon faints?", "kind": "in_battle", "team": "A"}
+{"text": "their corviknight walls ogerpon, what do i switch to", "kind": "in_battle", "team": "A"}
+{"text": "do i sack zapdos here to get gambit in free", "kind": "in_battle", "team": "A"}
+{"text": "theyre probably gonna switch to ting lu, should i double switch?", "kind": "in_battle", "team": "A"}
+{"text": "pult locked into draco, opp sends a fairy, now what", "kind": "in_battle", "team": "A"}
+{"text": "when do i trick the scarf", "kind": "member", "team": "A"}
+{"text": "their volcarona is at +1 and i have kingambit and ogerpon. help", "kind": "in_battle", "team": "A"}
+{"text": "opp has 3 mons left i have 4, how do i close it out", "kind": "in_battle", "team": "A"}
+{"text": "should i rapid spin or ice spinner vs their dragonite", "kind": "in_battle", "team": "A"}
+{"text": "champions: they led garchomp and i have mega lopunny out, fake out or hjk", "kind": "in_battle", "team": "B"}
+{"text": "specs or scarf on dragapult", "kind": "compare", "team": "A"}
+{"text": "tera fairy vs tera steel gholdengo", "kind": "compare", "team": "A"}
+{"text": "ogerpon or rillaboom for this team", "kind": "compare", "team": "A"}
+{"text": "zapdos or corviknight", "kind": "compare", "team": "A"}
+{"text": "leftovers or black glasses on gambit", "kind": "compare", "team": "A"}
+{"text": "Kingambit or Ogerpon as my main win condition?", "kind": "compare", "team": "A"}
+{"text": "jolly vs adamant tusk", "kind": "compare", "team": "A"}
+{"text": "hex or shadow ball on pult, i have both lol", "kind": "compare", "team": "A"}
+{"text": "which is worse for my team, iron valiant or roaring moon", "kind": "threats", "team": "A"}
+{"text": "boots or lefties on zapdos", "kind": "compare", "team": "A"}
+{"text": "focus blast or something else on gholdengo", "kind": "compare", "team": "A"}
+{"text": "power whip or horn leech on ogerpon", "kind": "compare", "team": "A"}
+{"text": "great tusk vs landorus therian as my ground type", "kind": "compare", "team": "A"}
+{"text": "mega lopunny vs mega zard y in champions", "kind": "compare", "team": "B"}
+{"text": "what about dragonite?", "kind": "checks", "team": "A"}
+{"text": "and with booster energy?", "kind": "speed", "team": "A"}
+{"text": "what if gholdengo is tera fairy?", "kind": "damage", "team": "A"}
+{"text": "what tera with that?", "kind": "sets", "team": "A"}
+{"text": "ok would you drop zapdos then?", "kind": "teammate", "team": "A"}
+{"text": "and if it has tera water?", "kind": "checks", "team": "A"}
+{"text": "which one matters most?", "kind": "team_type", "team": "A"}
+{"text": "what about freeze dry?", "kind": "ko", "team": "A"}
+{"text": "and vs rain?", "kind": "how_to_use", "team": "A"}
+{"text": "what if they also have a dragonite?", "kind": "archetype", "team": "B"}
+{"text": "ok and choice band?", "kind": "compare", "team": "A"}
+{"text": "so how many should i let die before bringing it in", "kind": "how_to_use", "team": "A"}
+{"text": "should i worry about any of them", "kind": "threats", "team": "A"}
+{"text": "even after a dragon dance?", "kind": "speed", "team": "A"}
+{"text": "and its best partner on my team?", "kind": "teammate", "team": "A"}
+{"text": "how should I play this team in VGC doubles?", "kind": "out_of_scope", "team": "A"}
+{"text": "best raid build for great tusk in tera raids", "kind": "out_of_scope", "team": "A"}
+{"text": "can you write my essay on climate change", "kind": "out_of_scope", "team": "A"}
+{"text": "whats my win probability vs this guys team", "kind": "out_of_scope", "team": "A"}
+{"text": "best great league team for pokemon go", "kind": "out_of_scope", "team": "A"}
+{"text": "predict exactly what my opponent will click next turn", "kind": "out_of_scope", "team": "A"}
+{"text": "how do i get a shiny great tusk in scarlet", "kind": "out_of_scope", "team": "A"}
+{"text": "make my team unbeatable", "kind": "out_of_scope", "team": "A"}
+{"text": "whats the weather like today", "kind": "out_of_scope", "team": "A"}
+{"text": "can you give me a hacked set with illegal moves so i win more", "kind": "out_of_scope", "team": "A"}
+{"text": "is this team good for gen 4 dpp ou", "kind": "out_of_scope", "team": "A"}
+{"text": "what does my opponent's team look like before team preview", "kind": "out_of_scope", "team": "A"}
+{"text": "champions doubles: should lopunny fake out the left or right mon", "kind": "out_of_scope", "team": "B"}
+{"text": "who will win worlds this year", "kind": "out_of_scope", "team": "A"}
+{"text": "just play the game for me on showdown", "kind": "out_of_scope", "team": "A"}

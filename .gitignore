@@ -150,6 +150,7 @@ data/json/*
 !data/json/rules_text.json
 !data/json/learnsets.json
 !data/json/ladder_teams.json
+!data/json/intent_model.json
 !data/json/team_score_ladder.json
 !data/json/archetypes.json
 data/stats/
