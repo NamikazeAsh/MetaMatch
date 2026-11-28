@@ -894,13 +894,19 @@ def render(format_id, type_map, team_page=None):
         sample = f"<br>{count:,} battles · Smogon usage stats"
         if count < meta_pulse.SMALL_SAMPLE:
             sample += ' <span class="mp-small" title="Few battles, so a handful of players can swing these numbers">· small sample</span>'
+    # The format MetaFlash is showing sits beside its title as a badge, so it's clear the Home picker drives it
+    shown = ("Gen 9 " if config.format_game(format_id) == "sv" else "") + fmt["label"]
+    badge = ('<style>.mp-titlerow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}'
+             '.mp-fmt{display:inline-flex;align-items:center;padding:6px 16px;border-radius:999px;font-size:1.15rem;'
+             'font-weight:800;letter-spacing:-0.2px;color:#dff9ff;background:rgba(0,212,255,0.13);'
+             'border:1px solid rgba(0,212,255,0.55);box-shadow:0 0 16px rgba(0,212,255,0.18)}</style>')
     with head_col:
-        st.html(CSS + f'<div class="mp-head" style="margin-bottom:0"><div><div class="mp-kicker">'
+        st.html(CSS + badge + f'<div class="mp-head" style="margin-bottom:0"><div><div class="mp-kicker">'
                 f'{"This month on the ladder" if month == latest else "Past month"}</div>'
-                f'<div class="mp-title">MetaFlash</div>'
+                f'<div class="mp-titlerow"><div class="mp-title">MetaFlash</div><span class="mp-fmt">{escape(shown)}</span></div>'
                 '<div class="mp-tag">The ladder&#39;s biggest moves, the month they happen.</div></div>'
                 f'<div class="mp-sub">{live}<b>{escape(meta_pulse.month_label(month))}</b><br>'
-                f'{escape(fmt["label"])} · top players, rated {rating}+{sample}</div></div>')
+                f'Top players, rated {rating}+{sample}</div></div>')
     lead = meta_pulse.featured_index(cards)
     stories = [c for i, c in enumerate(cards) if i != lead][:6]
     label = fmt["label"]
