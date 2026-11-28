@@ -185,6 +185,7 @@ Picks your next teammate by what it adds, not by popularity: threats it beats th
 
 * **Teams like yours:** the real ladder teams closest to yours, with replay links and what they run instead ("17 of your 20 closest teams don't run Gholdengo").
 * **Quick Match:** no team? Pick a Pokémon, add the partners players build with it (rare picks included), then analyze, export or share it as a PokéPaste.
+* **Build from names:** type a few names on Home ("gholdengo, great tusk") and the rest of the team is filled from what real ladder teams with them run, ready to swap in Quick Match. Six names go straight to the analysis. On held out ladder teams it recovers the hidden members about 1.7x as often as picking the most used Pokémon in OU, and its teams leave no more top threats unanswered than the real ones did.
 
 ### Speed Tiers
 

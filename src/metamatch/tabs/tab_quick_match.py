@@ -103,10 +103,17 @@ TEAM_SIZE = 6
 
 def _species(name, format_id):
     """The species a Pokemon counts as under Species Clause: Sceptile-Mega and Rotom-Heat count as Sceptile and Rotom."""
-    from metamatch.engine.dex import dex_for_format
-    dex = dex_for_format(format_id)
-    s = dex.species(name) if dex else None
-    return (s.get("baseSpecies") or s["name"]) if s else name.split("-")[0]
+    from metamatch.engine.team_fill import species
+    return species(name, format_id)
+
+
+def _fill_rest(key, format_id):
+    """'Fill the rest': the open slots filled with what real ladder teams around the team run, each on a set."""
+    from metamatch.engine import team_fill
+    core = list(st.session_state.get(key) or [])
+    team, filled = team_fill.fill(core, format_id, has_set=lambda n: builder.member_set(n, format_id) is not None)
+    st.session_state[key] = team
+    st.session_state[f"qm_filled_{format_id}"] = [*st.session_state.get(f"qm_filled_{format_id}", []), *filled]
 
 
 def _partners(core, format_id, key, strat_data, label):
@@ -172,6 +179,14 @@ SLOT_STYLE = """<style>
 [class*="st-key-qm_rm_"] button p { font-size: 18px !important; line-height: 1 !important; margin: 0 0 2px !important; font-weight: 600; }
 [class*="st-key-qm_rm_"] button:hover { background: rgba(255,107,107,.15) !important; border-color: rgba(255,107,107,.6) !important;
   color: #ff8a8a !important; box-shadow: none !important; }
+/* Members MetaMatch filled in */
+.qm-sugg { display: inline-block; vertical-align: middle; margin-left: 8px; padding: 1px 8px; border-radius: 999px;
+  font-size: .66rem; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: #9cf1ff;
+  background: rgba(0,212,255,.1); border: 1px solid rgba(0,212,255,.35); }
+.st-key-qm_head { align-items: center; }
+.st-key-qm_fill button { border-color: rgba(0,212,255,.6) !important; background: rgba(0,212,255,.08) !important;
+  color: #bdefff !important; }
+.st-key-qm_fill button:hover { background: rgba(0,212,255,.16) !important; box-shadow: 0 0 16px rgba(0,212,255,.3) !important; }
 /* Analyze is the main action: solid, like Home's */
 [class*="st-key-qm_analyze_"] button { background: #00d4ff !important; color: #04141a !important; border-color: #00d4ff !important; }
 [class*="st-key-qm_analyze_"] button p { font-weight: 700; }
@@ -183,8 +198,9 @@ def _types(name, dex):
     return ((dex.species(name) if dex else None) or {}).get("types") or ["Normal"]
 
 
-def _tile(s, name, dex, type_map):
-    """A member's card: sprite with its item, types and Tera, ability, and the four moves tinted by type."""
+def _tile(s, name, dex, type_map, suggested=False):
+    """A member's card: sprite with its item, types and Tera, ability, and the four moves tinted by type. Members
+    MetaMatch filled in carry a Suggested tag."""
     from metamatch.sprites import get_item_icon, get_tera_icon
     from metamatch.tabs.tab_banner import _ability_pill, _type_icon
     item_icon = get_item_icon(s.get("item"))
@@ -198,8 +214,10 @@ def _tile(s, name, dex, type_map):
     for m in s["moves"]:
         mtype = ((dex.move(m) if dex else None) or {}).get("type")
         moves += f'<span class="bn-mv" style="--mc:{type_map.get(mtype, {}).get("color", "#5a6375")}">{escape(m)}</span>'
+    tag = ('<span class="qm-sugg" title="Filled in from real ladder teams with your picks">Suggested</span>'
+           if suggested else "")
     return (f'<div class="qm-tile"><div class="bn-ped"><img src="{escape(get_sprite(name) or "")}" alt="">{item}</div>'
-            f'<div class="bn-body"><div class="bn-nm">{escape(name)}</div>'
+            f'<div class="bn-body"><div class="bn-nm">{escape(name)}{tag}</div>'
             f'<div class="bn-icons">{"".join(_type_icon(t, type_map) for t in _types(name, dex))}{tera}</div>'
             f'{_ability_pill(s.get("ability"))}</div><div class="bn-moves">{moves}</div></div>')
 
@@ -213,7 +231,24 @@ def _team(core, format_id, strat_data, label, open_team_fn, type_map, key):
     tints = "".join(f'.st-key-qm_slot_{i} {{ --tc33: {type_map.get(_types(n, dex)[0], {}).get("color", "#00d4ff")}40; }}'
                     for i, n in enumerate(core))
     st.html(BANNER_STYLE + SLOT_STYLE + f"<style>{tints}</style>")
-    st.markdown("**Your team**")
+    # A member removed and added back by hand is the player's pick, not a suggestion
+    filled = [n for n in st.session_state.get(f"qm_filled_{format_id}", []) if n in core]
+    st.session_state[f"qm_filled_{format_id}"] = filled
+    with st.container(horizontal=True, key="qm_head"):
+        st.markdown("**Your team**")
+        if len(core) < TEAM_SIZE:
+            st.space("stretch")
+            st.button("Fill the rest", key="qm_fill", icon=":material/auto_awesome:",
+                      help="Fills the open slots with what real ladder teams with your picks run",
+                      on_click=_fill_rest, args=(key, format_id))
+    if filled:
+        picked = [n for n in core if n not in filled]
+        who = " and ".join(", ".join(picked).rsplit(", ", 1)) if picked else "your picks"
+        rest = f"The other {len(filled)}" if len(filled) > 1 else "The last one"
+        verb = "are" if len(filled) > 1 else "is"
+        them = "it" if len(picked) == 1 else "them"
+        st.caption(f":material/auto_awesome: You picked {who}. {rest} {verb} what real ladder teams with {them} run. "
+                   "Swap any of them out with the minus.")
     sets, missing = [], []
     # One open slot, not every empty one: five empty cards pushed the partner suggestions off the screen
     cells = min(TEAM_SIZE, len(core) + 1)
@@ -243,7 +278,7 @@ def _team(core, format_id, strat_data, label, open_team_fn, type_map, key):
                     s = builder.member_set(name, format_id, info)
                     if s:
                         sets.append(s)
-                        tile.html(_tile(s, name, dex, type_map))
+                        tile.html(_tile(s, name, dex, type_map, suggested=name in filled))
                         if s.get("all_ratings"):
                             # Rare at the top of the ladder: its usual set comes from players at every rating
                             st.caption(":material/explore: Rare pick: its set comes from players at all ratings.")
@@ -288,7 +323,12 @@ def _one_per_species(key, format_id):
 
 def take_pending(format_id, key):
     """Pokemon added from Move Search (tab_move_search._add) join the team before the picker draws, with the
-    Smogon set they were found on picked."""
+    Smogon set they were found on picked. A team built from names on Home (qm_build_) replaces the team instead."""
+    build = st.session_state.pop(f"qm_build_{format_id}", None)
+    if build:
+        st.session_state[key] = build["team"]
+        st.session_state[f"qm_filled_{format_id}"] = build["filled"]
+        st.session_state[f"qm_unknown_{format_id}"] = build["unknown"]
     pending = st.session_state.pop(f"qm_pending_{format_id}", None)
     if not pending:
         return
@@ -314,6 +354,11 @@ def render(get_strat_data_fn, open_team_fn, type_map):
     core = st.multiselect("Your team (up to 6)", options=options, max_selections=TEAM_SIZE,
                           placeholder="Search for a Pokémon...", key=key, on_change=_one_per_species,
                           args=(key, format_id))
+    unknown = st.session_state.pop(f"qm_unknown_{format_id}", None)
+    if unknown:
+        one = len(unknown) == 1
+        st.caption(f":material/info: {', '.join(unknown)} {'has' if one else 'have'} no {label} record this month, "
+                   f"so {'it is' if one else 'they are'} left out. Check the format picker on Home.")
     if not core:
         return
     strat_data = get_strat_data_fn()

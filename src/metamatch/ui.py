@@ -69,10 +69,10 @@ GUIDES = {
     "quick-match": ("Quick Match", (
         ("search", "Pick one you like", "Search for a Pokémon you want to build around. One is enough to start."),
         ("group_add", "Add its partners",
-         "Cards show who players pair with it most this month. Add the ones you like until you have six."),
+         "Cards show who players pair with it most this month. Add the ones you like, or Fill the rest in one click."),
         ("rocket_launch", "Analyze or play",
          "Every member gets its usual set. Analyze the team, export it to Showdown or share a PokéPaste link."),
-    ), "Hover a member to see its full set, or switch it to a Smogon set."),
+    ), "Typing a few names on Home, like Gholdengo, Great Tusk, builds the rest of the team here."),
     "move-search": ("Move Search", (
         ("search", "Pick your moves", "Choose up to four moves, like Knock Off and U-turn."),
         ("format_list_bulleted", "See who runs them",

@@ -356,6 +356,26 @@ def load_team(pokemon_data, fmt_id):
     return tid
 
 
+def build_from_names(text, fmt_id):
+    """Names typed on Home. Six with sets open the analysis right away; fewer are filled from real ladder teams and
+    opened in Quick Match, so the player sees every pick and can swap any of them."""
+    from metamatch.engine import builder, team_fill
+    names, unknown = team_fill.parse_names(text, fmt_id)
+    if not names:
+        st.warning(f"None of those Pokémon have a {config.format_info(fmt_id)['label']} record this month. "
+                   "Check the format picker.")
+        return
+    # All six named and each has a set: nothing to fill, so straight to the analysis on their usual sets
+    sets = [builder.member_set(n, fmt_id) for n in names]
+    if len(names) == team_fill.TEAM_SIZE and all(sets):
+        open_team(builder.team_paste(sets, fmt_id), fmt_id)
+        return
+    with st.spinner("Building your team..."):
+        team, filled = team_fill.fill(names, fmt_id, has_set=lambda n: builder.member_set(n, fmt_id) is not None)
+    st.session_state[f"qm_build_{fmt_id}"] = {"team": team, "filled": filled, "unknown": unknown}
+    st.switch_page(TOOL_PAGES["quick-match"])
+
+
 def open_team(pokemon_data, fmt_id):
     """Analyses a paste and opens it on the Team page as /team?t=<id>, a real history entry Back understands."""
     tid = load_team(pokemon_data, fmt_id)
@@ -605,7 +625,9 @@ a.th-pill:hover { background:rgba(0,212,255,0.16); border-color:rgba(0,212,255,0
     """Showdown export</a>
 <a class="th-pill" href="https://pokepast.es/" target="_blank" rel="noopener" title="Open PokéPaste to share a team as a link">""" + _icon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
                                    '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>') + \
-    """PokéPaste link</a></div></div>
+    """PokéPaste link</a>
+<span class="th-pill" title="Type a few names, like Gholdengo, Great Tusk, and the rest of the team is filled in">""" + _icon(
+    '<path d="M4 7h16M4 12h10M4 17h7"/>') + """Names</span></div></div>
 """
 
 
@@ -632,7 +654,8 @@ def home_page():
             pokemon_data = st.text_area(
                 "Team",
                 value=st.session_state.default_input,
-                placeholder="Paste a Showdown export or a pokepast.es link\n\nGholdengo @ Choice Scarf\nAbility: Good as Gold\n...",
+                placeholder="Paste a Showdown export or a pokepast.es link, or just type a few names to build around"
+                            "\n\nGholdengo, Great Tusk, Kingambit",
                 height=96,
                 label_visibility="collapsed",
             )
@@ -650,10 +673,13 @@ def home_page():
         if sample_clicked:
             open_sample_team()
         elif analyze_clicked:
-            if pokemon_data.strip():
-                open_team(pokemon_data, st.session_state.format_id)
-            else:
+            from metamatch.engine.team_fill import looks_like_names
+            if not pokemon_data.strip():
                 st.warning("Paste a team first, or try the sample team.")
+            elif looks_like_names(pokemon_data):
+                build_from_names(pokemon_data, st.session_state.format_id)
+            else:
+                open_team(pokemon_data, st.session_state.format_id)
 
     # MetaFlash: this month's featured story, top 10 and movers on the ladder
     tab_meta_pulse.render(st.session_state.format_id, TYPE_MAP, TEAM_PAGE)
