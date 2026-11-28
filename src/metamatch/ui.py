@@ -25,21 +25,26 @@ CSS = """
   background:linear-gradient(90deg, #ffffff 0%, #9cf1ff 55%, #00ffcc 100%); -webkit-background-clip:text; background-clip:text;
   color:transparent; filter:drop-shadow(0 0 18px rgba(0,212,255,0.25)); }
 .ui-ph-tag { font-size:1rem; color:#aab3c5; margin-top:4px; max-width:88ch; }
-.ui-ph-meta { font-size:0.78rem; color:#8a93a6; text-align:right; line-height:1.5; flex-shrink:0; }
-.ui-ph-meta b { color:#d6dbe6; font-weight:700; }
+.ui-ph-meta { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; flex-shrink:0; }
+.ui-chip { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; font-size:0.78rem;
+  color:#aab3c5; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); white-space:nowrap; }
+.ui-chip b { color:#e8ecf3; font-weight:700; }
+.ui-chip-fmt { color:#dff9ff; font-weight:700; background:rgba(0,212,255,0.12); border-color:rgba(0,212,255,0.5);
+  box-shadow:0 0 10px rgba(0,212,255,0.14); }
 .ui-sh { margin:10px 2px 10px; }
 .ui-sh-k { font-size:0.64rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#00d4ff; }
 .ui-sh-t { font-weight:900; font-size:1.4rem; color:#ffffff; letter-spacing:-0.3px; margin-top:2px; line-height:1.2; }
 .ui-sh-c { font-size:0.88rem; color:#aab3c5; margin-top:3px; }
 @media (max-width: 640px) {
-  .ui-ph { flex-direction:column; align-items:flex-start; } .ui-ph-meta { text-align:left; } .ui-ph-t { font-size:1.9rem; }
+  .ui-ph { flex-direction:column; align-items:flex-start; } .ui-ph-meta { justify-content:flex-start; } .ui-ph-t { font-size:1.9rem; }
 }
 </style>
 """
 
 
 def _meta(format_id):
-    """'OU · October 2026 / Smogon usage stats' for the right side of a page header."""
+    """Chips for the right side of a page header, like MetaFlash's: the format lit in cyan, then which month of
+    Smogon's stats the page answers from."""
     from metamatch import config, meta_pulse
     if not format_id:
         return ""
@@ -48,7 +53,8 @@ def _meta(format_id):
     if config.format_game(format_id) == "sv":
         label = f"Gen 9 {label}"
     month = meta_pulse.month_label(meta_pulse.current_month())
-    return f'<div class="ui-ph-meta"><b>{escape(label)}</b> · {escape(month)}<br>Smogon usage stats</div>'
+    return (f'<div class="ui-ph-meta"><span class="ui-chip ui-chip-fmt">{escape(label)}</span>'
+            f'<span class="ui-chip"><b>{escape(month)}</b> stats</span></div>')
 
 
 def page_header(kicker, title, tagline="", format_id=None):
