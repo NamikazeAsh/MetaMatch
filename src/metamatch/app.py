@@ -65,10 +65,19 @@ st.html(r'''
     [data-testid="stTopNavLink"][aria-current="page"] p { color: #dff9ff; }
     [data-testid="stTopNavLink"][aria-current="page"] [data-testid="stIconMaterial"] { color: #00d4ff; }
 
-    /* Format picker: big, easy targets, the one you're on lit like the top bar */
-    .st-key-format_row p { font-size: 1.05rem; }
-    .st-key-format_row button { min-height: 44px; padding: 8px 20px; }
-    .st-key-format_row button p { font-size: 1rem; font-weight: 600; }
+    /* Format picker: one pill group like the top bar, the format you're on lit in cyan */
+    .st-key-format_row [role="radiogroup"] { gap: 4px; padding: 4px; border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); }
+    .st-key-format_row [role="radiogroup"] button { min-height: 40px; padding: 6px 18px; border: none !important;
+        border-radius: 999px !important; background: transparent; box-shadow: none;
+        transition: background 0.15s ease, box-shadow 0.15s ease; }
+    .st-key-format_row [role="radiogroup"] button p { font-size: 1rem; font-weight: 600; color: #aab3c5; }
+    .st-key-format_row [role="radiogroup"] button:hover { background: rgba(0,212,255,0.07); }
+    .st-key-format_row [role="radiogroup"] button:hover p { color: #e8ecf3; }
+    .st-key-format_row [role="radiogroup"] button[aria-checked="true"] { background: rgba(0,212,255,0.15);
+        box-shadow: inset 0 0 0 1px rgba(0,212,255,0.55), 0 0 14px rgba(0,212,255,0.16); }
+    .st-key-format_row [role="radiogroup"] button[aria-checked="true"] p { color: #dff9ff; }
+    .st-key-format_row > div > div [data-testid="stMarkdownContainer"] > p > strong { font-size: 1.05rem; }
 
     /* The paste box starts short and grows to full height once you click in or paste a team */
     .st-key-team_hero textarea { transition: height 0.25s ease; }
@@ -577,7 +586,7 @@ def _icon(paths):
     return f'<img alt="" src="data:image/svg+xml;base64,{base64.b64encode(svg.encode()).decode()}">'
 HERO_HEAD = """
 <style>
-.th-row { display:flex; align-items:center; justify-content:space-between; gap:12px 16px; flex-wrap:wrap; margin:2px 0 4px; }
+.th-row { display:flex; align-items:center; justify-content:space-between; gap:12px 16px; flex-wrap:wrap; margin:0; }
 .th-t { font-size:1.35rem; font-weight:700; color:#e8ecf3; letter-spacing:-0.2px; line-height:1.3; }
 .th-pills { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .th-lbl { font-size:0.72rem; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:#7f8aa0; }
@@ -585,16 +594,18 @@ HERO_HEAD = """
   font-size:0.8rem; font-weight:600; color:#bdefff; background:rgba(0,212,255,0.08);
   border:1px solid rgba(0,212,255,0.32); box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); white-space:nowrap; }
 .th-pill img { width:14px; height:14px; flex-shrink:0; }
+a.th-pill { text-decoration:none; transition:background .15s ease, border-color .15s ease; }
+a.th-pill:hover { background:rgba(0,212,255,0.16); border-color:rgba(0,212,255,0.6); color:#e6fbff; }
 @media (max-width: 520px) { .th-lbl { display:none; } }
 </style>
-<div class="th-row"><div class="th-t">Paste your team</div>
+<div class="th-row" style="justify-content:flex-end">
 <div class="th-pills"><span class="th-lbl">Accepts</span>
-<span class="th-pill">""" + _icon('<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14'
+<a class="th-pill" href="https://play.pokemonshowdown.com/teambuilder" target="_blank" rel="noopener" title="Open Showdown's teambuilder to export a team">""" + _icon('<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14'
                                    'a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 12h8M8 16h5"/>') + \
-    """Showdown export</span>
-<span class="th-pill">""" + _icon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
+    """Showdown export</a>
+<a class="th-pill" href="https://pokepast.es/" target="_blank" rel="noopener" title="Open PokéPaste to share a team as a link">""" + _icon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
                                    '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>') + \
-    """PokéPaste link</span></div></div>
+    """PokéPaste link</a></div></div>
 """
 
 
@@ -616,9 +627,7 @@ def home_page():
     render_logo()
     # Start screen: the team input is the hero, this month's MetaFlash sits under it; recent teams live in the sidebar
     format_picker()
-    st.caption("Sets your team's format and the MetaFlash below.", text_alignment="center")
     with st.container(border=True, key="team_hero"):
-        st.html(HERO_HEAD)
         with st.form("team_form", border=False):
             pokemon_data = st.text_area(
                 "Team",
@@ -630,14 +639,14 @@ def home_page():
             with st.container(horizontal=True, vertical_alignment="center"):
                 analyze_clicked = st.form_submit_button("Analyze team", type="primary", icon=":material/insights:")
                 sample_clicked = st.form_submit_button("Try a sample team", icon=":material/science:")
-                st.caption("Damage calcs, threats, speed tiers and the coach chat, all from one paste." if config.CHAT_ENABLED
-                           else "Damage calcs, threats, speed tiers and a game plan, all from one paste.")
+                # No team to paste: Quick Match builds one from a Pokemon the player picks
+                build_clicked = st.form_submit_button("Build with Quick Match", icon=":material/group_add:")
+                # What the box takes, on the right of the same row (the placeholder already says to paste)
+                st.space("stretch")
+                st.html(HERO_HEAD, width="content")
 
-        # No team to paste: Quick Match builds one from a Pokemon the player picks
-        with st.container(horizontal=True, vertical_alignment="center", gap="small", key="hero_build"):
-            st.caption("No team yet?", width="content")
-            st.page_link(TOOL_PAGES["quick-match"], label="Build one with Quick Match", icon=":material/group_add:")
-
+        if build_clicked:
+            st.switch_page(TOOL_PAGES["quick-match"])
         if sample_clicked:
             open_sample_team()
         elif analyze_clicked:

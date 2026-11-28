@@ -879,34 +879,56 @@ def render(format_id, type_map, team_page=None):
     latest = max(m for m in (meta_pulse.current_month(), months[0]) if m)
     fmt = config.format_info(format_id)
     rating = fmt["stats"].rsplit("-", 1)[-1]
-    head_col, pick_col = st.columns([5, 1.3], vertical_alignment="bottom")
+    # Title on the left; on the right one row of status chips and the month picker (the paper's edition), lined up
+    # with the tagline, and one divider under both
+    head_col, pick_col = st.columns([4.4, 4], vertical_alignment="bottom")
     with pick_col:
-        month = st.selectbox("Month", months, format_func=meta_pulse.month_label, key=f"mf_month_{format_id}",
-                             label_visibility="collapsed")
+        with st.container(horizontal=True, horizontal_alignment="right", vertical_alignment="center", gap="small"):
+            chip_slot = st.empty()
+            st.html('<style>[class*="st-key-mf_month_"]{max-width:170px}'
+                    '[class*="st-key-mf_month_"] [data-testid="stSelectbox"] [role="group"]{border-radius:999px !important;'
+                    'min-height:32px;padding-left:8px;background:rgba(0,212,255,0.06) !important;'
+                    'border:1px solid rgba(0,212,255,0.35) !important;transition:border-color .15s ease}'
+                    '[class*="st-key-mf_month_"] [data-testid="stSelectbox"] [role="group"]:hover{border-color:rgba(0,212,255,0.6) !important}'
+                    '[class*="st-key-mf_month_"] input{font-weight:700 !important;font-size:0.85rem !important;'
+                    'color:#dff9ff !important;background:transparent !important}'
+                    '[class*="st-key-mf_month_"] svg{color:#00d4ff}</style>', width="content")
+            month = st.selectbox("Edition", months, format_func=meta_pulse.month_label, key=f"mf_month_{format_id}",
+                                 label_visibility="collapsed", width=170)
     cards, rows = _section(format_id, month)
     if not cards:
         return
-    live = '<span class="mp-live"></span>' if month == latest else ""
     # How many battles the month rests on (known for the month the stats files are from); a small one is flagged
     count = meta_pulse.battles(format_id) if month == meta_pulse.current_month() else None
-    sample = "<br>Smogon usage stats"
+    # The month itself is in the picker beside them, so the chips don't repeat it
+    chips = ['<span class="mp-chip"><span class="mp-live"></span><b>Live</b></span>'] if month == latest else []
+    chips.append(f'<span class="mp-chip" title="Stats from players rated {rating} and up on the Showdown ladder">'
+                 f'<b>{rating}+</b> Elo</span>')
     if count:
-        sample = f"<br>{count:,} battles · Smogon usage stats"
+        chips.append(f'<span class="mp-chip"><b>{count:,}</b> battles</span>')
         if count < meta_pulse.SMALL_SAMPLE:
-            sample += ' <span class="mp-small" title="Few battles, so a handful of players can swing these numbers">· small sample</span>'
+            chips.append('<span class="mp-chip mp-chip-warn" title="Few battles, so a handful of players can swing these '
+                         'numbers">Small sample</span>')
     # The format MetaFlash is showing sits beside its title as a badge, so it's clear the Home picker drives it
     shown = ("Gen 9 " if config.format_game(format_id) == "sv" else "") + fmt["label"]
-    badge = ('<style>.mp-titlerow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}'
-             '.mp-fmt{display:inline-flex;align-items:center;padding:6px 16px;border-radius:999px;font-size:1.15rem;'
-             'font-weight:800;letter-spacing:-0.2px;color:#dff9ff;background:rgba(0,212,255,0.13);'
-             'border:1px solid rgba(0,212,255,0.55);box-shadow:0 0 16px rgba(0,212,255,0.18)}</style>')
+    style = ('<style>.mp-titlerow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}'
+             '.mp-fmt{display:inline-flex;align-items:center;padding:3px 12px;border-radius:999px;font-size:0.92rem;'
+             'font-weight:700;color:#dff9ff;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.5);'
+             'box-shadow:0 0 10px rgba(0,212,255,0.14)}'
+             '.mp-chips{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}'
+             '.mp-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:0.78rem;'
+             'color:#aab3c5;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);white-space:nowrap}'
+             '.mp-chip b{color:#e8ecf3;font-weight:700}.mp-chip .mp-live{margin-right:0}'
+             '.mp-chip-warn{color:#ffd866;border-color:rgba(255,216,102,0.4);background:rgba(255,216,102,0.08);cursor:help}'
+             '.mp-head.mp-nl::after{display:none}.mp-rule{height:1px;margin:10px 0 0;background:linear-gradient(90deg, rgba(0,212,255,0.7), rgba(0,255,204,0.25) 40%, transparent)}'
+             '</style>')
+    chip_slot.html(CSS + style + f'<div class="mp-chips">{"".join(chips)}</div>', width="content")
     with head_col:
-        st.html(CSS + badge + f'<div class="mp-head" style="margin-bottom:0"><div><div class="mp-kicker">'
+        st.html(CSS + style + f'<div class="mp-head mp-nl" style="margin-bottom:0;padding-bottom:0"><div><div class="mp-kicker">'
                 f'{"This month on the ladder" if month == latest else "Past month"}</div>'
                 f'<div class="mp-titlerow"><div class="mp-title">MetaFlash</div><span class="mp-fmt">{escape(shown)}</span></div>'
-                '<div class="mp-tag">The ladder&#39;s biggest moves, the month they happen.</div></div>'
-                f'<div class="mp-sub">{live}<b>{escape(meta_pulse.month_label(month))}</b><br>'
-                f'Top players, rated {rating}+{sample}</div></div>')
+                f'<div class="mp-tag">The ladder&#39;s biggest stories {"this" if month == latest else "that"} month.</div></div></div>')
+    st.html(style + '<div class="mp-rule"></div>')
     lead = meta_pulse.featured_index(cards)
     stories = [c for i, c in enumerate(cards) if i != lead][:6]
     label = fmt["label"]
