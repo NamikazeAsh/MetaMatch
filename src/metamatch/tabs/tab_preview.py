@@ -109,6 +109,45 @@ def _load_sample(format_id, sample_team, has_team, mine_names):
     st.session_state[f"pv_theirs_{format_id}"] = _sample_opponents(format_id, mine_names)
 
 
+def _random_team(format_id, avoid=()):
+    """Six names from a real ladder team in this format (data/json/ladder_teams.json, from public replays), or []."""
+    import random
+    from metamatch.engine import team_neighbors
+    rows = (team_neighbors._corpus_file().get("formats") or {}).get(format_id) or []
+    avoid = set(avoid)
+    full = [r["team"] for r in rows if len(r.get("team") or []) == 6]
+    pool = [t for t in full if not avoid & set(t)] or full
+    return list(random.choice(pool)) if pool else []
+
+
+def _random_mine(format_id, theirs=()):
+    """'Random team' on your side: a real ladder team, each member on its usual set, as a Showdown paste."""
+    from metamatch.engine import builder
+    names = _random_team(format_id, theirs)
+    paste = builder.team_paste([builder.member_set(n, format_id) for n in names], format_id)
+    if paste:
+        st.session_state["pv_mine"] = paste
+
+
+def _random_theirs(format_id, mine=()):
+    """'Random team' on their side: a real ladder team's six names, the way team preview shows them."""
+    names = _random_team(format_id, mine) or [n.strip() for n in _sample_opponents(format_id, mine).split(",")]
+    st.session_state[f"pv_theirs_{format_id}"] = ", ".join(names)
+
+
+def _names_in(text):
+    """The species names in a Showdown paste, one per block."""
+    return [block.split("@")[0].split("(")[0].strip() for block in (text or "").split("\n\n") if block.strip()]
+
+
+def _random_both(format_id, has_team, mine_names):
+    """'Random matchup': both sides from real ladder teams (only theirs when a team is already open)."""
+    if not has_team:
+        _random_mine(format_id)
+        mine_names = _names_in(st.session_state.get("pv_mine"))
+    _random_theirs(format_id, mine_names)
+
+
 def _vs_banner(mine, theirs):
     img = lambda names: "".join(f'<img src="{escape(get_sprite(n) or "")}" alt="{escape(n)}" title="{escape(n)}">' for n in names)
     return (f'<div class="pv-vs"><div class="pv-side"><div class="lbl">Your team</div><div class="pv-mons">{img(mine)}</div></div>'
@@ -127,18 +166,29 @@ def render(team=None, sample_team=None):
         st.caption(f"Using your open team ({config.format_info(format_id)['label']}). Paste the team you're facing."
                    if has_team else "Paste both teams, or try it with a sample first.")
     with button:
-        st.button("Try a sample", key="pv_sample", width="stretch",
-                  help="Fills in sample teams so you can see how it works." if not has_team
-                  else "Fills their side with this format's six most used Pokémon.",
-                  on_click=_load_sample, args=(format_id, sample_team, has_team, mine_names))
+        st.button("Random matchup", key="pv_sample", width="stretch", icon=":material/casino:",
+                  help="Fills both sides with real ladder teams so you can see how it works." if not has_team
+                  else "Fills their side with a real ladder team.",
+                  on_click=_random_both, args=(format_id, has_team, mine_names))
     left_in, right_in = st.columns(2) if not has_team else (None, st.container())
     if not has_team:
         with left_in:
-            mine_text = st.text_area("Your team", height=150, key="pv_mine",
+            head, pick = st.columns([3, 1], vertical_alignment="bottom")
+            head.markdown("**Your team**")
+            pick.button("Random team", key="pv_rand_mine", icon=":material/casino:", type="tertiary", width="stretch",
+                        help="A real ladder team in this format, each member on its usual set",
+                        on_click=_random_mine, args=(format_id, _names_in(st.session_state.get(f"pv_theirs_{format_id}"))))
+            mine_text = st.text_area("Your team", height=150, key="pv_mine", label_visibility="collapsed",
                                      placeholder="Paste your Showdown export, or open a team first and it's used here.")
         team = readTeam(mine_text, format_id)[0] if mine_text.strip() else None
     with right_in:
+        head, pick = st.columns([3, 1], vertical_alignment="bottom")
+        head.markdown("**Their team**")
+        pick.button("Random team", key="pv_rand_theirs", icon=":material/casino:", type="tertiary", width="stretch",
+                    help="A real ladder team in this format, as the six names team preview shows",
+                    on_click=_random_theirs, args=(format_id, mine_names or _names_in(st.session_state.get("pv_mine"))))
         theirs = st.text_area("Their team", height=150 if not has_team else 90, key=f"pv_theirs_{format_id}",
+                              label_visibility="collapsed",
                               placeholder=f"Paste their Showdown export, or just the six names from team preview, like: {EXAMPLE}")
     if not team or not theirs.strip():
         st.caption("Names alone work: each Pokémon gets its most common ladder set. A full paste is used exactly as written.")
