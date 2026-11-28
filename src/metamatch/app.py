@@ -626,7 +626,7 @@ a.th-pill:hover { background:rgba(0,212,255,0.16); border-color:rgba(0,212,255,0
 <a class="th-pill" href="https://pokepast.es/" target="_blank" rel="noopener" title="Open PokéPaste to share a team as a link">""" + _icon('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
                                    '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>') + \
     """PokéPaste link</a>
-<span class="th-pill" title="Type a few names, like Gholdengo, Great Tusk, and the rest of the team is filled in">""" + _icon(
+<span class="th-pill" title="Type a few Pokémon separated by commas, like Gholdengo, Great Tusk, and the rest of the team is filled in">""" + _icon(
     '<path d="M4 7h16M4 12h10M4 17h7"/>') + """Names</span></div></div>
 """
 
@@ -654,7 +654,8 @@ def home_page():
             pokemon_data = st.text_area(
                 "Team",
                 value=st.session_state.default_input,
-                placeholder="Paste a Showdown export or a pokepast.es link, or just type a few names to build around"
+                placeholder="Paste a Showdown export or a pokepast.es link, or type a few Pokémon separated by commas to "
+                            "build around them"
                             "\n\nGholdengo, Great Tusk, Kingambit",
                 height=96,
                 label_visibility="collapsed",
