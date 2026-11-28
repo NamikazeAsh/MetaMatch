@@ -24,7 +24,7 @@ STYLE = """
 .sl-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .sl-chip { font-size: .76rem; padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.06); color: #c6d1e3; }
 .sl-tag { display: inline-block; font: 800 .68rem system-ui, sans-serif; letter-spacing: .12em; padding: 3px 9px; border-radius: 999px; }
-.sl-sentence { color: #9fb0cc; font-size: .86rem; margin-top: -4px; }
+.sl-sentence { color: #9fb0cc; font-size: .86rem; margin-top: 4px; }
 .sl-result { background: rgba(34,211,238,.06); border: 1px solid rgba(34,211,238,.35); border-radius: 14px; padding: 18px 20px; }
 .sl-result.fail { background: rgba(248,113,113,.06); border-color: rgba(248,113,113,.35); }
 .sl-result .eyebrow { font: 700 .7rem system-ui, sans-serif; letter-spacing: .14em; color: #22d3ee; text-transform: uppercase; }
@@ -57,6 +57,12 @@ STYLE = """
 .sl-hit.some { background: rgba(251,191,36,.15); color: #fbbf24; }
 .sl-hit.none { background: rgba(248,113,113,.15); color: #f87171; }
 [class*="st-key-slrow_"] { border-left: 3px solid #22d3ee !important; }
+/* Room to breathe inside each benchmark, and a gap between them */
+[class*="st-key-slrow_"] { padding: 16px 20px 14px !important; margin-bottom: 4px; }
+/* The search is the main action: filled, like Analyze team on Home */
+.st-key-sl_find .stButton > button { background: #00d4ff !important; border-color: #00d4ff !important; color: #062030 !important; }
+.st-key-sl_find .stButton > button p { color: #062030 !important; font-weight: 700; }
+.st-key-sl_find .stButton > button:hover { background: #33ddff !important; box-shadow: 0 0 20px rgba(0, 212, 255, 0.45) !important; }
 [class*="st-key-slrow_"][class*="_ko"] { border-left-color: #34d399 !important; }
 [class*="st-key-slrow_"][class*="_survive"] { border-left-color: #fbbf24 !important; }
 </style>
@@ -251,14 +257,15 @@ def render(team=None):
             if usable:
                 benchmarks.append(b)
 
+    st.space("small")
     a, b_, c_ = st.columns([1, 1, 2])
-    if a.button("Add benchmark", disabled=len(_rows()) >= MAX_ROWS, width="stretch"):
+    if a.button("Add benchmark", icon=":material/add:", disabled=len(_rows()) >= MAX_ROWS, width="stretch"):
         st.session_state.sl_rows.append(st.session_state.sl_next)
         st.session_state.sl_next += 1
         st.rerun()
-    b_.button("Try an example", width="stretch", on_click=_load_example, args=(format_id, name, targets, attacks, base),
+    b_.button("Try an example", icon=":material/lightbulb:", width="stretch", on_click=_load_example, args=(format_id, name, targets, attacks, base),
               help="Fills in three benchmarks to show how it works.")
-    run = c_.button("Find the smallest spread", type="primary", width="stretch")
+    run = c_.button("Find the smallest spread", type="primary", icon=":material/search:", width="stretch", key="sl_find")
 
     if run and benchmarks:
         with st.spinner("Searching spreads with the damage calculator..."):
