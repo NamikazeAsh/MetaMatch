@@ -161,6 +161,7 @@ SLOT_STYLE = """<style>
 /* Open slots up to six */
 .qm-empty { min-height: 252px; border-radius: 18px; border: 1.5px dashed rgba(0,212,255,.25); display: grid; place-items: center;
   text-align: center; color: #7f8aa0; font-size: .85rem; background: rgba(0,212,255,.02); }
+.qm-empty-slim { min-height: 96px; }
 .qm-empty b { display: block; font-size: 1.6rem; color: rgba(0,212,255,.55); font-weight: 400; line-height: 1; margin-bottom: 6px; }
 /* The minus in a member card's corner removes it */
 [class*="st-key-qm_slot_"] { position: relative; }
@@ -214,12 +215,20 @@ def _team(core, format_id, strat_data, label, open_team_fn, type_map, key):
     st.html(BANNER_STYLE + SLOT_STYLE + f"<style>{tints}</style>")
     st.markdown("**Your team**")
     sets, missing = [], []
-    for row in range(0, TEAM_SIZE, 3):
+    # One open slot, not every empty one: five empty cards pushed the partner suggestions off the screen
+    cells = min(TEAM_SIZE, len(core) + 1)
+    left = TEAM_SIZE - len(core)
+    for row in range(0, cells, 3):
         cols = st.columns(3)
         for i in range(row, row + 3):
+            if i >= cells:
+                continue
             with cols[i - row]:
                 if i >= len(core):
-                    st.html('<div class="qm-empty"><div><b>+</b>Add a Pokémon<br>above or from the partners below</div></div>')
+                    # Slim when it starts a row on its own, card sized beside the members
+                    slim = " qm-empty-slim" if i % 3 == 0 else ""
+                    st.html(f'<div class="qm-empty{slim}"><div><b>+</b>{left} more to go<br>'
+                            'Add one above, or pick from the partners below</div></div>')
                     continue
                 name = core[i]
                 options = [builder.LADDER] + builder.smogon_options(name, strat_data, label)
